@@ -15,7 +15,6 @@ try:
     print(myServer.getNewMessage(numSocket))
     while 1:
         n=input("Msg >> ")
-        print(len(n))
         if n.lower().rfind("q",0,1) != -1 and len(n) == 2:
             break
         elif n.lower().rfind("r",0,1) != -1 and len(n) == 2:
