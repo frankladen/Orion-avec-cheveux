@@ -6,12 +6,6 @@ package projetSynthese;
  * @author Francois Allard
  */
 
-public class Echiquier implements MethodesEchiquier{
-	/**
-	 * Tableau d'objet Case, contient les cases qui contienne les Piece
-	 */
-	private Case[][] location;
-	
 	/** 
 	 * Constructeur de la classe Echiquier, cree un tableau de 8X8 de Case qui, par defaut, ne contienne aucunne piece.
 	 * @param Prend en parametre la couleur du cavalier
