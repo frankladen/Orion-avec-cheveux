@@ -4,7 +4,7 @@ import socket
 class Player(object):
     def __init__(self):
         self.ipPlayer = socket.gethostbyname(socket.getfqdn())
-        self.text="ass"
+        self.text=""
         
     def getText(self):
         return self.text
