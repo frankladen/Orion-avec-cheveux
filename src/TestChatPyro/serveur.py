@@ -15,9 +15,7 @@ class ControleurServeur(object):
         messages=[]
         for i in range(0,len(self.sockets)):
             if i != num:
-                messages.append(self.sockets[i].getText())
-        if len(messages) == 0:
-            return ['Aucun message']
+                messages.append(self.sockets[i])
         return messages
         
     def getNumSocket(self, player):
@@ -31,6 +29,11 @@ class ControleurServeur(object):
         print('ajoute le socket a la fin')
         self.sockets.append(player)
         return n
+    
+    def testConnect(self):
+        #dummy afin de vérifier si le serveur existe
+        i=1
+        
 
 # le processus qui ecoute les messages des clients
 adresse=socket.gethostbyname(socket.getfqdn())
