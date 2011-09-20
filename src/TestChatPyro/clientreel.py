@@ -9,7 +9,7 @@ def printMessages():
     for i in range(0,len(mess)):
         nom=mess[i].getPlayerName()
         text=mess[i].getText()
-        print(nom,'-',text)
+        print('\r',nom,'-',text)
     Timer(0.1, printMessages).start()
 
 
