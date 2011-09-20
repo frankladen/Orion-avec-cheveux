@@ -10,6 +10,7 @@ def printMessages():
         nom=mess[i].getPlayerName()
         text=mess[i].getText()
         print(nom,'-',text)
+    Timer(0.1, printMessages).start()
 
 
 n=input("Adresse du serveur >> ").rstrip('\r')
@@ -22,8 +23,7 @@ try:
     print('(Q)uitter')
     print('(R)efresh')
     print('Appuyez sur Enter pour envoyer')
-    t = Timer(0.05,printMessages)
-    t.start()
+    Timer(0.1,printMessages).start()
     while 1:
         n=input("Msg >> ")
             
