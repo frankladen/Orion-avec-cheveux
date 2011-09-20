@@ -5,7 +5,8 @@ class Player():
     def __init__(self, playerName):
         self.playerName = playerName
         self.ipPlayer = socket.gethostbyname(socket.getfqdn())
-        self.text="Aucun"
+        self.text=""
+        self.lastMess=""
         
     def getText(self):
         return self.text
@@ -18,3 +19,9 @@ class Player():
     
     def setText(self, text):
         self.text=text
+    
+    def getLastMess(self):
+        return self.lastMess
+    
+    def setLastMess(self, text):
+        self.lastMess=text

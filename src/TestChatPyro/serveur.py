@@ -15,7 +15,9 @@ class ControleurServeur(object):
         messages=[]
         for i in range(0,len(self.sockets)):
             if i != num:
-                messages.append(self.sockets[i])
+                if self.sockets[i].getLastMess() != self.sockets[i].getText():
+                    messages.append(self.sockets[i])
+                    self.sockets[i].setLastMess(self.sockets[i].getText())
         return messages
         
     def getNumSocket(self, player):
