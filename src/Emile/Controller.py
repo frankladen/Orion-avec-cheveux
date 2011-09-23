@@ -14,15 +14,14 @@ class Controller():
         dist = self.player.camera.calcDistance([x,y])
         rX = self.player.camera.position[0]-self.player.camera.screenCenter[0]+x
         rY = self.player.camera.position[1]-self.player.camera.screenCenter[1]+y
-        self.player.units[0].changeFlag(t.Target([rX,rY,0]),2)
-    
-    def allo(self):
-        print('allo')
-    
+        for i in self.player.units:
+            i.changeFlag(t.Target([rX,rY,0]),2)
+
     def mouvement(self):
-        if self.player.units[0].flag.flagState == 2:
-            self.player.units[0].move()
-            self.view.drawWorld()
+        for i in self.player.units:
+            if i.flag.flagState == 2:
+                i.move()
+        self.view.drawWorld()
         self.view.root.after(50, self.mouvement)
             
 c = Controller()

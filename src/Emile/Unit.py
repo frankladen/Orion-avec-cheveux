@@ -6,23 +6,21 @@ import Helper as h
 from time import sleep
 
 class Unit(t.PlayerObject):
-    def __init__(self, name, position, flag=Flag.Flag(t.Target([0,0,0]),t.Target([0,0,0]),fs.FlagState.STANDBY), foodcost=50, movespeed=1.0):
-        t.PlayerObject.__init__(self, name, flag, position)
+    def __init__(self, name, position, foodcost=50, moveSpeed=1.0):
+        t.PlayerObject.__init__(self, name, position)
         self.FoodCost=foodcost
-        self.MoveSpeed=movespeed
+        self.moveSpeed=moveSpeed
         
     def move(self):
-        #while self.flag.flagState != fs.FlagState.STANDBY:
-        if h.Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1]) <= self.MoveSpeed:
+        if h.Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1]) <= self.moveSpeed:
             self.position = self.flag.finalTarget.position
             self.flag.flagState = fs.FlagState.STANDBY
             print(self.position)
         else:
             angle = h.Helper.calcAngle(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1])
-            temp = h.Helper.getAngledPoint(angle, self.MoveSpeed, self.position[0], self.position[1])
+            temp = h.Helper.getAngledPoint(angle, self.moveSpeed, self.position[0], self.position[1])
             self.position[0] = temp[0]
             self.position[1] = temp[1]
-            #print (self.position)
     
     def changeFlag(self, finalTarget, state):
         self.flag.initialTarget = self.position

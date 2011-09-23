@@ -5,9 +5,10 @@ class Player():
         self.name = name
         self.civilization = civilization
         self.selectedObjects = selectedObjects
-        self.camera = Camera([400,400], galaxy)
+        self.camera = Camera([0,0], galaxy)
         self.units = []
-        self.units.append(u.Unit('Scout001',[400,400,0]))
+        self.units.append(u.Unit('Scout001',[0,0,0], moveSpeed=5.0))
+        self.units.append(u.Unit('Scout002',[100,200,0], moveSpeed=5.0))
         
 class Camera():
     def __init__(self, defaultPos, galaxy):
@@ -31,16 +32,16 @@ class Camera():
     
     def move(self, direction):
         if direction == 'LEFT':
-            if self.position[0] > (self.galaxy.width*-1)/2:
+            if self.position[0] > (self.galaxy.width*-1)/2+self.screenCenter[0]:
                 self.position[0]-=5
         elif direction == 'RIGHT':
-            if self.position[0] < self.galaxy.width/2:
+            if self.position[0] < self.galaxy.width/2 - self.screenCenter[0]:
                 self.position[0]+=5
         elif direction == 'UP':
-            if self.position[1] > (self.galaxy.height*-1)/2:
+            if self.position[1] > (self.galaxy.height*-1)/2 + self.screenCenter[1]:
                 self.position[1]-=5
         elif direction == 'DOWN':
-            if self.position[1] < self.galaxy.height/2:
+            if self.position[1] < self.galaxy.height/2 - self.screenCenter[1]:
                 self.position[1]+=5
         print('cameraPosition:',self.position)
 
