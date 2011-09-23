@@ -22,12 +22,12 @@ class Galaxy():
             tempY=""
             placeFound = False
             while placeFound == False:
-                tempX=random.random()*1000*i
-                tempY=random.random()*1000*i
+                tempX=(random.random()*self.width)-self.width/2
+                tempY=(random.random()*self.height)-self.height/2
                 placeFound = True
                 for j in self.solarSystemList:
-                    if tempX > j.sunPosition[0]-100 and tempX < j.sunPosition[0]+100:
-                        if tempY > j.sunPosition[1]-100 and tempY > j.sunPosition[1]+100:
+                    if tempX > j.sunPosition[0]-150 and tempX < j.sunPosition[0]+150:
+                        if tempY > j.sunPosition[1]-150 and tempY > j.sunPosition[1]+150:
                             placeFound = False
             print(tempX,tempY)
             self.solarSystemList.append(SolarSystem(tempX,tempY,0))
@@ -44,7 +44,9 @@ class SolarSystem():
             while placeFound == False:
                 tempX = (random.random()*200)-100
                 tempY = (random.random()*200)-100
-                placeFound = True
+                if tempX > self.sunPosition[0]+10 or tempX < self.sunPosition[0]-10:
+                    if tempY > self.sunPosition[1]+10 or tempY < self.sunPosition[1]-10:
+                        placeFound = True
             print("planet ",i,tempX,tempY)
             self.planets.append(AstronomicalObject('planet', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY)))
                                 
@@ -63,34 +65,3 @@ class AstronomicalObject(Target):
         else:
             self.landable = False
         
-
-class Camera():
-    def __init__(self, defaultPos):
-        self.position = defaultPos
-        self.screenCenter = (400,400)
-        self.screenWidth = 800
-        self.screenHeight = 800
-    
-    def calcDistance(self, position):
-        distX = position[0] - self.position[0]
-        distY = position[1] - self.position[1]
-        return [distX+self.screenCenter[0], distY+self.screenCenter[1]]
-    
-    def isInFOV(self, position):
-        if position[0] > self.position[0]-self.screenWidth/2-20 and position[0] < self.position[0]+self.screenWidth/2+20:
-            if position[1] > self.position[1]-self.screenHeight/2-20 and position[1] < self.position[1]+self.screenHeight/2+20:
-                return True
-        return False
-    
-    def move(self, direction):
-        if direction == 'LEFT':
-            self.position[0]-=5
-        elif direction == 'RIGHT':
-            self.position[0]+=5
-        elif direction == 'UP':
-            self.position[1]-=5
-        elif direction == 'DOWN':
-            self.position[1]+=5
-        print("CamPos: ", self.position)
-
-
