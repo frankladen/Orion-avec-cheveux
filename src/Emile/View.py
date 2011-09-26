@@ -15,39 +15,41 @@ class View():
     def drawWorld(self):
         self.gameArea.delete(ALL)
         sunList = self.parent.galaxy.solarSystemList
-        players = [self.parent.player] 
+        players = self.parent.players 
+        id = self.parent.playerId
         for i in sunList:
-            self.drawSun(i.sunPosition)
+            self.drawSun(i.sunPosition, players[id])
             for j in i.planets:
-                self.drawPlanet(j.position)
+                self.drawPlanet(j.position, players[id])
         for i in players:
             for j in i.units:
-                self.drawUnit(j.position)
+                self.drawUnit(j.position, players[id])
          
-    def drawSun(self, sunPosition):
-        if self.parent.player.camera.isInFOV(sunPosition):
-            distance = self.parent.player.camera.calcDistance(sunPosition)
+    def drawSun(self, sunPosition, player):
+        if player.camera.isInFOV(sunPosition):
+            distance = player.camera.calcDistance(sunPosition)
             self.gameArea.create_oval(distance[0]-20, distance[1]-20, distance[0]+20, distance[1]+20, fill='RED')
-    def drawPlanet(self, planetPosition):
-        if self.parent.player.camera.isInFOV(planetPosition):
-            distance = self.parent.player.camera.calcDistance(planetPosition)
+            
+    def drawPlanet(self, planetPosition, player):
+        if player.camera.isInFOV(planetPosition):
+            distance = player.camera.calcDistance(planetPosition)
             self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10, fill='BLUE')
             
-    def drawUnit(self, unitPosition):
-        if self.parent.player.camera.isInFOV(unitPosition):
-            distance = self.parent.player.camera.calcDistance(unitPosition)
+    def drawUnit(self, unitPosition, player):
+        if player.camera.isInFOV(unitPosition):
+            distance = player.camera.calcDistance(unitPosition)
             self.gameArea.create_polygon((distance[0], distance[1]-5,distance[0]-5,distance[1]+5,distance[0]+5,distance[1]+5),fill='YELLOW')
         
     def keyPress(self, eve):
         code = eve.keycode
         if code == 37:
-            self.parent.player.camera.move('LEFT')
+            self.parent.players[self.parent.playerId].camera.move('LEFT')
         elif code == 38:
-            self.parent.player.camera.move('UP')
+            self.parent.players[self.parent.playerId].camera.move('UP')
         elif code == 39:
-            self.parent.player.camera.move('RIGHT')
+            self.parent.players[self.parent.playerId].camera.move('RIGHT')
         elif code == 40:
-            self.parent.player.camera.move('DOWN')
+            self.parent.players[self.parent.playerId].camera.move('DOWN')
         self.drawWorld()
         
     def clic(self, eve):

@@ -26,6 +26,11 @@ class Camera():
         distY = position[1] - self.position[1]
         return [distX+self.screenCenter[0], distY+self.screenCenter[1]]
     
+    def calcPointInWorld(self, x,y):
+        dist = self.calcDistance([x,y])
+        rX = self.position[0]-self.screenCenter[0]+x
+        rY = self.position[1]-self.screenCenter[1]+y
+        return [rX,rY,0]
     
     def isInFOV(self, position):
         if position[0] > self.position[0]-self.screenWidth/2-20 and position[0] < self.position[0]+self.screenWidth/2+20:
