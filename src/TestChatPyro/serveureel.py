@@ -10,7 +10,19 @@ class ControleurServeur(object):
     
     def addMessage(self, text, num):
         self.sockets[num].setText(text)
+        
+    def addChange(self, info, num):
+        self.sockets[num].addPlayerChange(info)
+    
+    
+    # Méthode qui envoie les changements aux joueurs, et décide qui dois en recevoir ou non, selon le retard que peuvent avoir pris certain player.
+    def getChange(self, num):
 
+            
+        
+
+        
+    
     def getNewMessage(self, num):
         messages=[]
         for i in range(0,len(self.sockets)):
@@ -19,7 +31,8 @@ class ControleurServeur(object):
                     messages.append(self.sockets[i])
                     self.sockets[i].setLastMess(self.sockets[i].getText())
         return messages
-        
+    
+       
     def getNumSocket(self, player):
         n=0
         for i in range(0,len(self.sockets)):
@@ -33,9 +46,8 @@ class ControleurServeur(object):
         return n
     
     def testConnect(self):
-        #dummy afin de vÈrifier si le serveur existe
-        i=1
-        
+        #dummy afin de vérifier si le serveur existe
+        i=1   
 
 # le processus qui ecoute les messages des clients
 adresse=socket.gethostbyname(socket.getfqdn())
