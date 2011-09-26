@@ -1,15 +1,18 @@
 import Unit as u
 
 class Player():
-    def __init__(self, name, galaxy, civilization=None, selectedObjects=None):
+    def __init__(self, name, civilization=None, selectedObjects=None):
         self.name = name
         self.civilization = civilization
         self.selectedObjects = selectedObjects
-        self.camera = Camera([0,0], galaxy)
         self.units = []
         self.units.append(u.Unit('Scout001',[0,0,0], moveSpeed=5.0))
         self.units.append(u.Unit('Scout002',[100,200,0], moveSpeed=5.0))
+        #self.camera = Camera([0,0], galaxy)
         
+    def startGame(self, position, galaxy):
+        self.camera = Camera(position ,galaxy)
+            
 class Camera():
     def __init__(self, defaultPos, galaxy):
         self.position = defaultPos

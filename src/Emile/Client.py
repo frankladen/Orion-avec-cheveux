@@ -5,7 +5,8 @@ import Target as t
 class Controller():
     def __init__(self):
         self.galaxy=w.Galaxy(2)
-        self.player = p.Player('Emile', self.galaxy)
+        self.player = p.Player('Emile')
+        self.player.startGame([0,0],self.galaxy)
         self.view = v.View(self, 'Orion')
         self.mouvement()
         self.view.root.mainloop()
