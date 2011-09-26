@@ -11,13 +11,14 @@ import random
 #Autres vaisseau: 1x1
 #Ceci n'est qu'une échelle donc n'importe quel grandeur dans la vue est bonne
 #tant qu'on respecte cette échelle pour les grandeurs
+
 class Galaxy():
     def __init__(self,nbPlayer):
     	self.width=(nbPlayer)*1000
     	self.height=(nbPlayer)*1000
     	self.depth=(nbPlayer)*1000
     	self.solarSystemList = []
-    	for i in range(1,nbPlayer*6):
+    	for i in range(1,nbPlayer*(6+(nbPlayer-2))):
             tempX=""
             tempY=""
             placeFound = False
@@ -25,11 +26,15 @@ class Galaxy():
                 tempX=(random.random()*self.width)-self.width/2
                 tempY=(random.random()*self.height)-self.height/2
                 placeFound = True
+                if tempX < -1*(self.width/2)+150 or tempX > self.width/2-150:
+                    placeFound = False
+                if tempY < -1*(self.height/2)+150 or tempY > self.height/2-150: 
+                    placeFound = False
                 for j in self.solarSystemList:
-                    if tempX > j.sunPosition[0]-150 and tempX < j.sunPosition[0]+150:
-                        if tempY > j.sunPosition[1]-150 and tempY > j.sunPosition[1]+150:
+                    if tempX > j.sunPosition[0]-250 and tempX < j.sunPosition[0]+250:
+                        if tempY > j.sunPosition[1]-250 and tempY < j.sunPosition[1]+250:
                             placeFound = False
-            print(tempX,tempY)
+            print("soleil:", tempX, tempY)
             self.solarSystemList.append(SolarSystem(tempX,tempY,0))
                             
 class SolarSystem():
@@ -37,17 +42,21 @@ class SolarSystem():
         self.sunPosition = (sunX,sunY,sunZ)
         self.planets = []
         nPlanet = int(random.random()*6)+1
-        for i in range(1,nPlanet):
+        for i in range(0,nPlanet):
             tempX=""
             tempY=""
             placeFound = False
             while placeFound == False:
-                tempX = (random.random()*200)-100
-                tempY = (random.random()*200)-100
-                if tempX > self.sunPosition[0]+10 or tempX < self.sunPosition[0]-10:
-                    if tempY > self.sunPosition[1]+10 or tempY < self.sunPosition[1]-10:
-                        placeFound = True
-            print("planet ",i,tempX,tempY)
+                placeFound = True
+                tempX = (random.random()*250)-125
+                tempY = (random.random()*250)-125
+                if tempX > -40 and tempX < 40:
+                    if tempY > -40 and tempY < 40:
+                        placeFound = False
+                for j in self.planets:
+                    if self.sunPosition[0]+tempX > j.position[0]-20 and self.sunPosition[0]+tempX < j.position[0]+20:
+                        if self.sunPosition[1]+tempY > j.position[1]-20 and self.sunPosition[1]+tempY < j.position[1]+20:
+                            placeFound = False
             self.planets.append(AstronomicalObject('planet', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY)))
                                 
 class Target():
