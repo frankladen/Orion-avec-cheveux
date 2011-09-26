@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+# -*- coding: UTF-8 -*-
 import Pyro4
 import socket
 import player

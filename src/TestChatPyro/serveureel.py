@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+# -*- coding: UTF-8 -*-
 import Pyro4
 import socket
 import player
@@ -15,12 +15,10 @@ class ControleurServeur(object):
         self.sockets[num].addPlayerChange(info)
     
     
-    # MŽthode qui envoie les changements aux joueurs, et dŽcide qui dois en recevoir ou non, selon le retard que peuvent avoir pris certain player.
+    # Méthode qui envoie les changements aux joueurs, et décide qui dois en recevoir ou non, selon le retard que peuvent avoir pris certain player.
     def getChange(self, num):
-
             
         
-
         
     
     def getNewMessage(self, num):
@@ -46,7 +44,7 @@ class ControleurServeur(object):
         return n
     
     def testConnect(self):
-        #dummy afin de vŽrifier si le serveur existe
+        #dummy afin de vérifier si le serveur existe
         i=1   
 
 # le processus qui ecoute les messages des clients
