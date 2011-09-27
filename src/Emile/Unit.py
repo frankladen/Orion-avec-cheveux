@@ -26,25 +26,6 @@ class Unit(t.PlayerObject):
         self.flag.initialTarget = self.position
         self.flag.finalTarget = finalTarget
         self.flag.flagState = state
-        
-#        if self.flag.flagState == fs.FlagState.STANDBY:
-#            self.flag.finalTarget = self.flag.initialTarget
-#        elif self.flag.flagState == fs.FlagState.MOVE:
-#            self.move()
-#        elif self.flag.flagState == fs.FlagState.PATROL:
-#            print("Patrol")
-#        elif self.flag.flagState == fs.FlagState.ATTACK:
-#            print("Attack")
-#        elif self.flag.flagState == fs.FlagState.ATTACK + FlagState.MOVE:
-#            print("Attack + move")
-#        elif self.flag.flagState == fs.FlagState.GATHER:
-#            print("Gather")
-#        elif self.flag.flagState == fs.FlagState.BUILD:
-#            print("Build")
-#        elif self.flag.flagState == fs.FlagState.REPAIR:
-#            print("Repair")
-#        elif self.flag.flagState == fs.FlagState.RESEARCH:
-#            print("Research")
               
 class SpaceUnit(Unit):
     def __init__(self):

@@ -11,6 +11,7 @@ class Controller():
         self.playerId=0
         self.players = [] #La liste des joueurs
         self.playerId = 0 #Le id du joueur courant
+        self.refresh = 0
         self.view = v.View(self, 'Orion')
         self.multiSelect = False
         self.view.root.mainloop()
@@ -64,5 +65,15 @@ class Controller():
     def startGame(self):
         self.view.startGame()
         self.view.root.after(50, self.action)
+        
+    def sendActionsToServer(self, flag, unit=None):
+        #if isinstance(flag.finalTarget, t.PlayerObject):
+        #    if unit is not None:
+        #        actionToSend=playerId+'/'+self.refresh+'/'+'unit'+'/'+flag.flagState+'/'+unit
+        #else:
+        actionToSend=playerId+'/'+self.refresh+'/'+'point'+'/'+flag.flagState+'/'+flag.finalTarget.position
+        self.server.sendAction(actionToSend)
+        refresh+=1
+        
 
 c = Controller()
