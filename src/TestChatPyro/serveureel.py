@@ -2,11 +2,16 @@
 import Pyro4
 import socket
 import player
+from time import time
 
 class ControleurServeur(object):
     def __init__(self):
         self.sockets=[]
         self.numClient=0
+        self.seed = int(time())
+    
+    def getSeed(self):
+        return self.seed;
     
     def addMessage(self, text, num):
         self.sockets[num].setText(text)
@@ -14,9 +19,21 @@ class ControleurServeur(object):
     def addChange(self, info, num):
         self.sockets[num].addPlayerChange(info)
     
+
+    def frameDifference(self):
+        frameList = []
+        for player in self.sockets :
+            frameList.append(player.getCurrentframe)
+        
+        #Je détermine le frame maximum et le frame minimum de tout les clients
+        frameMax = max(frameList)
+        frameMin = min(frameList)
+        
+        return (frameMax-frameMin)
     
-    # Méthode qui envoie les changements aux joueurs, et décide qui dois en recevoir ou non, selon le retard que peuvent avoir pris certain player.
-    def getChange(self, num):
+    
+    # Méthode qui détermine et isole les joueurs dont le frame courant est trop élevé par apport aux autres
+    def playersTooDamnHigh(self):
         frameList = []
         for player in self.sockets :
             frameList.append(player.getCurrentframe)
@@ -28,21 +45,36 @@ class ControleurServeur(object):
         #Détermine si l'écart entre les joueurs est trop grand (15 étant une valeur arbitraire, destinée à être modifié)
         if frameMax - frameMin > 15:
             playerMax = []
-            playerMin = []
             
             #Je recherche et j'isole toute les occurences des joueurs ayant les frames les plus élevés
             if frameList.count(frameMax > 1):
                 for i in frameList:
                     if i == frameMax:
-                        playerMax.append(self.sockets[i])
+                        playerMax.append(i)
+         
+            return playerMax
         
-        return #liste de changement auquel un un "flag" à été rajouté indiquant aux joueurs 
-                #concernées de ralentir le rythme ainsi qu'un indication sur le nombre de frame qu'ils ont à "attendre" (frameMax-FrameMin)
-                #La structure de ce flag devra être discuté avec monsieur Hinse mardi !
+        return 0
                 
-        
-        
+    def getNumberOfPlayers(self):
+        return len(self.sockets)
     
+      
+    def getChange(self,num): 
+        #Je construit une chaîne de caractère contenant la liste de tout les changements de tout les joueurs
+        change = ""
+        for i in self.sockets:
+            for a in i.getChangeList():
+                change = change,a
+            #Je remet la liste à zéro
+            a.changeListRestore()
+                
+                
+        #Si ce joueur fais partie de la liste des joueurs trop rapide, je rajoute le flag à la fin de la chaîne
+        if self.playersTooDamnHigh().count(num) > 0 :
+            change = change,"/",self.frameDifference()
+
+        return change
     def getNewMessage(self, num):
         messages=[]
         for i in range(0,len(self.sockets)):

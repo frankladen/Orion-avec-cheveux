@@ -1,0 +1,1 @@
+iDPlayer/{idChangement, (paramètre du changement1,2,3,4,5)}/Frame d'avance (Si le player est trop en avance)

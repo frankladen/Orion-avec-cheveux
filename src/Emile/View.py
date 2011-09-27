@@ -1,4 +1,6 @@
+# -*- coding: UTF-8 -*-
 from tkinter import *
+import tkinter.messagebox as mb
 
 class View():              
     def __init__(self, parent ,title, taille=800):
@@ -6,12 +8,27 @@ class View():
         self.root=Tk()
         self.root.title = title
         self.taille=taille
-        self.miniMapPosition = [0,taille-200]
-        self.gameArea=Canvas(self.root, width=taille, height=taille, background='Black')
+        self.drawLogin()
+        
+    def startGame(self):
+        self.miniMapPosition = [0,self.taille-200]
+        self.gameArea=Canvas(self.root, width=self.taille, height=self.taille, background='Black')
         self.gameArea.pack()
         self.drawWorld()
         self.assignControls()
         
+    def drawLogin(self):
+        Label(self.root, text="Login:").grid(row=0, column=0)
+        login = Entry(self.root, width=20)
+        login.grid(row=0, column=1)
+        Label(self.root, text="Server:").grid(row=1, column=0)
+        server = Entry(self.root, width=20)
+        server.grid(row=1, column=1)
+        widget = Button(self.root, text='Ok', command=lambda:self.parent.connectServer(login.get(), server.get()))
+        widget.grid(row=2, column=1)
+        
+    def loginFailed(self):
+        mb.showinfo('Erreur de connection', 'Le serveur est introuvable. Veuillez reessayer.')
     
     def drawWorld(self):
         self.gameArea.delete(ALL)
@@ -35,12 +52,12 @@ class View():
     def drawPlanet(self, planetPosition, player):
         if player.camera.isInFOV(planetPosition):
             distance = player.camera.calcDistance(planetPosition)
-            self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10, fill='BLUE')
+            self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10, fill='BLUE', tag="planet")
             
     def drawUnit(self, unitPosition, player):
         if player.camera.isInFOV(unitPosition):
             distance = player.camera.calcDistance(unitPosition)
-            self.gameArea.create_polygon((distance[0], distance[1]-5,distance[0]-5,distance[1]+5,distance[0]+5,distance[1]+5),fill='YELLOW')
+            self.gameArea.create_polygon((distance[0], distance[1]-5,distance[0]-5,distance[1]+5,distance[0]+5,distance[1]+5),fill='YELLOW', tag="unit")
     
     def drawMinimap(self,):
         self.gameArea.create_rectangle(self.miniMapPosition[0],self.miniMapPosition[1],self.miniMapPosition[0]+200,self.miniMapPosition[1]+200, fill="BLACK", outline="YELLOW", tag="miniMap")
@@ -87,15 +104,24 @@ class View():
             self.parent.players[self.parent.playerId].camera.move('RIGHT')
         elif code == 40:
             self.parent.players[self.parent.playerId].camera.move('DOWN')
+        elif code == 16:
+            self.parent.multiSelect = True
         self.drawWorld()
         
-    def clic(self, eve):
+    def rightclic(self, eve):
         x = eve.x
         y = eve.y
         self.parent.setMovingFlag(x,y)
         self.drawWorld()
+    
+    def leftclic(self, eve):
+        x = eve.x
+        y = eve.y
+        canva = eve.widget
+        self.parent.select(x,y,canva)
          
     def assignControls(self):
         self.gameArea.focus_set()
         self.gameArea.bind ("<Key>", self.keyPress)
-        self.gameArea.bind("<Button-3>", self.clic)
+        self.gameArea.bind("<Button-3>", self.rightclic)
+        self.gameArea.bind("<Button-1>", self.leftclic)
