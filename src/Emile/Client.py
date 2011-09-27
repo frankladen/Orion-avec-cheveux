@@ -1,17 +1,18 @@
+# -*- coding: UTF-8 -*-
 import View as v
 import World as w
 import Player as p
 import Target as t
+import Pyro4
+
 class Controller():
     def __init__(self):
+        self.playerId=0
         self.players = [] #La liste des joueurs
         self.playerId = 0 #Le id du joueur courant
-        self.galaxy=w.Galaxy(2)
-        self.players.append(p.Player('Emile'))
-        self.players[self.playerId].startGame([0,0],self.galaxy)
+        self.refresh = 0
         self.view = v.View(self, 'Orion')
         self.multiSelect = False
-        self.action()
         self.view.root.mainloop()
         
     def setMovingFlag(self,x,y):
@@ -37,12 +38,10 @@ class Controller():
                         self.players[self.playerId].selectedObjects = []
                     if j not in self.players[self.playerId].selectedObjects:
                         self.players[self.playerId].selectedObjects.append(j)
-        print('selected:',self.players[self.playerId].selectedObjects)
     
     def quickMove(self, x,y, canva):
         posSelected = self.players[self.playerId].camera.calcPointOnMap(x,y)
         self.players[self.playerId].camera.position = posSelected
-        print("deplacement rapide de la camera")
     
     def action(self):
         self.multiSelect = False
@@ -50,5 +49,33 @@ class Controller():
             if i.flag.flagState == 2:
                 i.move()
         self.view.drawWorld()
-        self.view.root.after(50, self.action)        
+        self.view.root.after(50, self.action)  
+        
+    def connectServer(self, login, serverIP):
+        self.server=Pyro4.core.Proxy("PYRO:controleurServeur@"+serverIP+":54440")
+        try:
+            self.server.testConnect()
+            self.players.append(p.Player(login))
+            self.playerId=self.server.getNumSocket(self.players[0])
+            self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
+            self.players[self.playerId].startGame([0,0],self.galaxy)
+            self.startGame()
+        except:
+            self.view.loginFailed()
+            self.view.changeFrame(self.view.fLogin)
+        
+    def startGame(self):
+        self.view.changeFrame(self.view.fGame())
+        self.view.root.after(50, self.action)
+        
+    def sendActionsToServer(self, flag, unit=None):
+        #if isinstance(flag.finalTarget, t.PlayerObject):
+        #    if unit is not None:
+        #        actionToSend=playerId+'/'+self.refresh+'/'+'unit'+'/'+flag.flagState+'/'+unit
+        #else:
+        actionToSend=playerId+'/'+self.refresh+'/'+'point'+'/'+flag.flagState+'/'+flag.finalTarget.position
+        self.server.sendAction(actionToSend)
+        refresh+=1
+        
+
 c = Controller()

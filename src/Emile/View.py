@@ -1,21 +1,48 @@
+# -*- coding: UTF-8 -*-
 from tkinter import *
+import tkinter.messagebox as mb
 
 class View():              
     def __init__(self, parent ,title, taille=800):
         self.parent = parent                  
         self.root=Tk()
         self.root.title = title
-        self.mainFrame = Frame(self.root)
-        self.mainFrame.pack()
         self.taille=taille
-        self.miniMapPosition = [0,0]
-        self.gameArea=Canvas(self.mainFrame, width=taille, height=taille-200, background='Black')
+        self.fLogin = self.fLogin()
+        self.fLogin.pack()
+        self.currentFrame = self.fLogin
+    
+    def changeFrame(self, frame):
+        self.currentFrame.pack_forget()
+        frame.pack()
+        self.currentFrame = frame
+        
+    def fGame(self):
+        gameFrame = Frame(self.root)
+        self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille-200, background='Black')
         self.gameArea.grid(column=0,row=0, columnspan=5)#place(relx=0, rely=0,width=taille,height=taille)
-        self.minimap= Canvas(self.mainFrame, width=200,height=200, background='Black')
+        self.minimap= Canvas(gameFrame, width=200,height=200, background='Black')
         self.minimap.grid(column=0,row=1)
         self.drawWorld()
         self.assignControls()
+        return gameFrame
         
+    def fLogin(self):
+        loginFrame = Frame(self.root)
+        Label(loginFrame, text="Login:").grid(row=0, column=0)
+        login = Entry(loginFrame, width=20)
+        login.grid(row=0, column=1)
+        Label(loginFrame, text="Server:").grid(row=1, column=0)
+        server = Entry(loginFrame, width=20)
+        server.grid(row=1, column=1)
+        widget = Button(loginFrame, text='Ok', command=lambda:self.parent.connectServer(login.get(), server.get()))
+        widget.grid(row=2, column=1)
+        return loginFrame
+        
+        
+    def loginFailed(self):
+        mb.showinfo('Erreur de connection', 'Le serveur est introuvable. Veuillez reessayer.')
+    
     def drawWorld(self):
         self.gameArea.delete(ALL)
         sunList = self.parent.galaxy.solarSystemList
@@ -54,7 +81,6 @@ class View():
     
     def drawMinimap(self,):
         self.minimap.delete(ALL)
-        #self.gameArea.create_rectangle(self.miniMapPosition[0],self.miniMapPosition[1],self.miniMapPosition[0]+200,self.miniMapPosition[1]+200, fill="BLACK", outline="YELLOW", tag="miniMap")
         sunList = self.parent.galaxy.solarSystemList
         players = self.parent.players 
         for i in sunList:
@@ -112,7 +138,6 @@ class View():
         x = eve.x
         y = eve.y
         canva = eve.widget
-        print(canva)
         if canva == self.gameArea:     
             self.parent.select(x,y,canva)
         elif canva == self.minimap:
