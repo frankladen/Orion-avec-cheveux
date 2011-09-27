@@ -52,8 +52,12 @@ class Controller():
             self.view.drawWorld()
             self.view.root.after(50, self.action)  
         else:
-            self.view.pLobby = self.view.fLobby()
-            self.view.changeFrame(self.view.pLobby)
+            if self.server.isGameStarted:
+                self.startGame()
+            else:
+                self.players = self.server.getSockets()
+                self.view.pLobby = self.view.fLobby()
+                self.view.changeFrame(self.view.pLobby)
                
     def connectServer(self, login, serverIP):
         self.server=Pyro4.core.Proxy("PYRO:controleurServeur@"+serverIP+":54440")
@@ -68,6 +72,7 @@ class Controller():
         #self.view.changeFrame(self.view.fLogin)
         
     def startGame(self):
+        self.server.startGame()
         self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
         self.players[self.playerId].startGame([0,0],self.galaxy)
         self.view.changeFrame(self.view.fGame())

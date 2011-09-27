@@ -7,10 +7,20 @@ class ControleurServeur(object):
     def __init__(self):
         self.sockets=[]
         self.numClient=0
+        self.gameIsStarted = False
         self.seed = int(time())
     
     def getSeed(self):
         return self.seed;
+    
+    def getSockets(self):
+        return self.sockets
+    
+    def isGameStarted(self):
+        return self.gameIsStarted
+    
+    def startGame(self):
+        self.gameIsStarted = True
     
     def addMessage(self, text, num):
         self.sockets[num].setText(text)
