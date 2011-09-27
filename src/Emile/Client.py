@@ -52,7 +52,7 @@ class Controller():
             self.view.drawWorld()
             self.view.root.after(50, self.action)  
         else:
-            if self.server.isGameStarted:
+            if self.server.isGameStarted == True:
                 self.startGame()
             else:
                 self.players = self.server.getSockets()
