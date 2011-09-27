@@ -34,6 +34,14 @@ class Camera():
     def calcPointOnMap(self, x, y):
         rX = x/200 * self.galaxy.width - self.galaxy.width/2
         rY = y/200 * self.galaxy.height - self.galaxy.height/2
+        if rX < 0-self.galaxy.width/2+self.screenWidth/2:
+            rX = 0-self.galaxy.width/2+self.screenWidth/2
+        elif rX > self.galaxy.width/2-self.screenWidth/2:
+            rX = self.galaxy.width/2-self.screenWidth/2
+        if rY < 0-self.galaxy.height/2+self.screenHeight/2:
+            rY = 0-self.galaxy.height/2+self.screenHeight/2
+        elif rY > self.galaxy.height/2-self.screenHeight/2:
+            rY = self.galaxy.height/2-self.screenHeight/2
         return [rX, rY]
     
     def isInFOV(self, position):

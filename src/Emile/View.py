@@ -16,7 +16,6 @@ class View():
         self.drawWorld()
         self.assignControls()
         
-    
     def drawWorld(self):
         self.gameArea.delete(ALL)
         sunList = self.parent.galaxy.solarSystemList
@@ -124,4 +123,4 @@ class View():
         self.gameArea.bind ("<Key>", self.keyPress)
         self.gameArea.bind("<Button-3>", self.rightclic)
         self.gameArea.bind("<Button-1>", self.leftclic)
-        self.minimap.bind("<Button-1>",self.leftclic)
+        self.minimap.bind("<B1-Motion>",self.leftclic)
