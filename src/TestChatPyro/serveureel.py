@@ -15,9 +15,31 @@ class ControleurServeur(object):
         self.sockets[num].addPlayerChange(info)
     
     
-    # M�thode qui envoie les changements aux joueurs, et d�cide qui dois en recevoir ou non, selon le retard que peuvent avoir pris certain player.
+    # Méthode qui envoie les changements aux joueurs, et décide qui dois en recevoir ou non, selon le retard que peuvent avoir pris certain player.
     def getChange(self, num):
+        frameList = []
+        for player in self.sockets :
+            frameList.append(player.getCurrentframe)
+        
+        #Je détermine le frame maximum et le frame minimum de tout les clients
+        frameMax = max(frameList)
+        frameMin = min(frameList)
+        
+        #Détermine si l'écart entre les joueurs est trop grand (15 étant une valeur arbitraire, destinée à être modifié)
+        if frameMax - frameMin > 15:
+            playerMax = []
+            playerMin = []
             
+            #Je recherche et j'isole toute les occurences des joueurs ayant les frames les plus élevés
+            if frameList.count(frameMax > 1):
+                for i in frameList:
+                    if i == frameMax:
+                        playerMax.append(self.sockets[i])
+        
+        return #liste de changement auquel un un "flag" à été rajouté indiquant aux joueurs 
+                #concernées de ralentir le rythme ainsi qu'un indication sur le nombre de frame qu'ils ont à "attendre" (frameMax-FrameMin)
+                #La structure de ce flag devra être discuté avec monsieur Hinse mardi !
+                
         
         
     
@@ -44,7 +66,7 @@ class ControleurServeur(object):
         return n
     
     def testConnect(self):
-        #dummy afin de v�rifier si le serveur existe
+        #dummy afin de v�rifier si le serveur existe
         i=1   
 
 # le processus qui ecoute les messages des clients
