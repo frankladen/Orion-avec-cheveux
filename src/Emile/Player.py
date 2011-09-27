@@ -74,6 +74,5 @@ class Camera():
         elif direction == 'DOWN':
             if self.position[1] < self.galaxy.height/2 - self.screenCenter[1]:
                 self.position[1]+=5
-        print('cameraPosition:',self.position)
 
 

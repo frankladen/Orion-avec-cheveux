@@ -11,6 +11,7 @@ class Controller():
         self.players = [] #La liste des joueurs
         self.playerId = 0 #Le id du joueur courant
         self.refresh = 0
+        self.isStarted=False
         self.view = v.View(self)
         self.multiSelect = False
         self.view.root.mainloop()
@@ -43,27 +44,32 @@ class Controller():
         self.players[self.playerId].camera.position = posSelected
     
     def action(self):
-        self.multiSelect = False
-        for i in self.players[self.playerId].units:
-            if i.flag.flagState == 2:
-                i.move()
-        self.view.drawWorld()
-        self.view.root.after(50, self.action)  
-        
+        if self.view.currentFrame != self.view.pLobby:
+            self.multiSelect = False
+            for i in self.players[self.playerId].units:
+                if i.flag.flagState == 2:
+                    i.move()
+            self.view.drawWorld()
+            self.view.root.after(50, self.action)  
+        else:
+            self.view.pLobby = self.view.fLobby()
+            self.view.changeFrame(self.view.pLobby)
+               
     def connectServer(self, login, serverIP):
         self.server=Pyro4.core.Proxy("PYRO:controleurServeur@"+serverIP+":54440")
-        try:
-            self.server.testConnect()
-            self.players.append(p.Player(login))
-            self.playerId=self.server.getNumSocket(self.players[0])
-            self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
-            self.players[self.playerId].startGame([0,0],self.galaxy)
-            self.startGame()
-        except:
-            self.view.loginFailed()
-            self.view.changeFrame(self.view.fLogin)
+        #try:
+        self.server.testConnect()
+        self.players.append(p.Player(login))
+        self.playerId=self.server.getNumSocket(self.players[0])
+        self.view.changeFrame(self.view.pLobby)
+        self.action()
+        #except:
+        #self.view.loginFailed()
+        #self.view.changeFrame(self.view.fLogin)
         
     def startGame(self):
+        self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
+        self.players[self.playerId].startGame([0,0],self.galaxy)
         self.view.changeFrame(self.view.fGame())
         self.view.root.after(50, self.action)
         

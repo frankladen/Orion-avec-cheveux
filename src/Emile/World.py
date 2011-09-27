@@ -35,7 +35,6 @@ class Galaxy():
                     if tempX > j.sunPosition[0]-250 and tempX < j.sunPosition[0]+250:
                         if tempY > j.sunPosition[1]-250 and tempY < j.sunPosition[1]+250:
                             placeFound = False
-            print("soleil:", tempX, tempY)
             self.solarSystemList.append(SolarSystem(tempX,tempY,0))
                             
 class SolarSystem():

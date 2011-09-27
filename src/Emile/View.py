@@ -10,6 +10,7 @@ class View():
         self.taille=800
         self.fLogin = self.fLogin()
         self.fLogin.pack()
+        self.pLobby = self.fLobby()
         self.currentFrame = self.fLogin
     
     def changeFrame(self, frame):
@@ -38,7 +39,15 @@ class View():
         widget = Button(loginFrame, text='Ok', command=lambda:self.parent.connectServer(login.get(), server.get()))
         widget.grid(row=2, column=1)
         return loginFrame
-        
+    
+    def fLobby(self):
+        lobbyFrame = Frame(self.root)
+        pNum = len(self.parent.players)
+        for i in range(0, pNum):
+            Label(lobbyFrame, text=self.parent.players[i].name).grid(row=i,column=0)
+        if self.parent.playerId == 0:
+            Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame).grid(row=(pNum+1), column=0)
+        return lobbyFrame
         
     def loginFailed(self):
         mb.showinfo('Erreur de connection', 'Le serveur est introuvable. Veuillez reessayer.')
