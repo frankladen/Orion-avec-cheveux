@@ -49,16 +49,17 @@ class Controller():
             for i in self.players[self.playerId].units:
                 if i.flag.flagState == 2:
                     i.move()
-            self.view.drawWorld()
-            self.view.root.after(50, self.action)  
+            self.view.drawWorld() 
         else:
             if self.server.isGameStarted == True:
                 self.startGame()
             else:
                 self.players = self.server.getSockets()
+                print(self.players)
                 self.view.pLobby = self.view.fLobby()
                 self.view.changeFrame(self.view.pLobby)
-               
+        self.view.root.after(50, self.action) 
+				
     def connectServer(self, login, serverIP):
         self.server=Pyro4.core.Proxy("PYRO:controleurServeur@"+serverIP+":54440")
         #try:
