@@ -31,6 +31,12 @@ class Player():
     def getCurrentFrame(self):
         return self.currentFrame
     
+    def getChangeList(self):
+        return self.changeList
+    
+    def changeListRestore(self):
+        self.changeList = []
+    
     #méthode qui rajoute le dernier changement à l'état du player dans la liste des update.
     def addPlayerChange(self,info):
         self.frameCourant = self.getFrameNum(info)
