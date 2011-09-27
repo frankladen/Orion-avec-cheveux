@@ -4,7 +4,3 @@ class Flag():
         self.initialTarget = initialTarget
         self.finalTarget = finalTarget
         self.flagState = flagState
-        if isinstance(flag.finalTarget, t.PlayerObject):
-            self.targetIsPlayerObject = True
-        else:
-            self.targetIsPlayerObject = False

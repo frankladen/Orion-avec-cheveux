@@ -1,14 +1,13 @@
 import Unit as u
 
 class Player():
-    def __init__(self, name, civilization=None, selectedObjects=None):
+    def __init__(self, name, civilization=None):
         self.name = name
         self.civilization = civilization
-        self.selectedObjects = selectedObjects
+        self.selectedObjects = []
         self.units = []
         self.units.append(u.Unit('Scout001',[0,0,0], moveSpeed=5.0))
         self.units.append(u.Unit('Scout002',[100,200,0], moveSpeed=5.0))
-        #self.camera = Camera([0,0], galaxy)
         
     def startGame(self, position, galaxy):
         self.camera = Camera(position ,galaxy)
@@ -16,9 +15,9 @@ class Player():
 class Camera():
     def __init__(self, defaultPos, galaxy):
         self.position = defaultPos
-        self.screenCenter = (400,400)
+        self.screenCenter = (400,300)
         self.screenWidth = 800
-        self.screenHeight = 800
+        self.screenHeight = 600
         self.galaxy = galaxy
     
     def calcDistance(self, position):
@@ -31,6 +30,11 @@ class Camera():
         rX = self.position[0]-self.screenCenter[0]+x
         rY = self.position[1]-self.screenCenter[1]+y
         return [rX,rY,0]
+    
+    def calcPointOnMap(self, x, y):
+        rX = x/200 * self.galaxy.width - self.galaxy.width/2
+        rY = y/200 * self.galaxy.height - self.galaxy.height/2
+        return [rX, rY]
     
     def isInFOV(self, position):
         if position[0] > self.position[0]-self.screenWidth/2-20 and position[0] < self.position[0]+self.screenWidth/2+20:
@@ -51,6 +55,5 @@ class Camera():
         elif direction == 'DOWN':
             if self.position[1] < self.galaxy.height/2 - self.screenCenter[1]:
                 self.position[1]+=5
-        print('cameraPosition:',self.position)
 
 
