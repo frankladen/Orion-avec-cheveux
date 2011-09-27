@@ -11,16 +11,15 @@ class Controller():
         self.players = [] #La liste des joueurs
         self.playerId = 0 #Le id du joueur courant
         self.refresh = 0
-        self.view = v.View(self, 'Orion')
+        self.view = v.View(self)
         self.multiSelect = False
         self.view.root.mainloop()
         
     def setMovingFlag(self,x,y):
-        pos = self.players[self.playerId].camera.calcPointInWorld(x,y)
         for i in self.players[self.playerId].selectedObjects:
             if i.__module__ == 'Unit':
-                i.changeFlag(t.Target(pos),2)
-            
+                i.changeFlag(t.Target([x,y]),2)
+
     def select(self, x, y, canva):
         posSelected = self.players[self.playerId].camera.calcPointInWorld(x,y)
         for i in self.galaxy.solarSystemList:

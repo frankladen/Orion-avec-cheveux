@@ -3,11 +3,11 @@ from tkinter import *
 import tkinter.messagebox as mb
 
 class View():              
-    def __init__(self, parent ,title, taille=800):
+    def __init__(self, parent):
         self.parent = parent                  
         self.root=Tk()
-        self.root.title = title
-        self.taille=taille
+        self.root.title("Orion")
+        self.taille=800
         self.fLogin = self.fLogin()
         self.fLogin.pack()
         self.currentFrame = self.fLogin
@@ -18,10 +18,10 @@ class View():
         self.currentFrame = frame
         
     def fGame(self):
-        gameFrame = Frame(self.root)
-        self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille-200, background='Black')
+        gameFrame = Frame(self.root, bg="black")
+        self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille-200, background='Black', relief='ridge')
         self.gameArea.grid(column=0,row=0, columnspan=5)#place(relx=0, rely=0,width=taille,height=taille)
-        self.minimap= Canvas(gameFrame, width=200,height=200, background='Black')
+        self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
         self.minimap.grid(column=0,row=1)
         self.drawWorld()
         self.assignControls()
@@ -79,7 +79,7 @@ class View():
                 self.gameArea.create_oval(distance[0]-8,distance[1]-8,distance[0]+8,distance[1]+8, outline="green")
             self.gameArea.create_polygon((distance[0], distance[1]-5,distance[0]-5,distance[1]+5,distance[0]+5,distance[1]+5),fill='YELLOW', tag="unit")
     
-    def drawMinimap(self,):
+    def drawMinimap(self):
         self.minimap.delete(ALL)
         sunList = self.parent.galaxy.solarSystemList
         players = self.parent.players 
@@ -131,7 +131,13 @@ class View():
     def rightclic(self, eve):
         x = eve.x
         y = eve.y
-        self.parent.setMovingFlag(x,y)
+        canva = eve.widget
+        if canva == self.gameArea:
+            pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
+            self.parent.setMovingFlag(pos[0],pos[1])
+        elif canva == self.minimap:
+            pos = self.parent.players[self.parent.playerId].camera.calcPointMinimap(x,y)
+            self.parent.setMovingFlag(pos[0], pos[1])
         self.drawWorld()
     
     def leftclic(self, eve):
@@ -147,5 +153,6 @@ class View():
         self.gameArea.focus_set()
         self.gameArea.bind ("<Key>", self.keyPress)
         self.gameArea.bind("<Button-3>", self.rightclic)
+        self.minimap.bind("<Button-3>", self.rightclic)
         self.gameArea.bind("<Button-1>", self.leftclic)
         self.minimap.bind("<B1-Motion>",self.leftclic)
