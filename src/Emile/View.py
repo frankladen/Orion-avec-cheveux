@@ -45,11 +45,12 @@ class View():
     
     def fLobby(self):
         lobbyFrame = Frame(self.root, bg="black")
-        pNum = len(self.parent.players)
-        for i in range(0, pNum):
-            Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i,column=0)
-        if self.parent.playerId == 0:
-            Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame).grid(row=(pNum+1), column=0)
+        if self.parent.server != None:
+            pNum = len(self.parent.server.getSockets())
+            for i in range(0, pNum):
+                Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i,column=0)
+            if self.parent.playerId == 0:
+                Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame).grid(row=(pNum+1), column=0)
         return lobbyFrame
         
     def loginFailed(self):

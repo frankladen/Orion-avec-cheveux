@@ -6,6 +6,7 @@ from time import time
 class ControleurServeur(object):
     def __init__(self):
         self.sockets=[]
+        self.refreshes=[]
         self.numClient=0
         self.gameIsStarted = False
         self.seed = int(time())
@@ -23,17 +24,24 @@ class ControleurServeur(object):
     
     def startGame(self):
         self.gameIsStarted = True
-        #J'initie mon tableau de changements
+        #J'initie mon tableau de changements et de refreshes
         for i in range(0, self.getNumberOfPlayers()):
-            self.changeList.append('')
+            self.changeList.append([])
+            self.refreshes.append(0)
     
     def addMessage(self, text, num):
         self.sockets[num].setText(text)
         
-    def addChange(self, changeList,num):
-        self.changeList[num].append(changeList)
+    def addChange(self, change):
+        #décider à quel frame effectuer l'action
+        change = change+'/'+str(self.decideActionRefresh())
+        for ch in self.changeList:
+            ch.append(change)
     
-    
+    def decideActionRefresh(self):
+        #décide à quel refresh les clients doivent effectuer la prochaine action
+        maxRefresh = max(self.refreshes)
+        return maxRefresh+5
 
     def frameDifference(self):
         frameList = []
@@ -62,34 +70,27 @@ class ControleurServeur(object):
         #    playerMax = []
             
             #Je recherche et j'isole toute les occurences des joueurs ayant les frames les plus élevés
-         #   if frameList.count(frameMax > 1):
-         #       for i in frameList:
-         #           if i == frameMax:
-         #               playerMax.append(i)
+        #   if frameList.count(frameMax > 1):
+        #       for i in frameList:
+        #           if i == frameMax:
+        #               playerMax.append(i)
          
-         #   return playerMax
+        #   return playerMax
         
-       # return 0
+        # return 0
                 
     def getNumberOfPlayers(self):
         return len(self.sockets)
-    
       
-    def getChange(self,num,frame):
-        change = self.changeList
-        #Je retire de la liste de changement à envoyer tout les changement pousser par le joueur lui meme
-        for j in self.changeList[num]:
-            change.pop(change.index(j))
-
+    def getChange(self,num,refresh):
+        self.refreshes[num] = refresh
+        changes = self.changeList[num]
+        self.changeList[num] = []
         #Si ce joueur fais partie de la liste des joueurs trop rapide, je rajoute le flag à la fin du tableau
         #if self.playersTooDamnHigh().count(num) > 0 :
         #    change.append("*",self.frameDifference())
-        
-        return change
-        
-        
-        
-        return change
+        return changes
+
     def getNewMessage(self, num):
         messages=[]
         for i in range(0,len(self.sockets)):
@@ -127,7 +128,7 @@ daemon = Pyro4.core.Daemon(host=adresse,port=54440)
 # connu sous le nom de controleurServeur
 daemon.register(ControleurServeur(), "controleurServeur")  
  
- # juste pour voir quelque chose sur la console du serveur
+# juste pour voir quelque chose sur la console du serveur
 print("Serveur Pyro actif sous le nom \'controleurServeur\' avec l'adresse "+adresse)
 
 #on demarre l'ecoute des requetes

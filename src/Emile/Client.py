@@ -3,6 +3,8 @@ import View as v
 import World as w
 import Player as p
 import Target as t
+import Flag as f
+import FlagState as fs
 import Pyro4
 import socket
 from time import time
@@ -14,6 +16,7 @@ class Controller():
         self.player = None
         self.refresh = 0
         self.playerIp = socket.gethostbyname(socket.getfqdn())
+        self.server = None
         self.isStarted=False
         self.view = v.View(self)
         self.multiSelect = False
@@ -24,7 +27,8 @@ class Controller():
     def setMovingFlag(self,x,y):
         for i in self.players[self.playerId].selectedObjects:
             if i.__module__ == 'Unit':
-                i.changeFlag(t.Target([x,y]),2)
+                #i.changeFlag(t.Target([x,y]),2)
+                self.pushChange(i, f.Flag(i,t.Target([x,y,0]),fs.FlagState.MOVE))
 
     def select(self, x, y, canva):
         posSelected = self.players[self.playerId].camera.calcPointInWorld(x,y)
@@ -56,7 +60,6 @@ class Controller():
                     i.move()
             #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
             self.pullChange()
-            self.pushChange()
             self.view.drawWorld()
              
         else:
@@ -97,22 +100,37 @@ class Controller():
         self.view.root.after(50, self.action)
     
     #Méthode de mise à jour auprès du serveur, actionnée à chaque
-    def pushChange(self):
-        unitsState = []
-        #for i in self.players[self.playerId].units:
-        #    unitsState.append(self.playerId,"/",self.server.getServerTime(),"/",i.__class__.__name__, "/" ,i.getFlag)
-        
-        #self.server.addChange(unitsState, self.playerId, self.server.getServerTime())
+    def pushChange(self, playerObject, flag):
+        print("pushing change")
+        actionString = str(self.playerId)+"/"+str(self.players[self.playerId].units.index(playerObject))+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
+        print("actionString: ", actionString)
+        self.server.addChange(actionString)
     
     def pullChange(self):
-        change = self.server.getChange(self.playerId,self.getRefresh())
+        changes = self.server.getChange(self.playerId, self.refresh)
+        for changeString in changes:
+            self.doAction(changeString)
         #si le joueur est trop en avance
         #if change[len(change)].find("*") != -1 :
             #j'isole le nombre de frame d'avance pour utilisation futurs
         #    frameTooHigh = int(change[len(change)].rstrip("*"))
+        self.refresh+=1
             
     def getRefresh(self):
         return self.refresh
+    
+    def doAction(self, changeString):
+        changeInfo = changeString.split("/")
+        actionPlayerId = int(changeInfo[0])
+        unitIndex = int(changeInfo[1])
+        action = int(changeInfo[2])
+        target = changeInfo[3]
+        refresh = int(changeInfo[4])
+        target = target.strip("[")
+        target = target.strip("]")
+        target = target.split(",")
+        print(target)
+        self.players[actionPlayerId].units[unitIndex].changeFlag(t.Target([int(target[0]),int(target[1]),int(target[2])]),action)
 
 if __name__ == '__main__':
     c = Controller()

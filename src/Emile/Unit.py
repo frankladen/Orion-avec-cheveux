@@ -22,7 +22,7 @@ class Unit(t.PlayerObject):
             self.position[1] = temp[1]
     
     def changeFlag(self, finalTarget, state):
-        self.flag.initialTarget = self.position
+        self.flag.initialTarget = t.Target(self.position)
         self.flag.finalTarget = finalTarget
         self.flag.flagState = state
         

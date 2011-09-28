@@ -6,10 +6,6 @@ class Flag():
         self.initialTarget = initialTarget
         self.finalTarget = finalTarget
         self.flagState = flagState
-        if isinstance(self.finalTarget, t.PlayerObject):
-            self.targetIsPlayerObject = True
-        else:
-            self.targetIsPlayerObject = False
             
             
     def toString(self):
