@@ -25,6 +25,9 @@ class Unit(t.PlayerObject):
         self.flag.initialTarget = self.position
         self.flag.finalTarget = finalTarget
         self.flag.flagState = state
+        
+    def getFlag(self):
+        return self.flag
               
 class SpaceUnit(Unit):
     def __init__(self):

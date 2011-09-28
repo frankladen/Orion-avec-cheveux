@@ -10,3 +10,7 @@ class Flag():
             self.targetIsPlayerObject = True
         else:
             self.targetIsPlayerObject = False
+            
+            
+    def toString(self):
+        return self.initialTarget.toString()

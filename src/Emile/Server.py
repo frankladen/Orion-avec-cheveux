@@ -9,6 +9,8 @@ class ControleurServeur(object):
         self.numClient=0
         self.gameIsStarted = False
         self.seed = int(time())
+        self.changeList = [] 
+        
     
     def getSeed(self):
         return self.seed;
@@ -21,12 +23,16 @@ class ControleurServeur(object):
     
     def startGame(self):
         self.gameIsStarted = True
+        #J'initie mon tableau de changements
+        for i in range(self.getNumberOfPlayers()):
+            self.changeList[i] = i
     
     def addMessage(self, text, num):
         self.sockets[num].setText(text)
         
-    def addChange(self, info, num):
-        self.sockets[num].addPlayerChange(info)
+    def addChange(self, changeList,num):
+        self.changeList[num].append(changeList)
+    
     
 
     def frameDifference(self):
@@ -69,20 +75,20 @@ class ControleurServeur(object):
         return len(self.sockets)
     
       
-    def getChange(self,num): 
-        #Je construit une chaîne de caractère contenant la liste de tout les changements de tout les joueurs
-        change = ""
-        for i in self.sockets:
-            for a in i.getChangeList():
-                change = change,a
-            #Je remet la liste à zéro
-            a.changeListRestore()
-                
-                
-        #Si ce joueur fais partie de la liste des joueurs trop rapide, je rajoute le flag à la fin de la chaîne
-        if self.playersTooDamnHigh().count(num) > 0 :
-            change = change,"/",self.frameDifference()
+    def getChange(self,num,frame):
+        change = self.changeList
+        #Je retire de la liste de changement à envoyer tout les changement pousser par le joueur lui meme
+        for j in self.changeList[num]:
+            change.pop(change.index(j))
 
+        #Si ce joueur fais partie de la liste des joueurs trop rapide, je rajoute le flag à la fin du tableau
+        if self.playersTooDamnHigh().count(num) > 0 :
+            change.append("*",self.frameDifference())
+        
+        return change
+        
+        
+        
         return change
     def getNewMessage(self, num):
         messages=[]
@@ -108,7 +114,11 @@ class ControleurServeur(object):
     
     def testConnect(self):
         #dummy afin de vérifier si le serveur existe
-        i=1   
+        i=1
+    
+    def getServerTime(self):
+        return time.clock()
+          
 
 # le processus qui ecoute les messages des clients
 adresse=socket.gethostbyname(socket.getfqdn())
@@ -122,3 +132,6 @@ print("Serveur Pyro actif sous le nom \'controleurServeur\' avec l'adresse "+adr
 
 #on demarre l'ecoute des requetes
 daemon.requestLoop()
+
+
+        
