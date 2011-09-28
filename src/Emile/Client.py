@@ -10,9 +10,9 @@ from time import time
 
 class Controller():
     def __init__(self):
-        self.playerId=0
         self.players = [] #La liste des joueurs
         self.playerId = 0 #Le id du joueur courant
+        self.player = None
         self.refresh = 0
         self.isStarted=False
         self.view = v.View(self)
@@ -57,16 +57,13 @@ class Controller():
             #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
             self.pullChange()
             self.pushChange()
-                    
             self.view.drawWorld()
              
         else:
-            if self.server.isGameStarted == True:
+            if self.server.isGameStarted() == True:
                 self.startGame()
             else:
                 waitTime=500
-                for i in range(len(self.players), len(self.server.getSockets())):
-                    self.players.append(self.server.getSockets[i])
                 self.view.pLobby = self.view.fLobby()
                 self.view.changeFrame(self.view.pLobby)
         self.view.root.after(waitTime, self.action)  
@@ -76,9 +73,9 @@ class Controller():
         try:
             self.server.testConnect()
             #J'initialise l'objet player et je le rajoute a sa liste
-            self.players.append(p.Player(login))
+            self.player = p.Player(login)
             #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
-            self.playerId=self.server.getNumSocket(self.players[0])
+            self.playerId=self.server.getNumSocket(self)
             print("Mon Id :",self.playerId)
 
         except:
@@ -88,8 +85,16 @@ class Controller():
         #Je vais au lobby, si la connection a fonctionner
         self.view.changeFrame(self.view.pLobby)
         self.action()
+    
+    def getIp(self):
+        return self.Ip
+    
+    def getPlayer(self):
+        return self.player
         
     def startGame(self):
+        for i in self.server.getSockets():
+            self.players.append(i.getPlayer())
         self.server.startGame()
         self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
         self.players[self.playerId].startGame([0,0],self.galaxy)
