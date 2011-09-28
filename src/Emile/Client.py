@@ -43,7 +43,7 @@ class Controller():
         posSelected = self.players[self.playerId].camera.calcPointOnMap(x,y)
         self.players[self.playerId].camera.position = posSelected
     
-    def action(self):
+    def action(self, waitTime=50):
         if self.view.currentFrame != self.view.pLobby:
             self.multiSelect = False
             for i in self.players[self.playerId].units:
@@ -54,23 +54,24 @@ class Controller():
             if self.server.isGameStarted == True:
                 self.startGame()
             else:
-                self.players = self.server.getSockets()
-                print(self.players)
+                waitTime=500
+                for i in range(len(self.players), len(self.server.getSockets())):
+                    self.players[i].append(self.server.getSockets[i])
                 self.view.pLobby = self.view.fLobby()
                 self.view.changeFrame(self.view.pLobby)
-        self.view.root.after(50, self.action) 
+        self.view.root.after(waitTime, self.action) 
 				
     def connectServer(self, login, serverIP):
         self.server=Pyro4.core.Proxy("PYRO:controleurServeur@"+serverIP+":54440")
-        #try:
-        self.server.testConnect()
-        self.players.append(p.Player(login))
-        self.playerId=self.server.getNumSocket(self.players[0])
-        self.view.changeFrame(self.view.pLobby)
-        self.action()
-        #except:
-        #self.view.loginFailed()
-        #self.view.changeFrame(self.view.fLogin)
+        try:
+            self.server.testConnect()
+            self.players.append(p.Player(login))
+            self.playerId=self.server.getNumSocket(self.players[0])
+            self.view.changeFrame(self.view.pLobby)
+            self.action()
+        except:
+            self.view.loginFailed()
+            self.view.changeFrame(self.view.fLogin)
         
     def startGame(self):
         self.server.startGame()

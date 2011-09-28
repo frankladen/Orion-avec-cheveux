@@ -12,6 +12,9 @@ class View():
         self.fLogin.pack()
         self.pLobby = self.fLobby()
         self.currentFrame = self.fLogin
+        self.ship=PhotoImage(file='ship.gif')
+        self.sun=PhotoImage(file='sun.gif')
+        self.planet=PhotoImage(file='planet.gif')
     
     def changeFrame(self, frame):
         self.currentFrame.pack_forget()
@@ -29,11 +32,11 @@ class View():
         return gameFrame
         
     def fLogin(self):
-        loginFrame = Frame(self.root)
-        Label(loginFrame, text="Login:").grid(row=0, column=0)
+        loginFrame = Frame(self.root, bg="black")
+        Label(loginFrame, text="Login:", fg="white", bg="black").grid(row=0, column=0)
         login = Entry(loginFrame, width=20)
         login.grid(row=0, column=1)
-        Label(loginFrame, text="Server:").grid(row=1, column=0)
+        Label(loginFrame, text="Server:", fg="white", bg="black").grid(row=1, column=0)
         server = Entry(loginFrame, width=20)
         server.grid(row=1, column=1)
         widget = Button(loginFrame, text='Ok', command=lambda:self.parent.connectServer(login.get(), server.get()))
@@ -41,10 +44,10 @@ class View():
         return loginFrame
     
     def fLobby(self):
-        lobbyFrame = Frame(self.root)
+        lobbyFrame = Frame(self.root, bg="black")
         pNum = len(self.parent.players)
         for i in range(0, pNum):
-            Label(lobbyFrame, text=self.parent.players[i].name).grid(row=i,column=0)
+            Label(lobbyFrame, text=self.parent.players[i].name, fg="white", bg="black").grid(row=i,column=0)
         if self.parent.playerId == 0:
             Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame).grid(row=(pNum+1), column=0)
         return lobbyFrame
@@ -69,16 +72,17 @@ class View():
     def drawSun(self, sunPosition, player):
         if player.camera.isInFOV(sunPosition):
             distance = player.camera.calcDistance(sunPosition)
-            self.gameArea.create_oval(distance[0]-20, distance[1]-20, distance[0]+20, distance[1]+20, fill='RED')
+            self.gameArea.create_image(distance[0],distance[1], image=self.sun)
+            #self.gameArea.create_oval(distance[0]-20, distance[1]-20, distance[0]+20, distance[1]+20, fill='RED')
             
     def drawPlanet(self, planet, player):
         planetPosition = planet.position
         if player.camera.isInFOV(planetPosition):
             distance = player.camera.calcDistance(planetPosition)
             if planet in player.selectedObjects:
-                self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10, fill='BLUE',outline="green", tag="planet")
-            else:
-                self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10, fill='BLUE', tag="planet")
+                self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="green", tag="planet")
+            self.gameArea.create_image(distance[0],distance[1],image=self.planet)
+            #self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10, fill='BLUE', tag="planet")
             
     def drawUnit(self, unit, player):
         unitPosition = unit.position
@@ -86,7 +90,8 @@ class View():
             distance = player.camera.calcDistance(unitPosition)
             if unit in player.selectedObjects:
                 self.gameArea.create_oval(distance[0]-8,distance[1]-8,distance[0]+8,distance[1]+8, outline="green")
-            self.gameArea.create_polygon((distance[0], distance[1]-5,distance[0]-5,distance[1]+5,distance[0]+5,distance[1]+5),fill='YELLOW', tag="unit")
+            self.gameArea.create_image(distance[0]+1, distance[1], image=self.ship)
+            #self.gameArea.create_polygon((distance[0], distance[1]-5,distance[0]-5,distance[1]+5,distance[0]+5,distance[1]+5),fill='YELLOW', tag="unit")
     
     def drawMinimap(self):
         self.minimap.delete(ALL)
