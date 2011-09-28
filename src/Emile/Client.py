@@ -55,9 +55,10 @@ class Controller():
     def action(self, waitTime=50):
         if self.view.currentFrame != self.view.pLobby:
             self.multiSelect = False
-            for i in self.players[self.playerId].units:
-                if i.flag.flagState == 2:
-                    i.move()
+            for p in self.players:
+                for i in p.units:
+                    if i.flag.flagState == 2:
+                        i.move()
             #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
             self.pullChange()
             self.view.drawWorld()
@@ -93,7 +94,8 @@ class Controller():
     def startGame(self):
         for i in self.server.getSockets():
             self.players.append(p.Player(i[1]))
-        self.server.startGame()
+        if self.playerId==0:
+            self.server.startGame()
         self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
         self.players[self.playerId].startGame([0,0],self.galaxy)
         self.view.changeFrame(self.view.fGame())

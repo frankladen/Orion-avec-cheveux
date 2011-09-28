@@ -25,8 +25,10 @@ class ControleurServeur(object):
     def startGame(self):
         self.gameIsStarted = True
         #J'initie mon tableau de changements et de refreshes
+        print("nombres de joueurs: "+str(self.getNumberOfPlayers()))
         for i in range(0, self.getNumberOfPlayers()):
             self.changeList.append([])
+            print("changeList:"+self.changeList[i])
             self.refreshes.append(0)
     
     def addMessage(self, text, num):
@@ -37,7 +39,7 @@ class ControleurServeur(object):
         change = change+'/'+str(self.decideActionRefresh())
         for ch in self.changeList:
             ch.append(change)
-        print(self.changeList)
+            print(ch)
     
     def decideActionRefresh(self):
         #décide à quel refresh les clients doivent effectuer la prochaine action
