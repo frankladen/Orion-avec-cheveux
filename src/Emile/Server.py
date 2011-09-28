@@ -100,16 +100,16 @@ class ControleurServeur(object):
         return messages
     
        
-    def getNumSocket(self, player):
+    def getNumSocket(self, login, ip):
         n=0
         for i in range(0,len(self.sockets)):
-            if self.sockets[i].getIp() == player.getIp():
+            if self.sockets[i][0] == ip:
                 print('a trouver le meme socket que le precedent')
-                self.sockets[i]=player
+                self.sockets[i]=(ip,login)
                 return i
             n=n+1
         print('ajoute le socket a la fin')
-        self.sockets.append(player)
+        self.sockets.append((ip,login))
         return n
     
     def testConnect(self):

@@ -6,16 +6,12 @@ class Player():
         self.name = name
         self.civilization = civilization
         self.selectedObjects = []
-        self.playerIp = socket.gethostbyname(socket.getfqdn())
         self.units = []
         self.units.append(u.Unit('Scout001',[0,0,0], moveSpeed=5.0))
         self.units.append(u.Unit('Scout002',[100,200,0], moveSpeed=5.0))
         
     def startGame(self, position, galaxy):
         self.camera = Camera(position ,galaxy)
-    
-    def getIp(self):
-        return self.playerIp
             
 class Camera():
     def __init__(self, defaultPos, galaxy):

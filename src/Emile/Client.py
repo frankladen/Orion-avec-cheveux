@@ -4,9 +4,8 @@ import World as w
 import Player as p
 import Target as t
 import Pyro4
+import socket
 from time import time
-
-
 
 class Controller():
     def __init__(self):
@@ -14,6 +13,7 @@ class Controller():
         self.playerId = 0 #Le id du joueur courant
         self.player = None
         self.refresh = 0
+        self.playerIp = socket.gethostbyname(socket.getfqdn())
         self.isStarted=False
         self.view = v.View(self)
         self.multiSelect = False
@@ -70,31 +70,26 @@ class Controller():
 				
     def connectServer(self, login, serverIP):
         self.server=Pyro4.core.Proxy("PYRO:controleurServeur@"+serverIP+":54440")
-        try:
-            self.server.testConnect()
-            #J'initialise l'objet player et je le rajoute a sa liste
-            self.player = p.Player(login)
-            #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
-            self.playerId=self.server.getNumSocket(self)
-            print("Mon Id :",self.playerId)
+        #try:
+        self.server.testConnect()
+        #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
+        self.playerId=self.server.getNumSocket(login, self.playerIp)
+        print("Mon Id :",self.playerId)
 
-        except:
-            self.view.loginFailed()
-            self.view.changeFrame(self.view.fLogin)
+        #except:
+        #    self.view.loginFailed()
+        #    self.view.changeFrame(self.view.fLogin)
             
         #Je vais au lobby, si la connection a fonctionner
         self.view.changeFrame(self.view.pLobby)
         self.action()
-    
-    def getIp(self):
-        return self.Ip
     
     def getPlayer(self):
         return self.player
         
     def startGame(self):
         for i in self.server.getSockets():
-            self.players.append(i.getPlayer())
+            self.players.append(p.Player(i[1]))
         self.server.startGame()
         self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
         self.players[self.playerId].startGame([0,0],self.galaxy)
