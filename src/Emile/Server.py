@@ -37,6 +37,7 @@ class ControleurServeur(object):
         change = change+'/'+str(self.decideActionRefresh())
         for ch in self.changeList:
             ch.append(change)
+        print(self.changeList)
     
     def decideActionRefresh(self):
         #décide à quel refresh les clients doivent effectuer la prochaine action
