@@ -17,7 +17,7 @@ class Controller():
         self.isStarted=False
         self.view = v.View(self)
         self.multiSelect = False
-        self.currentFrame
+        self.currentFrame = None
 
         self.view.root.mainloop()
         
@@ -66,7 +66,7 @@ class Controller():
             else:
                 waitTime=500
                 for i in range(len(self.players), len(self.server.getSockets())):
-                    self.players[i].append(self.server.getSockets[i])
+                    self.players.append(self.server.getSockets[i])
                 self.view.pLobby = self.view.fLobby()
                 self.view.changeFrame(self.view.pLobby)
         self.view.root.after(waitTime, self.action)  
@@ -99,18 +99,20 @@ class Controller():
     #Méthode de mise à jour auprès du serveur, actionnée à chaque
     def pushChange(self):
         unitsState = []
-        for i in self.players[self.playerId].units:
-            unitsState.append(self.playerId,"/",self.server.getServerTime(),"/",i.__class__.__name__, "/" ,i.getFlag)
+        #for i in self.players[self.playerId].units:
+        #    unitsState.append(self.playerId,"/",self.server.getServerTime(),"/",i.__class__.__name__, "/" ,i.getFlag)
         
-        self.server.addChange(unitsState, self.playerId, self.server.getServerTime())
+        #self.server.addChange(unitsState, self.playerId, self.server.getServerTime())
     
     def pullChange(self):
-        change = self.server.getChange(self.playerId,self.getCurrentFrame())
+        change = self.server.getChange(self.playerId,self.getRefresh())
         #si le joueur est trop en avance
-        if change[len(change)].find("*") != -1 :
+        #if change[len(change)].find("*") != -1 :
             #j'isole le nombre de frame d'avance pour utilisation futurs
-            frameTooHigh = int(change[len(change)].rstrip("*"))
+        #    frameTooHigh = int(change[len(change)].rstrip("*"))
             
-    def getCurrentFrame(self):
-        return self.currentFrame
-        
+    def getRefresh(self):
+        return self.refresh
+
+if __name__ == '__main__':
+    c = Controller()
