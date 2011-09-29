@@ -10,6 +10,7 @@ class ControleurServeur(object):
         self.gameIsStarted = False
         self.isStopped = True
         self.seed = int(time())
+        self.mess = ['Système de chat de Orion']
         self.changeList = [] 
         
     
@@ -32,8 +33,20 @@ class ControleurServeur(object):
             #print("changeList:"+self.changeList[i])
             self.refreshes.append(0)
     
-    def addMessage(self, text, num):
-        self.sockets[num].setText(text)
+    def removePlayer(self, playerId):
+        self.sockets.pop(playerId)
+        if playerId == 0:
+                self.isStopped = True
+                self.sockets = []
+                self.gameIsStarted = False
+                self.refreshes = []
+                self.mess = []
+    
+    def addMessage(self, text, name):
+        self.mess.append(name+': '+text)
+    
+    def getMessage(self):
+        return self.mess
         
     def addChange(self, change):
         #décider à quel frame effectuer l'action

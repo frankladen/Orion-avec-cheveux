@@ -16,6 +16,7 @@ class Controller():
         self.playerId = 0 #Le id du joueur courant
         self.player = None
         self.refresh = 0
+        self.mess = []
         self.playerIp = socket.gethostbyname(socket.getfqdn())
         self.server = None
         self.isStarted=False
@@ -53,6 +54,21 @@ class Controller():
         posSelected = self.players[self.playerId].camera.calcPointOnMap(x,y)
         self.players[self.playerId].camera.position = posSelected
     
+    def sendMessage(self, mess):
+        self.server.addMessage(mess, self.players[self.playerId].name)
+    
+    def refreshMessages(self):
+        textChat=''
+        for i in range(len(self.mess), len(self.server.getMessage())):
+            self.mess.append(self.server.getMessage()[i])
+        if len(self.mess) > 5:
+            for i in range(len(self.mess)-5, len(self.mess)):
+                textChat+=self.mess[i]+'\r'
+        else:
+            for i in range(0, len(self.mess)):
+                textChat+=self.mess[i]+'\r'
+        self.view.chat.config(text=textChat)
+    
     def action(self, waitTime=50):
         if self.server.isStopped == True:
             if self.playerId != 0:
@@ -64,6 +80,7 @@ class Controller():
                 for i in p.units:
                     if i.flag.flagState == 2:
                         i.move()
+            self.refreshMessages()
             #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
             self.pullChange()
             self.view.drawWorld()
@@ -90,7 +107,6 @@ class Controller():
             #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
             self.playerId=self.server.getNumSocket(login, self.playerIp)
             print("Mon Id :",self.playerId)
-            print(self.server.gameIsStarted)
             #except:
             #    self.view.loginFailed()
             #    self.view.changeFrame(self.view.fLogin)
@@ -104,16 +120,7 @@ class Controller():
     
     def removePlayer(self):
         if self.view.currentFrame == self.view.gameFrame:
-            self.server.getSockets().pop(self.playerId)
-            print('1')
-            if self.playerId == 0:
-                print('2')
-                self.server.isStopped = True
-                self.server.sockets = []
-                self.server.gameIsStarted = False
-                self.server.refreshes = []
-                print('3')
-                print(self.server.gameIsStarted)
+            self.server.removePlayer(self.playerId)
         self.view.root.destroy()
         
     def startGame(self):

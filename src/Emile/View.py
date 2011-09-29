@@ -14,9 +14,9 @@ class View():
         self.pLobby = self.fLobby()
         self.currentFrame = self.fLogin
         self.gameFrame = None
-        self.ship=PhotoImage(file='ship.gif')
-        self.sun=PhotoImage(file='sun.gif')
-        self.planet=PhotoImage(file='planet.gif')
+        self.ship=PhotoImage(file='images\ship'+str(self.parent.playerId)+'.gif')
+        self.sun=PhotoImage(file='images\sun.gif')
+        self.planet=PhotoImage(file='images\planet.gif')
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
     
@@ -30,8 +30,14 @@ class View():
         self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille-200, background='Black', relief='ridge')
         self.gameArea.grid(column=0,row=0, columnspan=5)#place(relx=0, rely=0,width=taille,height=taille)
         self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
-        self.minimap.grid(column=0,row=1)
+        self.minimap.grid(column=0,row=1, rowspan=4)
         self.drawWorld()
+        self.chat = Label(gameFrame, anchor=W, justify=LEFT, width=75, background='black', fg='white', relief='raised')
+        self.chat.grid(row=1, column=1)
+        self.entryMess = Entry(gameFrame, width=60)
+        self.entryMess.grid(row=2, column=1)
+        send = Button(gameFrame, text='Send', command=lambda:self.parent.sendMessage(self.entryMess.get()))
+        send.grid(row=2, column=2)
         self.assignControls()
         return gameFrame
         
@@ -173,6 +179,9 @@ class View():
             self.parent.select(x,y,canva)
         elif canva == self.minimap:
             self.parent.quickMove(x,y,canva)
+    
+    def enter(self, eve):
+        self.parent.sendMessage(self.entryMess.get())
          
     def assignControls(self):
         self.gameArea.focus_set()
@@ -181,3 +190,4 @@ class View():
         self.minimap.bind("<Button-3>", self.rightclic)
         self.gameArea.bind("<Button-1>", self.leftclic)
         self.minimap.bind("<B1-Motion>",self.leftclic)
+        self.entryMess.bind("<Return>",self.enter)
