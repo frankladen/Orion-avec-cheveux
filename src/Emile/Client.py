@@ -150,8 +150,8 @@ class Controller():
     def startGame(self):
         if self.playerId==0:
             self.server.startGame()
-        for i in self.server.getSockets():
-            self.players.append(p.Player(i[1], self.playerId))
+        for i in range(0, len(self.server.getSockets())):
+            self.players.append(p.Player(self.server.getSockets()[1], i))
         self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
         self.players[self.playerId].startGame([0,0],self.galaxy)
         self.view.gameFrame = self.view.fGame()
