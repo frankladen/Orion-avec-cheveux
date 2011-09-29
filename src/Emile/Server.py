@@ -27,6 +27,7 @@ class ControleurServeur(object):
         return self.gameIsStarted
     
     def startGame(self):
+        self.seed = int(time())
         self.gameIsStarted = True
         self.isStopped = False
         #J'initie mon tableau de changements et de refreshes

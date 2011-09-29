@@ -36,7 +36,7 @@ class Controller():
             if i.__module__ == 'Unit':
                 #i.changeFlag(t.Target([x,y]),2)
                 print('changement de state pour les units')
-                self.pushChange(i, f.Flag(i,t.Target([x,y,0]),fs.FlagState.DESTROY))
+                self.pushChange(i, f.Flag(i,t.Target([0,0,0]),fs.FlagState.DESTROY))
     
     def select(self, x, y, canva):
         posSelected = self.players[self.playerId].camera.calcPointInWorld(x,y)

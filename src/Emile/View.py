@@ -16,6 +16,7 @@ class View():
         self.fLogin.pack()
         self.pLobby = self.fLobby()
         self.currentFrame = self.fLogin
+        self.firstTime = True
         self.gameFrame = None
         self.sun=PhotoImage(file='images\sun.gif')
         self.planet=PhotoImage(file='images\planet.gif')
@@ -122,39 +123,44 @@ class View():
             #self.gameArea.create_polygon((distance[0], distance[1]-5,distance[0]-5,distance[1]+5,distance[0]+5,distance[1]+5),fill='YELLOW', tag="unit")
     
     def drawMinimap(self):
-        self.minimap.delete(ALL)
+        self.minimap.delete('deletable')
         sunList = self.parent.galaxy.solarSystemList
-        players = self.parent.players 
-        for i in sunList:
-            self.drawMiniSun(i.sunPosition)
-            for j in i.planets:
-                self.drawMiniPlanet(j.position)
+        players = self.parent.players
+        if self.firstTime:
+            for i in sunList:
+                self.drawMiniSun(i.sunPosition)
+                for j in i.planets:
+                    self.drawMiniPlanet(j.position)
+            self.firstTime = False
         for i in players:
             for j in i.units:
-                self.drawMiniUnit(j.position)
-        self.drawMiniFOV()
+                self.drawMiniUnit(j)
+        self.drawMiniFOV()  
         
     def drawMiniFOV(self):
         cameraX = (self.parent.players[self.parent.playerId].camera.position[0]-400 + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
         cameraY = (self.parent.players[self.parent.playerId].camera.position[1]-300 + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
         width = self.taille / self.parent.galaxy.width * 200
         height = self.taille / self.parent.galaxy.height * 150
-        self.minimap.create_rectangle(cameraX, cameraY, cameraX+width, cameraY+height, outline="GREEN")
+        self.minimap.create_rectangle(cameraX, cameraY, cameraX+width, cameraY+height, outline='GREEN', tag='deletable')
         
     def drawMiniSun(self, sunPosition):
         sunX = (sunPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
         sunY = (sunPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
-        self.minimap.create_oval(sunX-4, sunY-4, sunX+4, sunY+4, fill='RED')
+        self.minimap.create_oval(sunX-3, sunY-3, sunX+3, sunY+3, fill='ORANGE')
             
     def drawMiniPlanet(self, planetPosition):
         planetX = (planetPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
         planetY = (planetPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
-        self.minimap.create_oval(planetX-2, planetY-2, planetX+2, planetY+2, fill='BLUE')
+        self.minimap.create_oval(planetX-1, planetY-1, planetX+1, planetY+1, fill='LIGHT BLUE')
             
-    def drawMiniUnit(self, unitPosition):
-        unitX = (unitPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
-        planetY = (unitPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
-        self.minimap.create_polygon((unitX-2, planetY+1, unitX, planetY-1, unitX+2, planetY+1),fill='YELLOW')
+    def drawMiniUnit(self, unit):
+        unitX = (unit.position[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
+        planetY = (unit.position[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
+        if unit in self.parent.players[self.parent.playerId].units:
+            self.minimap.create_polygon((unitX-2, planetY+1, unitX, planetY-1, unitX+2, planetY+1),fill='GREEN', tag='deletable')
+        else:
+            self.minimap.create_polygon((unitX-2, planetY+1, unitX, planetY-1, unitX+2, planetY+1),fill='RED', tag='deletable')
 		
     def drawSelctionBox(self):
         self.gameArea.create_rectangle(self.selectStart[0], self.selectStart[1], self.selectEnd[0], self.selectEnd[1], outline='WHITE')
