@@ -112,7 +112,7 @@ class Controller():
             if self.server.isGameStarted() == True:
                 self.startGame()
             else:
-                waitTime=500
+                waitTime=1000
                 self.view.pLobby = self.view.fLobby()
                 self.view.changeFrame(self.view.pLobby)
 

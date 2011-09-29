@@ -91,7 +91,7 @@ class View():
                 self.drawPlanet(j, players[id])
         for i in players:
             for j in i.units:
-                self.drawUnit(j, players[id])
+                self.drawUnit(j, players[id], id)
         if self.dragging:
             self.drawSelctionBox()
         self.drawMinimap()
@@ -111,8 +111,9 @@ class View():
             self.gameArea.create_image(distance[0],distance[1],image=self.planet)
             #self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10, fill='BLUE', tag="planet")
             
-    def drawUnit(self, unit, player):
-        ship=self.ships[player.id]
+    def drawUnit(self, unit, player, id):
+        ship=self.ships[id]
+        print(id)
         unitPosition = unit.position
         if player.camera.isInFOV(unitPosition):
             distance = player.camera.calcDistance(unitPosition)
