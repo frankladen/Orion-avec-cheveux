@@ -175,8 +175,6 @@ class View():
             self.parent.players[self.parent.playerId].camera.move('RIGHT')
         elif code == 40:
             self.parent.players[self.parent.playerId].camera.move('DOWN')
-        elif code == 16:
-            self.parent.multiSelect = True
         self.drawWorld()
         
     def rightclic(self, eve):
@@ -220,11 +218,18 @@ class View():
         if self.dragging:
             self.dragging = False
             self.selectEnd = [eve.x, eve.y]
-            self.parent.boxSelect(self.selectStart, self.selectEnd)   
-			
+            self.parent.boxSelect(self.selectStart, self.selectEnd)
+            
+    def shiftPress(self, eve):
+        self.parent.multiSelect = True
+    def shiftRelease(self, eve):
+        self.parent.multiSelect = False
+        
     def assignControls(self):
         self.gameArea.focus_set()
         self.gameArea.bind ("<Key>", self.keyPress)
+        self.gameArea.bind("<Shift_L>", self.shiftPress)
+        self.gameArea.bind("<KeyRelease-Shift_L>", self.shiftRelease)
         self.gameArea.bind("<Button-3>", self.rightclic)
         self.minimap.bind("<Button-3>", self.rightclic)
         self.gameArea.bind("<Button-1>", self.leftclic)

@@ -35,7 +35,6 @@ class Controller():
         for i in self.players[self.playerId].units:
             if i.__module__ == 'Unit':
                 #i.changeFlag(t.Target([x,y]),2)
-                print('changement de state pour les units')
                 self.pushChange(i, f.Flag(i,t.Target([0,0,0]),fs.FlagState.DESTROY))
     
     def select(self, x, y, canva):
@@ -69,7 +68,6 @@ class Controller():
             temp[1] = realStart[1]
             realStart[1] = realEnd[1]
             realEnd[1] = temp[1]
-        print(realStart, realEnd)
         first = True
         for i in self.players[self.playerId].units:
             if i.position[0] >= realStart[0]-8 and i.position[0] <= realEnd[0]+8:
@@ -104,7 +102,6 @@ class Controller():
                 self.view.showGameIsFinished()
                 self.view.root.destroy()
         elif self.view.currentFrame != self.view.pLobby:
-            self.multiSelect = False
             for p in self.players:
                 for i in p.units:
                     if i.flag.flagState == 2:
