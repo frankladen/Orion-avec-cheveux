@@ -168,13 +168,29 @@ class View():
     def keyPress(self, eve):
         code = eve.keycode
         if code == 37:
-            self.parent.players[self.parent.playerId].camera.move('LEFT')
+            if 'LEFT' not in self.parent.players[self.parent.playerId].camera.movingDirection:
+                self.parent.players[self.parent.playerId].camera.movingDirection.append('LEFT')
         elif code == 38:
-            self.parent.players[self.parent.playerId].camera.move('UP')
+            if 'UP' not in self.parent.players[self.parent.playerId].camera.movingDirection:
+                self.parent.players[self.parent.playerId].camera.movingDirection.append('UP')
         elif code == 39:
-            self.parent.players[self.parent.playerId].camera.move('RIGHT')
+            if 'RIGHT' not in self.parent.players[self.parent.playerId].camera.movingDirection:
+                self.parent.players[self.parent.playerId].camera.movingDirection.append('RIGHT')
         elif code == 40:
-            self.parent.players[self.parent.playerId].camera.move('DOWN')
+            if 'DOWN' not in self.parent.players[self.parent.playerId].camera.movingDirection:
+                self.parent.players[self.parent.playerId].camera.movingDirection.append('DOWN')
+        self.drawWorld()
+
+    def keyRelease(self, eve):
+        code = eve.keycode
+        if code == 37:
+            self.parent.players[self.parent.playerId].camera.movingDirection.remove('LEFT')
+        elif code == 38:
+            self.parent.players[self.parent.playerId].camera.movingDirection.remove('UP')
+        elif code == 39:
+            self.parent.players[self.parent.playerId].camera.movingDirection.remove('RIGHT')
+        elif code == 40:
+            self.parent.players[self.parent.playerId].camera.movingDirection.remove('DOWN')
         self.drawWorld()
         
     def rightclic(self, eve):
@@ -228,6 +244,7 @@ class View():
     def assignControls(self):
         self.gameArea.focus_set()
         self.gameArea.bind ("<Key>", self.keyPress)
+        self.gameArea.bind ("<KeyRelease>", self.keyRelease)
         self.gameArea.bind("<Shift_L>", self.shiftPress)
         self.gameArea.bind("<KeyRelease-Shift_L>", self.shiftRelease)
         self.gameArea.bind("<Button-3>", self.rightclic)

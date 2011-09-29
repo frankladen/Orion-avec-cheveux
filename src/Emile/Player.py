@@ -22,6 +22,7 @@ class Camera():
         self.screenWidth = 800
         self.screenHeight = 600
         self.galaxy = galaxy
+        self.movingDirection = []
     
     def calcDistance(self, position):
         distX = position[0] - self.position[0]
@@ -59,17 +60,17 @@ class Camera():
                 return True
         return False
     
-    def move(self, direction):
-        if direction == 'LEFT':
+    def move(self):
+        if 'LEFT' in self.movingDirection:
             if self.position[0] > (self.galaxy.width*-1)/2+self.screenCenter[0]:
                 self.position[0]-=5
-        elif direction == 'RIGHT':
+        elif 'RIGHT' in self.movingDirection:
             if self.position[0] < self.galaxy.width/2 - self.screenCenter[0]:
                 self.position[0]+=5
-        elif direction == 'UP':
+        elif 'UP' in self.movingDirection:
             if self.position[1] > (self.galaxy.height*-1)/2 + self.screenCenter[1]:
                 self.position[1]-=5
-        elif direction == 'DOWN':
+        elif 'DOWN' in self.movingDirection:
             if self.position[1] < self.galaxy.height/2 - self.screenCenter[1]:
                 self.position[1]+=5
 

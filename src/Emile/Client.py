@@ -102,6 +102,7 @@ class Controller():
                 self.view.showGameIsFinished()
                 self.view.root.destroy()
         elif self.view.currentFrame != self.view.pLobby:
+            self.players[self.playerId].camera.move()
             for p in self.players:
                 for i in p.units:
                     if i.flag.flagState == 2:
