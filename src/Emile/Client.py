@@ -79,7 +79,6 @@ class Controller():
     
     def sendMessage(self, mess):
         self.server.addMessage(mess, self.players[self.playerId].name)
-        self.view.entryMess.config(text='')
     
     def refreshMessages(self):
         textChat=''
@@ -152,7 +151,7 @@ class Controller():
         if self.playerId==0:
             self.server.startGame()
         for i in self.server.getSockets():
-            self.players.append(p.Player(i[1]))
+            self.players.append(p.Player(i[1], self.playerId))
         self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
         self.players[self.playerId].startGame([0,0],self.galaxy)
         self.view.gameFrame = self.view.fGame()

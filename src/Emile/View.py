@@ -28,8 +28,10 @@ class View():
         self.currentFrame = frame
         
     def fGame(self):
-        self.ship=PhotoImage(file='images\ship'+str(self.parent.playerId)+'.gif')
         gameFrame = Frame(self.root, bg="black")
+        self.ships = []
+        for i in range(0,8):
+            self.ships.append(PhotoImage(file='images\ship'+str(i)+'.gif'))
         self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille-200, background='Black', relief='ridge')
         self.gameArea.grid(column=0,row=0, columnspan=5)#place(relx=0, rely=0,width=taille,height=taille)
         self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
@@ -39,7 +41,7 @@ class View():
         self.chat.grid(row=1, column=1)
         self.entryMess = Entry(gameFrame, width=60)
         self.entryMess.grid(row=2, column=1)
-        send = Button(gameFrame, text='Send', command=lambda:self.parent.sendMessage(self.entryMess.get()))
+        send = Button(gameFrame, text='Send', command=lambda:self.enter(0))
         send.grid(row=2, column=2)
         self.assignControls()
         return gameFrame
@@ -47,13 +49,15 @@ class View():
     def fLogin(self):
         loginFrame = Frame(self.root, bg="black")
         Label(loginFrame, text="Login:", fg="white", bg="black").grid(row=0, column=0)
-        login = Entry(loginFrame, width=20)
-        login.grid(row=0, column=1)
+        self.entryLogin = Entry(loginFrame, width=20)
+        self.entryLogin.focus_set()
+        self.entryLogin.grid(row=0, column=1)
         Label(loginFrame, text="Server:", fg="white", bg="black").grid(row=1, column=0)
-        server = Entry(loginFrame, width=20)
-        server.grid(row=1, column=1)
-        widget = Button(loginFrame, text='Ok', command=lambda:self.parent.connectServer(login.get(), server.get()))
+        self.entryServer = Entry(loginFrame, width=20)
+        self.entryServer.grid(row=1, column=1)
+        widget = Button(loginFrame, text='Ok', command=lambda:self.lobbyEnter(0))
         widget.grid(row=2, column=1)
+        self.entryServer.bind("<Return>",self.lobbyEnter)
         return loginFrame
     
     def fLobby(self):
@@ -108,12 +112,13 @@ class View():
             #self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10, fill='BLUE', tag="planet")
             
     def drawUnit(self, unit, player):
+        ship=self.ships[player.id]
         unitPosition = unit.position
         if player.camera.isInFOV(unitPosition):
             distance = player.camera.calcDistance(unitPosition)
             if unit in player.selectedObjects:
                 self.gameArea.create_oval(distance[0]-8,distance[1]-8,distance[0]+8,distance[1]+8, outline="green")
-            self.gameArea.create_image(distance[0]+1, distance[1], image=self.ship)
+            self.gameArea.create_image(distance[0]+1, distance[1], image=ship)
             #self.gameArea.create_polygon((distance[0], distance[1]-5,distance[0]-5,distance[1]+5,distance[0]+5,distance[1]+5),fill='YELLOW', tag="unit")
     
     def drawMinimap(self):
@@ -191,7 +196,12 @@ class View():
     
     def enter(self, eve):
         self.parent.sendMessage(self.entryMess.get())
-		
+        self.entryMess.delete(0,END)
+        self.gameArea.focus_set()
+
+    def lobbyEnter(self, eve):
+        self.parent.connectServer(self.entryLogin.get(), self.entryServer.get())
+    	
     def clicDrag(self,eve):
         if self.dragging == False:
             self.selectStart = [eve.x, eve.y]
