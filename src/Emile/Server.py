@@ -19,6 +19,9 @@ class ControleurServeur(object):
     
     def getSockets(self):
         return self.sockets
+
+    def isGameStopped(self):
+        return self.isStopped
     
     def isGameStarted(self):
         return self.gameIsStarted

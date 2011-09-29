@@ -14,7 +14,6 @@ class View():
         self.pLobby = self.fLobby()
         self.currentFrame = self.fLogin
         self.gameFrame = None
-        self.ship=PhotoImage(file='images\ship'+str(self.parent.playerId)+'.gif')
         self.sun=PhotoImage(file='images\sun.gif')
         self.planet=PhotoImage(file='images\planet.gif')
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
@@ -26,6 +25,7 @@ class View():
         self.currentFrame = frame
         
     def fGame(self):
+        self.ship=PhotoImage(file='images\ship'+str(self.parent.playerId)+'.gif')
         gameFrame = Frame(self.root, bg="black")
         self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille-200, background='Black', relief='ridge')
         self.gameArea.grid(column=0,row=0, columnspan=5)#place(relx=0, rely=0,width=taille,height=taille)
