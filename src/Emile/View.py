@@ -7,6 +7,7 @@ class View():
         self.parent = parent                  
         self.root=Tk()
         self.root.title("Orion")
+        self.root.resizable(0,0)
         self.taille=800
         self.fLogin = self.fLogin()
         self.fLogin.pack()
@@ -15,6 +16,8 @@ class View():
         self.ship=PhotoImage(file='ship.gif')
         self.sun=PhotoImage(file='sun.gif')
         self.planet=PhotoImage(file='planet.gif')
+        # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
+        root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
     
     def changeFrame(self, frame):
         self.currentFrame.pack_forget()

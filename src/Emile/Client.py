@@ -76,22 +76,31 @@ class Controller():
     def connectServer(self, login, serverIP):
         self.server=Pyro4.core.Proxy("PYRO:controleurServeur@"+serverIP+":54440")
         #try:
+        #Je demande au serveur si la partie est démarrée, si oui on le refuse de la partie, cela permet de vérifier
+        #en même temps si le serveur existe réellement à cette adresse.
         if self.server.isGameStarted() == True:
             self.view.gameHasBeenStarted()
-        #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
-        self.playerId=self.server.getNumSocket(login, self.playerIp)
-        print("Mon Id :",self.playerId)
-
-        #except:
-        #    self.view.loginFailed()
-        #    self.view.changeFrame(self.view.fLogin)
-            
-        #Je vais au lobby, si la connection a fonctionner
-        self.view.changeFrame(self.view.pLobby)
-        self.action()
+            self.view.changeFrame(self.view.fLogin)
+        else:
+            #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
+            self.playerId=self.server.getNumSocket(login, self.playerIp)
+            print("Mon Id :",self.playerId)
+    
+            #except:
+            #    self.view.loginFailed()
+            #    self.view.changeFrame(self.view.fLogin)
+                
+            #Je vais au lobby, si la connection a fonctionner
+            self.view.changeFrame(self.view.pLobby)
+            self.action()
     
     def getPlayer(self):
         return self.player
+    
+    def removePlayer(self):
+        self.server.getSockets[playerId].remove()
+        
+        self.view.root.destroy()
         
     def startGame(self):
         if self.playerId==0:
