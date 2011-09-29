@@ -13,6 +13,7 @@ class View():
         self.fLogin.pack()
         self.pLobby = self.fLobby()
         self.currentFrame = self.fLogin
+        self.gameFrame = None
         self.ship=PhotoImage(file='ship.gif')
         self.sun=PhotoImage(file='sun.gif')
         self.planet=PhotoImage(file='planet.gif')

@@ -54,7 +54,11 @@ class Controller():
         self.players[self.playerId].camera.position = posSelected
     
     def action(self, waitTime=50):
-        if self.view.currentFrame != self.view.pLobby and self.server.isStopped == False:
+        if self.server.isStopped == True:
+            if self.playerId != 0:
+                self.view.showGameIsFinished()
+                self.view.root.destroy()
+        elif self.view.currentFrame != self.view.pLobby:
             self.multiSelect = False
             for p in self.players:
                 for i in p.units:
@@ -64,17 +68,14 @@ class Controller():
             self.pullChange()
             self.view.drawWorld()
              
-        elif self.view.currentFrame == self.view.pLobby:
+        else:
             if self.server.isGameStarted() == True:
                 self.startGame()
             else:
                 waitTime=500
                 self.view.pLobby = self.view.fLobby()
                 self.view.changeFrame(self.view.pLobby)
-        
-        else:
-            self.view.showGameIsFinished()
-            self.view.root.destroy()
+
         self.view.root.after(waitTime, self.action)  
 				
     def connectServer(self, login, serverIP):
@@ -82,14 +83,14 @@ class Controller():
         #try:
         #Je demande au serveur si la partie est démarrée, si oui on le refuse de la partie, cela permet de vérifier
         #en même temps si le serveur existe réellement à cette adresse.
-        if self.server.isGameStarted() == True:
+        if self.server.gameIsStarted == True:
             self.view.gameHasBeenStarted()
             self.view.changeFrame(self.view.fLogin)
         else:
             #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
             self.playerId=self.server.getNumSocket(login, self.playerIp)
             print("Mon Id :",self.playerId)
-    
+            print(self.server.gameIsStarted)
             #except:
             #    self.view.loginFailed()
             #    self.view.changeFrame(self.view.fLogin)
@@ -102,11 +103,17 @@ class Controller():
         return self.player
     
     def removePlayer(self):
-        self.server.getSockets().remove(self.playerId)
-        if playerId == 0:
-            self.server.isStopped = True
-            self.server.sockets = None
-            self.server.gameIsStarted = False
+        if self.view.currentFrame == self.view.gameFrame:
+            self.server.getSockets().pop(self.playerId)
+            print('1')
+            if self.playerId == 0:
+                print('2')
+                self.server.isStopped = True
+                self.server.sockets = []
+                self.server.gameIsStarted = False
+                self.server.refreshes = []
+                print('3')
+                print(self.server.gameIsStarted)
         self.view.root.destroy()
         
     def startGame(self):
@@ -116,7 +123,8 @@ class Controller():
             self.players.append(p.Player(i[1]))
         self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
         self.players[self.playerId].startGame([0,0],self.galaxy)
-        self.view.changeFrame(self.view.fGame())
+        self.view.gameFrame = self.view.fGame()
+        self.view.changeFrame(self.view.gameFrame)
         self.view.root.after(50, self.action)
     
     #Méthode de mise à jour auprès du serveur, actionnée à chaque
