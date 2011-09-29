@@ -20,6 +20,9 @@ class Unit(t.PlayerObject):
             temp = h.Helper.getAngledPoint(angle, self.moveSpeed, self.position[0], self.position[1])
             self.position[0] = temp[0]
             self.position[1] = temp[1]
+
+    def eraseUnit(self):
+        self = None
     
     def changeFlag(self, finalTarget, state):
         self.flag.initialTarget = t.Target(self.position)

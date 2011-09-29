@@ -29,9 +29,14 @@ class Controller():
     def setMovingFlag(self,x,y):
         for i in self.players[self.playerId].selectedObjects:
             if i.__module__ == 'Unit':
-                #i.changeFlag(t.Target([x,y]),2)
                 self.pushChange(i, f.Flag(i,t.Target([x,y,0]),fs.FlagState.MOVE))
 
+    def eraseUnits(self):
+        for i in self.players[self.playerId].units:
+            if i.__module__ == 'Unit':
+                #i.changeFlag(t.Target([x,y]),2)
+                self.pushChange(i, f.Flag(i,t.Target([x,y,0]),fs.FlagState.DESTROY))
+    
     def select(self, x, y, canva):
         posSelected = self.players[self.playerId].camera.calcPointInWorld(x,y)
         for i in self.galaxy.solarSystemList:
@@ -103,6 +108,8 @@ class Controller():
                 for i in p.units:
                     if i.flag.flagState == 2:
                         i.move()
+                    if i.flag.flagState == 256:
+                        i.eraseUnit()
             self.refreshMessages()
             #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
             self.pullChange()
@@ -146,6 +153,7 @@ class Controller():
             self.sendMessage('a quitté la partie')
             self.server.removePlayer(self.playerIp, self.players[self.playerId].name, self.playerId)
             self.players[self.playerId].units = []
+            self.eraseUnits()
         self.view.root.destroy()
         
     def startGame(self):

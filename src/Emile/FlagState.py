@@ -7,3 +7,4 @@ class FlagState():
     BUILD=32
     REPAIR=64
     RESEARCH=128
+    DESTROY=256
