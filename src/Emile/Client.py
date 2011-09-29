@@ -101,7 +101,7 @@ class Controller():
         #try:
         #Je demande au serveur si la partie est démarrée, si oui on le refuse de la partie, cela permet de vérifier
         #en même temps si le serveur existe réellement à cette adresse.
-        if self.server.gameIsStarted == True:
+        if self.server.isGameStarted() == True:
             self.view.gameHasBeenStarted()
             self.view.changeFrame(self.view.fLogin)
         else:
@@ -121,7 +121,7 @@ class Controller():
     
     def removePlayer(self):
         if self.view.currentFrame == self.view.gameFrame:
-            self.sendMessage('a quitté la partie', self.players[self.playerId].name)
+            self.sendMessage('a quitté la partie')
             self.server.removePlayer(self.playerId)
         self.view.root.destroy()
         
