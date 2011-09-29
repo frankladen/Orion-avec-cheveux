@@ -35,6 +35,7 @@ class Controller():
         for i in self.players[self.playerId].units:
             if i.__module__ == 'Unit':
                 #i.changeFlag(t.Target([x,y]),2)
+                print('changement de state pour les units')
                 self.pushChange(i, f.Flag(i,t.Target([x,y,0]),fs.FlagState.DESTROY))
     
     def select(self, x, y, canva):
@@ -109,6 +110,7 @@ class Controller():
                     if i.flag.flagState == 2:
                         i.move()
                     if i.flag.flagState == 256:
+                        print('jefface un unit')
                         i.eraseUnit()
             self.refreshMessages()
             #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
