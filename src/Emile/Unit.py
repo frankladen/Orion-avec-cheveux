@@ -22,7 +22,8 @@ class Unit(t.PlayerObject):
             self.position[1] = temp[1]
 
     def eraseUnit(self):
-        self = None
+        self.flag.flagState = 0
+        self.position = [-1500,-1500,0]
     
     def changeFlag(self, finalTarget, state):
         self.flag.initialTarget = t.Target(self.position)

@@ -34,7 +34,6 @@ class Controller():
     def eraseUnits(self):
         for i in self.players[self.playerId].units:
             if i.__module__ == 'Unit':
-                #i.changeFlag(t.Target([x,y]),2)
                 self.pushChange(i, f.Flag(i,t.Target([0,0,0]),fs.FlagState.DESTROY))
     
     def select(self, x, y, canva):
@@ -126,23 +125,22 @@ class Controller():
 				
     def connectServer(self, login, serverIP):
         self.server=Pyro4.core.Proxy("PYRO:controleurServeur@"+serverIP+":54440")
-        #try:
-        #Je demande au serveur si la partie est démarrée, si oui on le refuse de la partie, cela permet de vérifier
-        #en même temps si le serveur existe réellement à cette adresse.
-        if self.server.isGameStarted() == True:
-            self.view.gameHasBeenStarted()
+        try:
+            #Je demande au serveur si la partie est démarrée, si oui on le refuse de la partie, cela permet de vérifier
+            #en même temps si le serveur existe réellement à cette adresse.
+            if self.server.isGameStarted() == True:
+                self.view.gameHasBeenStarted()
+                self.view.changeFrame(self.view.fLogin)
+            else:
+                #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
+                self.playerId=self.server.getNumSocket(login, self.playerIp)
+                print("Mon Id :",self.playerId)
+                #Je vais au lobby, si la connection a fonctionner
+                self.view.changeFrame(self.view.pLobby)
+                self.action()
+        except:
+            self.view.loginFailed()
             self.view.changeFrame(self.view.fLogin)
-        else:
-            #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
-            self.playerId=self.server.getNumSocket(login, self.playerIp)
-            print("Mon Id :",self.playerId)
-            #except:
-            #    self.view.loginFailed()
-            #    self.view.changeFrame(self.view.fLogin)
-                
-            #Je vais au lobby, si la connection a fonctionner
-            self.view.changeFrame(self.view.pLobby)
-            self.action()
     
     def getPlayer(self):
         return self.player
@@ -191,12 +189,13 @@ class Controller():
         action = int(changeInfo[2])
         target = changeInfo[3]
         refresh = int(changeInfo[4])
-        target = target.strip("[")
-        target = target.strip("]")
-        target = target.split(",")
-        for i in range(0, len(target)):
-            target[i]=math.trunc(float(target[i]))
-        self.players[actionPlayerId].units[unitIndex].changeFlag(t.Target([target[0],target[1],target[2]]),action)
+        if action == fs.FlagState.MOVE:
+            target = target.strip("[")
+            target = target.strip("]")
+            target = target.split(",")
+            for i in range(0, len(target)):
+                target[i]=math.trunc(float(target[i]))
+            self.players[actionPlayerId].units[unitIndex].changeFlag(t.Target([target[0],target[1],target[2]]),action)
 
 if __name__ == '__main__':
     c = Controller()
