@@ -223,6 +223,7 @@ class View():
         self.minimap.bind("<Button-3>", self.rightclic)
         self.gameArea.bind("<Button-1>", self.leftclic)
         self.minimap.bind("<B1-Motion>",self.leftclic)
+        self.minimap.bind("<Button-1>",self.leftclic)
         self.entryMess.bind("<Return>",self.enter)
         self.gameArea.bind("<B1-Motion>", self.clicDrag)
         self.gameArea.bind("<ButtonRelease-1>", self.endDrag)
