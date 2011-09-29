@@ -25,6 +25,7 @@ class View():
         self.currentFrame = frame
         
     def fGame(self):
+        self.ship=PhotoImage(file='images\ship'+str(self.parent.playerId)+'.gif')
         gameFrame = Frame(self.root, bg="black")
         self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille-200, background='Black', relief='ridge')
         self.gameArea.grid(column=0,row=0, columnspan=5)#place(relx=0, rely=0,width=taille,height=taille)
@@ -58,8 +59,9 @@ class View():
             pNum = len(self.parent.server.getSockets())
             for i in range(0, pNum):
                 Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i,column=0)
+            Label(lobbyFrame, text='Admin : '+self.parent.server.getSockets()[0][1], fg="white", bg="black").grid(row=(pNum+1), column=1)
             if self.parent.playerId == 0:
-                Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame, bg="black", fg="white").grid(row=(pNum+1), column=1)
+                Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame, bg="black", fg="white").grid(row=(pNum+2), column=1)
         return lobbyFrame
         
     def loginFailed(self):
@@ -82,7 +84,7 @@ class View():
                 self.drawPlanet(j, players[id])
         for i in players:
             for j in i.units:
-                self.drawUnit(j, players[id], id)
+                self.drawUnit(j, players[id])
         self.drawMinimap()
          
     def drawSun(self, sunPosition, player):
@@ -100,8 +102,7 @@ class View():
             self.gameArea.create_image(distance[0],distance[1],image=self.planet)
             #self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10, fill='BLUE', tag="planet")
             
-    def drawUnit(self, unit, player, id):
-        self.ship=PhotoImage(file='images\ship'+str(id)+'.gif')
+    def drawUnit(self, unit, player):
         unitPosition = unit.position
         if player.camera.isInFOV(unitPosition):
             distance = player.camera.calcDistance(unitPosition)

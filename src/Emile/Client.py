@@ -56,7 +56,7 @@ class Controller():
     
     def sendMessage(self, mess):
         self.server.addMessage(mess, self.players[self.playerId].name)
-        self.view.entryMess.delete(0,END)
+        self.view.entryMess.config(text='')
     
     def refreshMessages(self):
         textChat=''
@@ -71,7 +71,7 @@ class Controller():
         self.view.chat.config(text=textChat)
     
     def action(self, waitTime=50):
-        if self.server.isGameStopped() == True and self.view.currentFrame != self.view.gameFrame:
+        if self.server.isGameStopped() == True and self.view.currentFrame == self.view.gameFrame:
             if self.playerId != 0:
                 self.view.showGameIsFinished()
                 self.view.root.destroy()
@@ -121,6 +121,7 @@ class Controller():
     
     def removePlayer(self):
         if self.view.currentFrame == self.view.gameFrame:
+            self.sendMessage('a quitté la partie', self.players[self.playerId].name)
             self.server.removePlayer(self.playerId)
         self.view.root.destroy()
         
