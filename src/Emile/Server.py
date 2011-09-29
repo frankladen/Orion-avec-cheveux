@@ -37,14 +37,14 @@ class ControleurServeur(object):
             self.refreshes.append(0)
     
     def removePlayer(self, ip, login, playerId):
-        self.sockets.remove([ip, login])
+        #self.sockets.remove([ip, login])
         if playerId == 0:
                 self.isStopped = True
                 self.sockets = []
                 self.gameIsStarted = False
                 self.refreshes = []
                 self.mess = []
-        print(len(self.sockets))
+        #print(len(self.sockets))
     
     def addMessage(self, text, name):
         self.mess.append(name+': '+text)
