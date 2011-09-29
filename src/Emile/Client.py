@@ -145,6 +145,7 @@ class Controller():
         if self.view.currentFrame == self.view.gameFrame:
             self.sendMessage('a quitté la partie')
             self.server.removePlayer(self.playerIp, self.players[self.playerId].name, self.playerId)
+            self.players[self.playerId].units = []
         self.view.root.destroy()
         
     def startGame(self):
