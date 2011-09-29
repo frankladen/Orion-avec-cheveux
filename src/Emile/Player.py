@@ -67,7 +67,7 @@ class Camera():
         elif 'RIGHT' in self.movingDirection:
             if self.position[0] < self.galaxy.width/2 - self.screenCenter[0]:
                 self.position[0]+=5
-        elif 'UP' in self.movingDirection:
+        if 'UP' in self.movingDirection:
             if self.position[1] > (self.galaxy.height*-1)/2 + self.screenCenter[1]:
                 self.position[1]-=5
         elif 'DOWN' in self.movingDirection:

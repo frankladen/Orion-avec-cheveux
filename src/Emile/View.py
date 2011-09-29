@@ -164,33 +164,36 @@ class View():
 		
     def drawSelctionBox(self):
         self.gameArea.create_rectangle(self.selectStart[0], self.selectStart[1], self.selectEnd[0], self.selectEnd[1], outline='WHITE')
-		
-    def keyPress(self, eve):
-        code = eve.keycode
-        if code == 37:
-            if 'LEFT' not in self.parent.players[self.parent.playerId].camera.movingDirection:
-                self.parent.players[self.parent.playerId].camera.movingDirection.append('LEFT')
-        elif code == 38:
-            if 'UP' not in self.parent.players[self.parent.playerId].camera.movingDirection:
-                self.parent.players[self.parent.playerId].camera.movingDirection.append('UP')
-        elif code == 39:
-            if 'RIGHT' not in self.parent.players[self.parent.playerId].camera.movingDirection:
-                self.parent.players[self.parent.playerId].camera.movingDirection.append('RIGHT')
-        elif code == 40:
-            if 'DOWN' not in self.parent.players[self.parent.playerId].camera.movingDirection:
-                self.parent.players[self.parent.playerId].camera.movingDirection.append('DOWN')
-        self.drawWorld()
 
-    def keyRelease(self, eve):
-        code = eve.keycode
-        if code == 37:
-            self.parent.players[self.parent.playerId].camera.movingDirection.remove('LEFT')
-        elif code == 38:
-            self.parent.players[self.parent.playerId].camera.movingDirection.remove('UP')
-        elif code == 39:
-            self.parent.players[self.parent.playerId].camera.movingDirection.remove('RIGHT')
-        elif code == 40:
-            self.parent.players[self.parent.playerId].camera.movingDirection.remove('DOWN')
+    #Actions quand on clic sur les fleches du clavier
+    def keyPressUP(self, eve):
+        if 'UP' not in self.parent.players[self.parent.playerId].camera.movingDirection:
+            self.parent.players[self.parent.playerId].camera.movingDirection.append('UP')
+            self.drawWorld()
+    def keyPressDown(self, eve):
+        if 'DOWN' not in self.parent.players[self.parent.playerId].camera.movingDirection:
+            self.parent.players[self.parent.playerId].camera.movingDirection.append('DOWN')
+            self.drawWorld()
+    def keyPressLeft(self, eve):
+        if 'LEFT' not in self.parent.players[self.parent.playerId].camera.movingDirection:
+            self.parent.players[self.parent.playerId].camera.movingDirection.append('LEFT')
+            self.drawWorld()
+    def keyPressRight(self, eve):
+        if 'RIGHT' not in self.parent.players[self.parent.playerId].camera.movingDirection:
+            self.parent.players[self.parent.playerId].camera.movingDirection.append('RIGHT')
+            self.drawWorld()
+    #Actions quand on lache les touches
+    def keyReleaseUP(self, eve):
+        self.parent.players[self.parent.playerId].camera.movingDirection.remove('UP')
+        self.drawWorld()
+    def keyReleaseDown(self, eve):
+        self.parent.players[self.parent.playerId].camera.movingDirection.remove('DOWN')
+        self.drawWorld()
+    def keyReleaseLeft(self, eve):
+        self.parent.players[self.parent.playerId].camera.movingDirection.remove('LEFT')
+        self.drawWorld()
+    def keyReleaseRight(self, eve):
+        self.parent.players[self.parent.playerId].camera.movingDirection.remove('RIGHT')
         self.drawWorld()
         
     def rightclic(self, eve):
@@ -243,15 +246,25 @@ class View():
         
     def assignControls(self):
         self.gameArea.focus_set()
-        self.gameArea.bind ("<Key>", self.keyPress)
-        self.gameArea.bind ("<KeyRelease>", self.keyRelease)
+        #Bindings des fleches
+        self.gameArea.bind ("<Key-Up>", self.keyPressUP)
+        self.gameArea.bind("<Key-Down>", self.keyPressDown)
+        self.gameArea.bind("<Key-Left>", self.keyPressLeft)
+        self.gameArea.bind("<Key-Right>", self.keyPressRight)
+        self.gameArea.bind ("<KeyRelease-Up>", self.keyReleaseUP)
+        self.gameArea.bind ("<KeyRelease-Down>", self.keyReleaseDown)
+        self.gameArea.bind ("<KeyRelease-Left>", self.keyReleaseLeft)
+        self.gameArea.bind ("<KeyRelease-Right>", self.keyReleaseRight)
+        #Bindings de shift pour la multiselection
         self.gameArea.bind("<Shift_L>", self.shiftPress)
         self.gameArea.bind("<KeyRelease-Shift_L>", self.shiftRelease)
+        #Bindings des boutons de la souris
         self.gameArea.bind("<Button-3>", self.rightclic)
         self.minimap.bind("<Button-3>", self.rightclic)
         self.gameArea.bind("<Button-1>", self.leftclic)
         self.minimap.bind("<B1-Motion>",self.leftclic)
         self.minimap.bind("<Button-1>",self.leftclic)
-        self.entryMess.bind("<Return>",self.enter)
         self.gameArea.bind("<B1-Motion>", self.clicDrag)
         self.gameArea.bind("<ButtonRelease-1>", self.endDrag)
+        self.entryMess.bind("<Return>",self.enter)
+
