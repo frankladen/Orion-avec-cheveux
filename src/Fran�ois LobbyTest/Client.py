@@ -9,6 +9,8 @@ import Pyro4
 import socket
 import math
 from time import time
+from tkinter import IntVar
+
 
 class Controller():
     def __init__(self):
@@ -23,19 +25,20 @@ class Controller():
         self.view = v.View(self)
         self.multiSelect = False
         self.currentFrame = None
-
+        self.ready = 0
         self.view.root.mainloop()
+    
+    def readyToPlay(self):
+        t = self.view.ready.get()
+        self.server.playerIsReady(t)
+        self.startGame()
         
     def setMovingFlag(self,x,y):
         for i in self.players[self.playerId].selectedObjects:
             if i.__module__ == 'Unit':
+                #i.changeFlag(t.Target([x,y]),2)
                 self.pushChange(i, f.Flag(i,t.Target([x,y,0]),fs.FlagState.MOVE))
 
-    def eraseUnits(self):
-        for i in self.players[self.playerId].units:
-            if i.__module__ == 'Unit':
-                self.pushChange(i, f.Flag(i,t.Target([0,0,0]),fs.FlagState.DESTROY))
-    
     def select(self, x, y, canva):
         posSelected = self.players[self.playerId].camera.calcPointInWorld(x,y)
         for i in self.galaxy.solarSystemList:
@@ -57,7 +60,7 @@ class Controller():
     def boxSelect(self, selectStart, selectEnd):
         realStart = self.players[self.playerId].camera.calcPointInWorld(selectStart[0], selectStart[1])
         realEnd = self.players[self.playerId].camera.calcPointInWorld(selectEnd[0], selectEnd[1])
-        print(realStart, realEnd)
+        #print(realStart, realEnd)
         temp = [0,0]
         if realStart[0] > realEnd[0]:
             temp[0] = realStart[0]
@@ -67,6 +70,7 @@ class Controller():
             temp[1] = realStart[1]
             realStart[1] = realEnd[1]
             realEnd[1] = temp[1]
+        #print(realStart, realEnd)
         first = True
         for i in self.players[self.playerId].units:
             if i.position[0] >= realStart[0]-8 and i.position[0] <= realEnd[0]+8:
@@ -101,14 +105,11 @@ class Controller():
                 self.view.showGameIsFinished()
                 self.view.root.destroy()
         elif self.view.currentFrame != self.view.pLobby:
-            self.players[self.playerId].camera.move()
+            self.multiSelect = False
             for p in self.players:
                 for i in p.units:
                     if i.flag.flagState == 2:
                         i.move()
-                    if i.flag.flagState == 256:
-                        print('jefface un unit')
-                        i.eraseUnit()
             self.refreshMessages()
             #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
             self.pullChange()
@@ -126,22 +127,23 @@ class Controller():
 				
     def connectServer(self, login, serverIP):
         self.server=Pyro4.core.Proxy("PYRO:controleurServeur@"+serverIP+":54440")
-        try:
-            #Je demande au serveur si la partie est démarrée, si oui on le refuse de la partie, cela permet de vérifier
-            #en même temps si le serveur existe réellement à cette adresse.
-            if self.server.isGameStarted() == True:
-                self.view.gameHasBeenStarted()
-                self.view.changeFrame(self.view.fLogin)
-            else:
-                #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
-                self.playerId=self.server.getNumSocket(login, self.playerIp)
-                print("Mon Id :",self.playerId)
-                #Je vais au lobby, si la connection a fonctionner
-                self.view.changeFrame(self.view.pLobby)
-                self.action()
-        except:
-            self.view.loginFailed()
+        #try:
+        #Je demande au serveur si la partie est démarrée, si oui on le refuse de la partie, cela permet de vérifier
+        #en même temps si le serveur existe réellement à cette adresse.
+        if self.server.isGameStarted() == True:
+            self.view.gameHasBeenStarted()
             self.view.changeFrame(self.view.fLogin)
+        else:
+            #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
+            self.playerId=self.server.getNumSocket(login, self.playerIp)
+            print("Mon Id :",self.playerId)
+            #except:
+            #    self.view.loginFailed()
+            #    self.view.changeFrame(self.view.fLogin)
+                
+            #Je vais au lobby, si la connection a fonctionner
+            self.view.changeFrame(self.view.pLobby)
+            self.action()
     
     def getPlayer(self):
         return self.player
@@ -149,21 +151,22 @@ class Controller():
     def removePlayer(self):
         if self.view.currentFrame == self.view.gameFrame:
             self.sendMessage('a quitté la partie')
-            self.eraseUnits()
             self.server.removePlayer(self.playerIp, self.players[self.playerId].name, self.playerId)
             self.players[self.playerId].units = []
         self.view.root.destroy()
         
     def startGame(self):
-        if self.playerId==0:
-            self.server.startGame()
-        for i in range(0, len(self.server.getSockets())):
-            self.players.append(p.Player(self.server.getSockets()[i][1], i))
-        self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
-        self.players[self.playerId].startGame([0,0],self.galaxy)
-        self.view.gameFrame = self.view.fGame()
-        self.view.changeFrame(self.view.gameFrame)
-        self.view.root.after(50, self.action)
+        print(self.server.getPlayersReady(),"  ",len(self.server.getSockets()))
+        if(self.server.getPlayersReady() == len(self.server.getSockets())):
+            if(self.server.isGameStarted() == False):
+                self.server.startGame()
+            for i in range(0, len(self.server.getSockets())):
+                self.players.append(p.Player(self.server.getSockets()[i][1], i))
+            self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
+            self.players[self.playerId].startGame([0,0],self.galaxy)
+            self.view.gameFrame = self.view.fGame()
+            self.view.changeFrame(self.view.gameFrame)
+            self.view.root.after(50, self.action)
     
     #Méthode de mise à jour auprès du serveur, actionnée à chaque
     def pushChange(self, playerObject, flag):
@@ -190,13 +193,12 @@ class Controller():
         action = int(changeInfo[2])
         target = changeInfo[3]
         refresh = int(changeInfo[4])
-        if action == fs.FlagState.MOVE:
-            target = target.strip("[")
-            target = target.strip("]")
-            target = target.split(",")
-            for i in range(0, len(target)):
-                target[i]=math.trunc(float(target[i]))
-            self.players[actionPlayerId].units[unitIndex].changeFlag(t.Target([target[0],target[1],target[2]]),action)
+        target = target.strip("[")
+        target = target.strip("]")
+        target = target.split(",")
+        for i in range(0, len(target)):
+            target[i]=math.trunc(float(target[i]))
+        self.players[actionPlayerId].units[unitIndex].changeFlag(t.Target([target[0],target[1],target[2]]),action)
 
 if __name__ == '__main__':
     c = Controller()
