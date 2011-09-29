@@ -49,7 +49,30 @@ class Controller():
                         self.players[self.playerId].selectedObjects = []
                     if j not in self.players[self.playerId].selectedObjects:
                         self.players[self.playerId].selectedObjects.append(j)
-    
+
+    def boxSelect(self, selectStart, selectEnd):
+        realStart = self.players[self.playerId].camera.calcPointInWorld(selectStart[0], selectStart[1])
+        realEnd = self.players[self.playerId].camera.calcPointInWorld(selectEnd[0], selectEnd[1])
+        print(realStart, realEnd)
+        temp = [0,0]
+        if realStart[0] > realEnd[0]:
+            temp[0] = realStart[0]
+            realStart[0] = realEnd[0]
+            realEnd[0] = temp[0]
+        if realStart[1] > realEnd[1]:
+            temp[1] = realStart[1]
+            realStart[1] = realEnd[1]
+            realEnd[1] = temp[1]
+        print(realStart, realEnd)
+        first = True
+        for i in self.players[self.playerId].units:
+            if i.position[0] >= realStart[0]-8 and i.position[0] <= realEnd[0]+8:
+                if i.position[1] >= realStart[1]-8 and i.position[1] <= realEnd[1]+8:
+                    if first:
+                        self.players[self.playerId].selectedObjects = []
+                        first = False
+                    self.players[self.playerId].selectedObjects.append(i)
+
     def quickMove(self, x,y, canva):
         posSelected = self.players[self.playerId].camera.calcPointOnMap(x,y)
         self.players[self.playerId].camera.position = posSelected

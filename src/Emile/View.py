@@ -9,6 +9,9 @@ class View():
         self.root.title("Orion")
         self.root.resizable(0,0)
         self.taille=800
+        self.dragging = False
+        self.selectStart = [0,0]
+        self.selectEnd = [0,0]
         self.fLogin = self.fLogin()
         self.fLogin.pack()
         self.pLobby = self.fLobby()
@@ -85,6 +88,8 @@ class View():
         for i in players:
             for j in i.units:
                 self.drawUnit(j, players[id])
+        if self.dragging:
+            self.drawSelctionBox()
         self.drawMinimap()
          
     def drawSun(self, sunPosition, player):
@@ -145,7 +150,10 @@ class View():
         unitX = (unitPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
         planetY = (unitPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
         self.minimap.create_polygon((unitX-2, planetY+1, unitX, planetY-1, unitX+2, planetY+1),fill='YELLOW')
-        
+		
+    def drawSelctionBox(self):
+        self.gameArea.create_rectangle(self.selectStart[0], self.selectStart[1], self.selectEnd[0], self.selectEnd[1], outline='WHITE')
+		
     def keyPress(self, eve):
         code = eve.keycode
         if code == 37:
@@ -183,7 +191,21 @@ class View():
     
     def enter(self, eve):
         self.parent.sendMessage(self.entryMess.get())
-         
+		
+    def clicDrag(self,eve):
+        if self.dragging == False:
+            self.selectStart = [eve.x, eve.y]
+            self.selectEnd = [eve.x, eve.y]
+            self.dragging = True
+        else:
+            self.selectEnd = [eve.x, eve.y]
+        
+    def endDrag(self, eve):
+        if self.dragging:
+            self.dragging = False
+            self.selectEnd = [eve.x, eve.y]
+            self.parent.boxSelect(self.selectStart, self.selectEnd)   
+			
     def assignControls(self):
         self.gameArea.focus_set()
         self.gameArea.bind ("<Key>", self.keyPress)
@@ -192,3 +214,5 @@ class View():
         self.gameArea.bind("<Button-1>", self.leftclic)
         self.minimap.bind("<B1-Motion>",self.leftclic)
         self.entryMess.bind("<Return>",self.enter)
+        self.gameArea.bind("<B1-Motion>", self.clicDrag)
+        self.gameArea.bind("<ButtonRelease-1>", self.endDrag)
