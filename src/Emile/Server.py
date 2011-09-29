@@ -56,7 +56,6 @@ class ControleurServeur(object):
         change = change+'/'+str(self.decideActionRefresh())
         for ch in self.changeList:
             ch.append(change)
-            print(ch)
     
     def decideActionRefresh(self):
         #décide à quel refresh les clients doivent effectuer la prochaine action
@@ -132,9 +131,6 @@ class ControleurServeur(object):
         print('ajoute le socket a la fin')
         self.sockets.append((ip,login))
         return n
-    
-    def getServerTime(self):
-        return time.clock()
           
 
 # le processus qui ecoute les messages des clients

@@ -161,9 +161,7 @@ class Controller():
     
     #Méthode de mise à jour auprès du serveur, actionnée à chaque
     def pushChange(self, playerObject, flag):
-        print("pushing change")
         actionString = str(self.playerId)+"/"+str(self.players[self.playerId].units.index(playerObject))+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
-        print("actionString: ", actionString)
         self.server.addChange(actionString)
     
     def pullChange(self):
