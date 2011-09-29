@@ -116,10 +116,6 @@ class ControleurServeur(object):
         self.sockets.append((ip,login))
         return n
     
-    def testConnect(self):
-        #dummy afin de vérifier si le serveur existe
-        i=1
-    
     def getServerTime(self):
         return time.clock()
           

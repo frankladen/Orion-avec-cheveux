@@ -56,6 +56,9 @@ class View():
     def loginFailed(self):
         mb.showinfo('Erreur de connection', 'Le serveur est introuvable. Veuillez reessayer.')
     
+    def gameHasBeenStarted(self):
+        mb.showinfo('Erreur de connection', 'La partie a déjà débutée. Veuillez attendre sa fin.')
+    
     def drawWorld(self):
         self.gameArea.delete(ALL)
         sunList = self.parent.galaxy.solarSystemList

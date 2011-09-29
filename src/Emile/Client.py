@@ -76,7 +76,8 @@ class Controller():
     def connectServer(self, login, serverIP):
         self.server=Pyro4.core.Proxy("PYRO:controleurServeur@"+serverIP+":54440")
         #try:
-        self.server.testConnect()
+        if self.server.isGameStarted() == True:
+            self.view.gameHasBeenStarted()
         #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
         self.playerId=self.server.getNumSocket(login, self.playerIp)
         print("Mon Id :",self.playerId)
