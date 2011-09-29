@@ -109,15 +109,6 @@ class ControleurServeur(object):
         #if self.playersTooDamnHigh().count(num) > 0 :
         #    change.append("*",self.frameDifference())
         return changes
-
-    def getNewMessage(self, num):
-        messages=[]
-        for i in range(0,len(self.sockets)):
-            if i != num:
-                if self.sockets[i].getLastMess() != self.sockets[i].getText():
-                    messages.append(self.sockets[i])
-                    self.sockets[i].setLastMess(self.sockets[i].getText())
-        return messages
     
        
     def getNumSocket(self, login, ip):
