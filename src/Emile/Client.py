@@ -7,6 +7,7 @@ import Flag as f
 import FlagState as fs
 import Pyro4
 import socket
+import math
 from time import time
 
 class Controller():
@@ -92,10 +93,10 @@ class Controller():
         return self.player
         
     def startGame(self):
-        for i in self.server.getSockets():
-            self.players.append(p.Player(i[1]))
         if self.playerId==0:
             self.server.startGame()
+        for i in self.server.getSockets():
+            self.players.append(p.Player(i[1]))
         self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
         self.players[self.playerId].startGame([0,0],self.galaxy)
         self.view.changeFrame(self.view.fGame())
@@ -131,8 +132,9 @@ class Controller():
         target = target.strip("[")
         target = target.strip("]")
         target = target.split(",")
-        print(target)
-        self.players[actionPlayerId].units[unitIndex].changeFlag(t.Target([int(target[0]),int(target[1]),int(target[2])]),action)
+        for i in range(0, len(target)):
+            target[i]=math.trunc(float(target[i]))
+        self.players[actionPlayerId].units[unitIndex].changeFlag(t.Target([target[0],target[1],target[2]]),action)
 
 if __name__ == '__main__':
     c = Controller()

@@ -50,7 +50,7 @@ class View():
             for i in range(0, pNum):
                 Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i,column=0)
             if self.parent.playerId == 0:
-                Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame).grid(row=(pNum+1), column=0)
+                Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame, bg="black", fg="white").grid(row=(pNum+1), column=1)
         return lobbyFrame
         
     def loginFailed(self):
