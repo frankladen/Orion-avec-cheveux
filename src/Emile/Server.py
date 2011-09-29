@@ -7,8 +7,8 @@ class ControleurServeur(object):
     def __init__(self):
         self.sockets=[]
         self.refreshes=[]
-        self.numClient=0
         self.gameIsStarted = False
+        self.isStopped = True
         self.seed = int(time())
         self.changeList = [] 
         
@@ -24,6 +24,7 @@ class ControleurServeur(object):
     
     def startGame(self):
         self.gameIsStarted = True
+        self.isStopped = False
         #J'initie mon tableau de changements et de refreshes
         #print("nombres de joueurs: "+str(self.getNumberOfPlayers()))
         for i in range(0, self.getNumberOfPlayers()):

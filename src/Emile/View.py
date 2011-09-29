@@ -17,7 +17,7 @@ class View():
         self.sun=PhotoImage(file='sun.gif')
         self.planet=PhotoImage(file='planet.gif')
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
-        root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
+        self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
     
     def changeFrame(self, frame):
         self.currentFrame.pack_forget()
@@ -61,6 +61,9 @@ class View():
     
     def gameHasBeenStarted(self):
         mb.showinfo('Erreur de connection', 'La partie a déjà débutée. Veuillez attendre sa fin.')
+    
+    def showGameIsFinished(self):
+        mb.showinfo('Fin de la partie', 'L\'administrateur de la partie a quitté prématurément la partie, la partie est donc terminée.')
     
     def drawWorld(self):
         self.gameArea.delete(ALL)

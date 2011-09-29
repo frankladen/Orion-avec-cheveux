@@ -54,7 +54,7 @@ class Controller():
         self.players[self.playerId].camera.position = posSelected
     
     def action(self, waitTime=50):
-        if self.view.currentFrame != self.view.pLobby:
+        if self.view.currentFrame != self.view.pLobby and self.server.isStopped == False:
             self.multiSelect = False
             for p in self.players:
                 for i in p.units:
@@ -64,13 +64,17 @@ class Controller():
             self.pullChange()
             self.view.drawWorld()
              
-        else:
+        elif self.view.currentFrame == self.view.pLobby:
             if self.server.isGameStarted() == True:
                 self.startGame()
             else:
                 waitTime=500
                 self.view.pLobby = self.view.fLobby()
                 self.view.changeFrame(self.view.pLobby)
+        
+        else:
+            self.view.showGameIsFinished()
+            self.view.root.destroy()
         self.view.root.after(waitTime, self.action)  
 				
     def connectServer(self, login, serverIP):
@@ -98,8 +102,11 @@ class Controller():
         return self.player
     
     def removePlayer(self):
-        self.server.getSockets[playerId].remove()
-        
+        self.server.getSockets().remove(self.playerId)
+        if playerId == 0:
+            self.server.isStopped = True
+            self.server.sockets = None
+            self.server.gameIsStarted = False
         self.view.root.destroy()
         
     def startGame(self):
