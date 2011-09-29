@@ -71,7 +71,7 @@ class Controller():
         self.view.chat.config(text=textChat)
     
     def action(self, waitTime=50):
-        if self.server.isGameStopped() == True and self.view.currentFrame == self.view.fGame:
+        if self.server.isGameStopped() == True and self.view.currentFrame != self.view.gameFrame:
             if self.playerId != 0:
                 self.view.showGameIsFinished()
                 self.view.root.destroy()
