@@ -23,6 +23,24 @@ class View():
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
     
+    def initMenu(self):
+        self.menuBar = Menu(self.root)
+        self.buildingMenu = Menu(self.menuBar, tearoff=0)
+        self.menuBar.add_cascade(label="Building",menu=self.buildingMenu)
+        self.typeOfUnitMenu = Menu(self.buildingMenu, tearoff= 0)
+        self.buildingMenu.add_cascade(label = "Créer un nouveau building", menu =  self.typeOfUnitMenu)
+        self.typeOfUnitMenu.add_command(label = "Farm")
+        self.typeOfUnitMenu.add_command(label = "GasCollectorBuilding")
+        self.typeOfUnitMenu.add_command(label = "MineralCollectorBuilding")
+        self.typeOfUnitMenu.add_command(label = "GasCollectorBuilding")
+        self.typeOfUnitMenu.add_command(label = "MotherShip")
+        self.typeOfUnitMenu.add_command(label = "SpaceRessourceBuilding")
+
+
+                
+
+        self.root.config(menu = self.menuBar)
+    
     def changeFrame(self, frame):
         self.currentFrame.pack_forget()
         frame.pack()
@@ -45,6 +63,7 @@ class View():
         send = Button(gameFrame, text='Send', command=lambda:self.enter(0))
         send.grid(row=2, column=2)
         self.assignControls()
+        self.initMenu()
         return gameFrame
         
     def fLogin(self):
