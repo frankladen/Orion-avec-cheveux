@@ -107,7 +107,6 @@ class Controller():
             #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
             self.pullChange()
             self.view.drawWorld()
-            print(len(self.players[self.playerId].units))
         else:
             if self.server.isGameStarted() == True:
                 self.startGame()
@@ -129,8 +128,8 @@ class Controller():
             else:
                 #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
                 self.playerId=self.server.getNumSocket(login, self.playerIp)
-                print("Mon Id :",self.playerId)
                 #Je vais au lobby, si la connection a fonctionner
+                self.view.pLobby = self.view.fLobby()
                 self.view.changeFrame(self.view.pLobby)
                 self.action()
         except:
@@ -152,7 +151,6 @@ class Controller():
             self.server.startGame()
         for i in range(0, len(self.server.getSockets())):
             self.players.append(p.Player(self.server.getSockets()[i][1], i))
-            print(len(self.players[self.playerId].units))
         self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
         self.players[self.playerId].startGame([0,0],self.galaxy)
         self.view.gameFrame = self.view.fGame()

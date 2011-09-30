@@ -14,7 +14,7 @@ class View():
         self.selectEnd = [0,0]
         self.fLogin = self.fLogin()
         self.fLogin.pack()
-        self.pLobby = self.fLobby()
+        self.pLobby = None
         self.currentFrame = self.fLogin
         self.firstTime = True
         self.gameFrame = None
@@ -62,6 +62,7 @@ class View():
         return loginFrame
     
     def fLobby(self):
+        self.entryServer.unbind("<Return>")
         lobbyFrame = Frame(self.root, bg="black")
         if self.parent.server != None:
             pNum = len(self.parent.server.getSockets())
