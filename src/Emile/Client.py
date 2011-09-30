@@ -106,9 +106,6 @@ class Controller():
                 for i in p.units:
                     if i.flag.flagState == 2:
                         i.move()
-                    if i.flag.flagState == 256:
-                        print('jefface un unit')
-                        i.eraseUnit()
             self.refreshMessages()
             #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
             self.pullChange()
@@ -150,8 +147,6 @@ class Controller():
         if self.view.currentFrame == self.view.gameFrame:
             self.sendMessage('a quitté la partie')
             self.eraseUnits()
-            self.server.removePlayer(self.playerIp, self.players[self.playerId].name, self.playerId)
-            self.players[self.playerId].units = []
         self.view.root.destroy()
         
     def startGame(self):
@@ -197,6 +192,8 @@ class Controller():
             for i in range(0, len(target)):
                 target[i]=math.trunc(float(target[i]))
             self.players[actionPlayerId].units[unitIndex].changeFlag(t.Target([target[0],target[1],target[2]]),action)
+        elif action == fs.FlagState.DESTROY:
+            self.players[actionPlayerId].units[unitIndex] = None
 
 if __name__ == '__main__':
     c = Controller()
