@@ -107,7 +107,7 @@ class Controller():
             #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
             self.pullChange()
             self.view.drawWorld()
-             
+            print(len(self.players[self.playerId].units))
         else:
             if self.server.isGameStarted() == True:
                 self.startGame()
@@ -151,10 +151,8 @@ class Controller():
         if self.playerId==0:
             self.server.startGame()
         for i in range(0, len(self.server.getSockets())):
-            try:
-                self.players[i] = p.Player(self.server.getSockets()[i][1], i)
-            except:
-                self.players.append(p.Player(self.server.getSockets()[i][1], i))
+            self.players.append(p.Player(self.server.getSockets()[i][1], i))
+            print(len(self.players[self.playerId].units))
         self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
         self.players[self.playerId].startGame([0,0],self.galaxy)
         self.view.gameFrame = self.view.fGame()
