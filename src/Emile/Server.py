@@ -44,7 +44,7 @@ class ControleurServeur(object):
                 self.gameIsStarted = False
                 self.refreshes = []
                 self.changeList = []
-                self.mess = []
+                self.mess = ['Système de chat de Orion']
         #print(len(self.sockets))
     
     def addMessage(self, text, name):

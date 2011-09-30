@@ -3,6 +3,7 @@ import View as v
 import World as w
 import Player as p
 import Target as t
+import Unit as u
 import Flag as f
 import FlagState as fs
 import Pyro4
@@ -30,7 +31,16 @@ class Controller():
         for i in self.players[self.playerId].selectedObjects:
             if i.__module__ == 'Unit':
                 self.pushChange(i, f.Flag(i,t.Target([x,y,0]),fs.FlagState.MOVE))
-
+    
+    def setStandbyFlag(self):
+        for i in self.players[self.playerId].selectedObjects:
+            if i.__module__ == 'Unit':
+                self.pushChange(i, f.Flag(i,t.Target([i.position[0],i.position[1],0]),fs.FlagState.STANDBY))
+                
+    def addUnit(self, unit):
+        if unit == "Scout":
+            self.pushChange('Scout', 'addunit')
+    
     def eraseUnits(self):
         self.pushChange(self.players[self.playerId].units[0], f.Flag(self.players[self.playerId].units[0],t.Target([0,0,0]),fs.FlagState.DESTROY))
     
@@ -78,7 +88,8 @@ class Controller():
         self.players[self.playerId].camera.position = posSelected
     
     def sendMessage(self, mess):
-        self.server.addMessage(mess, self.players[self.playerId].name)
+        if mess != "":
+            self.server.addMessage(mess, self.players[self.playerId].name)
     
     def refreshMessages(self):
         textChat=''
@@ -159,8 +170,12 @@ class Controller():
     
     #Méthode de mise à jour auprès du serveur, actionnée à chaque
     def pushChange(self, playerObject, flag):
-        actionString = str(self.playerId)+"/"+str(self.players[self.playerId].units.index(playerObject))+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
-        self.server.addChange(actionString)
+        if flag == 'addunit':
+            actionString = str(self.playerId)+"/"+playerObject+"/"+flag+"/lolcasertarienceboutla"
+            self.server.addChange(actionString)
+        elif flag.__module__ == 'Flag':
+            actionString = str(self.playerId)+"/"+str(self.players[self.playerId].units.index(playerObject))+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
+            self.server.addChange(actionString)
     
     def pullChange(self):
         changes = self.server.getChange(self.playerId, self.refresh)
@@ -178,19 +193,22 @@ class Controller():
     def doAction(self, changeString):
         changeInfo = changeString.split("/")
         actionPlayerId = int(changeInfo[0])
-        unitIndex = int(changeInfo[1])
-        action = int(changeInfo[2])
+        unitIndex = changeInfo[1]
+        action = changeInfo[2]
         target = changeInfo[3]
         refresh = int(changeInfo[4])
-        if action == fs.FlagState.MOVE:
+        if action == str(fs.FlagState.MOVE) or action == str(fs.FlagState.STANDBY):
             target = target.strip("[")
             target = target.strip("]")
             target = target.split(",")
             for i in range(0, len(target)):
                 target[i]=math.trunc(float(target[i]))
-            self.players[actionPlayerId].units[unitIndex].changeFlag(t.Target([target[0],target[1],target[2]]),action)
-        elif action == fs.FlagState.DESTROY:
+            self.players[actionPlayerId].units[int(unitIndex)].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
+        elif action == str(fs.FlagState.DESTROY):
             self.players[actionPlayerId].units = []
+        elif action == 'addunit':
+            if unitIndex == 'Scout':
+                self.players[actionPlayerId].units.append(u.Unit('Scout00'+str(len(self.players[actionPlayerId].units)),[50,100,0], moveSpeed=5.0))
 
 if __name__ == '__main__':
     c = Controller()
