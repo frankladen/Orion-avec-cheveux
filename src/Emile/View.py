@@ -109,6 +109,10 @@ class View():
             distance = player.camera.calcDistance(planetPosition)
             if planet in player.selectedObjects:
                 self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="green", tag="planet")
+                mVariable = "Mineral :" + str(planet.mineralQte)
+                gVariable = "Gaz :" + str(planet.gazQte)
+                self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="cyan",text=mVariable)
+                self.gameArea.create_text(distance[0]-20, distance[1]-40,fill="green",text=gVariable)
             self.gameArea.create_image(distance[0],distance[1],image=self.planet)
             #self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10, fill='BLUE', tag="planet")
             

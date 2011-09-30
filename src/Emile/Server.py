@@ -41,8 +41,9 @@ class ControleurServeur(object):
         #self.sockets.remove([ip, login])
         if playerId == 0:
                 self.isStopped = True
-                self.sockets = []
                 self.gameIsStarted = False
+                for i in self.sockets:
+                    i[1]=""
                 self.refreshes = []
                 self.mess = []
         #print(len(self.sockets))
@@ -115,7 +116,9 @@ class ControleurServeur(object):
        
     def getNumSocket(self, login, ip):
         n=0
+        print(ip)
         for i in range(0,len(self.sockets)):
+            print(self.sockets[i][0])
             if self.sockets[i][0] == ip:
                 print('a trouver le meme socket que le precedent')
                 self.sockets[i]=(ip,login)

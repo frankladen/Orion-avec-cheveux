@@ -32,9 +32,7 @@ class Controller():
                 self.pushChange(i, f.Flag(i,t.Target([x,y,0]),fs.FlagState.MOVE))
 
     def eraseUnits(self):
-        for i in self.players[self.playerId].units:
-            if i.__module__ == 'Unit':
-                self.pushChange(i, f.Flag(i,t.Target([0,0,0]),fs.FlagState.DESTROY))
+        self.pushChange(self.players[self.playerId].units[0], f.Flag(self.players[self.playerId].units[0],t.Target([0,0,0]),fs.FlagState.DESTROY))
     
     def select(self, x, y, canva):
         posSelected = self.players[self.playerId].camera.calcPointInWorld(x,y)
@@ -57,7 +55,6 @@ class Controller():
     def boxSelect(self, selectStart, selectEnd):
         realStart = self.players[self.playerId].camera.calcPointInWorld(selectStart[0], selectStart[1])
         realEnd = self.players[self.playerId].camera.calcPointInWorld(selectEnd[0], selectEnd[1])
-        print(realStart, realEnd)
         temp = [0,0]
         if realStart[0] > realEnd[0]:
             temp[0] = realStart[0]
@@ -147,13 +144,17 @@ class Controller():
         if self.view.currentFrame == self.view.gameFrame:
             self.sendMessage('a quitté la partie')
             self.eraseUnits()
+            self.server.removePlayer(self.playerIp, self.players[self.playerId].name, self.playerId)
         self.view.root.destroy()
         
     def startGame(self):
         if self.playerId==0:
             self.server.startGame()
         for i in range(0, len(self.server.getSockets())):
-            self.players.append(p.Player(self.server.getSockets()[i][1], i))
+            try:
+                self.players[i] = p.Player(self.server.getSockets()[i][1], i)
+            except:
+                self.players.append(p.Player(self.server.getSockets()[i][1], i))
         self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
         self.players[self.playerId].startGame([0,0],self.galaxy)
         self.view.gameFrame = self.view.fGame()
@@ -193,7 +194,7 @@ class Controller():
                 target[i]=math.trunc(float(target[i]))
             self.players[actionPlayerId].units[unitIndex].changeFlag(t.Target([target[0],target[1],target[2]]),action)
         elif action == fs.FlagState.DESTROY:
-            self.players[actionPlayerId].units[unitIndex] = None
+            self.players[actionPlayerId].units = []
 
 if __name__ == '__main__':
     c = Controller()
