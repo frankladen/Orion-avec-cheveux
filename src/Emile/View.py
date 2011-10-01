@@ -204,7 +204,7 @@ class View():
     def keyReleaseRight(self, eve):
         self.parent.players[self.parent.playerId].camera.movingDirection.remove('RIGHT')
         self.drawWorld()
-        
+    #Actions avec la souris    
     def rightclic(self, eve):
         x = eve.x
         y = eve.y
@@ -216,7 +216,6 @@ class View():
             pos = self.parent.players[self.parent.playerId].camera.calcPointMinimap(x,y)
             self.parent.setMovingFlag(pos[0], pos[1])
         self.drawWorld()
-    
     def leftclic(self, eve):
         x = eve.x
         y = eve.y
@@ -225,14 +224,6 @@ class View():
             self.parent.select(x,y,canva)
         elif canva == self.minimap:
             self.parent.quickMove(x,y,canva)
-    
-    def enter(self, eve):
-        self.parent.sendMessage(self.entryMess.get())
-        self.entryMess.delete(0,END)
-        self.gameArea.focus_set()
-
-    def lobbyEnter(self, eve):
-        self.parent.connectServer(self.entryLogin.get(), self.entryServer.get())
     	
     def clicDrag(self,eve):
         if self.dragging == False:
@@ -246,13 +237,24 @@ class View():
         if self.dragging:
             self.dragging = False
             self.selectEnd = [eve.x, eve.y]
-            self.parent.boxSelect(self.selectStart, self.selectEnd)
-            
+            self.parent.boxSelect(self.selectStart, self.selectEnd)    
+			
+    def enter(self, eve):
+        self.parent.sendMessage(self.entryMess.get())
+        self.entryMess.delete(0,END)
+        self.gameArea.focus_set()
+
+    def lobbyEnter(self, eve):
+        self.parent.connectServer(self.entryLogin.get(), self.entryServer.get())
+			
+    def stop(self, eve):
+        self.parent.setStandbyFlag()
+		
     def shiftPress(self, eve):
         self.parent.multiSelect = True
     def shiftRelease(self, eve):
         self.parent.multiSelect = False
-        
+		
     def assignControls(self):
         self.gameArea.focus_set()
         #Bindings des fleches
@@ -267,6 +269,9 @@ class View():
         #Bindings de shift pour la multiselection
         self.gameArea.bind("<Shift_L>", self.shiftPress)
         self.gameArea.bind("<KeyRelease-Shift_L>", self.shiftRelease)
+        #BINDINGS POUR LES SHORTCUTS CLAVIERS
+        self.gameArea.bind("s", self.stop)
+        self.gameArea.bind("S", self.stop)
         #Bindings des boutons de la souris
         self.gameArea.bind("<Button-3>", self.rightclic)
         self.gameArea.bind("<B3-Motion>", self.rightclic)
