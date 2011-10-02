@@ -13,7 +13,7 @@ class Player():
         self.units.append(u.Unit('Scout001',[0,0,0], moveSpeed=5.0))
         self.units.append(u.Unit('Scout002',[100,200,0], moveSpeed=5.0))
     #Ajoute une camera au joueur seulement quand la partie commence    
-    def startGame(self, position, galaxy):
+    def addCamera(self, position, galaxy):
         self.camera = Camera(position ,galaxy)
 #Represente la camera            
 class Camera():
