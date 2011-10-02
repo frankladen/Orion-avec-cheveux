@@ -38,10 +38,20 @@ class Controller():
     def addUnit(self, unit):
         if unit == "Scout":
             self.pushChange('Scout', 'addunit')
-    #Pour effacer une unit
+    #Trade entre joueurs
+    def tradePlayers(self, items, playerId2):
+        for i in items:
+            self.pushChange(i, self.playerId2)
+    #Pour effacer un Unit
+    def eraseUnit(self):
+        if len(self.players[self.playerId].selectedObjects) == 1:
+            if self.players[self.playerId].selectedObjects[0].__module__ == 'Unit':
+                self.pushChange(self.players[self.playerId].selectedObjects[0], 'deleteUnit')
+                self.players[self.playerId].selectedObjects.pop(0)
+    #Pour effacer tous les units
     def eraseUnits(self):
-        self.pushChange(self.players[self.playerId].units[0], Flag(self.players[self.playerId].units[0],t.Target([0,0,0]),FlagState.DESTROY))
-    #Pour selectionner une unit
+        self.pushChange('lollegarspartdelagame', 'deleteAllUnits')    #Pour selectionner une unit
+        
     def select(self, x, y, canva):
         posSelected = self.players[self.playerId].camera.calcPointInWorld(x,y)
         #Si on selectionne une planete
@@ -169,6 +179,12 @@ class Controller():
         if flag == 'addunit':
             actionString = str(self.playerId)+"/"+playerObject+"/"+flag+"/lolcasertarienceboutla"
             self.server.addChange(actionString)
+        elif flag == 'deleteUnit':
+            actionString = str(self.playerId)+"/"+str(self.players[self.playerId].units.index(playerObject))+"/"+flag+"/klolyvamourirleunit"
+            self.server.addChange(actionString)
+        elif flag == 'deleteAllUnits':
+            actionString = str(self.playerId)+"/"+playerObject+"/"+flag+"/lolypartdelapartie"
+            self.server.addChange(actionString)
         elif flag.__module__ == 'Flag':
             actionString = str(self.playerId)+"/"+str(self.players[self.playerId].units.index(playerObject))+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             self.server.addChange(actionString)
@@ -193,18 +209,20 @@ class Controller():
         action = changeInfo[2]
         target = changeInfo[3]
         refresh = int(changeInfo[4])
-        if action == str(FlagState.MOVE) or action == str(FlagState.STANDBY):
+        if action == str(fs.FlagState.MOVE) or action == str(fs.FlagState.STANDBY):
             target = target.strip("[")
             target = target.strip("]")
             target = target.split(",")
             for i in range(0, len(target)):
                 target[i]=math.trunc(float(target[i]))
             self.players[actionPlayerId].units[int(unitIndex)].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
-        elif action == str(FlagState.DESTROY):
+        elif action == 'deleteAllUnits':
             self.players[actionPlayerId].units = []
         elif action == 'addunit':
             if unitIndex == 'Scout':
                 self.players[actionPlayerId].units.append(u.Unit('Scout00'+str(len(self.players[actionPlayerId].units)),[50,100,0], moveSpeed=5.0))
+        elif action == 'deleteUnit':
+            self.players[actionPlayerId].units.pop(int(unitIndex))
 
 if __name__ == '__main__':
     c = Controller()

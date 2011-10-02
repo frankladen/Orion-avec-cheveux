@@ -48,6 +48,8 @@ class View():
         createScout.grid(row=1,column=3)
         stopSelectedUnits = Button(gameFrame, text='Stop', command=self.parent.setStandbyFlag)
         stopSelectedUnits.grid(row=2,column=3)
+        deleteSelectedUnits = Button(gameFrame, text='Delete', command=self.parent.eraseUnit)
+        deleteSelectedUnits.grid(row=2,column=4)
         self.assignControls()
         return gameFrame
     #Frame pour le login    
@@ -254,6 +256,10 @@ class View():
 			
     def stop(self, eve):
         self.parent.setStandbyFlag()
+
+    def delete(self, eve):
+        self.parent.eraseUnit()
+        
 	#Pour la selection multiple	
     def shiftPress(self, eve):
         self.parent.multiSelect = True
@@ -278,6 +284,8 @@ class View():
         #BINDINGS POUR LES SHORTCUTS CLAVIERS
         self.gameArea.bind("s", self.stop)
         self.gameArea.bind("S", self.stop)
+        self.gameArea.bind("d", self.delete)
+        self.gameArea.bind("D", self.delete)
         #Bindings des boutons de la souris
         self.gameArea.bind("<Button-3>", self.rightclic)
         self.gameArea.bind("<B3-Motion>", self.rightclic)
