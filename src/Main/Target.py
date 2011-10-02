@@ -1,5 +1,4 @@
 from Flag import *
-import FlagState as fs
 
 #Represente une position dans l'espace  
 class Target():
@@ -11,7 +10,7 @@ class PlayerObject(Target):
     def __init__(self, name, position):
         super(PlayerObject, self).__init__(position)
         self.name = name
-        self.flag = Flag(Target([0,0,0]),Target([0,0,0]),fs.FlagState.STANDBY)
+        self.flag = Flag(Target([0,0,0]), Target([0,0,0]), FlagState.STANDBY)
     
     def getFlag(self):
         return self.flag

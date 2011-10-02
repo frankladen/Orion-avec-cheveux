@@ -1,7 +1,6 @@
 # -*- coding: UTF-8 -*-
 import Target as t
-import  Flag
-import FlagState as fs
+from Flag import *
 import Helper as h
 
 #Classe representant une unit
@@ -14,7 +13,7 @@ class Unit(t.PlayerObject):
     def move(self):
         if h.Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1]) <= self.moveSpeed:
             self.position = self.flag.finalTarget.position
-            self.flag.flagState = fs.FlagState.STANDBY
+            self.flag.flagState = FlagState.STANDBY
         else:
             angle = h.Helper.calcAngle(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1])
             temp = h.Helper.getAngledPoint(angle, self.moveSpeed, self.position[0], self.position[1])

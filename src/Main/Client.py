@@ -4,8 +4,7 @@ import World as w
 import Player as p
 import Target as t
 import Unit as u
-import Flag as f
-import FlagState as fs
+from Flag import *
 import Pyro4
 import socket
 import math
@@ -29,19 +28,19 @@ class Controller():
     def setMovingFlag(self,x,y):
         for i in self.players[self.playerId].selectedObjects:
             if i.__module__ == 'Unit':
-                self.pushChange(i, f.Flag(i,t.Target([x,y,0]),fs.FlagState.MOVE))
+                self.pushChange(i, Flag(i,t.Target([x,y,0]),FlagState.MOVE))
     #Pour changer le flag des unites selectionne pour l'arret
     def setStandbyFlag(self):
         for i in self.players[self.playerId].selectedObjects:
             if i.__module__ == 'Unit':
-                self.pushChange(i, f.Flag(i,t.Target([i.position[0],i.position[1],0]),fs.FlagState.STANDBY))
+                self.pushChange(i, Flag(i,t.Target([i.position[0],i.position[1],0]),FlagState.STANDBY))
     #Pour ajouter une unit             
     def addUnit(self, unit):
         if unit == "Scout":
             self.pushChange('Scout', 'addunit')
     #Pour effacer une unit
     def eraseUnits(self):
-        self.pushChange(self.players[self.playerId].units[0], f.Flag(self.players[self.playerId].units[0],t.Target([0,0,0]),fs.FlagState.DESTROY))
+        self.pushChange(self.players[self.playerId].units[0], Flag(self.players[self.playerId].units[0],t.Target([0,0,0]),FlagState.DESTROY))
     #Pour selectionner une unit
     def select(self, x, y, canva):
         posSelected = self.players[self.playerId].camera.calcPointInWorld(x,y)
@@ -194,14 +193,14 @@ class Controller():
         action = changeInfo[2]
         target = changeInfo[3]
         refresh = int(changeInfo[4])
-        if action == str(fs.FlagState.MOVE) or action == str(fs.FlagState.STANDBY):
+        if action == str(FlagState.MOVE) or action == str(FlagState.STANDBY):
             target = target.strip("[")
             target = target.strip("]")
             target = target.split(",")
             for i in range(0, len(target)):
                 target[i]=math.trunc(float(target[i]))
             self.players[actionPlayerId].units[int(unitIndex)].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
-        elif action == str(fs.FlagState.DESTROY):
+        elif action == str(FlagState.DESTROY):
             self.players[actionPlayerId].units = []
         elif action == 'addunit':
             if unitIndex == 'Scout':
