@@ -15,7 +15,6 @@ class Controller():
     def __init__(self):
         self.players = [] #La liste des joueurs
         self.playerId = 0 #Le id du joueur courant
-        self.player = None
         self.refresh = 0
         self.mess = []
         self.playerIp = socket.gethostbyname(socket.getfqdn())
@@ -26,26 +25,27 @@ class Controller():
         self.currentFrame = None
 
         self.view.root.mainloop()
-        
+    #Pour changer le flag des unites selectionne pour le deplacement    
     def setMovingFlag(self,x,y):
         for i in self.players[self.playerId].selectedObjects:
             if i.__module__ == 'Unit':
                 self.pushChange(i, f.Flag(i,t.Target([x,y,0]),fs.FlagState.MOVE))
-    
+    #Pour changer le flag des unites selectionne pour l'arret
     def setStandbyFlag(self):
         for i in self.players[self.playerId].selectedObjects:
             if i.__module__ == 'Unit':
                 self.pushChange(i, f.Flag(i,t.Target([i.position[0],i.position[1],0]),fs.FlagState.STANDBY))
-                
+    #Pour ajouter une unit             
     def addUnit(self, unit):
         if unit == "Scout":
             self.pushChange('Scout', 'addunit')
-    
+    #Pour effacer une unit
     def eraseUnits(self):
         self.pushChange(self.players[self.playerId].units[0], f.Flag(self.players[self.playerId].units[0],t.Target([0,0,0]),fs.FlagState.DESTROY))
-    
+    #Pour selectionner une unit
     def select(self, x, y, canva):
         posSelected = self.players[self.playerId].camera.calcPointInWorld(x,y)
+        #Si on selectionne une planete
         for i in self.galaxy.solarSystemList:
             for j in i.planets:
                 if j.position[0] >= posSelected[0]-10 and j.position[0] <= posSelected[0]+10:
@@ -53,7 +53,7 @@ class Controller():
                         if j not in self.players[self.playerId].selectedObjects:
                             self.players[self.playerId].selectedObjects = []
                             self.players[self.playerId].selectedObjects.append(j)
-                            
+        #Si on selectionne une unit               
         for j in self.players[self.playerId].units:
             if j.position[0] >= posSelected[0]-8 and j.position[0] <= posSelected[0]+8:
                 if j.position[1] >= posSelected[1]-8 and j.position[1] <= posSelected[1]+8: 
@@ -61,7 +61,7 @@ class Controller():
                         self.players[self.playerId].selectedObjects = []
                     if j not in self.players[self.playerId].selectedObjects:
                         self.players[self.playerId].selectedObjects.append(j)
-
+    #Selection avec le clic-drag
     def boxSelect(self, selectStart, selectEnd):
         realStart = self.players[self.playerId].camera.calcPointInWorld(selectStart[0], selectStart[1])
         realEnd = self.players[self.playerId].camera.calcPointInWorld(selectEnd[0], selectEnd[1])
@@ -82,15 +82,15 @@ class Controller():
                         self.players[self.playerId].selectedObjects = []
                         first = False
                     self.players[self.playerId].selectedObjects.append(i)
-
+    #Deplacement rapide de la camera vers un endroit de la minimap
     def quickMove(self, x,y, canva):
         posSelected = self.players[self.playerId].camera.calcPointOnMap(x,y)
         self.players[self.playerId].camera.position = posSelected
-    
+    #Envoyer le message pour le chat
     def sendMessage(self, mess):
         if mess != "":
             self.server.addMessage(mess, self.players[self.playerId].name)
-    
+    #Pour aller chercher les nouveaux messages
     def refreshMessages(self):
         textChat=''
         for i in range(len(self.mess), len(self.server.getMessage())):
@@ -102,7 +102,7 @@ class Controller():
             for i in range(0, len(self.mess)):
                 textChat+=self.mess[i]+'\r'
         self.view.chat.config(text=textChat)
-    
+    #TIMER D'ACTION DU JOUEUR COURANT
     def action(self, waitTime=50):
         if self.server.isGameStopped() == True and self.view.currentFrame == self.view.gameFrame:
             if self.playerId != 0:
@@ -127,7 +127,7 @@ class Controller():
                 self.view.changeFrame(self.view.pLobby)
 
         self.view.root.after(waitTime, self.action)  
-				
+	#Connection au serveur			
     def connectServer(self, login, serverIP):
         self.server=Pyro4.core.Proxy("PYRO:controleurServeur@"+serverIP+":54440")
         try:
@@ -146,17 +146,14 @@ class Controller():
         except:
             self.view.loginFailed()
             self.view.changeFrame(self.view.fLogin)
-    
-    def getPlayer(self):
-        return self.player
-    
+    #Enleve le joueur courant de la partie ainsi que ses units
     def removePlayer(self):
         if self.view.currentFrame == self.view.gameFrame:
             self.sendMessage('a quitté la partie')
             self.eraseUnits()
             self.server.removePlayer(self.playerIp, self.players[self.playerId].name, self.playerId)
         self.view.root.destroy()
-        
+    #Demmare la partie et genere la galaxie (Quand l'admin appui sur start game dans le lobby)    
     def startGame(self):
         if self.playerId==0:
             self.server.startGame()

@@ -27,7 +27,7 @@ class View():
         self.currentFrame.pack_forget()
         frame.pack()
         self.currentFrame = frame
-        
+    #Frame principal du jeu    
     def fGame(self):
         gameFrame = Frame(self.root, bg="black")
         self.ships = []
@@ -50,7 +50,7 @@ class View():
         stopSelectedUnits.grid(row=2,column=3)
         self.assignControls()
         return gameFrame
-        
+    #Frame pour le login    
     def fLogin(self):
         loginFrame = Frame(self.root, bg="black")
         Label(loginFrame, text="Login:", fg="white", bg="black").grid(row=0, column=0)
@@ -64,7 +64,7 @@ class View():
         widget.grid(row=2, column=1)
         self.entryServer.bind("<Return>",self.lobbyEnter)
         return loginFrame
-    
+    #Frame du lobby
     def fLobby(self):
         self.entryServer.unbind("<Return>")
         lobbyFrame = Frame(self.root, bg="black")
@@ -85,7 +85,8 @@ class View():
     
     def showGameIsFinished(self):
         mb.showinfo('Fin de la partie', 'L\'administrateur de la partie a quitté prématurément la partie, la partie est donc terminée.')
-    
+
+    #Methode pour dessiner
     def drawWorld(self):
         self.gameArea.delete(ALL)
         sunList = self.parent.galaxy.solarSystemList
@@ -101,13 +102,14 @@ class View():
         if self.dragging:
             self.drawSelctionBox()
         self.drawMinimap()
-         
+    #Pour dessiner un soleil     
     def drawSun(self, sunPosition, player):
         if player.camera.isInFOV(sunPosition):
             distance = player.camera.calcDistance(sunPosition)
             self.gameArea.create_image(distance[0],distance[1], image=self.sun)
             #self.gameArea.create_oval(distance[0]-20, distance[1]-20, distance[0]+20, distance[1]+20, fill='RED')
-            
+    
+    #pour dessiner une planete        
     def drawPlanet(self, planet, player):
         planetPosition = planet.position
         if player.camera.isInFOV(planetPosition):
@@ -120,9 +122,9 @@ class View():
                 self.gameArea.create_text(distance[0]-20, distance[1]-40,fill="green",text=gVariable)
             self.gameArea.create_image(distance[0],distance[1],image=self.planet)
             #self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10, fill='BLUE', tag="planet")
-            
+    #pour dessiner un vaisseau        
     def drawUnit(self, unit, player):
-        ship=self.ships[player.id]
+        ship=self.ships[player.id] #On prend l'image dependamment du joueur que nous sommes
         unitPosition = unit.position
         if self.parent.players[self.parent.playerId].camera.isInFOV(unitPosition):
             distance = self.parent.players[self.parent.playerId].camera.calcDistance(unitPosition)
@@ -130,7 +132,7 @@ class View():
                 self.gameArea.create_oval(distance[0]-8,distance[1]-8,distance[0]+8,distance[1]+8, outline="green")
             self.gameArea.create_image(distance[0]+1, distance[1], image=ship)
             #self.gameArea.create_polygon((distance[0], distance[1]-5,distance[0]-5,distance[1]+5,distance[0]+5,distance[1]+5),fill='YELLOW', tag="unit")
-    
+    #Dessine la minimap
     def drawMinimap(self):
         self.minimap.delete('deletable')
         sunList = self.parent.galaxy.solarSystemList
@@ -145,24 +147,24 @@ class View():
             for j in i.units:
                 self.drawMiniUnit(j)
         self.drawMiniFOV()  
-        
+    #Dessine le carrer de la camera dans la minimap    
     def drawMiniFOV(self):
         cameraX = (self.parent.players[self.parent.playerId].camera.position[0]-400 + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
         cameraY = (self.parent.players[self.parent.playerId].camera.position[1]-300 + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
         width = self.taille / self.parent.galaxy.width * 200
         height = self.taille / self.parent.galaxy.height * 150
         self.minimap.create_rectangle(cameraX, cameraY, cameraX+width, cameraY+height, outline='GREEN', tag='deletable')
-        
+    #Dessine un soleil dans la minimap    
     def drawMiniSun(self, sunPosition):
         sunX = (sunPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
         sunY = (sunPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
         self.minimap.create_oval(sunX-3, sunY-3, sunX+3, sunY+3, fill='ORANGE')
-            
+    #Dessine une planete dans la minimap        
     def drawMiniPlanet(self, planetPosition):
         planetX = (planetPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
         planetY = (planetPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
         self.minimap.create_oval(planetX-1, planetY-1, planetX+1, planetY+1, fill='LIGHT BLUE')
-            
+    #Dessine une unite dans la minimap        
     def drawMiniUnit(self, unit):
         unitX = (unit.position[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
         planetY = (unit.position[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
@@ -170,7 +172,7 @@ class View():
             self.minimap.create_polygon((unitX-2, planetY+1, unitX, planetY-1, unitX+2, planetY+1),fill='GREEN', tag='deletable')
         else:
             self.minimap.create_polygon((unitX-2, planetY+1, unitX, planetY-1, unitX+2, planetY+1),fill='RED', tag='deletable')
-		
+	#Dessine la boite de selection lors du clic-drag	
     def drawSelctionBox(self):
         self.gameArea.create_rectangle(self.selectStart[0], self.selectStart[1], self.selectEnd[0], self.selectEnd[1], outline='WHITE')
 
@@ -218,7 +220,7 @@ class View():
                 pos = self.parent.players[self.parent.playerId].camera.calcPointMinimap(x,y)
                 self.parent.setMovingFlag(pos[0], pos[1])
             self.drawWorld()
-
+    #Quand on fait un clic gauche (peu importe ou)
     def leftclic(self, eve):
         x = eve.x
         y = eve.y
@@ -227,7 +229,7 @@ class View():
             self.parent.select(x,y,canva)
         elif canva == self.minimap:
             self.parent.quickMove(x,y,canva)
-    	
+    #Quand on fait un clic gauche et qu'on bouge
     def clicDrag(self,eve):
         if self.dragging == False:
             self.selectStart = [eve.x, eve.y]
@@ -235,29 +237,30 @@ class View():
             self.dragging = True
         else:
             self.selectEnd = [eve.x, eve.y]
-        
+    #Quand on clicDrag et qu'on lache la souris
     def endDrag(self, eve):
         if self.dragging:
             self.dragging = False
             self.selectEnd = [eve.x, eve.y]
             self.parent.boxSelect(self.selectStart, self.selectEnd)    
-			
+    #Quand on appui sur enter dans le chat		
     def enter(self, eve):
         self.parent.sendMessage(self.entryMess.get())
         self.entryMess.delete(0,END)
         self.gameArea.focus_set()
-
+    #Quand on appui sur enter dans le login
     def lobbyEnter(self, eve):
         self.parent.connectServer(self.entryLogin.get(), self.entryServer.get())
 			
     def stop(self, eve):
         self.parent.setStandbyFlag()
-		
+	#Pour la selection multiple	
     def shiftPress(self, eve):
         self.parent.multiSelect = True
     def shiftRelease(self, eve):
         self.parent.multiSelect = False
-		
+	
+    #Assignation des controles	
     def assignControls(self):
         self.gameArea.focus_set()
         #Bindings des fleches

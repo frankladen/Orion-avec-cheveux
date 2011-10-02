@@ -1,3 +1,4 @@
+#Les differents etats qu'un flag peut prendre
 class FlagState():
     STANDBY=1
     MOVE=2
