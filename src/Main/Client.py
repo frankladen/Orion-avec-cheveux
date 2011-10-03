@@ -209,7 +209,7 @@ class Controller():
         action = changeInfo[2]
         target = changeInfo[3]
         refresh = int(changeInfo[4])
-        if action == str(fs.FlagState.MOVE) or action == str(fs.FlagState.STANDBY):
+        if action == str(FlagState.MOVE) or action == str(FlagState.STANDBY):
             target = target.strip("[")
             target = target.strip("]")
             target = target.split(",")
