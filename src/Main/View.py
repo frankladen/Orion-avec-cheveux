@@ -214,14 +214,14 @@ class View():
         y = eve.y
         canva = eve.widget
         if x > 0 and x < self.taille:
-            if y > 0 and y < self.taille:
+            if y > 0 and y < self.taille-200:
                 if canva == self.gameArea:
                     pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
                     self.parent.setMovingFlag(pos[0],pos[1])
-            elif canva == self.minimap:
-                pos = self.parent.players[self.parent.playerId].camera.calcPointMinimap(x,y)
-                self.parent.setMovingFlag(pos[0], pos[1])
-            self.drawWorld()
+                elif canva == self.minimap:
+                    pos = self.parent.players[self.parent.playerId].camera.calcPointMinimap(x,y)
+                    self.parent.setMovingFlag(pos[0], pos[1])
+                self.drawWorld()
     #Quand on fait un clic gauche (peu importe ou)
     def leftclic(self, eve):
         x = eve.x
