@@ -8,6 +8,7 @@ from Flag import *
 import Pyro4
 import socket
 import math
+import os
 from time import time
 
 class Controller():
@@ -50,7 +51,9 @@ class Controller():
                 self.players[self.playerId].selectedObjects.pop(0)
     #Pour effacer tous les units
     def eraseUnits(self):
-        self.pushChange('lollegarspartdelagame', 'deleteAllUnits')    #Pour selectionner une unit
+        self.pushChange('lollegarspartdelagame', 'deleteAllUnits')    
+    
+    #Pour selectionner une unit
         
     def select(self, x, y, canva):
         posSelected = self.players[self.playerId].camera.calcPointInWorld(x,y)
@@ -170,6 +173,7 @@ class Controller():
             self.players.append(p.Player(self.server.getSockets()[i][1], i))
         self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
         self.players[self.playerId].addCamera([0,0],self.galaxy)
+        self.players[self.playerId].initMotherShip()
         self.view.gameFrame = self.view.fGame()
         self.view.changeFrame(self.view.gameFrame)
         self.view.root.after(50, self.action)
@@ -225,4 +229,5 @@ class Controller():
             self.players[actionPlayerId].units.pop(int(unitIndex))
 
 if __name__ == '__main__':
+    print(os.uname())
     c = Controller()

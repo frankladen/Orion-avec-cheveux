@@ -1,4 +1,5 @@
 import Unit as u
+import World as w
 import socket
 
 #Represente un joueur
@@ -12,6 +13,10 @@ class Player():
         self.startPos = 0 #Position de depart du joueur (pour le mothership)
         self.units.append(u.Unit('Scout001',[0,0,0], moveSpeed=5.0))
         self.units.append(u.Unit('Scout002',[100,200,0], moveSpeed=5.0))
+        
+    def initMotherShip(self):
+        self.units.append(u.Unit('Mothership',[0,self.id*10,0], moveSpeed = 0.0))
+    
     #Ajoute une camera au joueur seulement quand la partie commence    
     def addCamera(self, position, galaxy):
         self.camera = Camera(position ,galaxy)

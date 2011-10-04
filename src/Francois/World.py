@@ -1,16 +1,15 @@
-# -*- coding: iso-8859-1 -*-
+# -*- coding: UTF-8 -*-
 import random
 from Target import *
 #Echelle pour les objets de la galaxie:
 #Grandeur: (1000x1000)xNbJoueur
 #Un systeme solaire: 200x200
-#Un soleil(�toile): 8x8
-#une plan�te: 4x4
-#Vaisseau m�re: 3x3
+#Un soleil(étoile): 8x8
+#une planète: 4x4
+#Vaisseau mère: 3x3
 #WayPoint: 2x2
 #Autres vaisseau: 1x1
-#Ceci n'est qu'une �chelle donc n'importe quel grandeur dans la vue est bonne
-#tant qu'on respecte cette �chelle pour les grandeurs
+#Ceci n'est qu'une échelle donc n'importe quel grandeur dans la vue est bonne
 
 #Classe qui represente la galaxie en entier.
 class Galaxy():
@@ -38,6 +37,8 @@ class Galaxy():
                         if tempY > j.sunPosition[1]-250 and tempY < j.sunPosition[1]+250:
                             placeFound = False
             self.solarSystemList.append(SolarSystem(tempX,tempY,0))
+            
+
 #Classe qui represente 1 seul systeme solaire                            
 class SolarSystem():
     def __init__(self,sunX,sunY,sunZ):

@@ -14,4 +14,4 @@ class PlayerObject(Target):
     
     def getFlag(self):
         return self.flag
-        
+    
