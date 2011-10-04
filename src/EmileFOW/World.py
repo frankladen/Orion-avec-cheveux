@@ -42,6 +42,7 @@ class Galaxy():
 class SolarSystem():
     def __init__(self,sunX,sunY,sunZ):
         self.sunPosition = (sunX,sunY,sunZ)
+        self.discovered = False
         self.planets = []
         nPlanet = int(random.random()*6)+1
         for i in range(0,nPlanet):
@@ -70,6 +71,7 @@ class AstronomicalObject(Target):
         self.type = type
         self.mineralQte = 100
         self.gazQte = 100
+        self.discovered = False
         if type == 'planet':
             self.landable = True
         else:
