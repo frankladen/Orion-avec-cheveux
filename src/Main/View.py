@@ -23,6 +23,8 @@ class View():
         self.planet=PhotoImage(file='images\planet.gif')
         self.greyplanet = PhotoImage(file='images\planetGREY.gif')
         self.motherShipSprite = PhotoImage(file = 'images\mothership.gif')
+        self.nebula=PhotoImage(file='images\\nebula.gif')
+        self.asteroid=PhotoImage(file='images\\asteroid.gif')
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
     
@@ -109,6 +111,8 @@ class View():
                 else:
                     if j.discovered:
                         self.drawPlanet(j, players[id], False)
+            for j in i.nebulas:
+                self.drawNebula(j, players[id])
         for i in players:
             for j in i.units:
                 if self.parent.players[self.parent.playerId].inViewRange(j.position):
@@ -142,6 +146,17 @@ class View():
                 self.gameArea.create_image(distance[0],distance[1],image=self.planet)
             else:
                 self.gameArea.create_image(distance[0], distance[1], image=self.greyplanet)
+
+    #Pour dessiner une nebuleuse
+    def drawNebula(self,nebula,player):
+        nebulaPosition = nebula.position
+        if player.camera.isInFOV(nebulaPosition):
+            distance = player.camera.calcDistance(nebulaPosition)
+            if nebula in player.selectedObjects:
+                self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="green", tag="nebula")
+                mVariable = "Gaz :" + str(nebula.gazQte)
+                self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="cyan",text=mVariable)
+            self.gameArea.create_image(distance[0],distance[1],image=self.nebula) 
                 
     #pour dessiner un vaisseau        
     def drawUnit(self, unit, player):
@@ -187,6 +202,11 @@ class View():
         planetX = (planetPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
         planetY = (planetPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
         self.minimap.create_oval(planetX-1, planetY-1, planetX+1, planetY+1, fill='LIGHT BLUE')
+    #dessine une nebula dans la minimap
+    def drawMiniNebula(self, nebulaPosition):
+        nebulaX = (nebulaPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
+        nebulaY = (nebulaPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
+        self.minimap.create_oval(nebulaX-1, nebulaY-1, nebulaX+1, nebulaY+1, fill='PURPLE')
     #Dessine une unite dans la minimap        
     def drawMiniUnit(self, unit):
         unitX = (unit.position[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200

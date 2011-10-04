@@ -83,6 +83,21 @@ class Controller():
                         self.players[self.playerId].selectedObjects = []
                     if j not in self.players[self.playerId].selectedObjects:
                         self.players[self.playerId].selectedObjects.append(j)
+        #Si on selectionne une nebuleuse
+        for j in i.nebulas:
+                if j.position[0] >= posSelected[0]-10 and j.position[0] <= posSelected[0]+10:
+                    if j.position[1] >= posSelected[1]-10 and j.position[1] <= posSelected[1]+10:
+                        if j not in self.players[self.playerId].selectedObjects:
+                            self.players[self.playerId].selectedObjects = []
+                            self.players[self.playerId].selectedObjects.append(j)
+        #Si on selectionne un asteroide
+        for j in i.asteroids:
+            if j.position[0] >= posSelected[0]-10 and j.position[0] <= posSelected[0]+10:
+                if j.position[1] >= posSelected[1]-10 and j.position[1] <= posSelected[1]+10:
+                    if j not in self.players[self.playerId].selectedObjects:
+                        self.players[self.playerId].selectedObjects = []
+                        self.players[self.playerId].selectedObjects.append(j)
+
     #Selection avec le clic-drag
     def boxSelect(self, selectStart, selectEnd):
         realStart = self.players[self.playerId].camera.calcPointInWorld(selectStart[0], selectStart[1])
