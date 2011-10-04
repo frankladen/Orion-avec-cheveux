@@ -19,7 +19,9 @@ class View():
         self.firstTime = True
         self.gameFrame = None
         self.sun=PhotoImage(file='images\sun.gif')
+        self.greysun = PhotoImage(file='images\sunGREY.gif')
         self.planet=PhotoImage(file='images\planet.gif')
+        self.greyplanet = PhotoImage(file='images\planetGREY.gif')
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
     
@@ -95,34 +97,53 @@ class View():
         players = self.parent.players 
         id = self.parent.playerId
         for i in sunList:
-            self.drawSun(i.sunPosition, players[id])
+            if self.parent.players[self.parent.playerId].inViewRange(i.sunPosition):
+                i.discovered = True
+                self.drawSun(i.sunPosition, players[id], True)
+            else:
+                if i.discovered:
+                    self.drawSun(i.sunPosition, players[id], False)
             for j in i.planets:
-                self.drawPlanet(j, players[id])
+                if self.parent.players[self.parent.playerId].inViewRange(j.position):
+                    j.discovered = True
+                    self.drawPlanet(j, players[id], True)
+                else:
+                    if j.discovered:
+                        self.drawPlanet(j, players[id], False)
         for i in players:
             for j in i.units:
-                self.drawUnit(j, i)
+                if self.parent.players[self.parent.playerId].inViewRange(j.position):
+                    j.discovered = True
+                    self.drawUnit(j, i)
         if self.dragging:
             self.drawSelctionBox()
         self.drawMinimap()
     #Pour dessiner un soleil     
-    def drawSun(self, sunPosition, player):
+    def drawSun(self, sunPosition, player, isInFOW):
         if player.camera.isInFOV(sunPosition):
             distance = player.camera.calcDistance(sunPosition)
-            self.gameArea.create_image(distance[0],distance[1], image=self.sun)
+            if isInFOW:
+                self.gameArea.create_image(distance[0],distance[1], image=self.sun)
+            else:
+                self.gameArea.create_image(distance[0],distance[1], image=self.greysun)
             #self.gameArea.create_oval(distance[0]-20, distance[1]-20, distance[0]+20, distance[1]+20, fill='RED')
     
     #pour dessiner une planete        
-    def drawPlanet(self, planet, player):
+    def drawPlanet(self, planet, player, isInFOW):
         planetPosition = planet.position
         if player.camera.isInFOV(planetPosition):
             distance = player.camera.calcDistance(planetPosition)
-            if planet in player.selectedObjects:
-                self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="green", tag="planet")
-                mVariable = "Mineral :" + str(planet.mineralQte)
-                gVariable = "Gaz :" + str(planet.gazQte)
-                self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="cyan",text=mVariable)
-                self.gameArea.create_text(distance[0]-20, distance[1]-40,fill="green",text=gVariable)
-            self.gameArea.create_image(distance[0],distance[1],image=self.planet)
+            if isInFOW:
+                if planet in player.selectedObjects:
+                    self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="green", tag="planet")
+                    mVariable = "Mineral :" + str(planet.mineralQte)
+                    gVariable = "Gaz :" + str(planet.gazQte)
+                    self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="cyan",text=mVariable)
+                    self.gameArea.create_text(distance[0]-20, distance[1]-40,fill="green",text=gVariable)
+                self.gameArea.create_image(distance[0],distance[1],image=self.planet)
+            else:
+                self.gameArea.create_image(distance[0], distance[1], image=self.greyplanet)
+                
             #self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10, fill='BLUE', tag="planet")
     #pour dessiner un vaisseau        
     def drawUnit(self, unit, player):
