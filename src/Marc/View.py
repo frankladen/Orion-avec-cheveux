@@ -284,8 +284,7 @@ class View():
         #BINDINGS POUR LES SHORTCUTS CLAVIERS
         self.gameArea.bind("s", self.stop)
         self.gameArea.bind("S", self.stop)
-        self.gameArea.bind("d", self.delete)
-        self.gameArea.bind("D", self.delete)
+        self.gameArea.bind("<Delete>", self.delete)
         #Bindings des boutons de la souris
         self.gameArea.bind("<Button-3>", self.rightclic)
         self.gameArea.bind("<B3-Motion>", self.rightclic)

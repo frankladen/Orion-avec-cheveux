@@ -34,20 +34,20 @@ class Controller():
         for i in self.players[self.playerId].selectedObjects:
             if i.__module__ == 'Unit':
                 self.pushChange(i, Flag(i,t.Target([i.position[0],i.position[1],0]),FlagState.STANDBY))
-    #Pour ajouter une unit             
+    #Pour ajouter une unit       
     def addUnit(self, unit):
         if unit == "Scout":
             self.pushChange('Scout', 'addunit')
     #Trade entre joueurs
-    def tradePlayers(self, items, playerId2):
+    def tradePlayers(self, items, playerId2, quantite):
         for i in items:
-            self.pushChange(i, self.playerId2)
+            self.pushChange(i, (self.playerId2, quantite))
     #Pour effacer un Unit
     def eraseUnit(self):
-        if len(self.players[self.playerId].selectedObjects) == 1:
-            if self.players[self.playerId].selectedObjects[0].__module__ == 'Unit':
-                self.pushChange(self.players[self.playerId].selectedObjects[0], 'deleteUnit')
-                self.players[self.playerId].selectedObjects.pop(0)
+        if len(self.players[self.playerId].selectedObjects) > 0:
+            if self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1].__module__ == 'Unit':
+                self.pushChange(self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1], 'deleteUnit')
+                self.players[self.playerId].selectedObjects.pop(len(self.players[self.playerId].selectedObjects)-1)
     #Pour effacer tous les units
     def eraseUnits(self):
         self.pushChange('lollegarspartdelagame', 'deleteAllUnits')    #Pour selectionner une unit
@@ -176,18 +176,18 @@ class Controller():
     
     #Méthode de mise à jour auprès du serveur, actionnée à chaque
     def pushChange(self, playerObject, flag):
-        if flag == 'addunit':
-            actionString = str(self.playerId)+"/"+playerObject+"/"+flag+"/lolcasertarienceboutla"
-            self.server.addChange(actionString)
-        elif flag == 'deleteUnit':
-            actionString = str(self.playerId)+"/"+str(self.players[self.playerId].units.index(playerObject))+"/"+flag+"/klolyvamourirleunit"
-            self.server.addChange(actionString)
-        elif flag == 'deleteAllUnits':
-            actionString = str(self.playerId)+"/"+playerObject+"/"+flag+"/lolypartdelapartie"
-            self.server.addChange(actionString)
-        elif flag.__module__ == 'Flag':
-            actionString = str(self.playerId)+"/"+str(self.players[self.playerId].units.index(playerObject))+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
-            self.server.addChange(actionString)
+        if isinstance(flag, Flag):
+            actionString = str(self.playerId)+"/"+str(self.players[self.playerId].units.index(playerObject))+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position) 
+        elif isinstance(flag, str):
+            if flag == 'addunit':
+                actionString = str(self.playerId)+"/"+playerObject+"/"+flag+"/lolcasertarienceboutla"
+            elif flag == 'deleteUnit':
+                actionString = str(self.playerId)+"/"+str(self.players[self.playerId].units.index(playerObject))+"/"+flag+"/klolyvamourirleunit"
+            elif flag == 'deleteAllUnits':
+                actionString = str(self.playerId)+"/"+playerObject+"/"+flag+"/lolypartdelapartie"
+        elif isinstance(flag, tuple):
+            actionString = str(self.playerId)+"/"+playerObject+"/"+flag[0]+"/"+flag[1]
+        self.server.addChange(actionString)
     
     def pullChange(self):
         changes = self.server.getChange(self.playerId, self.refresh)
@@ -198,9 +198,7 @@ class Controller():
             #j'isole le nombre de frame d'avance pour utilisation futurs
         #    frameTooHigh = int(change[len(change)].rstrip("*"))
         self.refresh+=1
-            
-    def getRefresh(self):
-        return self.refresh
+
     
     def doAction(self, changeString):
         changeInfo = changeString.split("/")
@@ -223,6 +221,13 @@ class Controller():
                 self.players[actionPlayerId].units.append(u.Unit('Scout00'+str(len(self.players[actionPlayerId].units)),[50,100,0], moveSpeed=5.0))
         elif action == 'deleteUnit':
             self.players[actionPlayerId].units.pop(int(unitIndex))
+        elif unitIndex == 'g' or unitIndex == 'm':
+            if unitIndex == 'm':
+                self.players[actionPlayerId].mineral-=quantite
+                self.players[int(action)].mineral+=quantite
+            elif unitIndex == 'g':
+                self.players[actionPlayerId].gaz-=quantite
+                self.players[int(action)].gaz+=quantite
 
 if __name__ == '__main__':
     c = Controller()
