@@ -26,28 +26,41 @@ class Controller():
         self.view.root.mainloop()
     #Pour changer le flag des unites selectionne pour le deplacement    
     def setMovingFlag(self,x,y):
+        units = ""
+        #Si plusieurs unités sont sélectionnées, on les ajoute toutes dans le changement à envoyer
         for i in self.players[self.playerId].selectedObjects:
-            if i.__module__ == 'Unit':
-                self.pushChange(i, Flag(i,t.Target([x,y,0]),FlagState.MOVE))
+            if i.__module__ == 'Unit':                
+                units += str(self.players[self.playerId].units.index(i)) + ","
+        if units != "":
+            self.pushChange(units, Flag(i,t.Target([x,y,0]),FlagState.MOVE))
+
     #Pour changer le flag des unites selectionne pour l'arret
     def setStandbyFlag(self):
+        units = ""
+        #Si plusieurs unités sont sélectionnées, on les ajoute toutes dans le changement à envoyer
         for i in self.players[self.playerId].selectedObjects:
             if i.__module__ == 'Unit':
-                self.pushChange(i, Flag(i,t.Target([i.position[0],i.position[1],0]),FlagState.STANDBY))
+                units += str(self.players[self.playerId].units.index(i)) + ","
+        if units != "":
+            self.pushChange(units, Flag(i,t.Target([0,0,0]),FlagState.STANDBY))
+
     #Pour ajouter une unit             
     def addUnit(self, unit):
         if unit == "Scout":
             self.pushChange('Scout', 'addunit')
+
     #Trade entre joueurs
-    def tradePlayers(self, items, playerId2):
+    def tradePlayers(self, items, playerId2, quantite):
         for i in items:
-            self.pushChange(i, self.playerId2)
+            self.pushChange(i, (self.playerId2, quantite))
+
     #Pour effacer un Unit
     def eraseUnit(self):
         if len(self.players[self.playerId].selectedObjects) == 1:
             if self.players[self.playerId].selectedObjects[0].__module__ == 'Unit':
                 self.pushChange(self.players[self.playerId].selectedObjects[0], 'deleteUnit')
                 self.players[self.playerId].selectedObjects.pop(0)
+
     #Pour effacer tous les units
     def eraseUnits(self):
         self.pushChange('lollegarspartdelagame', 'deleteAllUnits')    #Pour selectionner une unit
@@ -91,14 +104,17 @@ class Controller():
                         self.players[self.playerId].selectedObjects = []
                         first = False
                     self.players[self.playerId].selectedObjects.append(i)
+
     #Deplacement rapide de la camera vers un endroit de la minimap
     def quickMove(self, x,y, canva):
         posSelected = self.players[self.playerId].camera.calcPointOnMap(x,y)
         self.players[self.playerId].camera.position = posSelected
+
     #Envoyer le message pour le chat
     def sendMessage(self, mess):
         if mess != "":
             self.server.addMessage(mess, self.players[self.playerId].name)
+
     #Pour aller chercher les nouveaux messages
     def refreshMessages(self):
         textChat=''
@@ -111,6 +127,7 @@ class Controller():
             for i in range(0, len(self.mess)):
                 textChat+=self.mess[i]+'\r'
         self.view.chat.config(text=textChat)
+
     #TIMER D'ACTION DU JOUEUR COURANT
     def action(self, waitTime=50):
         if self.server.isGameStopped() == True and self.view.currentFrame == self.view.gameFrame:
@@ -170,25 +187,27 @@ class Controller():
             self.players.append(p.Player(self.server.getSockets()[i][1], i))
         self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
         self.players[self.playerId].addCamera([0,0],self.galaxy)
+        self.players[self.playerId].initMotherShip()
         self.view.gameFrame = self.view.fGame()
         self.view.changeFrame(self.view.gameFrame)
         self.view.root.after(50, self.action)
     
     #Méthode de mise à jour auprès du serveur, actionnée à chaque
     def pushChange(self, playerObject, flag):
-        if flag == 'addunit':
-            actionString = str(self.playerId)+"/"+playerObject+"/"+flag+"/lolcasertarienceboutla"
-            self.server.addChange(actionString)
-        elif flag == 'deleteUnit':
-            actionString = str(self.playerId)+"/"+str(self.players[self.playerId].units.index(playerObject))+"/"+flag+"/klolyvamourirleunit"
-            self.server.addChange(actionString)
-        elif flag == 'deleteAllUnits':
-            actionString = str(self.playerId)+"/"+playerObject+"/"+flag+"/lolypartdelapartie"
-            self.server.addChange(actionString)
-        elif flag.__module__ == 'Flag':
-            actionString = str(self.playerId)+"/"+str(self.players[self.playerId].units.index(playerObject))+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
-            self.server.addChange(actionString)
-    
+        if isinstance(flag, Flag):
+            if flag.flagState == FlagState.MOVE or flag.flagState == FlagState.STANDBY:
+                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position) 
+        elif isinstance(flag, str):
+            if flag == 'addunit':
+                actionString = str(self.playerId)+"/"+playerObject+"/"+flag+"/lolcasertarienceboutla"
+            elif flag == 'deleteUnit':
+                actionString = str(self.playerId)+"/"+str(self.players[self.playerId].units.index(playerObject))+"/"+flag+"/klolyvamourirleunit"
+            elif flag == 'deleteAllUnits':
+                actionString = str(self.playerId)+"/"+playerObject+"/"+flag+"/lolypartdelapartie"
+        elif isinstance(flag, tuple):
+            actionString = str(self.playerId)+"/"+playerObject+"/"+flag[0]+"/"+flag[1]
+        self.server.addChange(actionString)
+        
     def pullChange(self):
         changes = self.server.getChange(self.playerId, self.refresh)
         for changeString in changes:
@@ -203,19 +222,26 @@ class Controller():
         return self.refresh
     
     def doAction(self, changeString):
+        #Séparation du message reçu par le serveur afin de faire l'action demandée
+        #format: playerID/unitésEffectuantL'action/target/#duRefreshAuquelOnFaitL'action
         changeInfo = changeString.split("/")
         actionPlayerId = int(changeInfo[0])
         unitIndex = changeInfo[1]
+        unitIndex = unitIndex.split(",")
         action = changeInfo[2]
         target = changeInfo[3]
         refresh = int(changeInfo[4])
+        #si l'action est Move, la target sera sous forme de tableau de positions [x,y,z]
         if action == str(FlagState.MOVE) or action == str(FlagState.STANDBY):
+            #on enlève les virgule et les crochets afin de récupérer les positions
             target = target.strip("[")
             target = target.strip("]")
             target = target.split(",")
             for i in range(0, len(target)):
-                target[i]=math.trunc(float(target[i]))
-            self.players[actionPlayerId].units[int(unitIndex)].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
+                target[i]=math.trunc(float(target[i])) #nécessaire afin de s'assurer que les positions sont des entiers
+            #on change le flag de l'unité afin qu'ils se mettent à se déplacer
+            for i in range(0,len(unitIndex)-1):
+                self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
         elif action == 'deleteAllUnits':
             self.players[actionPlayerId].units = []
         elif action == 'addunit':
@@ -223,6 +249,13 @@ class Controller():
                 self.players[actionPlayerId].units.append(u.Unit('Scout00'+str(len(self.players[actionPlayerId].units)),[50,100,0], moveSpeed=5.0))
         elif action == 'deleteUnit':
             self.players[actionPlayerId].units.pop(int(unitIndex))
+        elif unitIndex == 'g' or unitIndex == 'm':
+            if unitIndex == 'm':
+                self.players[actionPlayerId].mineral-=quantite
+                self.players[int(action)].mineral+=quantite
+            elif unitIndex == 'g':
+                self.players[actionPlayerId].gaz-=quantite
+                self.players[int(action)].gaz+=quantite
 
 if __name__ == '__main__':
     c = Controller()
