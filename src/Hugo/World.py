@@ -47,12 +47,11 @@ class SolarSystem():
         self.nebulas = []
         self.asteroids = []
         nPlanet = int(random.random()*6)+1
-        nRes = int(random.random()*4)
+        nRes = int(random.random()*4)+1
         nNebu = 0
         nAstero = 0
         for i  in range(0,nRes):
-            type = int(random.random())
-            if type < 0.5:
+            if i%2==1:
                 nNebu +=1
             else:
                 nAstero +=1
@@ -96,7 +95,32 @@ class SolarSystem():
                         if self.sunPosition[1]+tempY > k.position[1]-20 and self.sunPosition[1]+tempY < k.position[1]+20:
                             placeFound = False
             self.nebulas.append(AstronomicalObject('nebula', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY)))
-            
+        
+        for i in range(0,nAstero):
+            tempX=""
+            tempY=""
+            placeFound = False
+            while placeFound == False:
+                placeFound = True
+                tempX = (random.random()*250)-125
+                tempY = (random.random()*250)-125
+                #Condition de placement des asteroïdes
+                if tempX > -40 and tempX < 40:
+                    if tempY > -40 and tempY < 40:
+                        placeFound = False
+                for j in self.planets:
+                    if self.sunPosition[0]+tempX > j.position[0]-20 and self.sunPosition[0]+tempX < j.position[0]+20:
+                        if self.sunPosition[1]+tempY > j.position[1]-20 and self.sunPosition[1]+tempY < j.position[1]+20:
+                            placeFound = False
+                for k in self.nebulas:
+                    if self.sunPosition[0]+tempX > k.position[0]-20 and self.sunPosition[0]+tempX < k.position[0]+20:
+                        if self.sunPosition[1]+tempY > k.position[1]-20 and self.sunPosition[1]+tempY < k.position[1]+20:
+                            placeFound = False
+                for q in self.asteroids:
+                    if self.sunPosition[0]+tempX > q.position[0]-20 and self.sunPosition[0]+tempX < q.position[0]+20:
+                        if self.sunPosition[1]+tempY > q.position[1]-20 and self.sunPosition[1]+tempY < q.position[1]+20:
+                            placeFound = False
+            self.asteroids.append(AstronomicalObject('asteroid', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY)))
 #Represente un objet spacial (Planete, Meteorite, Nebuleuse)
 #Le type represente quel objet parmi les 3
 class AstronomicalObject(Target):
