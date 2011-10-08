@@ -21,6 +21,7 @@ class View():
         self.sun=PhotoImage(file='images\sun.gif')
         self.planet=PhotoImage(file='images\planet.gif')
         self.nebula=PhotoImage(file='images\\nebula.gif')
+        self.asteroid=PhotoImage(file='images\\asteroid.gif')
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
     
@@ -101,6 +102,9 @@ class View():
                 self.drawPlanet(j, players[id])
             for j in i.nebulas:
                 self.drawNebula(j, players[id])
+            for j in i.asteroids:
+                print(j.position)
+                self.drawAsteroid(j, players[id])
         for i in players:
             for j in i.units:
                 self.drawUnit(j, i)
@@ -135,9 +139,19 @@ class View():
             if nebula in player.selectedObjects:
                 self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="green", tag="nebula")
                 mVariable = "Gaz :" + str(nebula.gazQte)
-                self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="cyan",text=mVariable)
+                self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="green",text=mVariable)
             self.gameArea.create_image(distance[0],distance[1],image=self.nebula)        
-            
+    
+    def drawAsteroid(self,asteroid,player):
+        asteroidPosition = asteroid.position
+        if player.camera.isInFOV(asteroidPosition):
+            distance = player.camera.calcDistance(asteroidPosition)
+            if asteroid in player.selectedObjects:
+                self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="green", tag="asteroid")
+                mVariable = "Mineral :" + str(asteroid.mineralQte)
+                self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="cyan",text=mVariable)
+            self.gameArea.create_image(distance[0],distance[1],image=self.asteroid)
+    
     #pour dessiner un vaisseau        
     def drawUnit(self, unit, player):
         ship=self.ships[player.id] #On prend l'image dependamment du joueur que nous sommes
@@ -160,6 +174,8 @@ class View():
                     self.drawMiniPlanet(j.position)
                 for n in i.nebulas:
                     self.drawMiniNebula(n.position)
+                for q in i.asteroids:
+                    self.drawMiniAsteroid(q.position)
             self.firstTime = False
         for i in players:
             for j in i.units:
@@ -187,7 +203,11 @@ class View():
         nebulaX = (nebulaPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
         nebulaY = (nebulaPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
         self.minimap.create_oval(nebulaX-1, nebulaY-1, nebulaX+1, nebulaY+1, fill='PURPLE')
-    
+    #dessine un asteroid dans la minimap
+    def drawMiniAsteroid(self, asteroidPosition):
+        asteroidX = (asteroidPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
+        asteroidY = (asteroidPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
+        self.minimap.create_oval(asteroidX-1, asteroidY-1, asteroidX+1, asteroidY+1, fill='CYAN')
     #Dessine une unite dans la minimap        
     def drawMiniUnit(self, unit):
         unitX = (unit.position[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
