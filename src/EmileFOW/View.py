@@ -98,14 +98,18 @@ class View():
         id = self.parent.playerId
         for i in sunList:
             if self.parent.players[self.parent.playerId].inViewRange(i.sunPosition):
-                i.discovered = True
+                if not i.discovered:
+                    i.discovered = True
+                    self.redrawMinimap()
                 self.drawSun(i.sunPosition, players[id], True)
             else:
                 if i.discovered:
                     self.drawSun(i.sunPosition, players[id], False)
             for j in i.planets:
                 if self.parent.players[self.parent.playerId].inViewRange(j.position):
-                    j.discovered = True
+                    if not j.discovered:
+                        j.discovered = True
+                        self.redrawMinimap()
                     self.drawPlanet(j, players[id], True)
                 else:
                     if j.discovered:
@@ -118,6 +122,7 @@ class View():
         if self.dragging:
             self.drawSelctionBox()
         self.drawMinimap()
+        
     #Pour dessiner un soleil     
     def drawSun(self, sunPosition, player, isInFOW):
         if player.camera.isInFOV(sunPosition):
@@ -162,14 +167,30 @@ class View():
         players = self.parent.players
         if self.firstTime:
             for i in sunList:
-                self.drawMiniSun(i.sunPosition)
+                self.drawMiniSun(i)
                 for j in i.planets:
-                    self.drawMiniPlanet(j.position)
+                    self.drawMiniPlanet(j)
             self.firstTime = False
         for i in players:
             for j in i.units:
-                self.drawMiniUnit(j)
-        self.drawMiniFOV()  
+                if players[self.parent.playerId].camera.isInFOV(j.position):
+                    self.drawMiniUnit(j)
+        self.drawMiniFOV()
+        
+    def redrawMinimap(self):
+        self.minimap.delete(ALL)
+        sunList = self.parent.galaxy.solarSystemList
+        players = self.parent.players
+        for i in sunList:
+            self.drawMiniSun(i)
+            for j in i.planets:
+                self.drawMiniPlanet(j)
+        for i in players:
+            for j in i.units:
+                if players[self.parent.playerId].camera.isInFOV(j.position):
+                    self.drawMiniUnit(j)
+        self.drawMiniFOV()
+
     #Dessine le carrer de la camera dans la minimap    
     def drawMiniFOV(self):
         cameraX = (self.parent.players[self.parent.playerId].camera.position[0]-400 + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
@@ -178,15 +199,19 @@ class View():
         height = self.taille / self.parent.galaxy.height * 150
         self.minimap.create_rectangle(cameraX, cameraY, cameraX+width, cameraY+height, outline='GREEN', tag='deletable')
     #Dessine un soleil dans la minimap    
-    def drawMiniSun(self, sunPosition):
+    def drawMiniSun(self, sun):
+        sunPosition = sun.sunPosition
         sunX = (sunPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
         sunY = (sunPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
-        self.minimap.create_oval(sunX-3, sunY-3, sunX+3, sunY+3, fill='ORANGE')
+        if sun.discovered:
+            self.minimap.create_oval(sunX-3, sunY-3, sunX+3, sunY+3, fill='ORANGE')
     #Dessine une planete dans la minimap        
-    def drawMiniPlanet(self, planetPosition):
+    def drawMiniPlanet(self, planet):
+        planetPosition = planet.position
         planetX = (planetPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
         planetY = (planetPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
-        self.minimap.create_oval(planetX-1, planetY-1, planetX+1, planetY+1, fill='LIGHT BLUE')
+        if planet.discovered:
+            self.minimap.create_oval(planetX-1, planetY-1, planetX+1, planetY+1, fill='LIGHT BLUE')
     #Dessine une unite dans la minimap        
     def drawMiniUnit(self, unit):
         unitX = (unit.position[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
