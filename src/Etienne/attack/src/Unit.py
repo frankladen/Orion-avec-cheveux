@@ -72,6 +72,7 @@ class SpaceAttackUnit(SpaceUnit):
         print("j'attaque")
         distance = h.Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1])
         if distance > self.range :
+            self.attackcount=self.AttackSpeed
             self.move()
         else:
             self.attackcount = self.attackcount - 1
