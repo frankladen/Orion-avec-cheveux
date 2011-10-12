@@ -239,12 +239,12 @@ class View():
             for j in i.planets:
                 self.drawMiniPlanet(j)
             for n in i.nebulas:
-                self.drawMiniNebula(n.position)
+                self.drawMiniNebula(n)
             for q in i.asteroids:
-                self.drawMiniAsteroid(q.position)
+                self.drawMiniAsteroid(q)
         for i in players:
             for j in i.units:
-                if players[self.parent.playerId].camera.isInFOV(j.position):
+                if players[self.parent.playerId].inViewRange(j.position):
                     self.drawMiniUnit(j)
         self.drawMiniFOV()
 
@@ -271,15 +271,20 @@ class View():
             self.minimap.create_oval(planetX-1, planetY-1, planetX+1, planetY+1, fill='LIGHT BLUE')
             
     #dessine une nebula dans la minimap
-    def drawMiniNebula(self, nebulaPosition):
+    def drawMiniNebula(self, nebula):
+        nebulaPosition = nebula.position
         nebulaX = (nebulaPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
         nebulaY = (nebulaPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
-        self.minimap.create_oval(nebulaX-1, nebulaY-1, nebulaX+1, nebulaY+1, fill='PURPLE')
+        if nebula.discovered:
+            self.minimap.create_oval(nebulaX-1, nebulaY-1, nebulaX+1, nebulaY+1, fill='PURPLE')
+        
     #dessine un asteroid dans la minimap
-    def drawMiniAsteroid(self, asteroidPosition):
+    def drawMiniAsteroid(self, asteroid):
+        asteroidPosition = asteroid
         asteroidX = (asteroidPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
         asteroidY = (asteroidPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
-        self.minimap.create_oval(asteroidX-1, asteroidY-1, asteroidX+1, asteroidY+1, fill='CYAN')
+        if asteroid.discovered:
+            self.minimap.create_oval(asteroidX-1, asteroidY-1, asteroidX+1, asteroidY+1, fill='CYAN')
         
     #Dessine une unite dans la minimap        
     def drawMiniUnit(self, unit):
