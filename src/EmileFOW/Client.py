@@ -59,19 +59,19 @@ class Controller():
             for j in i.planets:
                 if j.position[0] >= posSelected[0]-10 and j.position[0] <= posSelected[0]+10:
                     if j.position[1] >= posSelected[1]-10 and j.position[1] <= posSelected[1]+10:
-                        if j not in self.players[self.playerId].selectedObjects:
+                        if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
                             self.players[self.playerId].selectedObjects = []
                             self.players[self.playerId].selectedObjects.append(j)
             for j in i.nebulas:
                 if j.position[0] >= posSelected[0]-10 and j.position[0] <= posSelected[0]+10:
                     if j.position[1] >= posSelected[1]-10 and j.position[1] <= posSelected[1]+10:
-                        if j not in self.players[self.playerId].selectedObjects:
+                        if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
                             self.players[self.playerId].selectedObjects = []
                             self.players[self.playerId].selectedObjects.append(j)
             for j in i.asteroids:
                 if j.position[0] >= posSelected[0]-10 and j.position[0] <= posSelected[0]+10:
                     if j.position[1] >= posSelected[1]-10 and j.position[1] <= posSelected[1]+10:
-                        if j not in self.players[self.playerId].selectedObjects:
+                        if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
                             self.players[self.playerId].selectedObjects = []
                             self.players[self.playerId].selectedObjects.append(j)
         #Si on selectionne une unit               
