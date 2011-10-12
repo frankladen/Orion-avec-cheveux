@@ -220,13 +220,13 @@ class View():
                 for j in i.planets:
                     self.drawMiniPlanet(j)
                 for n in i.nebulas:
-                    self.drawMiniNebula(n.position)
+                    self.drawMiniNebula(n)
                 for q in i.asteroids:
-                    self.drawMiniAsteroid(q.position)
+                    self.drawMiniAsteroid(q)
             self.firstTime = False
         for i in players:
             for j in i.units:
-                if players[self.parent.playerId].camera.isInFOV(j.position):
+                if players[self.parent.playerId].inViewRange(j.position):
                     self.drawMiniUnit(j)
         self.drawMiniFOV()
         
@@ -280,7 +280,7 @@ class View():
         
     #dessine un asteroid dans la minimap
     def drawMiniAsteroid(self, asteroid):
-        asteroidPosition = asteroid
+        asteroidPosition = asteroid.position
         asteroidX = (asteroidPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
         asteroidY = (asteroidPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
         if asteroid.discovered:
