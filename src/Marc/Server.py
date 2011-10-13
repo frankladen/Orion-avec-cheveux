@@ -31,21 +31,17 @@ class ControleurServeur(object):
         self.gameIsStarted = True
         self.isStopped = False
         #J'initie mon tableau de changements et de refreshes
-        #print("nombres de joueurs: "+str(self.getNumberOfPlayers()))
         for i in range(0, self.getNumberOfPlayers()):
             self.changeList.append([])
-            #print("changeList:"+self.changeList[i])
             self.refreshes.append(0)
     
     def removePlayer(self, ip, login, playerId):
-        #self.sockets.remove([ip, login])
         if playerId == 0:
                 self.isStopped = True
                 self.gameIsStarted = False
                 self.refreshes = []
                 self.changeList = []
                 self.mess = ['Système de chat de Orion']
-        #print(len(self.sockets))
     
     def addMessage(self, text, name):
         self.mess.append(name+': '+text)
@@ -58,6 +54,9 @@ class ControleurServeur(object):
         change = change+'/'+str(self.decideActionRefresh())
         for ch in self.changeList:
             ch.append(change)
+        
+    def refreshPlayer(self, playerId, refresh):
+        self.refreshes[playerId] = refresh
     
     def decideActionRefresh(self):
         #décide à quel refresh les clients doivent effectuer la prochaine action
@@ -77,28 +76,16 @@ class ControleurServeur(object):
     
     
     # Méthode qui détermine et isole les joueurs dont le frame courant est trop élevé par apport aux autres
-    #def playersTooDamnHigh(self):
-        #frameList = []
-        #for player in self.sockets :
-        #    frameList.append(player.getCurrentframe)
+    def amITooHigh(self, playerId):
         
-        #Je détermine le frame maximum et le frame minimum de tout les clients
-        #frameMax = max(frameList)
-        #frameMin = min(frameList)
+        #Je détermine le frame minimum de tout les clients
+        frameMin = min(self.refreshes)
         
         #Détermine si l'écart entre les joueurs est trop grand (15 étant une valeur arbitraire, destinée à être modifié)
-        #if frameMax - frameMin > 15:
-        #    playerMax = []
-            
-            #Je recherche et j'isole toute les occurences des joueurs ayant les frames les plus élevés
-        #   if frameList.count(frameMax > 1):
-        #       for i in frameList:
-        #           if i == frameMax:
-        #               playerMax.append(i)
-         
-        #   return playerMax
+        if self.refreshes[playerId] - frameMin > 15:
+            return (self.refreshes[playerId] - frameMin)*50
         
-        # return 0
+        return 50
                 
     def getNumberOfPlayers(self):
         return len(self.sockets)

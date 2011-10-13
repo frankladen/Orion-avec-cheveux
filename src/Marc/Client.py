@@ -16,6 +16,7 @@ class Controller():
         self.playerId = 0 #Le id du joueur courant
         self.refresh = 0
         self.mess = []
+        self.changes = []
         self.playerIp = socket.gethostbyname(socket.getfqdn())
         self.server = None
         self.isStarted=False
@@ -124,9 +125,12 @@ class Controller():
                     if i.flag.flagState == 2:
                         i.move()
             self.refreshMessages()
+            self.refresh+=1
+            self.server.refreshPlayer(self.playerId, self.refresh)
             #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
             self.pullChange()
             self.view.drawWorld()
+            waitTime = self.server.amITooHigh(self.playerId)
         else:
             if self.server.isGameStarted() == True:
                 self.startGame()
@@ -190,14 +194,19 @@ class Controller():
         self.server.addChange(actionString)
     
     def pullChange(self):
-        changes = self.server.getChange(self.playerId, self.refresh)
-        for changeString in changes:
-            self.doAction(changeString)
+        toRemove = []
+        for i in self.server.getChange(self.playerId, self.refresh):
+            self.changes.append(i)
+        for changeString in self.changes:
+            if int(changeString.split("/")[4]) == self.refresh:
+                self.doAction(changeString)
+                toRemove.append(changeString)
+        for tR in toRemove:
+            self.changes.remove(tR)
         #si le joueur est trop en avance
         #if change[len(change)].find("*") != -1 :
             #j'isole le nombre de frame d'avance pour utilisation futurs
         #    frameTooHigh = int(change[len(change)].rstrip("*"))
-        self.refresh+=1
 
     
     def doAction(self, changeString):
