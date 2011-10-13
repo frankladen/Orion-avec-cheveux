@@ -130,7 +130,7 @@ class Controller():
             #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
             self.pullChange()
             self.view.drawWorld()
-            waitTime = self.server.amITooHigh(self.playerId)
+            #waitTime = self.server.amITooHigh(self.playerId)
         else:
             if self.server.isGameStarted() == True:
                 self.startGame()
