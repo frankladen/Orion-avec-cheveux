@@ -5,8 +5,8 @@ import Helper as h
 
 #Classe representant une unit
 class Unit(t.PlayerObject):
-    def __init__(self, name, position, viewRange,foodcost=50, moveSpeed=1.0):
-        t.PlayerObject.__init__(self, name, position, viewRange)
+    def __init__(self, name, position,foodcost=50, moveSpeed=1.0):
+        t.PlayerObject.__init__(self, name, position)
         self.FoodCost=foodcost
         self.moveSpeed=moveSpeed
     #La deplace d'un pas vers son flag et si elle est rendu, elle change arrete de bouger    

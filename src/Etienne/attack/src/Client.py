@@ -211,7 +211,7 @@ class Controller():
             self.server.startGame()
         for i in range(0, len(self.server.getSockets())):
             self.players.append(p.Player(self.server.getSockets()[i][1], i))
-        #self.players.append(p.Player("Bobby", 1))
+        self.players.append(p.Player("Bobby", 1))
         self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
         self.players[self.playerId].addCamera([0,0],self.galaxy)
         self.view.gameFrame = self.view.fGame()

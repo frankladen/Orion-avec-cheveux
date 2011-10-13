@@ -232,7 +232,7 @@ class Controller():
             self.players[actionPlayerId].units = []
         elif action == 'addunit':
             if unitIndex == 'Scout':
-                self.players[actionPlayerId].units.append(u.Unit('Scout00'+str(len(self.players[actionPlayerId].units)),[50,100,0], moveSpeed=5.0))
+                self.players[actionPlayerId].units.append(u.Unit('Scout' ,[50,100,0] ,moveSpeed=5.0))
         elif action == 'deleteUnit':
             self.players[actionPlayerId].units.pop(int(unitIndex))
 
