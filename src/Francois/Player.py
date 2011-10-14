@@ -14,7 +14,7 @@ class Player():
 
 
     def addBaseUnits(self):
-        self.units.append(u.Unit('Mothership',self.startPos, moveSpeed = 0.0))
+        self.units.append(u.Mothership('Mothership',self.startPos))
         self.units.append(u.Unit('Scout001',[self.startPos[0] + 20, self.startPos[1] + 20 ,0], moveSpeed=5.0))
         self.units.append(u.Unit('Scout002',[self.startPos[0] - 20, self.startPos[1] - 20 ,0], moveSpeed=5.0))
         
