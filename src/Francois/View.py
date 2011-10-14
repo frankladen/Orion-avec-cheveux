@@ -18,13 +18,13 @@ class View():
         self.currentFrame = self.fLogin
         self.firstTime = True
         self.gameFrame = None
-        self.sun=PhotoImage(file='images\sun.gif')
-        self.greysun = PhotoImage(file='images\sunGREY.gif')
-        self.planet=PhotoImage(file='images\planet.gif')
-        self.greyplanet = PhotoImage(file='images\planetGREY.gif')
-        self.motherShipSprite = PhotoImage(file = 'images\mothership.gif')
-        self.nebula=PhotoImage(file='images\\nebula.gif')
-        self.asteroid=PhotoImage(file='images\\asteroid.gif')
+        self.sun=PhotoImage(file='images/sun.gif')
+        self.greysun = PhotoImage(file='images/sunGREY.gif')
+        self.planet=PhotoImage(file='images/planet.gif')
+        self.greyplanet = PhotoImage(file='images/planetGREY.gif')
+        self.motherShipSprite = PhotoImage(file = 'images/mothership.gif')
+        self.nebula=PhotoImage(file='images/nebula.gif')
+        self.asteroid=PhotoImage(file='images/asteroid.gif')
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
     
@@ -37,7 +37,7 @@ class View():
         gameFrame = Frame(self.root, bg="black")
         self.ships = []
         for i in range(0,8):
-            self.ships.append(PhotoImage(file='images\ship'+str(i)+'.gif'))
+            self.ships.append(PhotoImage(file='images/ship'+str(i)+'.gif'))
         self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille-200, background='Black', relief='ridge')
         self.gameArea.grid(column=0,row=0, columnspan=5)#place(relx=0, rely=0,width=taille,height=taille)
         self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
@@ -328,9 +328,9 @@ class View():
         self.gameArea.bind("d", self.delete)
         self.gameArea.bind("D", self.delete)
         #Bindings des boutons de la souris
-        self.gameArea.bind("<Button-3>", self.rightclic)
+        self.gameArea.bind("<Button-2>", self.rightclic)
         self.gameArea.bind("<B3-Motion>", self.rightclic)
-        self.minimap.bind("<Button-3>", self.rightclic)
+        self.minimap.bind("<Button-2>", self.rightclic)
         self.gameArea.bind("<Button-1>", self.leftclic)
         self.minimap.bind("<B1-Motion>",self.leftclic)
         self.minimap.bind("<Button-1>",self.leftclic)
