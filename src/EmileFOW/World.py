@@ -42,15 +42,14 @@ class Galaxy():
             self.solarSystemList.append(SolarSystem(tempX,tempY,0))
 
     def getSpawnPoint(self):
-        random.seed(self.seed)
         find = False
         while(find == False):
             x =(random.random()*self.width)-self.width/2
             y = (random.random()*self.height)-self.height/2
 
             for i in self.solarSystemList:
-                if((x > i.sunPosition[0] - 10 and x < i.sunPosition[0] + 10)
-                    and (y > i.sunPosition[1] - 10) and y < i.sunPosition[1]+10):
+                if((x > i.sunPosition[0] - 250 and x < i.sunPosition[0] + 250)
+                    and (y > i.sunPosition[1] - 250) and y < i.sunPosition[1]+250):
                     find = False
                     break
                 else:
