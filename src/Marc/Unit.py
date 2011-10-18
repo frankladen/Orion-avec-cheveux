@@ -70,7 +70,8 @@ class SpaceAttackUnit(SpaceUnit):
         self.attackcount=self.AttackSpeed
         
     def attack(self, players):
-        print("j'attaque")
+        index = -1
+        killedOwner = -1
         distance = h.Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1])
         if distance > self.range :
             self.attackcount=self.AttackSpeed
@@ -81,8 +82,9 @@ class SpaceAttackUnit(SpaceUnit):
                 self.flag.finalTarget.hitpoints-=self.AttackDamage
                 if self.flag.finalTarget.hitpoints <= 0:
                     index = players[self.flag.finalTarget.owner].units.index(self.flag.finalTarget)
-                    players[self.flag.finalTarget.owner].units.pop(index)
+                    killedOwner = self.flag.finalTarget.owner
                     self.flag = Flag(self.position, self.position, FlagState.STANDBY)
                 self.attackcount=self.AttackSpeed
+        return (index, killedOwner)
                 
                 
