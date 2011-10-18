@@ -140,8 +140,9 @@ class View():
         for i in players:
             for j in i.units:
                 if self.parent.players[self.parent.playerId].inViewRange(j.position):
-                    j.discovered = True
-                    self.drawUnit(j, i)
+                    if j.name == 'Mothership':
+                        j.discovered = True
+                    self.drawUnit(j, i, False)
         if self.dragging:
             self.drawSelctionBox()
         self.drawMinimap()
@@ -201,17 +202,21 @@ class View():
                 self.gameArea.create_image(distance[0],distance[1],image=self.asteroidFOW)
     
     #pour dessiner un vaisseau        
-    def drawUnit(self, unit, player):
+    def drawUnit(self, unit, player, isInFOW):
         ship=self.ships[player.id] #On prend l'image dependamment du joueur que nous sommes
         unitPosition = unit.position
         if self.parent.players[self.parent.playerId].camera.isInFOV(unitPosition):
             distance = self.parent.players[self.parent.playerId].camera.calcDistance(unitPosition)
-            if unit in player.selectedObjects:
-                self.gameArea.create_oval(distance[0]-8,distance[1]-8,distance[0]+8,distance[1]+8, outline="green")
-            if unit.name.find('Scout') != -1:
-                self.gameArea.create_image(distance[0]+1, distance[1], image=ship)
-            elif unit.name.find('Mothership') != -1:
-                self.gameArea.create_image(distance[0]+1, distance[1], image = self.motherShipSprite)
+            if not isInFOW:
+                if unit.name.find('Scout') != -1:
+                    if unit in player.selectedObjects:
+                        self.gameArea.create_oval(distance[0]-8,distance[1]-8,distance[0]+8,distance[1]+8, outline="green")
+                    self.gameArea.create_image(distance[0]+1, distance[1], image=ship)
+                elif unit.name == 'Mothership':
+                    if unit in player.selectedObjects:
+                        self.gameArea.create_oval(distance[0]-25,distance[1]-25,distance[0]+25,distance[1]+25, outline="green")
+                    self.gameArea.create_image(distance[0]+1, distance[1], image = self.motherShipSprite)
+
     #Dessine la minimap
     def drawMinimap(self):
         self.minimap.delete('deletable')

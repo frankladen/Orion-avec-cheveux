@@ -49,8 +49,8 @@ class Galaxy():
             y = (random.random()*self.height)-self.height/2
 
             for i in self.solarSystemList:
-                if((x > i.sunPosition[0] - 10 and x < i.sunPosition[0] + 10)
-                    and (y > i.sunPosition[1] - 10) and y < i.sunPosition[1]+10):
+                if((x > i.sunPosition[0] - 250 and x < i.sunPosition[0] + 250)
+                    and (y > i.sunPosition[1] - 250) and y < i.sunPosition[1]+250):
                     find = False
                     break
                 else:

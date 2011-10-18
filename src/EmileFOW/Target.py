@@ -14,7 +14,7 @@ class PlayerObject(Target):
         if name == 'Scout':
             self.viewRange = 200
         if name == 'Mothership':
-            self.viewRange = 500
+            self.viewRange = 400
     
     def getFlag(self):
         return self.flag
