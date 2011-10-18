@@ -1,4 +1,5 @@
 import Unit as u
+from Flag import *
 import socket
 
 #Represente un joueur
@@ -12,8 +13,9 @@ class Player():
         self.startPos = 0 #Position de depart du joueur (pour le mothership)
         self.gaz = 0
         self.mineral = 0
-        self.units.append(u.Unit('Scout001',[0,0,0], moveSpeed=5.0))
-        self.units.append(u.Unit('Scout002',[100,200,0], moveSpeed=5.0))
+        self.units.append(u.Unit('Scout',[0,0,0], self.id, moveSpeed=5.0))
+        self.units.append(u.Unit('Scout',[100,200,0], self.id, moveSpeed=5.0))
+        self.units.append(u.SpaceAttackUnit('Attack',[400,400,0], self.id, movespeed=5.0, attackspeed=10.0,attackdamage=5.0,range=150.0))
     #Ajoute une camera au joueur seulement quand la partie commence    
     def addCamera(self, position, galaxy):
         self.camera = Camera(position ,galaxy)

@@ -20,6 +20,9 @@ class View():
         self.gameFrame = None
         self.sun=PhotoImage(file='images\sun.gif')
         self.planet=PhotoImage(file='images\planet.gif')
+        self.attackShip=PhotoImage(file='images\\attackShip.gif')
+        self.explosion=PhotoImage(file='images\\explosion.gif')
+        self.attacking = False
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
     
@@ -129,10 +132,20 @@ class View():
         ship=self.ships[player.id] #On prend l'image dependamment du joueur que nous sommes
         unitPosition = unit.position
         if self.parent.players[self.parent.playerId].camera.isInFOV(unitPosition):
-            distance = self.parent.players[self.parent.playerId].camera.calcDistance(unitPosition)
-            if unit in player.selectedObjects:
-                self.gameArea.create_oval(distance[0]-8,distance[1]-8,distance[0]+8,distance[1]+8, outline="green")
-            self.gameArea.create_image(distance[0]+1, distance[1], image=ship)
+            distance = self.parent.players[self.parent.playerId].camera.calcDistance(unitPosition)   
+            if unit.name == 'Attack':
+                if unit in player.selectedObjects:
+                    self.gameArea.create_oval(distance[0]-13,distance[1]-13,distance[0]+13,distance[1]+13, outline="green")
+                self.gameArea.create_image(distance[0]+1, distance[1], image=self.attackShip)
+                if unit.attackcount <= 5:
+                    d2 = self.parent.players[self.parent.playerId].camera.calcDistance(unit.flag.finalTarget.position)
+                    self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow")
+            elif unit.name == 'Scout':
+                if unit in player.selectedObjects:
+                    self.gameArea.create_oval(distance[0]-8,distance[1]-8,distance[0]+8,distance[1]+8, outline="green")
+                self.gameArea.create_image(distance[0]+1, distance[1], image=ship)
+            if unit.hitpoints <= 5:
+                self.gameArea.create_image(distance[0]+1, distance[1], image=self.explosion)
             #self.gameArea.create_polygon((distance[0], distance[1]-5,distance[0]-5,distance[1]+5,distance[0]+5,distance[1]+5),fill='YELLOW', tag="unit")
     #Dessine la minimap
     def drawMinimap(self):
@@ -210,6 +223,7 @@ class View():
         self.drawWorld()
     #Actions avec la souris    
     def rightclic(self, eve):
+        self.attacking = False
         x = eve.x
         y = eve.y
         canva = eve.widget
@@ -227,12 +241,18 @@ class View():
         x = eve.x
         y = eve.y
         canva = eve.widget
-        if canva == self.gameArea:     
-            self.parent.select(x,y,canva)
+        if canva == self.gameArea:
+            if self.attacking:
+                pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
+                print("J'appelle le set AttackFlag")
+                self.parent.setAttackFlag(pos[0],pos[1])
+            else:
+                self.parent.select(x,y,canva)
         elif canva == self.minimap:
             self.parent.quickMove(x,y,canva)
     #Quand on fait un clic gauche et qu'on bouge
     def clicDrag(self,eve):
+        self.attacking = False
         if self.dragging == False:
             self.selectStart = [eve.x, eve.y]
             self.selectEnd = [eve.x, eve.y]
@@ -241,10 +261,17 @@ class View():
             self.selectEnd = [eve.x, eve.y]
     #Quand on clicDrag et qu'on lache la souris
     def endDrag(self, eve):
+        self.attacking = False
         if self.dragging:
             self.dragging = False
             self.selectEnd = [eve.x, eve.y]
-            self.parent.boxSelect(self.selectStart, self.selectEnd)    
+            self.parent.boxSelect(self.selectStart, self.selectEnd) 
+
+    #methode test attack
+    def attack(self,eve):
+        self.attacking = True
+        print("J'ai pesé su a!")
+        
     #Quand on appui sur enter dans le chat		
     def enter(self, eve):
         self.parent.sendMessage(self.entryMess.get())
@@ -255,9 +282,11 @@ class View():
         self.parent.connectServer(self.entryLogin.get(), self.entryServer.get())
 			
     def stop(self, eve):
+        self.attacking = False
         self.parent.setStandbyFlag()
 
     def delete(self, eve):
+        self.attacking = False
         self.parent.eraseUnit()
         
 	#Pour la selection multiple	
@@ -285,6 +314,8 @@ class View():
         self.gameArea.bind("s", self.stop)
         self.gameArea.bind("S", self.stop)
         self.gameArea.bind("<Delete>", self.delete)
+        self.gameArea.bind("a",self.attack)
+        self.gameArea.bind("A",self.attack)
         #Bindings des boutons de la souris
         self.gameArea.bind("<Button-3>", self.rightclic)
         self.gameArea.bind("<B3-Motion>", self.rightclic)
