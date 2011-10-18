@@ -25,17 +25,57 @@ class Controller():
         self.currentFrame = None
 
         self.view.root.mainloop()
-    #Pour changer le flag des unites selectionne pour le deplacement    
+ #Pour changer le flag des unites selectionne pour le deplacement    
     def setMovingFlag(self,x,y):
+        units = ""
+        #Si plusieurs unit�s sont s�lectionn�es, on les ajoute toutes dans le changement � envoyer
         for i in self.players[self.playerId].selectedObjects:
-            if i.__module__ == 'Unit':
-                self.pushChange(i, Flag(i,t.Target([x,y,0]),FlagState.MOVE))
+            if isinstance(i, u.SpaceAttackUnit):
+                i.attackcount = i.AttackSpeed
+            if i.__module__ == 'Unit':                
+                units += str(self.players[self.playerId].units.index(i)) + ","
+        if units != "":
+            self.pushChange(units, Flag(i,t.Target([x,y,0]),FlagState.MOVE))
+    
     #Pour changer le flag des unites selectionne pour l'arret
     def setStandbyFlag(self):
+        units = ""
+        #Si plusieurs unit�s sont s�lectionn�es, on les ajoute toutes dans le changement � envoyer
         for i in self.players[self.playerId].selectedObjects:
+            if isinstance(i, u.SpaceAttackUnit): 
+                i.attackcount = i.AttackSpeed
             if i.__module__ == 'Unit':
-                self.pushChange(i, Flag(i,t.Target([i.position[0],i.position[1],0]),FlagState.STANDBY))
-    #Pour ajouter une unit       
+                units += str(self.players[self.playerId].units.index(i)) + ","
+        if units != "":
+            self.pushChange(units, Flag(i,t.Target([0,0,0]),FlagState.STANDBY))
+            
+    #Pour changer le flag des unit�s s�lectionn�s pour attaquer        
+    def setAttackFlag(self, x, y):
+        attacking = False
+        attackedUnit = None
+        #posSelected = self.players[self.playerId].camera.calcPointInWorld(x,y)
+        print("Il y a " + str(len(self.players)) + " joueurs")
+        for i in self.players:
+            if i.id != self.playerId:
+                print("pas moi")
+                for j in i.units:
+                    if j.position[0] >= x-8 and j.position[0] <= x+8:
+                        if j.position[1] >= y-8 and j.position[1] <= y+8:
+                            attacking = True
+                            attackedUnit = j
+                            break
+        if attacking:
+            print("Y'a kkun en dessous")
+            units = ""
+            for i in self.players[self.playerId].selectedObjects:
+                i.attackcount = i.AttackSpeed
+                if isinstance(i, u.SpaceAttackUnit):
+                    units += str(self.players[self.playerId].units.index(i)) + ","
+            if units != "":
+                print("Je pousse le changement au serveur")
+                self.pushChange(units, Flag(i,attackedUnit,FlagState.ATTACK))
+        
+    #Pour ajouter une unit
     def addUnit(self, unit):
         if unit == "Scout":
             self.pushChange('Scout', 'addunit')
@@ -122,8 +162,10 @@ class Controller():
             self.players[self.playerId].camera.move()
             for p in self.players:
                 for i in p.units:
-                    if i.flag.flagState == 2:
+                    if i.flag.flagState == FlagState.MOVE:
                         i.move()
+                    elif i.flag.flagState == FlagState.ATTACK:
+                        i.attack(self.players)
             self.refreshMessages()
             self.refresh+=1
             self.server.refreshPlayer(self.playerId, self.refresh)
@@ -181,7 +223,12 @@ class Controller():
     #Méthode de mise à jour auprès du serveur, actionnée à chaque
     def pushChange(self, playerObject, flag):
         if isinstance(flag, Flag):
-            actionString = str(self.playerId)+"/"+str(self.players[self.playerId].units.index(playerObject))+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position) 
+            if flag.flagState == FlagState.MOVE or flag.flagState == FlagState.STANDBY:
+                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
+            elif flag.flagState == FlagState.ATTACK:
+                targetId = self.players[flag.finalTarget.owner].units.index(flag.finalTarget)
+                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/U"+str(targetId)+"P"+str(flag.finalTarget.owner)
+            self.server.addChange(actionString)
         elif isinstance(flag, str):
             if flag == 'addunit':
                 actionString = str(self.playerId)+"/"+playerObject+"/"+flag+"/lolcasertarienceboutla"
@@ -189,9 +236,11 @@ class Controller():
                 actionString = str(self.playerId)+"/"+str(self.players[self.playerId].units.index(playerObject))+"/"+flag+"/klolyvamourirleunit"
             elif flag == 'deleteAllUnits':
                 actionString = str(self.playerId)+"/"+playerObject+"/"+flag+"/lolypartdelapartie"
+            self.server.addChange(actionString)
+		#Si c'est un �change
         elif isinstance(flag, tuple):
             actionString = str(self.playerId)+"/"+playerObject+"/"+flag[0]+"/"+flag[1]
-        self.server.addChange(actionString)
+            self.server.addChange(actionString)
     
     def pullChange(self):
         toRemove = []
@@ -209,16 +258,28 @@ class Controller():
         changeInfo = changeString.split("/")
         actionPlayerId = int(changeInfo[0])
         unitIndex = changeInfo[1]
+        unitIndex = unitIndex.split(",")
         action = changeInfo[2]
         target = changeInfo[3]
         refresh = int(changeInfo[4])
+        #si l'action est Move, la target sera sous forme de tableau de positions [x,y,z]
         if action == str(FlagState.MOVE) or action == str(FlagState.STANDBY):
             target = target.strip("[")
             target = target.strip("]")
             target = target.split(",")
             for i in range(0, len(target)):
-                target[i]=math.trunc(float(target[i]))
-            self.players[actionPlayerId].units[int(unitIndex)].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
+                target[i]=math.trunc(float(target[i])) #n�cessaire afin de s'assurer que les positions sont des entiers
+            #on change le flag de l'unit� afin qu'ils se mettent � se d�placer
+            for i in range(0,len(unitIndex)-1):
+                self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
+        elif action == str(FlagState.ATTACK):
+            target = target.split("P")
+            target[0] = target[0].strip("U")
+            for i in unitIndex:
+                print(i)
+                if i != '':
+                    self.players[actionPlayerId].units[int(i)].changeFlag(self.players[int(target[1])].units[int(target[0])], int(action))
+            #ici, le target sera l'index de l'unit� dans le tableau de unit du player cibl�
         elif action == 'deleteAllUnits':
             self.players[actionPlayerId].units = []
         elif action == 'addunit':
