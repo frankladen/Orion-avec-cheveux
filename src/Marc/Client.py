@@ -184,8 +184,22 @@ class Controller():
     def killUnit(self, killedIndexes):
         toRemove = []
         for i in self.changes:
-            if int(i.split("/")[0]) == killedIndexes[1] and int(changeString.split("/")[1] == killedIndexes[0]):
+            if int(i.split("/")[0]) == killedIndexes[1] and int(i.split("/")[1] == killedIndexes[0]):
                 toRemove.append(i)
+            elif int(i.split("/")[0]) == killedIndexes[1]:
+                tempI = i.split("/")[1]
+                tempUnits = tempI.split(",")
+                tempI = ""
+                for u in tempUnits:
+                    if  int(u) > killedIndexes[0]:
+                        u = str(int(u) -1)
+                    tempI += str(u) + ","
+                tempChange = i.split("/")
+                tempChange[1] = tempI
+                i = ""
+                for tc in tempChange:
+                    i += tc + "/"
+                print("string refaite: " + i)
         for tr in toRemove:
             self.changes.remove(tr)
                 
@@ -292,7 +306,7 @@ class Controller():
             if unitIndex == 'Scout':
                 self.players[actionPlayerId].units.append(u.Unit('Scout00'+str(len(self.players[actionPlayerId].units)),[50,100,0], moveSpeed=5.0))
         elif action == 'deleteUnit':
-            self.players[actionPlayerId].units.pop(int(unitIndex))
+            self.killUnit((int(unitIndex[0]),actionPlayerId))
         elif unitIndex == 'g' or unitIndex == 'm':
             if unitIndex == 'm':
                 self.players[actionPlayerId].mineral-=quantite
