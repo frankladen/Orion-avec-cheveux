@@ -36,12 +36,14 @@ class ControleurServeur(object):
             self.refreshes.append(0)
     
     def removePlayer(self, ip, login, playerId):
+        self.sockets[playerId][2] = True
         if playerId == 0:
-                self.isStopped = True
-                self.gameIsStarted = False
-                self.refreshes = []
-                self.changeList = []
-                self.mess = ['Système de chat de Orion']
+            self.isStopped = True
+            self.gameIsStarted = False
+            self.refreshes = []
+            self.changeList = []
+            self.sockets = []
+            self.mess = ['Système de chat de Orion']
     
     def addMessage(self, text, name):
         self.mess.append(name+': '+text)
@@ -51,6 +53,7 @@ class ControleurServeur(object):
         
     def addChange(self, change):
         #décider à quel frame effectuer l'action
+        #playerId = int(change.split("/")[0])
         change = change+'/'+str(self.decideActionRefresh())
         for ch in self.changeList:
             ch.append(change)
@@ -60,8 +63,7 @@ class ControleurServeur(object):
     
     def decideActionRefresh(self):
         #décide à quel refresh les clients doivent effectuer la prochaine action
-        maxRefresh = max(self.refreshes)
-        return maxRefresh+5
+        return (max(self.refreshes)+5)
 
     def frameDifference(self):
         frameList = []
@@ -77,12 +79,15 @@ class ControleurServeur(object):
     
     # Méthode qui détermine et isole les joueurs dont le frame courant est trop élevé par apport aux autres
     def amITooHigh(self, playerId):
-        
+        refresh = []
         #Je détermine le frame minimum de tout les clients
-        frameMin = min(self.refreshes)
+        for r in range(len(self.refreshes)):
+            if self.sockets[r][2] != True:
+                refresh.append(self.refreshes[r])
+        frameMin = min(refresh)
         
         #Détermine si l'écart entre les joueurs est trop grand (15 étant une valeur arbitraire, destinée à être modifié)
-        if self.refreshes[playerId] - frameMin > 15:
+        if self.refreshes[playerId] - frameMin > 25:
             return (self.refreshes[playerId] - frameMin)*50
         
         return 50
@@ -105,11 +110,12 @@ class ControleurServeur(object):
         for i in range(0,len(self.sockets)):
             if self.sockets[i][0] == ip:
                 print('a trouver le meme socket que le precedent')
-                self.sockets[i]=(ip,login)
+                self.sockets[i]=[ip,login,False]
                 return i
             n=n+1
         print('ajoute le socket a la fin')
-        self.sockets.append((ip,login))
+        if len(self.sockets) < 8:
+            self.sockets.append([ip,login,False])
         return n
           
 

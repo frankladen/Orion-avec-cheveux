@@ -130,7 +130,7 @@ class Controller():
             #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
             self.pullChange()
             self.view.drawWorld()
-            #waitTime = self.server.amITooHigh(self.playerId)
+            waitTime = self.server.amITooHigh(self.playerId)
         else:
             if self.server.isGameStarted() == True:
                 self.startGame()
@@ -203,10 +203,6 @@ class Controller():
                 toRemove.append(changeString)
         for tR in toRemove:
             self.changes.remove(tR)
-        #si le joueur est trop en avance
-        #if change[len(change)].find("*") != -1 :
-            #j'isole le nombre de frame d'avance pour utilisation futurs
-        #    frameTooHigh = int(change[len(change)].rstrip("*"))
 
     
     def doAction(self, changeString):
