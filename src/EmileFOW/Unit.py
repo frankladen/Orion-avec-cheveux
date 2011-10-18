@@ -55,7 +55,10 @@ class GroundBuildUnit(GroundUnit):
     
     def build(self,building):
         print("build")
-
+        
+class Mothership(Unit):
+    def __init__(self, name, position):
+        Unit.__init__(self, name, position, foodcost=0, moveSpeed=0)
         
         
     
