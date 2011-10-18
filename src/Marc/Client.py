@@ -27,14 +27,16 @@ class Controller():
         self.view.root.mainloop()
  #Pour changer le flag des unites selectionne pour le deplacement    
     def setMovingFlag(self,x,y):
-        units = ""
+        units = ''
+        send = False
         #Si plusieurs unit�s sont s�lectionn�es, on les ajoute toutes dans le changement � envoyer
         for i in self.players[self.playerId].selectedObjects:
             if isinstance(i, u.SpaceAttackUnit):
                 i.attackcount = i.AttackSpeed
             if i.__module__ == 'Unit':                
                 units += str(self.players[self.playerId].units.index(i)) + ","
-        if units != "":
+                send = True
+        if send:
             self.pushChange(units, Flag(i,t.Target([x,y,0]),FlagState.MOVE))
     
     #Pour changer le flag des unites selectionne pour l'arret
@@ -182,6 +184,7 @@ class Controller():
         self.view.root.after(waitTime, self.action)
         
     def killUnit(self, killedIndexes):
+        print("Début de killUnit")
         toRemove = []
         for i in self.changes:
             if int(i.split("/")[0]) == killedIndexes[1] and int(i.split("/")[1] == killedIndexes[0]):
@@ -190,7 +193,9 @@ class Controller():
                 tempI = i.split("/")[1]
                 tempUnits = tempI.split(",")
                 tempI = ""
+                tempUnits.pop(len(tempUnits)-1)
                 for u in tempUnits:
+                    print("u: " + u + " killedIndexes: " + str(killedIndexes[0]) + "/" + str(killedIndexes[1]))
                     if  int(u) > killedIndexes[0]:
                         u = str(int(u) -1)
                     tempI += str(u) + ","
@@ -202,6 +207,11 @@ class Controller():
                 print("string refaite: " + i)
         for tr in toRemove:
             self.changes.remove(tr)
+        if killedIndexes[1] == self.playerId:
+            if self.players[self.playerId].units[killedIndexes[0]] in self.players[self.playerId].selectedObjects:
+               print("enlève l'unité de selectedUnits")
+               self.players[self.playerId].selectedObjects.remove(self.players[self.playerId].units[killedIndexes[0]])
+        self.players[killedIndexes[1]].units.pop(killedIndexes[0])
                 
 	#Connection au serveur			
     def connectServer(self, login, serverIP):
