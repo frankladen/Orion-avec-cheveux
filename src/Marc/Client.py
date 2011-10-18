@@ -54,10 +54,8 @@ class Controller():
         attacking = False
         attackedUnit = None
         #posSelected = self.players[self.playerId].camera.calcPointInWorld(x,y)
-        print("Il y a " + str(len(self.players)) + " joueurs")
         for i in self.players:
             if i.id != self.playerId:
-                print("pas moi")
                 for j in i.units:
                     if j.position[0] >= x-8 and j.position[0] <= x+8:
                         if j.position[1] >= y-8 and j.position[1] <= y+8:
@@ -65,14 +63,12 @@ class Controller():
                             attackedUnit = j
                             break
         if attacking:
-            print("Y'a kkun en dessous")
             units = ""
             for i in self.players[self.playerId].selectedObjects:
                 i.attackcount = i.AttackSpeed
                 if isinstance(i, u.SpaceAttackUnit):
                     units += str(self.players[self.playerId].units.index(i)) + ","
             if units != "":
-                print("Je pousse le changement au serveur")
                 self.pushChange(units, Flag(i,attackedUnit,FlagState.ATTACK))
         
     #Pour ajouter une unit
@@ -165,7 +161,9 @@ class Controller():
                     if i.flag.flagState == FlagState.MOVE:
                         i.move()
                     elif i.flag.flagState == FlagState.ATTACK:
-                        i.attack(self.players)
+                        killedIndex = i.attack(self.players)
+                        if killedIndex[0] > -1:
+                            self.killUnit(killedIndex)
             self.refreshMessages()
             self.refresh+=1
             self.server.refreshPlayer(self.playerId, self.refresh)
@@ -181,7 +179,16 @@ class Controller():
                 self.view.pLobby = self.view.fLobby()
                 self.view.changeFrame(self.view.pLobby)
 
-        self.view.root.after(waitTime, self.action)  
+        self.view.root.after(waitTime, self.action)
+        
+    def killUnit(self, killedIndexes):
+        toRemove = []
+        for i in self.changes:
+            if int(i.split("/")[0]) == killedIndexes[1] and int(changeString.split("/")[1] == killedIndexes[0]):
+                toRemove.append(i)
+        for tr in toRemove:
+            self.changes.remove(tr)
+                
 	#Connection au serveur			
     def connectServer(self, login, serverIP):
         self.server=Pyro4.core.Proxy("PYRO:controleurServeur@"+serverIP+":54440")
@@ -276,7 +283,6 @@ class Controller():
             target = target.split("P")
             target[0] = target[0].strip("U")
             for i in unitIndex:
-                print(i)
                 if i != '':
                     self.players[actionPlayerId].units[int(i)].changeFlag(self.players[int(target[1])].units[int(target[0])], int(action))
             #ici, le target sera l'index de l'unit� dans le tableau de unit du player cibl�

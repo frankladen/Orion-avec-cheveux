@@ -63,7 +63,7 @@ class ControleurServeur(object):
     
     def decideActionRefresh(self):
         #décide à quel refresh les clients doivent effectuer la prochaine action
-        return (max(self.refreshes)+5)
+        return (max(self.refreshes)+2)
 
     def frameDifference(self):
         frameList = []
@@ -87,7 +87,7 @@ class ControleurServeur(object):
         frameMin = min(refresh)
         
         #Détermine si l'écart entre les joueurs est trop grand (15 étant une valeur arbitraire, destinée à être modifié)
-        if self.refreshes[playerId] - frameMin > 25:
+        if self.refreshes[playerId] - frameMin > 5:
             return (self.refreshes[playerId] - frameMin)*50
         
         return 50

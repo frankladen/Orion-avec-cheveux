@@ -244,7 +244,6 @@ class View():
         if canva == self.gameArea:
             if self.attacking:
                 pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
-                print("J'appelle le set AttackFlag")
                 self.parent.setAttackFlag(pos[0],pos[1])
             else:
                 self.parent.select(x,y,canva)
@@ -270,7 +269,6 @@ class View():
     #methode test attack
     def attack(self,eve):
         self.attacking = True
-        print("J'ai pesé su a!")
         
     #Quand on appui sur enter dans le chat		
     def enter(self, eve):
