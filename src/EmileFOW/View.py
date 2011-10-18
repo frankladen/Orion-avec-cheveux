@@ -26,6 +26,7 @@ class View():
         self.nebulaFOW=PhotoImage(file='images\\nebulaFOW.gif')
         self.asteroid=PhotoImage(file='images\\asteroid.gif')
         self.asteroidFOW=PhotoImage(file='images\\asteroidFOW.gif')
+        self.motherShipSprite = PhotoImage(file = 'images/mothership.gif')
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
     
@@ -207,8 +208,10 @@ class View():
             distance = self.parent.players[self.parent.playerId].camera.calcDistance(unitPosition)
             if unit in player.selectedObjects:
                 self.gameArea.create_oval(distance[0]-8,distance[1]-8,distance[0]+8,distance[1]+8, outline="green")
-            self.gameArea.create_image(distance[0]+1, distance[1], image=ship)
-            #self.gameArea.create_polygon((distance[0], distance[1]-5,distance[0]-5,distance[1]+5,distance[0]+5,distance[1]+5),fill='YELLOW', tag="unit")
+            if unit.name.find('Scout') != -1:
+                self.gameArea.create_image(distance[0]+1, distance[1], image=ship)
+            elif unit.name.find('Mothership') != -1:
+                self.gameArea.create_image(distance[0]+1, distance[1], image = self.motherShipSprite)
     #Dessine la minimap
     def drawMinimap(self):
         self.minimap.delete('deletable')

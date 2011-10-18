@@ -174,14 +174,18 @@ class Controller():
             self.eraseUnits()
             self.server.removePlayer(self.playerIp, self.players[self.playerId].name, self.playerId)
         self.view.root.destroy()
-    #Demmare la partie et genere la galaxie (Quand l'admin appui sur start game dans le lobby)    
+
+   #Demmare la partie et genere la galaxie (Quand l'admin appui sur start game dans le lobby)    
     def startGame(self):
         if self.playerId==0:
             self.server.startGame()
         for i in range(0, len(self.server.getSockets())):
             self.players.append(p.Player(self.server.getSockets()[i][1], i))
         self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
-        self.players[self.playerId].addCamera([0,0],self.galaxy)
+        for i in range(0, len(self.server.getSockets())):
+            startPos = self.galaxy.getSpawnPoint()
+            self.players[i].addBaseUnits(startPos)  
+        self.players[self.playerId].addCamera(self.galaxy)
         self.view.gameFrame = self.view.fGame()
         self.view.changeFrame(self.view.gameFrame)
         self.view.root.after(50, self.action)

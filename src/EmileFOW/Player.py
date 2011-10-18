@@ -9,12 +9,30 @@ class Player():
         self.selectedObjects = [] #Liste des unites selectionnes
         self.units = [] #Liste de toute les unites
         self.id = id #Numero du joueur dans la liste de joueur
-        self.startPos = 0 #Position de depart du joueur (pour le mothership)
-        self.units.append(u.Unit('Scout',[0,0,0],moveSpeed=5.0))
-        self.units.append(u.Unit('Scout',[100,200,0],moveSpeed=5.0))
+        #self.startPos = [0,0,0] #Position de depart du joueur (pour le mothership)
+
+    def addBaseUnits(self, startPos):
+        self.units.append(u.Mothership('Mothership',startPos))
+        self.units.append(u.Unit('Scout',[startPos[0] + 20, startPos[1] + 20 ,0], moveSpeed=5.0))
+        self.units.append(u.Unit('Scout',[startPos[0] - 20, startPos[1] - 20 ,0], moveSpeed=5.0))
+        
     #Ajoute une camera au joueur seulement quand la partie commence    
-    def addCamera(self, position, galaxy):
-        self.camera = Camera(position ,galaxy)
+    def addCamera(self, galaxy):
+        pos = [0,0,0]
+        for i in self.units:
+            if i.name == 'Mothership':
+                pos = i.position
+        default = [pos[0],pos[1]]
+        self.camera = Camera(default,galaxy)
+        if default[0]-self.camera.screenCenter[0] < (self.camera.galaxy.width*-1)/2:
+            self.camera.position[0] = (self.camera.galaxy.width*-1)/2+self.camera.screenCenter[0]
+        if default[0]+self.camera.screenCenter[0] > self.camera.galaxy.width/2:
+            self.camera.position[0] = (self.camera.galaxy.width)/2-self.camera.screenCenter[0]
+        if default[1]-self.camera.screenCenter[1] < (self.camera.galaxy.height*-1)/2:
+            self.camera.position[1] = (self.camera.galaxy.height*-1)/2+self.camera.screenCenter[1]
+        if default[1]+self.camera.screenCenter[1] > self.camera.galaxy.height/2:
+            self.camera.position[1] = (self.camera.galaxy.height)/2-self.camera.screenCenter[1]
+        
     def inViewRange(self, position):
         x = position[0]
         y = position[1]
@@ -32,6 +50,7 @@ class Camera():
         self.screenHeight = 600
         self.galaxy = galaxy #reference a la galaxie
         self.movingDirection = []
+        
     #Pour calculer la distance entre la camera et un point
     def calcDistance(self, position):
         distX = position[0] - self.position[0]
@@ -57,6 +76,7 @@ class Camera():
         elif rY > self.galaxy.height/2-self.screenHeight/2:
             rY = self.galaxy.height/2-self.screenHeight/2
         return [rX, rY]
+    
     #Pour calculer un point dans la galaxie a partir d'un point dans la minimap
     def calcPointMinimap(self,x ,y ):
         rX = x/200 * self.galaxy.width - self.galaxy.width/2
@@ -82,5 +102,4 @@ class Camera():
         elif 'DOWN' in self.movingDirection:
             if self.position[1] < self.galaxy.height/2 - self.screenCenter[1]:
                 self.position[1]+=5
-
 

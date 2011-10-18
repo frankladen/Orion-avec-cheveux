@@ -19,7 +19,8 @@ class Galaxy():
         self.width=(nbPlayer)*1000
         self.height=(nbPlayer)*1000
         self.depth=(nbPlayer)*1000
-        random.seed(seed)
+        self.seed  = random.seed(seed)
+        self.spawnPoints = []
         self.solarSystemList = []
         for i in range(1,nbPlayer*(6+(nbPlayer-2))):
             tempX=""
@@ -39,6 +40,35 @@ class Galaxy():
                         if tempY > j.sunPosition[1]-250 and tempY < j.sunPosition[1]+250:
                             placeFound = False
             self.solarSystemList.append(SolarSystem(tempX,tempY,0))
+
+    def getSpawnPoint(self):
+        random.seed(self.seed)
+        find = False
+        while(find == False):
+            x =(random.random()*self.width)-self.width/2
+            y = (random.random()*self.height)-self.height/2
+
+            for i in self.solarSystemList:
+                if((x > i.sunPosition[0] - 10 and x < i.sunPosition[0] + 10)
+                    and (y > i.sunPosition[1] - 10) and y < i.sunPosition[1]+10):
+                    find = False
+                    break
+                else:
+                    find = True
+            
+            
+            if find == True:
+                for i in self.spawnPoints:
+                    if((x > i[0] - 200 and x < i[0] + 200)
+                        and (y > i[1] - 200) and (y < i[1] + 200)):
+                        find = False
+                        break
+                    else:
+                        find = True
+
+        self.spawnPoints.append((x,y,0))
+        return [x,y,0]
+
 #Classe qui represente 1 seul systeme solaire                            
 class SolarSystem():
     def __init__(self,sunX,sunY,sunZ):
