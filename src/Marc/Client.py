@@ -98,7 +98,19 @@ class Controller():
             for j in i.planets:
                 if j.position[0] >= posSelected[0]-10 and j.position[0] <= posSelected[0]+10:
                     if j.position[1] >= posSelected[1]-10 and j.position[1] <= posSelected[1]+10:
-                        if j not in self.players[self.playerId].selectedObjects:
+                        if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
+                            self.players[self.playerId].selectedObjects = []
+                            self.players[self.playerId].selectedObjects.append(j)
+            for j in i.nebulas:
+                if j.position[0] >= posSelected[0]-10 and j.position[0] <= posSelected[0]+10:
+                    if j.position[1] >= posSelected[1]-10 and j.position[1] <= posSelected[1]+10:
+                        if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
+                            self.players[self.playerId].selectedObjects = []
+                            self.players[self.playerId].selectedObjects.append(j)
+            for j in i.asteroids:
+                if j.position[0] >= posSelected[0]-10 and j.position[0] <= posSelected[0]+10:
+                    if j.position[1] >= posSelected[1]-10 and j.position[1] <= posSelected[1]+10:
+                        if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
                             self.players[self.playerId].selectedObjects = []
                             self.players[self.playerId].selectedObjects.append(j)
         #Si on selectionne une unit               
@@ -251,7 +263,10 @@ class Controller():
         for i in range(0, len(self.server.getSockets())):
             self.players.append(p.Player(self.server.getSockets()[i][1], i))
         self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
-        self.players[self.playerId].addCamera([0,0],self.galaxy)
+        for i in range(0, len(self.server.getSockets())):
+            startPos = self.galaxy.getSpawnPoint()
+            self.players[i].addBaseUnits(startPos)  
+        self.players[self.playerId].addCamera(self.galaxy)
         self.view.gameFrame = self.view.fGame()
         self.view.changeFrame(self.view.gameFrame)
         self.view.root.after(50, self.action)

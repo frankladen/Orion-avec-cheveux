@@ -10,6 +10,7 @@ class Unit(t.PlayerObject):
         t.PlayerObject.__init__(self, name, position, owner)
         self.FoodCost=foodcost
         self.moveSpeed=moveSpeed
+        
     #La deplace d'un pas vers son flag et si elle est rendu, elle change arrete de bouger    
     def move(self):
         if h.Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1]) <= self.moveSpeed:
@@ -23,10 +24,12 @@ class Unit(t.PlayerObject):
             temp = h.Helper.getAngledPoint(angle, self.moveSpeed, self.position[0], self.position[1])
             self.position[0] = temp[0]
             self.position[1] = temp[1]
+            
     #Efface la unit
     def eraseUnit(self):
         self.flag.flagState = 0
         self.position = [-1500,-1500,0]
+        
     #Change le flag pour une nouvelle destination et un nouvel etat
     def changeFlag(self, finalTarget, state):
         #On doit vérifier si l'unité est encore vivante
@@ -34,6 +37,7 @@ class Unit(t.PlayerObject):
             self.flag.initialTarget = t.Target(self.position)
             self.flag.finalTarget = finalTarget
             self.flag.flagState = state
+            
     #Retourne le flag de la unit    
     def getFlag(self):
         return self.flag
@@ -46,7 +50,6 @@ class GroundUnit(Unit):
     def __init__(self,planetid):
         Unit.__init__(self, planetid)
         self.Planetid=planetid
-        
     
 class GroundAttackUnit(GroundUnit):
     def __init__(self,attackspeed,attackdamage):
@@ -54,7 +57,6 @@ class GroundAttackUnit(GroundUnit):
         self.AttackSpeed=attackspeed
         self.AttackDamage=attackdamage
     
-        
 class GroundBuildUnit(GroundUnit):
     def __init__(self):
         super(GroundBuildUnit,self).__init__()
@@ -62,6 +64,9 @@ class GroundBuildUnit(GroundUnit):
     def build(self,building):
         print("build")
 
+class Mothership(Unit):
+    def __init__(self, name, position, owner):
+        Unit.__init__(self, name, position, owner, foodcost=0, moveSpeed=0)
         
 class SpaceAttackUnit(SpaceUnit):
     def __init__(self, name, position, owner, movespeed, attackspeed,attackdamage,range):
@@ -90,5 +95,3 @@ class SpaceAttackUnit(SpaceUnit):
                     self.killCount +=1
                 self.attackcount=self.AttackSpeed
         return (index, killedOwner)
-                
-                

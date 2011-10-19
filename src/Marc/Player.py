@@ -10,15 +10,41 @@ class Player():
         self.selectedObjects = [] #Liste des unites selectionnes
         self.units = [] #Liste de toute les unites
         self.id = id #Numero du joueur dans la liste de joueur
-        self.startPos = 0 #Position de depart du joueur (pour le mothership)
+        self.startPos = [0,0,0] #Position de depart du joueur (pour le mothership)
         self.gaz = 0
         self.mineral = 0
-        self.units.append(u.Unit('Scout',[0,0,0], self.id, moveSpeed=5.0))
-        self.units.append(u.Unit('Scout',[100,200,0], self.id, moveSpeed=5.0))
-        self.units.append(u.SpaceAttackUnit('Attack',[400,400,0], self.id, movespeed=5.0, attackspeed=10.0,attackdamage=5.0,range=150.0))
+
+    def addBaseUnits(self, startPos):
+        self.units.append(u.Mothership('Mothership',startPos, self.id))
+        self.units.append(u.Unit('Scout',[startPos[0] + 20, startPos[1] + 20 ,0], self.id, moveSpeed=5.0))
+        self.units.append(u.Unit('Scout',[startPos[0] - 20, startPos[1] - 20 ,0], self.id, moveSpeed=5.0))
+        self.units.append(u.SpaceAttackUnit('Attack',[startPos[0] + 20, startPos[1] - 20 ,0], self.id, movespeed=5.0, attackspeed=10.0,attackdamage=5.0,range=150.0))
+
     #Ajoute une camera au joueur seulement quand la partie commence    
-    def addCamera(self, position, galaxy):
-        self.camera = Camera(position ,galaxy)
+    def addCamera(self, galaxy):
+        pos = [0,0,0]
+        for i in self.units:
+            if i.name == 'Mothership':
+                pos = i.position
+        default = [pos[0],pos[1]]
+        self.camera = Camera(default,galaxy)
+        if default[0]-self.camera.screenCenter[0] < (self.camera.galaxy.width*-1)/2:
+            self.camera.position[0] = (self.camera.galaxy.width*-1)/2+self.camera.screenCenter[0]
+        if default[0]+self.camera.screenCenter[0] > self.camera.galaxy.width/2:
+            self.camera.position[0] = (self.camera.galaxy.width)/2-self.camera.screenCenter[0]
+        if default[1]-self.camera.screenCenter[1] < (self.camera.galaxy.height*-1)/2:
+            self.camera.position[1] = (self.camera.galaxy.height*-1)/2+self.camera.screenCenter[1]
+        if default[1]+self.camera.screenCenter[1] > self.camera.galaxy.height/2:
+            self.camera.position[1] = (self.camera.galaxy.height)/2-self.camera.screenCenter[1]
+        
+    def inViewRange(self, position):
+        x = position[0]
+        y = position[1]
+        for i in self.units:
+            if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
+                if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
+                    return True
+        return False
 #Represente la camera            
 class Camera():
     def __init__(self, defaultPos, galaxy):

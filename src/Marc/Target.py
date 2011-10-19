@@ -4,7 +4,7 @@ from Flag import *
 class Target():
     def __init__(self, position=[0,0,0]):
         self.position = position
-        
+
 #Represente un objet pouvant appartenir a un joueur
 class PlayerObject(Target):
     def __init__(self, name, position, owner, hitpoints=50):
@@ -14,6 +14,14 @@ class PlayerObject(Target):
         self.owner = owner
         self.hitpoints=hitpoints
         self.isAlive = True;
+        if name == 'Scout':
+            self.viewRange = 200
+        elif name == 'Mothership':
+            self.viewRange = 400
+        elif name =='Attack':
+            self.viewRange = 150
+        else:
+            self.viewRange = 100
     
     def getFlag(self):
         return self.flag
