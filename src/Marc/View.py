@@ -103,9 +103,10 @@ class View():
                 self.drawPlanet(j, players[id])
         for i in players:
             for j in i.units:
-                self.drawUnit(j, i)
+                if j.isAlive:
+                    self.drawUnit(j, i)
         if self.dragging:
-            self.drawSelctionBox()
+            self.drawSelectionBox()
         self.drawMinimap()
     #Pour dessiner un soleil     
     def drawSun(self, sunPosition, player):
@@ -146,7 +147,7 @@ class View():
                 self.gameArea.create_image(distance[0]+1, distance[1], image=ship)
             if unit.hitpoints <= 5:
                 self.gameArea.create_image(distance[0]+1, distance[1], image=self.explosion)
-            #self.gameArea.create_polygon((distance[0], distance[1]-5,distance[0]-5,distance[1]+5,distance[0]+5,distance[1]+5),fill='YELLOW', tag="unit")
+        #self.gameArea.create_polygon((distance[0], distance[1]-5,distance[0]-5,distance[1]+5,distance[0]+5,distance[1]+5),fill='YELLOW', tag="unit")
     #Dessine la minimap
     def drawMinimap(self):
         self.minimap.delete('deletable')
@@ -160,7 +161,8 @@ class View():
             self.firstTime = False
         for i in players:
             for j in i.units:
-                self.drawMiniUnit(j)
+                if j.isAlive:
+                    self.drawMiniUnit(j)
         self.drawMiniFOV()  
     #Dessine le carrer de la camera dans la minimap    
     def drawMiniFOV(self):
@@ -188,7 +190,7 @@ class View():
         else:
             self.minimap.create_polygon((unitX-2, planetY+1, unitX, planetY-1, unitX+2, planetY+1),fill='RED', tag='deletable')
 	#Dessine la boite de selection lors du clic-drag	
-    def drawSelctionBox(self):
+    def drawSelectionBox(self):
         self.gameArea.create_rectangle(self.selectStart[0], self.selectStart[1], self.selectEnd[0], self.selectEnd[1], outline='WHITE')
 
     #Actions quand on clic sur les fleches du clavier

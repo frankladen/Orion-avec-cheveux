@@ -29,9 +29,10 @@ class Unit(t.PlayerObject):
         self.position = [-1500,-1500,0]
     #Change le flag pour une nouvelle destination et un nouvel etat
     def changeFlag(self, finalTarget, state):
-        self.flag.initialTarget = t.Target(self.position)
-        self.flag.finalTarget = finalTarget
-        self.flag.flagState = state
+        if self.isAlive:
+            self.flag.initialTarget = t.Target(self.position)
+            self.flag.finalTarget = finalTarget
+            self.flag.flagState = state
     #Retourne le flag de la unit    
     def getFlag(self):
         return self.flag
@@ -68,6 +69,7 @@ class SpaceAttackUnit(SpaceUnit):
         self.AttackDamage=attackdamage
         self.range=range
         self.attackcount=self.AttackSpeed
+        self.killCount = 0
         
     def attack(self, players):
         index = -1
@@ -84,6 +86,7 @@ class SpaceAttackUnit(SpaceUnit):
                     index = players[self.flag.finalTarget.owner].units.index(self.flag.finalTarget)
                     killedOwner = self.flag.finalTarget.owner
                     self.flag = Flag(self.position, self.position, FlagState.STANDBY)
+                    self.killCount +=1
                 self.attackcount=self.AttackSpeed
         return (index, killedOwner)
                 

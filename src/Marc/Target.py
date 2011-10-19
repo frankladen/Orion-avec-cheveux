@@ -13,7 +13,10 @@ class PlayerObject(Target):
         self.flag = Flag(Target([0,0,0]), Target([0,0,0]), FlagState.STANDBY)
         self.owner = owner
         self.hitpoints=hitpoints
+        self.isAlive = True;
     
     def getFlag(self):
         return self.flag
-        
+    
+    def kill(self):
+        self.isAlive = False        

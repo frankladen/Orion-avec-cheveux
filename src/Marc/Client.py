@@ -160,12 +160,13 @@ class Controller():
             self.players[self.playerId].camera.move()
             for p in self.players:
                 for i in p.units:
-                    if i.flag.flagState == FlagState.MOVE:
-                        i.move()
-                    elif i.flag.flagState == FlagState.ATTACK:
-                        killedIndex = i.attack(self.players)
-                        if killedIndex[0] > -1:
-                            self.killUnit(killedIndex)
+                    if i.isAlive:
+                        if i.flag.flagState == FlagState.MOVE:
+                            i.move()
+                        elif i.flag.flagState == FlagState.ATTACK:
+                            killedIndex = i.attack(self.players)
+                            if killedIndex[0] > -1:
+                                self.killUnit(killedIndex)
             self.refreshMessages()
             self.refresh+=1
             self.server.refreshPlayer(self.playerId, self.refresh)
@@ -187,35 +188,37 @@ class Controller():
         print("Début de killUnit")
         #Désélection de l'unité qui va mourir afin d'éviter le renvoie d'une actio avec cette unité
         if killedIndexes[1] == self.playerId:
+            print("Même joueur")
             if self.players[self.playerId].units[killedIndexes[0]] in self.players[self.playerId].selectedObjects:
                print("enlève l'unité de selectedUnits")
                self.players[self.playerId].selectedObjects.remove(self.players[self.playerId].units[killedIndexes[0]])
-        #On va chercher les derniers changement sur le serveur afin de s'assurer de tous les changer
-        for i in self.server.getChange(self.playerId, self.refresh):
-            self.changes.append(i)       
-        toRemove = []
-        for i in self.changes:
-            if int(i.split("/")[0]) == killedIndexes[1] and int(i.split("/")[1] == killedIndexes[0]):
-                toRemove.append(i)
-            elif int(i.split("/")[0]) == killedIndexes[1]:
-                tempI = i.split("/")[1]
-                tempUnits = tempI.split(",")
-                tempI = ""
-                tempUnits.pop(len(tempUnits)-1)
-                for u in tempUnits:
-                    print("u: " + u + " killedIndexes: " + str(killedIndexes[0]) + "/" + str(killedIndexes[1]))
-                    if  int(u) > killedIndexes[0]:
-                        u = str(int(u) -1)
-                    tempI += str(u) + ","
-                tempChange = i.split("/")
-                tempChange[1] = tempI
-                i = ""
-                for tc in tempChange:
-                    i += tc + "/"
-                print("string refaite: " + i)
-        for tr in toRemove:
-            self.changes.remove(tr)
-        self.players[killedIndexes[1]].units.pop(killedIndexes[0])
+        self.players[killedIndexes[1]].units[killedIndexes[0]].kill()
+#        #On va chercher les derniers changement sur le serveur afin de s'assurer de tous les changer
+#        for i in self.server.getChange(self.playerId, self.refresh):
+#            self.changes.append(i)       
+#        toRemove = []
+#        for i in self.changes:
+#            if int(i.split("/")[0]) == killedIndexes[1] and int(i.split("/")[1] == killedIndexes[0]):
+#                toRemove.append(i)
+#            elif int(i.split("/")[0]) == killedIndexes[1]:
+#                tempI = i.split("/")[1]
+#                tempUnits = tempI.split(",")
+#                tempI = ""
+#                tempUnits.pop(len(tempUnits)-1)
+#                for u in tempUnits:
+#                    print("u: " + u + " killedIndexes: " + str(killedIndexes[0]) + "/" + str(killedIndexes[1]))
+#                    if  int(u) > killedIndexes[0]:
+#                        u = str(int(u) -1)
+#                    tempI += str(u) + ","
+#                tempChange = i.split("/")
+#                tempChange[1] = tempI
+#                i = ""
+#                for tc in tempChange:
+#                    i += tc + "/"
+#                print("string refaite: " + i)
+#        for tr in toRemove:
+#            self.changes.remove(tr)
+#        self.players[killedIndexes[1]].units.pop(killedIndexes[0])
                 
 	#Connection au serveur			
     def connectServer(self, login, serverIP):
@@ -306,7 +309,7 @@ class Controller():
             target = target.split(",")
             for i in range(0, len(target)):
                 target[i]=math.trunc(float(target[i])) #n�cessaire afin de s'assurer que les positions sont des entiers
-            #on change le flag de l'unit� afin qu'ils se mettent � se d�placer
+            #on change le flag de l'unité afin qu'ils se mettent � se d�placer
             for i in range(0,len(unitIndex)-1):
                 self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
         elif action == str(FlagState.ATTACK):
