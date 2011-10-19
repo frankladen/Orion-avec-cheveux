@@ -185,6 +185,14 @@ class Controller():
         
     def killUnit(self, killedIndexes):
         print("Début de killUnit")
+        #Désélection de l'unité qui va mourir afin d'éviter le renvoie d'une actio avec cette unité
+        if killedIndexes[1] == self.playerId:
+            if self.players[self.playerId].units[killedIndexes[0]] in self.players[self.playerId].selectedObjects:
+               print("enlève l'unité de selectedUnits")
+               self.players[self.playerId].selectedObjects.remove(self.players[self.playerId].units[killedIndexes[0]])
+        #On va chercher les derniers changement sur le serveur afin de s'assurer de tous les changer
+        for i in self.server.getChange(self.playerId, self.refresh):
+            self.changes.append(i)       
         toRemove = []
         for i in self.changes:
             if int(i.split("/")[0]) == killedIndexes[1] and int(i.split("/")[1] == killedIndexes[0]):
@@ -207,10 +215,6 @@ class Controller():
                 print("string refaite: " + i)
         for tr in toRemove:
             self.changes.remove(tr)
-        if killedIndexes[1] == self.playerId:
-            if self.players[self.playerId].units[killedIndexes[0]] in self.players[self.playerId].selectedObjects:
-               print("enlève l'unité de selectedUnits")
-               self.players[self.playerId].selectedObjects.remove(self.players[self.playerId].units[killedIndexes[0]])
         self.players[killedIndexes[1]].units.pop(killedIndexes[0])
                 
 	#Connection au serveur			
@@ -232,6 +236,7 @@ class Controller():
         except:
             self.view.loginFailed()
             self.view.changeFrame(self.view.fLogin)
+            
     #Enleve le joueur courant de la partie ainsi que ses units
     def removePlayer(self):
         if self.view.currentFrame == self.view.gameFrame:
@@ -239,6 +244,7 @@ class Controller():
             self.eraseUnits()
             self.server.removePlayer(self.playerIp, self.players[self.playerId].name, self.playerId)
         self.view.root.destroy()
+        
     #Demmare la partie et genere la galaxie (Quand l'admin appui sur start game dans le lobby)    
     def startGame(self):
         if self.playerId==0:
