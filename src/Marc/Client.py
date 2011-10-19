@@ -103,12 +103,13 @@ class Controller():
                             self.players[self.playerId].selectedObjects.append(j)
         #Si on selectionne une unit               
         for j in self.players[self.playerId].units:
-            if j.position[0] >= posSelected[0]-8 and j.position[0] <= posSelected[0]+8:
-                if j.position[1] >= posSelected[1]-8 and j.position[1] <= posSelected[1]+8: 
-                    if self.multiSelect == False:
-                        self.players[self.playerId].selectedObjects = []
-                    if j not in self.players[self.playerId].selectedObjects:
-                        self.players[self.playerId].selectedObjects.append(j)
+            if j.isAlive:
+                if j.position[0] >= posSelected[0]-8 and j.position[0] <= posSelected[0]+8:
+                    if j.position[1] >= posSelected[1]-8 and j.position[1] <= posSelected[1]+8: 
+                        if self.multiSelect == False:
+                            self.players[self.playerId].selectedObjects = []
+                        if j not in self.players[self.playerId].selectedObjects:
+                            self.players[self.playerId].selectedObjects.append(j)
     #Selection avec le clic-drag
     def boxSelect(self, selectStart, selectEnd):
         realStart = self.players[self.playerId].camera.calcPointInWorld(selectStart[0], selectStart[1])
@@ -185,12 +186,9 @@ class Controller():
         self.view.root.after(waitTime, self.action)
         
     def killUnit(self, killedIndexes):
-        print("Début de killUnit")
         #Désélection de l'unité qui va mourir afin d'éviter le renvoie d'une actio avec cette unité
         if killedIndexes[1] == self.playerId:
-            print("Même joueur")
             if self.players[self.playerId].units[killedIndexes[0]] in self.players[self.playerId].selectedObjects:
-               print("enlève l'unité de selectedUnits")
                self.players[self.playerId].selectedObjects.remove(self.players[self.playerId].units[killedIndexes[0]])
         self.players[killedIndexes[1]].units[killedIndexes[0]].kill()
 #        #On va chercher les derniers changement sur le serveur afin de s'assurer de tous les changer
@@ -206,7 +204,6 @@ class Controller():
 #                tempI = ""
 #                tempUnits.pop(len(tempUnits)-1)
 #                for u in tempUnits:
-#                    print("u: " + u + " killedIndexes: " + str(killedIndexes[0]) + "/" + str(killedIndexes[1]))
 #                    if  int(u) > killedIndexes[0]:
 #                        u = str(int(u) -1)
 #                    tempI += str(u) + ","
@@ -215,7 +212,6 @@ class Controller():
 #                i = ""
 #                for tc in tempChange:
 #                    i += tc + "/"
-#                print("string refaite: " + i)
 #        for tr in toRemove:
 #            self.changes.remove(tr)
 #        self.players[killedIndexes[1]].units.pop(killedIndexes[0])
@@ -308,8 +304,8 @@ class Controller():
             target = target.strip("]")
             target = target.split(",")
             for i in range(0, len(target)):
-                target[i]=math.trunc(float(target[i])) #n�cessaire afin de s'assurer que les positions sont des entiers
-            #on change le flag de l'unité afin qu'ils se mettent � se d�placer
+                target[i]=math.trunc(float(target[i])) #nécessaire afin de s'assurer que les positions sont des entiers
+            #on change le flag de l'unité afin qu'ils se mettent � se déplacer
             for i in range(0,len(unitIndex)-1):
                 self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
         elif action == str(FlagState.ATTACK):

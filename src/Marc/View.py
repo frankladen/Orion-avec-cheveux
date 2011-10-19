@@ -318,7 +318,7 @@ class View():
         self.gameArea.bind("A",self.attack)
         #Bindings des boutons de la souris
         self.gameArea.bind("<Button-3>", self.rightclic)
-        #self.gameArea.bind("<B3-Motion>", self.rightclic)
+        self.gameArea.bind("<B3-Motion>", self.rightclic)
         self.minimap.bind("<Button-3>", self.rightclic)
         self.gameArea.bind("<Button-1>", self.leftclic)
         self.minimap.bind("<B1-Motion>",self.leftclic)

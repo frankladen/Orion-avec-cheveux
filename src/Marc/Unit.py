@@ -29,6 +29,7 @@ class Unit(t.PlayerObject):
         self.position = [-1500,-1500,0]
     #Change le flag pour une nouvelle destination et un nouvel etat
     def changeFlag(self, finalTarget, state):
+        #On doit vérifier si l'unité est encore vivante
         if self.isAlive:
             self.flag.initialTarget = t.Target(self.position)
             self.flag.finalTarget = finalTarget
