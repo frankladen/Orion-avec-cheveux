@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-
 from tkinter import *
+from Unit import *
 import tkinter.messagebox as mb
 
 class View():              
@@ -29,6 +30,11 @@ class View():
         self.asteroid=PhotoImage(file='images\\asteroid.gif')
         self.asteroidFOW=PhotoImage(file='images\\asteroidFOW.gif')
         self.motherShipSprite = PhotoImage(file = 'images\\Mothership.gif')
+        self.gifStop = PhotoImage(file='images\icones\stop.gif')
+        self.gifMove = PhotoImage(file='images\icones\move.gif')
+        self.gifCancel = PhotoImage(file='images\icones\delete.gif')
+        self.gifAttack = PhotoImage(file='images\icones\icone1.gif')
+        self.gifIcone2 = PhotoImage(file='images\icones\icone2.gif')
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
     
@@ -58,12 +64,26 @@ class View():
         send.grid(row=2, column=2)
         createScout = Button(gameFrame, text='Create Scout', command=lambda:self.parent.addUnit('Scout'))
         createScout.grid(row=1,column=3)
-        stopSelectedUnits = Button(gameFrame, text='Stop', command=self.parent.setStandbyFlag)
-        stopSelectedUnits.grid(row=2,column=3)
-        deleteSelectedUnits = Button(gameFrame, text='Delete', command=self.parent.eraseUnit)
-        deleteSelectedUnits.grid(row=2,column=4)
+        #stopSelectedUnits = Button(gameFrame, text='Stop', command=self.parent.setStandbyFlag)
+        #stopSelectedUnits.grid(row=2,column=3)
+        #deleteSelectedUnits = Button(gameFrame, text='Delete', command=self.parent.eraseUnit)
+        #deleteSelectedUnits.grid(row=2,column=4)
+        self.Actionmenu = Canvas(gameFrame,width=200,height=200,background='black')
+        self.Actionmenu.grid(column=2,row=1)
+        self.createActionMenu()
         self.assignControls()
         return gameFrame
+
+     #** aghi 
+    def createActionMenu(self):
+        self.Actionmenu.delete(ALL)
+        units = self.parent.players[self.parent.playerId].selectedObjects
+        if len(units) > 0:
+            if isinstance(units[0], Unit):
+                self.Actionmenu.create_image(0,0,image=self.gifMove,anchor = NW)
+                self.Actionmenu.create_image(37,0,image=self.gifStop,anchor = NW)
+                if isinstance(units[0], SpaceAttackUnit):
+                    self.Actionmenu.create_image(74,0,image=self.gifAttack,anchor = NW)
     #Frame pour le login    
     def fLogin(self):
         loginFrame = Frame(self.root, bg="black")

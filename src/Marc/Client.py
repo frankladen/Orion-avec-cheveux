@@ -122,6 +122,7 @@ class Controller():
                             self.players[self.playerId].selectedObjects = []
                         if j not in self.players[self.playerId].selectedObjects:
                             self.players[self.playerId].selectedObjects.append(j)
+        self.view.createActionMenu()
     #Selection avec le clic-drag
     def boxSelect(self, selectStart, selectEnd):
         realStart = self.players[self.playerId].camera.calcPointInWorld(selectStart[0], selectStart[1])
@@ -143,6 +144,7 @@ class Controller():
                         self.players[self.playerId].selectedObjects = []
                         first = False
                     self.players[self.playerId].selectedObjects.append(i)
+        self.view.createActionMenu()
     #Deplacement rapide de la camera vers un endroit de la minimap
     def quickMove(self, x,y, canva):
         posSelected = self.players[self.playerId].camera.calcPointOnMap(x,y)
