@@ -46,15 +46,20 @@ class Galaxy():
         while(find == False):
             x =(random.random()*self.width)-self.width/2
             y = (random.random()*self.height)-self.height/2
-
-            for i in self.solarSystemList:
-                if((x > i.sunPosition[0] - 250 and x < i.sunPosition[0] + 250)
-                    and (y > i.sunPosition[1] - 250) and y < i.sunPosition[1]+250):
-                    find = False
-                    break
-                else:
-                    find = True
             
+            find = True
+
+            if x < (self.width/2*-1)+40 or x > self.width/2-80:
+                find = False
+            if y < (self.height/2*-1)+40 or y > self.height/2-80:
+                find = False
+                
+            if find == True:
+                for i in self.solarSystemList:
+                    if((x > i.sunPosition[0] - 250 and x < i.sunPosition[0] + 250)
+                        and (y > i.sunPosition[1] - 250) and y < i.sunPosition[1]+250):
+                        find = False
+                        break
             
             if find == True:
                 for i in self.spawnPoints:
@@ -62,8 +67,6 @@ class Galaxy():
                         and (y > i[1] - 200) and (y < i[1] + 200)):
                         find = False
                         break
-                    else:
-                        find = True
 
         self.spawnPoints.append((x,y,0))
         return [x,y,0]

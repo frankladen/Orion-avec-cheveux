@@ -69,8 +69,8 @@ class Mothership(Unit):
         Unit.__init__(self, name, position, owner, foodcost=0, moveSpeed=0)
         
 class SpaceAttackUnit(SpaceUnit):
-    def __init__(self, name, position, owner, movespeed, attackspeed,attackdamage,range):
-        SpaceUnit.__init__(self, name, position, owner, movespeed)
+    def __init__(self, name, position, owner, moveSpeed, attackspeed,attackdamage,range):
+        SpaceUnit.__init__(self, name, position, owner, moveSpeed)
         self.AttackSpeed=attackspeed
         self.AttackDamage=attackdamage
         self.range=range

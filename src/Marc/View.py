@@ -2,6 +2,7 @@
 from tkinter import *
 from Unit import *
 import tkinter.messagebox as mb
+import subprocess
 
 class View():              
     def __init__(self, parent):
@@ -19,22 +20,22 @@ class View():
         self.currentFrame = self.fLogin
         self.firstTime = True
         self.gameFrame = None
-        self.sun=PhotoImage(file='images\\sun.gif')
-        self.sunFOW = PhotoImage(file='images\\sunFOW.gif')
-        self.planet=PhotoImage(file='images\\planet.gif')
-        self.planetFOW = PhotoImage(file='images\\planetFOW.gif')
-        self.nebula=PhotoImage(file='images\\nebula.gif')
-        self.nebulaFOW=PhotoImage(file='images\\nebulaFOW.gif')
+        self.sun=PhotoImage(file='images\\Galaxy\\sun.gif')
+        self.sunFOW = PhotoImage(file='images\\Galaxy\\sunFOW.gif')
+        self.planet=PhotoImage(file='images\\Galaxy\\planet.gif')
+        self.planetFOW = PhotoImage(file='images\\Galaxy\\planetFOW.gif')
+        self.nebula=PhotoImage(file='images\\Galaxy\\nebula.gif')
+        self.nebulaFOW=PhotoImage(file='images\\Galaxy\\nebulaFOW.gif')
         self.explosion=PhotoImage(file='images\\explosion.gif')
         self.attacking = False
-        self.asteroid=PhotoImage(file='images\\asteroid.gif')
-        self.asteroidFOW=PhotoImage(file='images\\asteroidFOW.gif')
-        self.motherShipSprite = PhotoImage(file = 'images\\Mothership.gif')
-        self.gifStop = PhotoImage(file='images\icones\stop.gif')
-        self.gifMove = PhotoImage(file='images\icones\move.gif')
-        self.gifCancel = PhotoImage(file='images\icones\delete.gif')
-        self.gifAttack = PhotoImage(file='images\icones\icone1.gif')
-        self.gifIcone2 = PhotoImage(file='images\icones\icone2.gif')
+        self.asteroid=PhotoImage(file='images\\Galaxy\\asteroid.gif')
+        self.asteroidFOW=PhotoImage(file='images\\Galaxy\\asteroidFOW.gif')
+        self.motherShipSprite = PhotoImage(file = 'images\\Ships\\Mothership.gif')
+        self.gifStop = PhotoImage(file='images\\icones\\stop.gif')
+        self.gifMove = PhotoImage(file='images\\icones\\move.gif')
+        self.gifCancel = PhotoImage(file='images\\icones\\delete.gif')
+        self.gifAttack = PhotoImage(file='images\\icones\\icone1.gif')
+        self.gifIcone2 = PhotoImage(file='images\\icones\\icone2.gif')
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
     
@@ -48,9 +49,9 @@ class View():
         self.scoutShips = []
         self.attackShips = []
         for i in range(0,8):
-            self.scoutShips.append(PhotoImage(file='images\\Scoutship'+str(i)+'.gif'))
+            self.scoutShips.append(PhotoImage(file='images\\Ships\\Scoutships\\Scoutship'+str(i)+'.gif'))
         for i in range(0,8):
-            self.attackShips.append(PhotoImage(file='images\\Attackship'+str(i)+'.gif'))
+            self.attackShips.append(PhotoImage(file='images\\Ships\\Attackships\\Attackship'+str(i)+'.gif'))
         self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille-200, background='Black', relief='ridge')
         self.gameArea.grid(column=0,row=0, columnspan=5)#place(relx=0, rely=0,width=taille,height=taille)
         self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
@@ -60,16 +61,16 @@ class View():
         self.chat.grid(row=1, column=1)
         self.entryMess = Entry(gameFrame, width=60)
         self.entryMess.grid(row=2, column=1)
-        send = Button(gameFrame, text='Send', command=lambda:self.enter(0))
-        send.grid(row=2, column=2)
-        createScout = Button(gameFrame, text='Create Scout', command=lambda:self.parent.addUnit('Scout'))
-        createScout.grid(row=1,column=3)
+        #send = Button(gameFrame, text='Send', command=lambda:self.enter(0))
+        #send.grid(row=2, column=2)
+        #createScout = Button(gameFrame, text='Create Scout', command=lambda:self.parent.addUnit('Scout'))
+        #createScout.grid(row=1,column=3)
         #stopSelectedUnits = Button(gameFrame, text='Stop', command=self.parent.setStandbyFlag)
         #stopSelectedUnits.grid(row=2,column=3)
         #deleteSelectedUnits = Button(gameFrame, text='Delete', command=self.parent.eraseUnit)
         #deleteSelectedUnits.grid(row=2,column=4)
         self.Actionmenu = Canvas(gameFrame,width=200,height=200,background='black')
-        self.Actionmenu.grid(column=2,row=1)
+        self.Actionmenu.grid(column=2,row=1, rowspan=4)
         self.createActionMenu()
         self.assignControls()
         return gameFrame
@@ -94,10 +95,16 @@ class View():
         Label(loginFrame, text="Server:", fg="white", bg="black").grid(row=1, column=0)
         self.entryServer = Entry(loginFrame, width=20)
         self.entryServer.grid(row=1, column=1)
-        widget = Button(loginFrame, text='Ok', command=lambda:self.lobbyEnter(0))
+        widget = Button(loginFrame, text='Connecter', command=lambda:self.lobbyEnter(0))
         widget.grid(row=2, column=1)
+        startserver = Button(loginFrame, text='Nouveau serveur', command=self.startServer)
+        startserver.grid(row=3,column=1)
         self.entryServer.bind("<Return>",self.lobbyEnter)
         return loginFrame
+
+    def startServer(self):
+        child = subprocess.Popen("C:\python32\python.exe server.py", shell=True)
+    
     #Frame du lobby
     def fLobby(self):
         self.entryServer.unbind("<Return>")
