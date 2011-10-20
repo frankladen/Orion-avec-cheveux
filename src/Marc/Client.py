@@ -67,8 +67,8 @@ class Controller():
         if attacking:
             units = ""
             for i in self.players[self.playerId].selectedObjects:
-                i.attackcount = i.AttackSpeed
                 if isinstance(i, u.SpaceAttackUnit):
+                    i.attackcount = i.AttackSpeed
                     units += str(self.players[self.playerId].units.index(i)) + ","
             if units != "":
                 self.pushChange(units, Flag(i,attackedUnit,FlagState.ATTACK))
