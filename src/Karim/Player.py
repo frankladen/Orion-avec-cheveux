@@ -12,6 +12,8 @@ class Player():
         self.startPos = 0 #Position de depart du joueur (pour le mothership)
         self.units.append(u.Unit('Scout001',[0,0,0], moveSpeed=5.0))
         self.units.append(u.Unit('Scout002',[100,200,0], moveSpeed=5.0))
+        self.spaceBuildings = [] #Liste de toute les building
+        
     #Ajoute une camera au joueur seulement quand la partie commence    
     def addCamera(self, position, galaxy):
         self.camera = Camera(position ,galaxy)
@@ -75,4 +77,4 @@ class Camera():
             if self.position[1] < self.galaxy.height/2 - self.screenCenter[1]:
                 self.position[1]+=5
 
-
+   

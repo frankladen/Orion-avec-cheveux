@@ -34,6 +34,19 @@ class Controller():
         for i in self.players[self.playerId].selectedObjects:
             if i.__module__ == 'Unit':
                 self.pushChange(i, Flag(i,t.Target([i.position[0],i.position[1],0]),FlagState.STANDBY))
+    #######################KK######################################################
+    #Pour changer le flag des unites selectionne pour la construction
+    def setBuildFlag(self,x,y): #####il faut un for
+        for i in self.players[self.playerId].selectedObjects:
+            if self.players[self.playerId].selectedObjects[i] == 'scout':
+                self.pullChange(i,Flag(i,t.Target([x,y,0],FlagState.BUILD )))
+     #######################KK######################################################
+     ############kk###############################
+     def addBuilding(self, building):
+         if building == "wayPoint":
+             self.pushChange('wayPoint', 'addBuilding')
+    ################################################
+    ###############################################
     #Pour ajouter une unit             
     def addUnit(self, unit):
         if unit == "Scout":
@@ -188,6 +201,7 @@ class Controller():
         elif flag.__module__ == 'Flag':
             actionString = str(self.playerId)+"/"+str(self.players[self.playerId].units.index(playerObject))+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             self.server.addChange(actionString)
+    #######ajouter un elif et à la fin il faut préciser: finalTarget = build(wayPoint)et sa postion############
     
     def pullChange(self):
         changes = self.server.getChange(self.playerId, self.refresh)
@@ -216,6 +230,7 @@ class Controller():
             for i in range(0, len(target)):
                 target[i]=math.trunc(float(target[i]))
             self.players[actionPlayerId].units[int(unitIndex)].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
+        #######Ajouter le meme truc qu'au haut, je peux garder le tablea1u##########
         elif action == 'deleteAllUnits':
             self.players[actionPlayerId].units = []
         elif action == 'addunit':

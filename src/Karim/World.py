@@ -61,7 +61,7 @@ class SolarSystem():
                         if self.sunPosition[1]+tempY > j.position[1]-20 and self.sunPosition[1]+tempY < j.position[1]+20:
                             placeFound = False
             self.planets.append(AstronomicalObject('planet', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY)))
-
+    
 #Represente un objet spacial (Planete, Meteorite, Nebuleuse)
 #Le type represente quel objet parmi les 3
 class AstronomicalObject(Target):
