@@ -20,6 +20,7 @@ class View():
         self.gameFrame = None
         self.sun=PhotoImage(file='images\sun.gif')
         self.planet=PhotoImage(file='images\planet.gif')
+        self.isBuilding = False  #####variable globale pour building####
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
     
@@ -46,6 +47,10 @@ class View():
         send.grid(row=2, column=2)
         createScout = Button(gameFrame, text='Create Scout', command=lambda:self.parent.addUnit('Scout'))
         createScout.grid(row=1,column=3)
+        #####################boutton pour créer un building####################
+        #####################KK################################################
+        createBuilding = Button(gameFrame, text='Create Building', command=lambda:self.) #####Ajouter commande=...
+        createBuilding.grid(row=1,column=4)
         stopSelectedUnits = Button(gameFrame, text='Stop', command=self.parent.setStandbyFlag)
         stopSelectedUnits.grid(row=2,column=3)
         deleteSelectedUnits = Button(gameFrame, text='Delete', command=self.parent.eraseUnit)
@@ -223,6 +228,7 @@ class View():
                     self.parent.setMovingFlag(pos[0], pos[1])
                 self.drawWorld()
     #Quand on fait un clic gauche (peu importe ou)
+    #######Ajouter condition pour isBuilding
     def leftclic(self, eve):
         x = eve.x
         y = eve.y
@@ -253,7 +259,7 @@ class View():
     #Quand on appui sur enter dans le login
     def lobbyEnter(self, eve):
         self.parent.connectServer(self.entryLogin.get(), self.entryServer.get())
-			
+	
     def stop(self, eve):
         self.parent.setStandbyFlag()
 
@@ -292,8 +298,8 @@ class View():
         self.minimap.bind("<Button-3>", self.rightclic)
         self.gameArea.bind("<Button-1>", self.leftclic)
         self.minimap.bind("<B1-Motion>",self.leftclic)
-        self.minimap.bind("<Button-1>",self.leftclic)
         self.gameArea.bind("<B1-Motion>", self.clicDrag)
         self.gameArea.bind("<ButtonRelease-1>", self.endDrag)
         self.entryMess.bind("<Return>",self.enter)
-
+       
+        

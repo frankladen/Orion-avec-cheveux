@@ -34,6 +34,10 @@ class WayPoint(Building):
             if m.position[0] > self.position[0]-10 and k.position[1] < self.position[0]+10: 
                 if m.position[1] > self.position[1]-10 and k.position[1] < self.position[1]+10:
                     return False
+    
 
+    
+        
+        
         
         
