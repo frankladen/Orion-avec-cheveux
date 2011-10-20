@@ -19,8 +19,12 @@ class View():
         self.firstTime = True
         self.gameFrame = None
         self.sun=PhotoImage(file='images/sun.gif')
-        self.motherShipSprite = PhotoImage(file = 'images/mothership.gif')
+        self.greysun = PhotoImage(file='images/sunGREY.gif')
         self.planet=PhotoImage(file='images/planet.gif')
+        self.greyplanet = PhotoImage(file='images/planetGREY.gif')
+        self.motherShipSprite = PhotoImage(file = 'images/mothership.gif')
+        self.nebula=PhotoImage(file='images/nebula.gif')
+        self.asteroid=PhotoImage(file='images/asteroid.gif')
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
     
@@ -39,12 +43,10 @@ class View():
         self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
         self.minimap.grid(column=0,row=1, rowspan=4)
         self.drawWorld()
-        self.chat = Label(gameFrame, anchor=W, justify=LEFT, width=75, background='black', fg='white', relief='raised')
+        self.chat = Label(gameFrame, anchor=W, justify=LEFT, width=40, background='black', fg='white', relief='raised')
         self.chat.grid(row=1, column=1)
-        self.entryMess = Entry(gameFrame, width=60)
+        self.entryMess = Entry(gameFrame, width=35)
         self.entryMess.grid(row=2, column=1)
-        send = Button(gameFrame, text='Send', command=lambda:self.enter(0))
-        send.grid(row=2, column=2)
         createScout = Button(gameFrame, text='Create Scout', command=lambda:self.parent.addUnit('Scout'))
         createScout.grid(row=1,column=3)
         stopSelectedUnits = Button(gameFrame, text='Stop', command=self.parent.setStandbyFlag)
@@ -96,35 +98,66 @@ class View():
         players = self.parent.players 
         id = self.parent.playerId
         for i in sunList:
-            self.drawSun(i.sunPosition, players[id])
+            if self.parent.players[self.parent.playerId].inViewRange(i.sunPosition):
+                i.discovered = True
+                self.drawSun(i.sunPosition, players[id], True)
+            else:
+                if i.discovered:
+                    self.drawSun(i.sunPosition, players[id], False)
             for j in i.planets:
-                self.drawPlanet(j, players[id])
+                if self.parent.players[self.parent.playerId].inViewRange(j.position):
+                    j.discovered = True
+                    self.drawPlanet(j, players[id], True)
+                else:
+                    if j.discovered:
+                        self.drawPlanet(j, players[id], False)
+            for j in i.nebulas:
+                self.drawNebula(j, players[id])
         for i in players:
             for j in i.units:
-                self.drawUnit(j, i)
+                if self.parent.players[self.parent.playerId].inViewRange(j.position):
+                    j.discovered = True
+                    self.drawUnit(j, i)
         if self.dragging:
             self.drawSelctionBox()
         self.drawMinimap()
+        
     #Pour dessiner un soleil     
-    def drawSun(self, sunPosition, player):
+    def drawSun(self, sunPosition, player, isInFOW):
         if player.camera.isInFOV(sunPosition):
             distance = player.camera.calcDistance(sunPosition)
-            self.gameArea.create_image(distance[0],distance[1], image=self.sun)
-            #self.gameArea.create_oval(distance[0]-20, distance[1]-20, distance[0]+20, distance[1]+20, fill='RED')
+            if isInFOW:
+                self.gameArea.create_image(distance[0],distance[1], image=self.sun)
+            else:
+                self.gameArea.create_image(distance[0],distance[1], image=self.greysun)
     
     #pour dessiner une planete        
-    def drawPlanet(self, planet, player):
+    def drawPlanet(self, planet, player, isInFOW):
         planetPosition = planet.position
         if player.camera.isInFOV(planetPosition):
             distance = player.camera.calcDistance(planetPosition)
-            if planet in player.selectedObjects:
-                self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="green", tag="planet")
-                mVariable = "Mineral :" + str(planet.mineralQte)
-                gVariable = "Gaz :" + str(planet.gazQte)
+            if isInFOW:
+                if planet in player.selectedObjects:
+                    self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="green", tag="planet")
+                    mVariable = "Mineral :" + str(planet.mineralQte)
+                    gVariable = "Gaz :" + str(planet.gazQte)
+                    self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="cyan",text=mVariable)
+                    self.gameArea.create_text(distance[0]-20, distance[1]-40,fill="green",text=gVariable)
+                self.gameArea.create_image(distance[0],distance[1],image=self.planet)
+            else:
+                self.gameArea.create_image(distance[0], distance[1], image=self.greyplanet)
+
+    #Pour dessiner une nebuleuse
+    def drawNebula(self,nebula,player):
+        nebulaPosition = nebula.position
+        if player.camera.isInFOV(nebulaPosition):
+            distance = player.camera.calcDistance(nebulaPosition)
+            if nebula in player.selectedObjects:
+                self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="green", tag="nebula")
+                mVariable = "Gaz :" + str(nebula.gazQte)
                 self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="cyan",text=mVariable)
-                self.gameArea.create_text(distance[0]-20, distance[1]-40,fill="green",text=gVariable)
-            self.gameArea.create_image(distance[0],distance[1],image=self.planet)
-            #self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10, fill='BLUE', tag="planet")
+            self.gameArea.create_image(distance[0],distance[1],image=self.nebula) 
+                
     #pour dessiner un vaisseau        
     def drawUnit(self, unit, player):
         ship=self.ships[player.id] #On prend l'image dependamment du joueur que nous sommes
@@ -133,11 +166,9 @@ class View():
             distance = self.parent.players[self.parent.playerId].camera.calcDistance(unitPosition)
             if unit in player.selectedObjects:
                 self.gameArea.create_oval(distance[0]-8,distance[1]-8,distance[0]+8,distance[1]+8, outline="green")
-            
-            print(unit.name)
             if unit.name.find('Scout') != -1:
                 self.gameArea.create_image(distance[0]+1, distance[1], image=ship)
-            if unit.name.find('Mothership') != -1:
+            elif unit.name.find('Mothership') != -1:
                 self.gameArea.create_image(distance[0]+1, distance[1], image = self.motherShipSprite)
     #Dessine la minimap
     def drawMinimap(self):
@@ -171,6 +202,11 @@ class View():
         planetX = (planetPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
         planetY = (planetPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
         self.minimap.create_oval(planetX-1, planetY-1, planetX+1, planetY+1, fill='LIGHT BLUE')
+    #dessine une nebula dans la minimap
+    def drawMiniNebula(self, nebulaPosition):
+        nebulaX = (nebulaPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
+        nebulaY = (nebulaPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
+        self.minimap.create_oval(nebulaX-1, nebulaY-1, nebulaX+1, nebulaY+1, fill='PURPLE')
     #Dessine une unite dans la minimap        
     def drawMiniUnit(self, unit):
         unitX = (unit.position[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
@@ -293,7 +329,7 @@ class View():
         self.gameArea.bind("D", self.delete)
         #Bindings des boutons de la souris
         self.gameArea.bind("<Button-2>", self.rightclic)
-        self.gameArea.bind("<B2-Motion>", self.rightclic)
+        self.gameArea.bind("<B3-Motion>", self.rightclic)
         self.minimap.bind("<Button-2>", self.rightclic)
         self.gameArea.bind("<Button-1>", self.leftclic)
         self.minimap.bind("<B1-Motion>",self.leftclic)

@@ -11,7 +11,10 @@ class PlayerObject(Target):
         super(PlayerObject, self).__init__(position)
         self.name = name
         self.flag = Flag(Target([0,0,0]), Target([0,0,0]), FlagState.STANDBY)
-        self.viewRange = 100
+        if name == 'Scout':
+            self.viewRange = 200
+        if name == 'Mothership':
+            self.viewRange = 400
     
     def getFlag(self):
         return self.flag

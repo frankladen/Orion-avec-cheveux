@@ -12,9 +12,23 @@ class Player():
         self.startPos = 0 #Position de depart du joueur (pour le mothership)
         self.units.append(u.Unit('Scout001',[0,0,0], moveSpeed=5.0))
         self.units.append(u.Unit('Scout002',[100,200,0], moveSpeed=5.0))
+
+    def initMotherShip(self):	
+        self.units.append(u.Unit('Mothership',[0,self.id*10,0], moveSpeed = 1.0))
+
     #Ajoute une camera au joueur seulement quand la partie commence    
     def addCamera(self, position, galaxy):
         self.camera = Camera(position ,galaxy)
+
+    def inViewRange(self, position):
+        x = position[0]
+        y = position[1]
+        for i in self.units:
+            if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
+                if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
+                    return True
+        return False
+    
 #Represente la camera            
 class Camera():
     def __init__(self, defaultPos, galaxy):

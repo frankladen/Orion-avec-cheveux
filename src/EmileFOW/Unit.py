@@ -5,7 +5,7 @@ import Helper as h
 
 #Classe representant une unit
 class Unit(t.PlayerObject):
-    def __init__(self, name, position, foodcost=50, moveSpeed=1.0):
+    def __init__(self, name, position,foodcost=50, moveSpeed=1.0):
         t.PlayerObject.__init__(self, name, position)
         self.FoodCost=foodcost
         self.moveSpeed=moveSpeed
@@ -55,7 +55,10 @@ class GroundBuildUnit(GroundUnit):
     
     def build(self,building):
         print("build")
-
+        
+class Mothership(Unit):
+    def __init__(self, name, position):
+        Unit.__init__(self, name, position, foodcost=0, moveSpeed=0)
         
         
     

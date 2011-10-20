@@ -59,7 +59,19 @@ class Controller():
             for j in i.planets:
                 if j.position[0] >= posSelected[0]-10 and j.position[0] <= posSelected[0]+10:
                     if j.position[1] >= posSelected[1]-10 and j.position[1] <= posSelected[1]+10:
-                        if j not in self.players[self.playerId].selectedObjects:
+                        if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
+                            self.players[self.playerId].selectedObjects = []
+                            self.players[self.playerId].selectedObjects.append(j)
+            for j in i.nebulas:
+                if j.position[0] >= posSelected[0]-10 and j.position[0] <= posSelected[0]+10:
+                    if j.position[1] >= posSelected[1]-10 and j.position[1] <= posSelected[1]+10:
+                        if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
+                            self.players[self.playerId].selectedObjects = []
+                            self.players[self.playerId].selectedObjects.append(j)
+            for j in i.asteroids:
+                if j.position[0] >= posSelected[0]-10 and j.position[0] <= posSelected[0]+10:
+                    if j.position[1] >= posSelected[1]-10 and j.position[1] <= posSelected[1]+10:
+                        if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
                             self.players[self.playerId].selectedObjects = []
                             self.players[self.playerId].selectedObjects.append(j)
         #Si on selectionne une unit               
@@ -162,14 +174,18 @@ class Controller():
             self.eraseUnits()
             self.server.removePlayer(self.playerIp, self.players[self.playerId].name, self.playerId)
         self.view.root.destroy()
-    #Demmare la partie et genere la galaxie (Quand l'admin appui sur start game dans le lobby)    
+
+   #Demmare la partie et genere la galaxie (Quand l'admin appui sur start game dans le lobby)    
     def startGame(self):
         if self.playerId==0:
             self.server.startGame()
         for i in range(0, len(self.server.getSockets())):
             self.players.append(p.Player(self.server.getSockets()[i][1], i))
         self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
-        self.players[self.playerId].addCamera([0,0],self.galaxy)
+        for i in range(0, len(self.server.getSockets())):
+            startPos = self.galaxy.getSpawnPoint()
+            self.players[i].addBaseUnits(startPos)  
+        self.players[self.playerId].addCamera(self.galaxy)
         self.view.gameFrame = self.view.fGame()
         self.view.changeFrame(self.view.gameFrame)
         self.view.root.after(50, self.action)
@@ -220,7 +236,7 @@ class Controller():
             self.players[actionPlayerId].units = []
         elif action == 'addunit':
             if unitIndex == 'Scout':
-                self.players[actionPlayerId].units.append(u.Unit('Scout00'+str(len(self.players[actionPlayerId].units)),[50,100,0], moveSpeed=5.0))
+                self.players[actionPlayerId].units.append(u.Unit('Scout' ,[50,100,0] ,moveSpeed=5.0))
         elif action == 'deleteUnit':
             self.players[actionPlayerId].units.pop(int(unitIndex))
 
