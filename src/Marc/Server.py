@@ -12,7 +12,6 @@ class ControleurServeur(object):
         self.seed = int(time())
         self.mess = ['Système de chat de Orion']
         self.changeList = [] 
-        
     
     def getSeed(self):
         return self.seed;
@@ -69,13 +68,10 @@ class ControleurServeur(object):
         frameList = []
         for player in self.sockets :
             frameList.append(player.getRefresh)
-        
         #Je détermine le frame maximum et le frame minimum de tout les clients
         frameMax = max(frameList)
         frameMin = min(frameList)
-        
         return (frameMax-frameMin)
-    
     
     # Méthode qui détermine et isole les joueurs dont le frame courant est trop élevé par apport aux autres
     def amITooHigh(self, playerId):
@@ -85,11 +81,9 @@ class ControleurServeur(object):
             if self.sockets[r][2] != True:
                 refresh.append(self.refreshes[r])
         frameMin = min(refresh)
-        
         #Détermine si l'écart entre les joueurs est trop grand (15 étant une valeur arbitraire, destinée à être modifié)
         if self.refreshes[playerId] - frameMin > 5:
             return (self.refreshes[playerId] - frameMin)*50
-        
         return 50
                 
     def getNumberOfPlayers(self):
@@ -103,7 +97,6 @@ class ControleurServeur(object):
         #if self.playersTooDamnHigh().count(num) > 0 :
         #    change.append("*",self.frameDifference())
         return changes
-    
        
     def getNumSocket(self, login, ip):
         n=0

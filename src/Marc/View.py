@@ -43,6 +43,7 @@ class View():
         self.currentFrame.pack_forget()
         frame.pack()
         self.currentFrame = frame
+        
     #Frame principal du jeu    
     def fGame(self):
         gameFrame = Frame(self.root, bg="black")
@@ -85,6 +86,7 @@ class View():
                 self.Actionmenu.create_image(37,0,image=self.gifStop,anchor = NW)
                 if isinstance(units[0], SpaceAttackUnit):
                     self.Actionmenu.create_image(74,0,image=self.gifAttack,anchor = NW)
+
     #Frame pour le login    
     def fLogin(self):
         loginFrame = Frame(self.root, bg="black")
@@ -255,7 +257,9 @@ class View():
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-25,distance[1]-25,distance[0]+25,distance[1]+25, outline="green")
                     self.gameArea.create_image(distance[0]+1, distance[1], image = self.motherShipSprite)
-
+                if unit.hitpoints <= 5:
+                    self.gameArea.create_image(distance[0]+1, distance[1], image=self.explosion)
+                    
     #Dessine la minimap
     def drawMinimap(self):
         self.minimap.delete('deletable')
@@ -304,6 +308,7 @@ class View():
         width = self.taille / self.parent.galaxy.width * 200
         height = self.taille / self.parent.galaxy.height * 150
         self.minimap.create_rectangle(cameraX, cameraY, cameraX+width, cameraY+height, outline='GREEN', tag='deletable')
+
     #Dessine un soleil dans la minimap    
     def drawMiniSun(self, sun):
         sunPosition = sun.sunPosition
@@ -311,6 +316,7 @@ class View():
         sunY = (sunPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
         if sun.discovered:
             self.minimap.create_oval(sunX-3, sunY-3, sunX+3, sunY+3, fill='ORANGE')
+
     #Dessine une planete dans la minimap        
     def drawMiniPlanet(self, planet):
         planetPosition = planet.position
@@ -343,7 +349,8 @@ class View():
             self.minimap.create_polygon((unitX-2, planetY+1, unitX, planetY-1, unitX+2, planetY+1),fill='GREEN', tag='deletable')
         else:
             self.minimap.create_polygon((unitX-2, planetY+1, unitX, planetY-1, unitX+2, planetY+1),fill='RED', tag='deletable')
-	#Dessine la boite de selection lors du clic-drag	
+
+    #Dessine la boite de selection lors du clic-drag	
     def drawSelectionBox(self):
         self.gameArea.create_rectangle(self.selectStart[0], self.selectStart[1], self.selectEnd[0], self.selectEnd[1], outline='WHITE')
 
@@ -352,31 +359,39 @@ class View():
         if 'UP' not in self.parent.players[self.parent.playerId].camera.movingDirection:
             self.parent.players[self.parent.playerId].camera.movingDirection.append('UP')
             self.drawWorld()
+
     def keyPressDown(self, eve):
         if 'DOWN' not in self.parent.players[self.parent.playerId].camera.movingDirection:
             self.parent.players[self.parent.playerId].camera.movingDirection.append('DOWN')
             self.drawWorld()
+
     def keyPressLeft(self, eve):
         if 'LEFT' not in self.parent.players[self.parent.playerId].camera.movingDirection:
             self.parent.players[self.parent.playerId].camera.movingDirection.append('LEFT')
             self.drawWorld()
+
     def keyPressRight(self, eve):
         if 'RIGHT' not in self.parent.players[self.parent.playerId].camera.movingDirection:
             self.parent.players[self.parent.playerId].camera.movingDirection.append('RIGHT')
             self.drawWorld()
+
     #Actions quand on lache les touches
     def keyReleaseUP(self, eve):
         self.parent.players[self.parent.playerId].camera.movingDirection.remove('UP')
         self.drawWorld()
+
     def keyReleaseDown(self, eve):
         self.parent.players[self.parent.playerId].camera.movingDirection.remove('DOWN')
         self.drawWorld()
+
     def keyReleaseLeft(self, eve):
         self.parent.players[self.parent.playerId].camera.movingDirection.remove('LEFT')
         self.drawWorld()
+
     def keyReleaseRight(self, eve):
         self.parent.players[self.parent.playerId].camera.movingDirection.remove('RIGHT')
         self.drawWorld()
+
     #Actions avec la souris    
     def rightclic(self, eve):
         self.attacking = False
@@ -392,6 +407,7 @@ class View():
                     pos = self.parent.players[self.parent.playerId].camera.calcPointMinimap(x,y)
                     self.parent.setMovingFlag(pos[0], pos[1])
                 self.drawWorld()
+
     #Quand on fait un clic gauche (peu importe ou)
     def leftclic(self, eve):
         x = eve.x
@@ -405,6 +421,7 @@ class View():
                 self.parent.select(x,y,canva)
         elif canva == self.minimap:
             self.parent.quickMove(x,y,canva)
+
     #Quand on fait un clic gauche et qu'on bouge
     def clicDrag(self,eve):
         self.attacking = False
@@ -414,6 +431,7 @@ class View():
             self.dragging = True
         else:
             self.selectEnd = [eve.x, eve.y]
+
     #Quand on clicDrag et qu'on lache la souris
     def endDrag(self, eve):
         self.attacking = False
@@ -431,6 +449,7 @@ class View():
         self.parent.sendMessage(self.entryMess.get())
         self.entryMess.delete(0,END)
         self.gameArea.focus_set()
+
     #Quand on appui sur enter dans le login
     def lobbyEnter(self, eve):
         self.parent.connectServer(self.entryLogin.get(), self.entryServer.get())
@@ -443,9 +462,10 @@ class View():
         self.attacking = False
         self.parent.eraseUnit()
         
-	#Pour la selection multiple	
+    #Pour la selection multiple	
     def shiftPress(self, eve):
         self.parent.multiSelect = True
+
     def shiftRelease(self, eve):
         self.parent.multiSelect = False
 	

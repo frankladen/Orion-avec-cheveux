@@ -46,28 +46,23 @@ class Galaxy():
         while(find == False):
             x =(random.random()*self.width)-self.width/2
             y = (random.random()*self.height)-self.height/2
-            
             find = True
-
             if x < (self.width/2*-1)+40 or x > self.width/2-80:
                 find = False
             if y < (self.height/2*-1)+40 or y > self.height/2-80:
                 find = False
-                
             if find == True:
                 for i in self.solarSystemList:
                     if((x > i.sunPosition[0] - 250 and x < i.sunPosition[0] + 250)
                         and (y > i.sunPosition[1] - 250) and y < i.sunPosition[1]+250):
                         find = False
                         break
-            
             if find == True:
                 for i in self.spawnPoints:
                     if((x > i[0] - 200 and x < i[0] + 200)
                         and (y > i[1] - 200) and (y < i[1] + 200)):
                         find = False
                         break
-
         self.spawnPoints.append((x,y,0))
         return [x,y,0]
 
@@ -88,7 +83,6 @@ class SolarSystem():
                 nNebu +=1
             else:
                 nAstero +=1
-         
         for i in range(0,nPlanet):
             tempX=""
             tempY=""
@@ -106,7 +100,6 @@ class SolarSystem():
                         if self.sunPosition[1]+tempY > j.position[1]-20 and self.sunPosition[1]+tempY < j.position[1]+20:
                             placeFound = False
             self.planets.append(AstronomicalObject('planet', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY)))
-            
         for i in range(0,nNebu):
             tempX=""
             tempY=""
@@ -128,7 +121,6 @@ class SolarSystem():
                         if self.sunPosition[1]+tempY > k.position[1]-20 and self.sunPosition[1]+tempY < k.position[1]+20:
                             placeFound = False
             self.nebulas.append(AstronomicalObject('nebula', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY)))
-        
         for i in range(0,nAstero):
             tempX=""
             tempY=""
@@ -154,6 +146,7 @@ class SolarSystem():
                         if self.sunPosition[1]+tempY > q.position[1]-20 and self.sunPosition[1]+tempY < q.position[1]+20:
                             placeFound = False
             self.asteroids.append(AstronomicalObject('asteroid', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY)))
+
 #Represente un objet spacial (Planete, Meteorite, Nebuleuse)
 #Le type represente quel objet parmi les 3
 class AstronomicalObject(Target):

@@ -55,17 +55,20 @@ class Camera():
         self.screenHeight = 600
         self.galaxy = galaxy #reference a la galaxie
         self.movingDirection = []
+        
     #Pour calculer la distance entre la camera et un point
     def calcDistance(self, position):
         distX = position[0] - self.position[0]
         distY = position[1] - self.position[1]
         return [distX+self.screenCenter[0], distY+self.screenCenter[1]]
+    
     #Pour calculer un point dans la galaxie a partir d'un point dans l'ecran
     def calcPointInWorld(self, x,y):
         dist = self.calcDistance([x,y])
         rX = self.position[0]-self.screenCenter[0]+x
         rY = self.position[1]-self.screenCenter[1]+y
         return [rX,rY,0]
+    
     #Pour calculer un point sur la minimap a partir d'un point dans l'espace
     def calcPointOnMap(self, x, y):
         rX = x/200 * self.galaxy.width - self.galaxy.width/2
@@ -80,17 +83,20 @@ class Camera():
         elif rY > self.galaxy.height/2-self.screenHeight/2:
             rY = self.galaxy.height/2-self.screenHeight/2
         return [rX, rY]
+    
     #Pour calculer un point dans la galaxie a partir d'un point dans la minimap
     def calcPointMinimap(self,x ,y ):
         rX = x/200 * self.galaxy.width - self.galaxy.width/2
         rY = y/200 * self.galaxy.height - self.galaxy.height/2
         return [rX, rY]
+    
     #Retourne Vrai si la position est visible par la camera en ce moment
     def isInFOV(self, position):
         if position[0] > self.position[0]-self.screenWidth/2-20 and position[0] < self.position[0]+self.screenWidth/2+20:
             if position[1] > self.position[1]-self.screenHeight/2-20 and position[1] < self.position[1]+self.screenHeight/2+20:
                 return True
         return False
+    
     #Deplace la camera selon le contenu de la liste movingDirection
     def move(self):
         if 'LEFT' in self.movingDirection:

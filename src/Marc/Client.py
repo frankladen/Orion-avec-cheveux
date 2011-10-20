@@ -23,8 +23,8 @@ class Controller():
         self.view = v.View(self)
         self.multiSelect = False
         self.currentFrame = None
-
         self.view.root.mainloop()
+        
  #Pour changer le flag des unites selectionne pour le deplacement    
     def setMovingFlag(self,x,y):
         units = ''
@@ -77,16 +77,19 @@ class Controller():
     def addUnit(self, unit):
         if unit == "Scout":
             self.pushChange('Scout', 'addunit')
+            
     #Trade entre joueurs
     def tradePlayers(self, items, playerId2, quantite):
         for i in items:
             self.pushChange(i, (self.playerId2, quantite))
+            
     #Pour effacer un Unit
     def eraseUnit(self):
         if len(self.players[self.playerId].selectedObjects) > 0:
             if self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1].__module__ == 'Unit':
                 self.pushChange(self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1], 'deleteUnit')
                 self.players[self.playerId].selectedObjects.pop(len(self.players[self.playerId].selectedObjects)-1)
+                
     #Pour effacer tous les units
     def eraseUnits(self):
         self.pushChange('lollegarspartdelagame', 'deleteAllUnits')    #Pour selectionner une unit
@@ -123,6 +126,7 @@ class Controller():
                         if j not in self.players[self.playerId].selectedObjects:
                             self.players[self.playerId].selectedObjects.append(j)
         self.view.createActionMenu()
+        
     #Selection avec le clic-drag
     def boxSelect(self, selectStart, selectEnd):
         realStart = self.players[self.playerId].camera.calcPointInWorld(selectStart[0], selectStart[1])
@@ -145,14 +149,17 @@ class Controller():
                         first = False
                     self.players[self.playerId].selectedObjects.append(i)
         self.view.createActionMenu()
+        
     #Deplacement rapide de la camera vers un endroit de la minimap
     def quickMove(self, x,y, canva):
         posSelected = self.players[self.playerId].camera.calcPointOnMap(x,y)
         self.players[self.playerId].camera.position = posSelected
+        
     #Envoyer le message pour le chat
     def sendMessage(self, mess):
         if mess != "":
             self.server.addMessage(mess, self.players[self.playerId].name)
+
     #Pour aller chercher les nouveaux messages
     def refreshMessages(self):
         textChat=''
@@ -165,6 +172,7 @@ class Controller():
             for i in range(0, len(self.mess)):
                 textChat+=self.mess[i]+'\r'
         self.view.chat.config(text=textChat)
+        
     #TIMER D'ACTION DU JOUEUR COURANT
     def action(self, waitTime=50):
         if self.server.isGameStopped() == True and self.view.currentFrame == self.view.gameFrame:
@@ -305,7 +313,6 @@ class Controller():
                 toRemove.append(changeString)
         for tR in toRemove:
             self.changes.remove(tR)
-
     
     def doAction(self, changeString):
         changeInfo = changeString.split("/")
