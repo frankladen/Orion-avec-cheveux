@@ -114,7 +114,6 @@ class ControleurServeur(object):
 
 # le processus qui ecoute les messages des clients
 adresse=socket.gethostbyname(socket.getfqdn())
-#adresse="5.146.234.35"
 daemon = Pyro4.core.Daemon(host=adresse,port=54440) 
 # un objet ControleurServeur() dont les methodes peuvent etre invoquees, 
 # connu sous le nom de controleurServeur
