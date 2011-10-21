@@ -324,13 +324,33 @@ class Controller():
         refresh = int(changeInfo[4])
         #si l'action est Move, la target sera sous forme de tableau de positions [x,y,z]
         if action == str(FlagState.MOVE) or action == str(FlagState.STANDBY):
+            lineTaken=[]
+            line=0
+            lineTaken.append([False,False,False,False,False])
             target = target.strip("[")
             target = target.strip("]")
             target = target.split(",")
             for i in range(0, len(target)):
                 target[i]=math.trunc(float(target[i])) #nécessaire afin de s'assurer que les positions sont des entiers
             #on change le flag de l'unité afin qu'ils se mettent � se déplacer
+            targetorig=[0,0]
+            targetorig[0]=target[0]
+            targetorig[1]=target[1]
             for i in range(0,len(unitIndex)-1):
+                goodPlace=False
+                while(goodPlace == False):
+                    for p in range(0,5):
+                        if lineTaken[line][p]==False:
+                            lineTaken[line][p]=True
+                            goodPlace=True
+                            target[0]=targetorig[0]+(p*20)
+                            target[1]=targetorig[1]+(line*-20)
+                            break
+                    if goodPlace == False:
+                        line+=1
+                        if (len(lineTaken)-1)<line:
+                            lineTaken.append([False,False,False,False,False])
+                line=0
                 self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
         elif action == str(FlagState.ATTACK):
             target = target.split("P")
