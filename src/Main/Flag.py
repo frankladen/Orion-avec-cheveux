@@ -19,6 +19,5 @@ class Flag():
         self.finalTarget = finalTarget
         self.flagState = flagState
             
-            
     def toString(self):
         return self.initialTarget.toString()

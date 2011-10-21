@@ -12,7 +12,6 @@ class ControleurServeur(object):
         self.seed = int(time())
         self.mess = ['Système de chat de Orion']
         self.changeList = [] 
-        
     
     def getSeed(self):
         return self.seed;
@@ -31,21 +30,19 @@ class ControleurServeur(object):
         self.gameIsStarted = True
         self.isStopped = False
         #J'initie mon tableau de changements et de refreshes
-        #print("nombres de joueurs: "+str(self.getNumberOfPlayers()))
         for i in range(0, self.getNumberOfPlayers()):
             self.changeList.append([])
-            #print("changeList:"+self.changeList[i])
             self.refreshes.append(0)
     
     def removePlayer(self, ip, login, playerId):
-        #self.sockets.remove([ip, login])
+        self.sockets[playerId][2] = True
         if playerId == 0:
-                self.isStopped = True
-                self.gameIsStarted = False
-                self.refreshes = []
-                self.changeList = []
-                self.mess = ['Système de chat de Orion']
-        #print(len(self.sockets))
+            self.isStopped = True
+            self.gameIsStarted = False
+            self.refreshes = []
+            self.changeList = []
+            self.sockets = []
+            self.mess = ['Système de chat de Orion']
     
     def addMessage(self, text, name):
         self.mess.append(name+': '+text)
@@ -55,50 +52,39 @@ class ControleurServeur(object):
         
     def addChange(self, change):
         #décider à quel frame effectuer l'action
+        #playerId = int(change.split("/")[0])
         change = change+'/'+str(self.decideActionRefresh())
         for ch in self.changeList:
             ch.append(change)
+        
+    def refreshPlayer(self, playerId, refresh):
+        self.refreshes[playerId] = refresh
     
     def decideActionRefresh(self):
         #décide à quel refresh les clients doivent effectuer la prochaine action
-        maxRefresh = max(self.refreshes)
-        return maxRefresh+5
+        return (max(self.refreshes)+2)
 
     def frameDifference(self):
         frameList = []
         for player in self.sockets :
             frameList.append(player.getRefresh)
-        
         #Je détermine le frame maximum et le frame minimum de tout les clients
         frameMax = max(frameList)
         frameMin = min(frameList)
-        
         return (frameMax-frameMin)
     
-    
     # Méthode qui détermine et isole les joueurs dont le frame courant est trop élevé par apport aux autres
-    #def playersTooDamnHigh(self):
-        #frameList = []
-        #for player in self.sockets :
-        #    frameList.append(player.getCurrentframe)
-        
-        #Je détermine le frame maximum et le frame minimum de tout les clients
-        #frameMax = max(frameList)
-        #frameMin = min(frameList)
-        
+    def amITooHigh(self, playerId):
+        refresh = []
+        #Je détermine le frame minimum de tout les clients
+        for r in range(len(self.refreshes)):
+            if self.sockets[r][2] != True:
+                refresh.append(self.refreshes[r])
+        frameMin = min(refresh)
         #Détermine si l'écart entre les joueurs est trop grand (15 étant une valeur arbitraire, destinée à être modifié)
-        #if frameMax - frameMin > 15:
-        #    playerMax = []
-            
-            #Je recherche et j'isole toute les occurences des joueurs ayant les frames les plus élevés
-        #   if frameList.count(frameMax > 1):
-        #       for i in frameList:
-        #           if i == frameMax:
-        #               playerMax.append(i)
-         
-        #   return playerMax
-        
-        # return 0
+        if self.refreshes[playerId] - frameMin > 5:
+            return (self.refreshes[playerId] - frameMin)*50
+        return 50
                 
     def getNumberOfPlayers(self):
         return len(self.sockets)
@@ -111,23 +97,24 @@ class ControleurServeur(object):
         #if self.playersTooDamnHigh().count(num) > 0 :
         #    change.append("*",self.frameDifference())
         return changes
-    
        
     def getNumSocket(self, login, ip):
         n=0
         for i in range(0,len(self.sockets)):
             if self.sockets[i][0] == ip:
                 print('a trouver le meme socket que le precedent')
-                self.sockets[i]=(ip,login)
+                self.sockets[i]=[ip,login,False]
                 return i
             n=n+1
         print('ajoute le socket a la fin')
-        self.sockets.append((ip,login))
+        if len(self.sockets) < 8:
+            self.sockets.append([ip,login,False])
         return n
           
 
 # le processus qui ecoute les messages des clients
 adresse=socket.gethostbyname(socket.getfqdn())
+#adresse="5.146.234.35"
 daemon = Pyro4.core.Daemon(host=adresse,port=54440) 
 # un objet ControleurServeur() dont les methodes peuvent etre invoquees, 
 # connu sous le nom de controleurServeur
