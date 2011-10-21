@@ -30,7 +30,6 @@ class View():
         self.attacking = False
         self.asteroid=PhotoImage(file='images\\Galaxy\\asteroid.gif')
         self.asteroidFOW=PhotoImage(file='images\\Galaxy\\asteroidFOW.gif')
-        self.motherShipSprite = PhotoImage(file = 'images\\Ships\\Mothership.gif')
         self.gifStop = PhotoImage(file='images\\icones\\stop.gif')
         self.gifMove = PhotoImage(file='images\\icones\\move.gif')
         self.gifCancel = PhotoImage(file='images\\icones\\delete.gif')
@@ -49,10 +48,13 @@ class View():
         gameFrame = Frame(self.root, bg="black")
         self.scoutShips = []
         self.attackShips = []
+        self.motherShips = []
         for i in range(0,8):
             self.scoutShips.append(PhotoImage(file='images\\Ships\\Scoutships\\Scoutship'+str(i)+'.gif'))
         for i in range(0,8):
             self.attackShips.append(PhotoImage(file='images\\Ships\\Attackships\\Attackship'+str(i)+'.gif'))
+        for i in range(0,8):
+            self.motherShips.append(PhotoImage(file='images\\Ships\\Motherships\\Mothership'+str(i)+'.gif'))
         self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille-200, background='Black', relief='ridge')
         self.gameArea.grid(column=0,row=0, columnspan=5)#place(relx=0, rely=0,width=taille,height=taille)
         self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
@@ -256,7 +258,7 @@ class View():
                 elif unit.name == 'Mothership':
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-25,distance[1]-25,distance[0]+25,distance[1]+25, outline="green")
-                    self.gameArea.create_image(distance[0]+1, distance[1], image = self.motherShipSprite)
+                    self.gameArea.create_image(distance[0]+1, distance[1], image = self.motherShips[player.id])
                 if unit.hitpoints <= 5:
                     self.gameArea.create_image(distance[0]+1, distance[1], image=self.explosion)
                     
@@ -345,10 +347,16 @@ class View():
     def drawMiniUnit(self, unit):
         unitX = (unit.position[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
         planetY = (unit.position[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
-        if unit in self.parent.players[self.parent.playerId].units:
-            self.minimap.create_polygon((unitX-2, planetY+1, unitX, planetY-1, unitX+2, planetY+1),fill='GREEN', tag='deletable')
+        if unit.name != "Mothership":
+            if unit in self.parent.players[self.parent.playerId].units:
+                self.minimap.create_polygon((unitX-2, planetY+2, unitX, planetY-2, unitX+2, planetY+2),fill='GREEN', tag='deletable')
+            else:
+                self.minimap.create_polygon((unitX-2, planetY+2, unitX, planetY-2, unitX+2, planetY+2),fill='RED', tag='deletable')
         else:
-            self.minimap.create_polygon((unitX-2, planetY+1, unitX, planetY-1, unitX+2, planetY+1),fill='RED', tag='deletable')
+            if unit in self.parent.players[self.parent.playerId].units:
+                self.minimap.create_polygon((unitX-4, planetY+2, unitX, planetY-2, unitX+4, planetY+2),fill='WHITE', tag='deletable')
+            else:
+                self.minimap.create_polygon((unitX-4, planetY+2, unitX, planetY-2, unitX+4, planetY+2),fill='RED', tag='deletable')
 
     #Dessine la boite de selection lors du clic-drag	
     def drawSelectionBox(self):
