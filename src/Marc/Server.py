@@ -11,7 +11,8 @@ class ControleurServeur(object):
         self.isStopped = True
         self.seed = int(time())
         self.mess = ['Système de chat de Orion']
-        self.changeList = [] 
+        self.changeList = []
+        self.readyPlayers = []
     
     def getSeed(self):
         return self.seed;
@@ -33,6 +34,7 @@ class ControleurServeur(object):
         for i in range(0, self.getNumberOfPlayers()):
             self.changeList.append([])
             self.refreshes.append(0)
+            self.readyPlayers.append(False)
     
     def removePlayer(self, ip, login, playerId):
         self.sockets[playerId][2] = True
@@ -42,6 +44,7 @@ class ControleurServeur(object):
             self.refreshes = []
             self.changeList = []
             self.sockets = []
+            self.readyPlayers = []
             self.mess = ['Système de chat de Orion']
     
     def addMessage(self, text, name):
@@ -85,6 +88,13 @@ class ControleurServeur(object):
         if self.refreshes[playerId] - frameMin > 5:
             return (self.refreshes[playerId] - frameMin)*50
         return 50
+    
+    def isEveryoneReady(self, playerId):
+        self.readyPlayers[playerId]=True
+        for i in self.readyPlayers:
+            if i==False:
+                return False
+        return True
                 
     def getNumberOfPlayers(self):
         return len(self.sockets)

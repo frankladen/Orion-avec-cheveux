@@ -6,8 +6,8 @@ import math
 
 #Classe representant une unit
 class Unit(t.PlayerObject):
-    def __init__(self, name, position, owner, foodcost=50, moveSpeed=1.0):
-        t.PlayerObject.__init__(self, name, position, owner)
+    def __init__(self, name, position, owner, foodcost=50, moveSpeed=1.0, hitpoints=50):
+        t.PlayerObject.__init__(self, name, position, owner, hitpoints)
         self.FoodCost=foodcost
         self.moveSpeed=moveSpeed
         
@@ -43,8 +43,8 @@ class Unit(t.PlayerObject):
         return self.flag
               
 class SpaceUnit(Unit):
-    def __init__(self, name, position, owner, movespeed):
-        Unit.__init__(self, name, position, owner, movespeed)
+    def __init__(self, name, position, owner, moveSpeed):
+        Unit.__init__(self, name, position, owner, moveSpeed)
 
 class GroundUnit(Unit):
     def __init__(self,planetid):

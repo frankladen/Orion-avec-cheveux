@@ -11,6 +11,7 @@ class Player():
         self.units = [] #Liste de toute les unites
         self.id = id #Numero du joueur dans la liste de joueur
         self.startPos = [0,0,0] #Position de depart du joueur (pour le mothership)
+        self.formation="carre"
         self.gaz = 0
         self.mineral = 0
 
