@@ -99,7 +99,7 @@ class SolarSystem():
                     if self.sunPosition[0]+tempX > j.position[0]-20 and self.sunPosition[0]+tempX < j.position[0]+20:
                         if self.sunPosition[1]+tempY > j.position[1]-20 and self.sunPosition[1]+tempY < j.position[1]+20:
                             placeFound = False
-            self.planets.append(Planet((self.sunPosition[0]+tempX,self.sunPosition[1]+tempY),int(random.random()*3),int(random.random()*3)))
+            self.planets.append(Planet([self.sunPosition[0]+tempX,self.sunPosition[1]+tempY],int(random.random()*3),int(random.random()*3)))
             #self.planets.append(AstronomicalObject('planet', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY)))
         for i in range(0,nNebu):
             tempX=""

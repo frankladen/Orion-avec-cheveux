@@ -73,7 +73,10 @@ class Controller():
                     units += str(self.players[self.playerId].units.index(i)) + ","
             if units != "":
                 self.pushChange(units, Flag(i,attackedUnit,FlagState.ATTACK))
-        
+
+    def setLandingFlag(self, unit, planet):
+        unit.flag = Flag(unit, planet, FlagState.LAND)
+        #self.pushChange(unit, Flag(i, planet, FlagState.LAND))    
     #Pour ajouter une unit
     def addUnit(self, unit):
         if unit == "Scout":
@@ -134,8 +137,10 @@ class Controller():
             for j in i.planets:
                 if pos[0] > j.position[0]-8 and pos[0] < j.position[0]+8:
                     if pos[1] > j.position[1]-8 and pos[1] < j.position[1]+8:
-                        self.currentPlanet = j
-                        self.view.drawPlanetGround(j)
+                        if len(self.players[self.playerId].selectedObjects) == 1:
+                            if self.players[self.playerId].selectedObjects[0].name == 'Transport':
+                                self.setLandingFlag(self.players[self.playerId].selectedObjects[0], j)
+                                empty = False
         if empty:
             self.setMovingFlag(pos[0],pos[1])
 
@@ -202,6 +207,8 @@ class Controller():
                             killedIndex = i.attack(self.players)
                             if killedIndex[0] > -1:
                                 self.killUnit(killedIndex)
+                        elif i.flag.flagState == FlagState.LAND:
+                            i.land(self)
             self.refreshMessages()
             self.refresh+=1
             self.server.refreshPlayer(self.playerId, self.refresh)
