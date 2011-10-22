@@ -99,7 +99,8 @@ class SolarSystem():
                     if self.sunPosition[0]+tempX > j.position[0]-20 and self.sunPosition[0]+tempX < j.position[0]+20:
                         if self.sunPosition[1]+tempY > j.position[1]-20 and self.sunPosition[1]+tempY < j.position[1]+20:
                             placeFound = False
-            self.planets.append(AstronomicalObject('planet', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY)))
+            self.planets.append(Planet((self.sunPosition[0]+tempX,self.sunPosition[1]+tempY),random.random()*3,random.random()*3))
+            #self.planets.append(AstronomicalObject('planet', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY)))
         for i in range(0,nNebu):
             tempX=""
             tempY=""
@@ -154,12 +155,12 @@ class AstronomicalObject(Target):
         Target.__init__(self, position)
         self.type = type
         self.discovered = False
-        self.mineralQte = 100
-        self.gazQte = 100
-        if type == 'planet':
-            self.landable = True
-        else:
-            self.landable = False
+        #self.mineralQte = 100
+        #self.gazQte = 100
+        #if type == 'planet':
+            #self.landable = True
+        #else:
+            #self.landable = False
         if type == 'nebula':
             self.gazQte = math.trunc((random.random()*250)+250)
             self.mineralQte = 0
@@ -167,10 +168,14 @@ class AstronomicalObject(Target):
             self.mineralQte = math.trunc((random.random()*250)+250)
             self.gazQte = 0 
             
-class Planet():
-    def __init__(self, nMineralStack, nGazStack):
+class Planet(Target):
+    def __init__(self, position, nMineralStack, nGazStack):
+        Target.__init__(self, positon)
+        self.discovered = False
         #Un gisement de minerals/gaz = 25px/25px
         self.minerals = []
+        self.mineralQte = 0
+		self.gazQte = 0 
         self.gaz = []
         self.landingZones = []
         for i in range(0, nMineralStack):
@@ -205,7 +210,10 @@ class Planet():
                         if position[1] > i.position[1] and position[1] < i.position[1]+25:
                             posFound = False
             self.gaz.append(GazStack(nGaz, position))
-                
+        for i in minerals:
+		    self.mineralQte += i.nbMinerals
+		for i in gaz:
+			self.gazQte += i.nbGaz
 class MineralStack():
     def __init__(self, nbMinerals, position)
         self.nbMinerals = nbMinerals
