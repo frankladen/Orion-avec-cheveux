@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 from tkinter import *
 from Unit import *
+from Flag import *
 import tkinter.messagebox as mb
 import subprocess
 
@@ -12,8 +13,10 @@ class View():
         self.root.resizable(0,0)
         self.taille=800
         self.dragging = False
+        self.hpBars=False
         self.selectStart = [0,0]
         self.selectEnd = [0,0]
+        self.positionMouse = [0,0,0]
         self.fLogin = self.fLogin()
         self.fLogin.pack()
         self.pLobby = None
@@ -248,7 +251,7 @@ class View():
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-8,distance[1]-8,distance[0]+8,distance[1]+8, outline="green")
                     self.gameArea.create_image(distance[0]+1, distance[1], image=self.scoutShips[player.id])#On prend l'image dependamment du joueur que nous sommes
-                if unit.name.find('Attack') != -1:
+                elif unit.name.find('Attack') != -1:
                     if unit.attackcount <= 5:
                         d2 = self.parent.players[self.parent.playerId].camera.calcDistance(unit.flag.finalTarget.position)
                         self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow")
@@ -261,6 +264,27 @@ class View():
                     self.gameArea.create_image(distance[0]+1, distance[1], image = self.motherShips[player.id])
                 if unit.hitpoints <= 5:
                     self.gameArea.create_image(distance[0]+1, distance[1], image=self.explosion)
+                if self.hpBars:
+                    self.drawHPBars(distance, unit)
+                else:
+                    self.drawHPHoverUnit(unit, distance)
+     
+    def drawHPHoverUnit(self, unit, distance):
+        posSelected=self.parent.players[self.parent.playerId].camera.calcPointInWorld(self.positionMouse[0],self.positionMouse[1])
+        if unit.position[0] >= posSelected[0]-8 and unit.position[0] <= posSelected[0]+8:
+            if unit.position[1] >= posSelected[1]-8 and unit.position[1] <= posSelected[1]+8:
+                hpLeft=((unit.hitpoints/unit.maxHP)*30)-15
+                hpLost=(hpLeft+(((unit.maxHP-unit.hitpoints)/unit.maxHP)*30))
+                self.gameArea.create_rectangle(distance[0]-15,distance[1]-11,distance[0]+hpLeft,distance[1]-11, outline="green")
+                if int(unit.hitpoints) != int(unit.maxHP):
+                    self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-11,distance[0]+hpLost,distance[1]-11, outline="red")
+    
+    def drawHPBars(self, distance, unit):
+        hpLeft=((unit.hitpoints/unit.maxHP)*30)-15
+        hpLost=(hpLeft+(((unit.maxHP-unit.hitpoints)/unit.maxHP)*30))
+        self.gameArea.create_rectangle(distance[0]-15,distance[1]-11,distance[0]+hpLeft,distance[1]-11, outline="green")
+        if int(unit.hitpoints) != int(unit.maxHP):
+            self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-11,distance[0]+hpLost,distance[1]-11, outline="red")
                     
     #Dessine la minimap
     def drawMinimap(self):
@@ -361,7 +385,7 @@ class View():
     #Dessine la boite de selection lors du clic-drag	
     def drawSelectionBox(self):
         self.gameArea.create_rectangle(self.selectStart[0], self.selectStart[1], self.selectEnd[0], self.selectEnd[1], outline='WHITE')
-
+        
     #Actions quand on clic sur les fleches du clavier
     def keyPressUP(self, eve):
         if 'UP' not in self.parent.players[self.parent.playerId].camera.movingDirection:
@@ -410,7 +434,7 @@ class View():
             if y > 0 and y < self.taille-200:
                 if canva == self.gameArea:
                     pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
-                    self.parent.setMovingFlag(pos[0],pos[1])
+                    self.parent.setMovingFlag(pos[0], pos[1])
                 elif canva == self.minimap:
                     pos = self.parent.players[self.parent.playerId].camera.calcPointMinimap(x,y)
                     self.parent.setMovingFlag(pos[0], pos[1])
@@ -446,7 +470,17 @@ class View():
         if self.dragging:
             self.dragging = False
             self.selectEnd = [eve.x, eve.y]
-            self.parent.boxSelect(self.selectStart, self.selectEnd) 
+            self.parent.boxSelect(self.selectStart, self.selectEnd)
+            
+    def posMouse(self, eve):
+        self.positionMouse[0] = eve.x
+        self.positionMouse[1] = eve.y
+    
+    def ctrlPressed(self, eve):
+        self.hpBars=True
+    
+    def ctrlDepressed(self, eve):
+        self.hpBars=False
 
     #methode test attack
     def attack(self,eve):
@@ -498,6 +532,8 @@ class View():
         self.gameArea.bind("<Delete>", self.delete)
         self.gameArea.bind("a",self.attack)
         self.gameArea.bind("A",self.attack)
+        self.gameArea.bind("<Control_L>",self.ctrlPressed)
+        self.gameArea.bind("<KeyRelease-Control_L>",self.ctrlDepressed)
         #Bindings des boutons de la souris
         self.gameArea.bind("<Button-3>", self.rightclic)
         self.gameArea.bind("<B3-Motion>", self.rightclic)
@@ -507,5 +543,6 @@ class View():
         self.minimap.bind("<Button-1>",self.leftclic)
         self.gameArea.bind("<B1-Motion>", self.clicDrag)
         self.gameArea.bind("<ButtonRelease-1>", self.endDrag)
+        self.gameArea.bind("<Motion>", self.posMouse)
         self.entryMess.bind("<Return>",self.enter)
 

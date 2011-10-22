@@ -23,6 +23,7 @@ class Controller():
         self.view = v.View(self)
         self.multiSelect = False
         self.currentFrame = None
+        self.attenteEcrit = False
         self.view.root.mainloop()
         
  #Pour changer le flag des unites selectionne pour le deplacement    
@@ -93,6 +94,46 @@ class Controller():
     #Pour effacer tous les units
     def eraseUnits(self):
         self.pushChange('lollegarspartdelagame', 'deleteAllUnits')    #Pour selectionner une unit
+    
+    #===========================================================================
+    # def rightClick(self, x, y):
+    #    if len(self.players[self.playerId].selectedObjects) == 1:
+    #        if isinstance(self.players[self.playerId].selectedObjects[0], u.Unit):
+    #            #Si on selectionne une planete
+    #            for i in self.galaxy.solarSystemList:
+    #                for j in i.planets:
+    #                    if j.position[0] >= x-10 and j.position[0] <= x+10:
+    #                        if j.position[1] >= y-10 and j.position[1] <= y+10:
+    #                            if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
+    #                                self.players[self.playerId].selectedObjects = []
+    #                                self.players[self.playerId].selectedObjects.append(j)
+    #                for j in i.nebulas:
+    #                    if j.position[0] >= x-10 and j.position[0] <= x+10:
+    #                        if j.position[1] >= y-10 and j.position[1] <= y+10:
+    #                            if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
+    #                                self.players[self.playerId].selectedObjects = []
+    #                                self.players[self.playerId].selectedObjects.append(j)
+    #                for j in i.asteroids:
+    #                    if j.position[0] >= x-10 and j.position[0] <= x+10:
+    #                        if j.position[1] >= y-10 and j.position[1] <= y+10:
+    #                            if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
+    #                                self.players[self.playerId].selectedObjects = []
+    #                                self.players[self.playerId].selectedObjects.append(j)
+    #        elif isinstance(self.players[self.playerId].selectedObjects[0], u.SpaceAttackUnit):
+    #            for i in self.players:
+    #                if i != self.players[self.playerId]:
+    #                    for j in i.units:
+    #                        if j.isAlive:
+    #                            if j.position[0] >= x-8 and j.position[0] <= x+8:
+    #                                if j.position[1] >= y-8 and j.position[1] <= y+8: 
+    #                                    self.setAttackFlag(x,y)
+    #                            else:
+    #                                self.setMovingFlag(x,y)
+    #        else:
+    #            self.setMovingFlag(x, y)
+    #    else:
+    #        self.setMovingFlag(x, y)
+    #===========================================================================
         
     def select(self, x, y, canva):
         posSelected = self.players[self.playerId].camera.calcPointInWorld(x,y)
@@ -159,6 +200,8 @@ class Controller():
     def sendMessage(self, mess):
         if mess != "":
             self.server.addMessage(mess, self.players[self.playerId].name)
+        if mess == "t" or "c":
+            self.pushChange(mess, "changeFormation")
 
     #Pour aller chercher les nouveaux messages
     def refreshMessages(self):
@@ -180,23 +223,34 @@ class Controller():
                 self.view.showGameIsFinished()
                 self.view.root.destroy()
         elif self.view.currentFrame != self.view.pLobby:
-            self.players[self.playerId].camera.move()
-            for p in self.players:
-                for i in p.units:
-                    if i.isAlive:
-                        if i.flag.flagState == FlagState.MOVE:
-                            i.move()
-                        elif i.flag.flagState == FlagState.ATTACK:
-                            killedIndex = i.attack(self.players)
-                            if killedIndex[0] > -1:
-                                self.killUnit(killedIndex)
-            self.refreshMessages()
-            self.refresh+=1
-            self.server.refreshPlayer(self.playerId, self.refresh)
-            #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
-            self.pullChange()
-            self.view.drawWorld()
-            waitTime = self.server.amITooHigh(self.playerId)
+            if self.refresh==0:
+                self.refreshMessages()
+                response = self.server.isEveryoneReady(self.playerId)
+                if response:
+                    self.refresh+=1
+                    if self.playerId == 0:
+                        self.sendMessage("La partie va maintenant débuter.")
+                else:
+                    if self.playerId == 0 and self.attenteEcrit == False:
+                        self.attenteEcrit=True
+                        self.sendMessage("Attente des autres joueurs.")
+            else:
+                self.players[self.playerId].camera.move()
+                for p in self.players:
+                    for i in p.units:
+                        if i.isAlive:
+                            if i.flag.flagState == FlagState.MOVE:
+                                i.move()
+                            elif i.flag.flagState == FlagState.ATTACK:
+                                killedIndex = i.attack(self.players)
+                                if killedIndex[0] > -1:
+                                    self.killUnit(killedIndex)
+                self.refreshMessages()
+                self.refresh+=1
+                #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
+                self.pullChange()
+                self.view.drawWorld()
+                waitTime = self.server.amITooHigh(self.playerId)
         else:
             if self.server.isGameStarted() == True:
                 self.startGame()
@@ -271,7 +325,7 @@ class Controller():
         if self.playerId==0:
             self.server.startGame()
         for i in range(0, len(self.server.getSockets())):
-            self.players.append(p.Player(self.server.getSockets()[i][1], i))
+            self.players.append(p.Player(self.server.getSockets()[i][1], i))        
         self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
         for i in range(0, len(self.server.getSockets())):
             startPos = self.galaxy.getSpawnPoint()
@@ -297,6 +351,8 @@ class Controller():
                 actionString = str(self.playerId)+"/"+str(self.players[self.playerId].units.index(playerObject))+"/"+flag+"/klolyvamourirleunit"
             elif flag == 'deleteAllUnits':
                 actionString = str(self.playerId)+"/"+playerObject+"/"+flag+"/lolypartdelapartie"
+            elif flag == 'changeFormation':
+                actionString = str(self.playerId)+"/"+playerObject+"/"+flag+"/changementDeFormation"
             self.server.addChange(actionString)
 		#Si c'est un �change
         elif isinstance(flag, tuple):
@@ -326,32 +382,57 @@ class Controller():
         if action == str(FlagState.MOVE) or action == str(FlagState.STANDBY):
             lineTaken=[]
             line=0
-            lineTaken.append([False,False,False,False,False])
             target = target.strip("[")
             target = target.strip("]")
             target = target.split(",")
             for i in range(0, len(target)):
                 target[i]=math.trunc(float(target[i])) #nécessaire afin de s'assurer que les positions sont des entiers
-            #on change le flag de l'unité afin qu'ils se mettent � se déplacer
             targetorig=[0,0]
             targetorig[0]=target[0]
             targetorig[1]=target[1]
-            for i in range(0,len(unitIndex)-1):
-                goodPlace=False
-                while(goodPlace == False):
-                    for p in range(0,5):
-                        if lineTaken[line][p]==False:
-                            lineTaken[line][p]=True
-                            goodPlace=True
-                            target[0]=targetorig[0]+(p*20)
-                            target[1]=targetorig[1]+(line*-20)
-                            break
-                    if goodPlace == False:
-                        line+=1
-                        if (len(lineTaken)-1)<line:
-                            lineTaken.append([False,False,False,False,False])
+            #on change le flag de l'unité afin qu'ils se mettent � se déplacer
+            if self.players[actionPlayerId].formation == "carre":
                 line=0
-                self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
+                lineTaken.append([False,False,False,False,False])
+                for i in range(0,len(unitIndex)-1):
+                    goodPlace=False
+                    while(goodPlace == False):
+                        for p in range(0,5):
+                            if lineTaken[line][p]==False:
+                                lineTaken[line][p]=True
+                                goodPlace=True
+                                target[0]=targetorig[0]+(p*20)
+                                target[1]=targetorig[1]+(line*-20)
+                                break
+                        if goodPlace == False:
+                            line+=1
+                            if (len(lineTaken)-1)<line:
+                                lineTaken.append([False,False,False,False,False])
+                    self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
+            elif self.players[actionPlayerId].formation == "triangle":
+                thatLine=[]
+                thatLine.append([False])
+                lineTaken.append(thatLine[False])
+                for i in range(0,len(unitIndex)-1):
+                    goodPlace=False
+                    line=0
+                    while goodPlace==False:
+                        for p in range(0,len(lineTaken[line])):
+                            if lineTaken[line][p]==False:
+                                lineTaken[line][p]=True
+                                target[0]=targetorig[0]+(p*20)
+                                target[1]=targetorig[1]-(line*20)
+                                goodPlace=True
+                                break
+                        if goodPlace==False:
+                            line+=1
+                            if (len(lineTaken)-1)<line:
+                                numberOfSpaces=1+(2*line)
+                                thatLine=[]
+                                for a in range(0,numberOfSpaces):
+                                    thatLine.append(False)
+                                lineTaken.append(thatLine)
+                    self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
         elif action == str(FlagState.ATTACK):
             target = target.split("P")
             target[0] = target[0].strip("U")
@@ -366,6 +447,11 @@ class Controller():
                 self.players[actionPlayerId].units.append(u.Unit('Scout00'+str(len(self.players[actionPlayerId].units)),[50,100,0], moveSpeed=5.0))
         elif action == 'deleteUnit':
             self.killUnit((int(unitIndex[0]),actionPlayerId))
+        elif action == 'changeFormation':
+            if unitIndex[0]=='t':
+                self.players[actionPlayerId].formation="triangle"
+            elif unitIndex[0]=='c':
+                self.players[actionPlayerId].formation="carre"
         elif unitIndex == 'g' or unitIndex == 'm':
             if unitIndex == 'm':
                 self.players[actionPlayerId].mineral-=quantite
