@@ -20,6 +20,8 @@ class PlayerObject(Target):
             self.viewRange = 400
         elif name =='Attack':
             self.viewRange = 150
+        elif name == 'Transport':
+            self.viewRange = 175
         else:
             self.viewRange = 100
     

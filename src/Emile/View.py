@@ -49,12 +49,12 @@ class View():
         self.scoutShips = []
         self.attackShips = []
         self.motherShips = []
+        self.trasportShips = []
         for i in range(0,8):
             self.scoutShips.append(PhotoImage(file='images\\Ships\\Scoutships\\Scoutship'+str(i)+'.gif'))
-        for i in range(0,8):
             self.attackShips.append(PhotoImage(file='images\\Ships\\Attackships\\Attackship'+str(i)+'.gif'))
-        for i in range(0,8):
             self.motherShips.append(PhotoImage(file='images\\Ships\\Motherships\\Mothership'+str(i)+'.gif'))
+            self.trasportShips.append(PhotoImage(file='images\\Ships\\Transport\\Transport'+str(i)+'.gif'))
         self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille-200, background='Black', relief='ridge')
         self.gameArea.grid(column=0,row=0, columnspan=5)#place(relx=0, rely=0,width=taille,height=taille)
         self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
@@ -259,6 +259,10 @@ class View():
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-25,distance[1]-25,distance[0]+25,distance[1]+25, outline="green")
                     self.gameArea.create_image(distance[0]+1, distance[1], image = self.motherShips[player.id])
+                elif unit.name == 'Transport':
+                    if unit in player.selectedObjects:
+                        self.gameArea.create_oval(distance[0]-18,distance[1]-18,distance[0]+18,distance[1]+18, outline="green")
+                    self.gameArea.create_image(distance[0]+1, distance[1], image = self.trasportShips[player.id])
                 if unit.hitpoints <= 5:
                     self.gameArea.create_image(distance[0]+1, distance[1], image=self.explosion)
                     

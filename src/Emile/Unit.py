@@ -95,3 +95,9 @@ class SpaceAttackUnit(SpaceUnit):
                     self.killCount +=1
                 self.attackcount=self.AttackSpeed
         return (index, killedOwner)
+
+class TransportShip(SpaceUnit):
+    def __init__(self, name, position, owner, moveSpeed):
+        SpaceUnit.__init__(self, name, position, owner, moveSpeed)
+        self.capacity = 10
+        self.units = []
