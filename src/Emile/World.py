@@ -217,12 +217,12 @@ class Planet(Target):
         for i in self.gaz:
             self.gazQte += i.nbGaz
 
-class MineralStack():
+class MineralStack(Target):
     def __init__(self, nbMinerals, position):
+        Target.__init__(self, position)
         self.nbMinerals = nbMinerals
-        self.position = position
         
-class GazStack():
+class GazStack(Target):
     def __init__(self, nbGaz, position):
+        Target.__init__(self, position)
         self.nbGaz= nbGaz
-        self.position = position

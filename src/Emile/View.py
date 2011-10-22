@@ -27,14 +27,15 @@ class View():
         self.nebula=PhotoImage(file='images\\Galaxy\\nebula.gif')
         self.nebulaFOW=PhotoImage(file='images\\Galaxy\\nebulaFOW.gif')
         self.explosion=PhotoImage(file='images\\explosion.gif')
-        self.attacking = False
         self.asteroid=PhotoImage(file='images\\Galaxy\\asteroid.gif')
         self.asteroidFOW=PhotoImage(file='images\\Galaxy\\asteroidFOW.gif')
+        self.mineral = PhotoImage(file='images\\Planet\\crystal.gif')
         self.gifStop = PhotoImage(file='images\\icones\\stop.gif')
         self.gifMove = PhotoImage(file='images\\icones\\move.gif')
         self.gifCancel = PhotoImage(file='images\\icones\\delete.gif')
         self.gifAttack = PhotoImage(file='images\\icones\\icone1.gif')
         self.gifIcone2 = PhotoImage(file='images\\icones\\icone2.gif')
+        self.attacking = False
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
     
@@ -42,7 +43,7 @@ class View():
         self.currentFrame.pack_forget()
         frame.pack()
         self.currentFrame = frame
-        
+
     #Frame principal du jeu    
     def fGame(self):
         gameFrame = Frame(self.root, bg="black")
@@ -131,7 +132,15 @@ class View():
     def showGameIsFinished(self):
         mb.showinfo('Fin de la partie', 'L\'administrateur de la partie a quitté prématurément la partie, la partie est donc terminée.')
 
-    #Methode pour dessiner
+    #Methode pour dessiner la vue d'un planete
+    def drawPlanetGround(self, planet):
+        self.gameArea.delete(ALL)
+        for i in planet.minerals:
+            self.gameArea.create_image(i.position[0], i.position[1], image=self.mineral)
+        for i in planet.gaz:
+            self.gameArea.create_oval(i.position[0]-12, i.position[1]-12, i.position[0]+12, i.position[1]+12, fill='green')
+
+    #Methode pour dessiner la galaxie
     def drawWorld(self):
         self.gameArea.delete(ALL)
         sunList = self.parent.galaxy.solarSystemList
@@ -414,7 +423,7 @@ class View():
             if y > 0 and y < self.taille-200:
                 if canva == self.gameArea:
                     pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
-                    self.parent.setMovingFlag(pos[0],pos[1])
+                    self.parent.rightClic(pos)
                 elif canva == self.minimap:
                     pos = self.parent.players[self.parent.playerId].camera.calcPointMinimap(x,y)
                     self.parent.setMovingFlag(pos[0], pos[1])
@@ -481,6 +490,12 @@ class View():
     def shiftRelease(self, eve):
         self.parent.multiSelect = False
 	
+    def checkMotherSip(self, eve):
+        self.parent.currentPlanet = None
+        self.drawWorld()
+        cam = self.parent.players[self.parent.playerId].camera
+        cam.position = cam.defaultPos
+
     #Assignation des controles	
     def assignControls(self):
         self.gameArea.focus_set()
@@ -502,6 +517,7 @@ class View():
         self.gameArea.bind("<Delete>", self.delete)
         self.gameArea.bind("a",self.attack)
         self.gameArea.bind("A",self.attack)
+        self.gameArea.bind("1", self.checkMotherSip)
         #Bindings des boutons de la souris
         self.gameArea.bind("<Button-3>", self.rightclic)
         self.gameArea.bind("<B3-Motion>", self.rightclic)

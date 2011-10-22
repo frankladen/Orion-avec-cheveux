@@ -23,6 +23,7 @@ class Controller():
         self.view = v.View(self)
         self.multiSelect = False
         self.currentFrame = None
+        self.currentPlanet = None
         self.view.root.mainloop()
         
  #Pour changer le flag des unites selectionne pour le deplacement    
@@ -126,7 +127,18 @@ class Controller():
                         if j not in self.players[self.playerId].selectedObjects:
                             self.players[self.playerId].selectedObjects.append(j)
         self.view.createActionMenu()
-        
+
+    def rightClic(self, pos):
+        empty = True
+        for i in self.galaxy.solarSystemList:
+            for j in i.planets:
+                if pos[0] > j.position[0]-8 and pos[0] < j.position[0]+8:
+                    if pos[1] > j.position[1]-8 and pos[1] < j.position[1]+8:
+                        self.currentPlanet = j
+                        self.view.drawPlanetGround(j)
+        if empty:
+            self.setMovingFlag(pos[0],pos[1])
+
     #Selection avec le clic-drag
     def boxSelect(self, selectStart, selectEnd):
         realStart = self.players[self.playerId].camera.calcPointInWorld(selectStart[0], selectStart[1])
@@ -195,7 +207,10 @@ class Controller():
             self.server.refreshPlayer(self.playerId, self.refresh)
             #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
             self.pullChange()
-            self.view.drawWorld()
+            if self.currentPlanet == None:
+                self.view.drawWorld()
+            else:
+                self.view.drawPlanetGround(self.currentPlanet)
             waitTime = self.server.amITooHigh(self.playerId)
         else:
             if self.server.isGameStarted() == True:

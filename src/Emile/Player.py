@@ -54,6 +54,7 @@ class Player():
 #Represente la camera            
 class Camera():
     def __init__(self, defaultPos, galaxy):
+        self.defaultPos = defaultPos
         self.position = defaultPos
         self.screenCenter = (400,300)
         self.screenWidth = 800
