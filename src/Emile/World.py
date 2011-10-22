@@ -167,4 +167,51 @@ class AstronomicalObject(Target):
             self.mineralQte = math.trunc((random.random()*250)+250)
             self.gazQte = 0 
             
+class Planet():
+    def __init__(self, nMineralStack, nGazStack):
+        #Un gisement de minerals/gaz = 25px/25px
+        self.minerals = []
+        self.gaz = []
+        self.landingZones = []
+        for i in range(0, nMineralStack):
+            nMinerals = random.random()*100
+            posFound = False
+            while not posFound:
+                posFound = True
+                position = [random.random()*800, random.random()*600]
+                if position[0] < 0 or positon[0] > 800-25:
+                    if position[1] < 0 or position[0] > 600-25:
+                        posFound = False
+                for i in minerals:
+                    if position[0] > i.position[0] and position[0] < i.position[0]+25:
+                        if position[1] > i.position[1] and position[1] < i.position[1]+25:
+                            posFound = False
+            self.minerals.append(MineralStack(nMinerals,position))
+        for i in range(0, nGazStack):
+            nGaz = random.random()*100
+            posFound = False
+            while not posFound:
+                posFound = True
+                position = [random.random()*800, random.random()*600]
+                if position[0] < 0 or position[0] > 800-25:
+                    if position[1] < 0 or position[1] > 600-25:
+                        posFound = False
+                for i in minerals:
+                    if position[0] > i.position[0] and position[0] < i.position[0]+25:
+                        if position[1] > i.position[1] and position[1] < i.position[1]+25:
+                            posFound = False
+                for i in gaz:
+                    if position[0] > i.position[0] and position[0] < i.position[0]+25:
+                        if position[1] > i.position[1] and position[1] < i.position[1]+25:
+                            posFound = False
+            self.gaz.append(GazStack(nGaz, position))
+                
+class MineralStack():
+    def __init__(self, nbMinerals, position)
+        self.nbMinerals = nbMinerals
+        self.position = position
         
+class GazStack():
+    def __init__(self, nbGaz, position):
+        self.nbGaz= nbGaz
+        self.position = position
