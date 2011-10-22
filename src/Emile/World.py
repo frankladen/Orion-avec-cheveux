@@ -99,7 +99,7 @@ class SolarSystem():
                     if self.sunPosition[0]+tempX > j.position[0]-20 and self.sunPosition[0]+tempX < j.position[0]+20:
                         if self.sunPosition[1]+tempY > j.position[1]-20 and self.sunPosition[1]+tempY < j.position[1]+20:
                             placeFound = False
-            self.planets.append(Planet((self.sunPosition[0]+tempX,self.sunPosition[1]+tempY),random.random()*3,random.random()*3))
+            self.planets.append(Planet((self.sunPosition[0]+tempX,self.sunPosition[1]+tempY),int(random.random()*3),int(random.random()*3)))
             #self.planets.append(AstronomicalObject('planet', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY)))
         for i in range(0,nNebu):
             tempX=""
@@ -169,31 +169,33 @@ class AstronomicalObject(Target):
             self.gazQte = 0 
             
 class Planet(Target):
-    def __init__(self, position, nMineralStack, nGazStack):
-        Target.__init__(self, positon)
+    def __init__(self, planetPosition, nMineralStack, nGazStack):
+        Target.__init__(self, planetPosition)
         self.discovered = False
         #Un gisement de minerals/gaz = 25px/25px
         self.minerals = []
         self.mineralQte = 0
-		self.gazQte = 0 
+        self.gazQte = 0
         self.gaz = []
+        self.nMineralStack = nMineralStack + 1
+        self.nGazStack = nGazStack + 1
         self.landingZones = []
-        for i in range(0, nMineralStack):
-            nMinerals = random.random()*100
+        for i in range(0, self.nMineralStack):
+            nMinerals = int(random.random()*100)
             posFound = False
             while not posFound:
                 posFound = True
                 position = [random.random()*800, random.random()*600]
-                if position[0] < 0 or positon[0] > 800-25:
+                if position[0] < 0 or position[0] > 800-25:
                     if position[1] < 0 or position[0] > 600-25:
                         posFound = False
-                for i in minerals:
+                for i in self.minerals:
                     if position[0] > i.position[0] and position[0] < i.position[0]+25:
                         if position[1] > i.position[1] and position[1] < i.position[1]+25:
                             posFound = False
             self.minerals.append(MineralStack(nMinerals,position))
-        for i in range(0, nGazStack):
-            nGaz = random.random()*100
+        for i in range(0, self.nGazStack):
+            nGaz = int(random.random()*100)
             posFound = False
             while not posFound:
                 posFound = True
@@ -201,21 +203,22 @@ class Planet(Target):
                 if position[0] < 0 or position[0] > 800-25:
                     if position[1] < 0 or position[1] > 600-25:
                         posFound = False
-                for i in minerals:
+                for i in self.minerals:
                     if position[0] > i.position[0] and position[0] < i.position[0]+25:
                         if position[1] > i.position[1] and position[1] < i.position[1]+25:
                             posFound = False
-                for i in gaz:
+                for i in self.gaz:
                     if position[0] > i.position[0] and position[0] < i.position[0]+25:
                         if position[1] > i.position[1] and position[1] < i.position[1]+25:
                             posFound = False
             self.gaz.append(GazStack(nGaz, position))
-        for i in minerals:
-		    self.mineralQte += i.nbMinerals
-		for i in gaz:
-			self.gazQte += i.nbGaz
+        for i in self.minerals:
+            self.mineralQte += i.nbMinerals
+        for i in self.gaz:
+            self.gazQte += i.nbGaz
+
 class MineralStack():
-    def __init__(self, nbMinerals, position)
+    def __init__(self, nbMinerals, position):
         self.nbMinerals = nbMinerals
         self.position = position
         
