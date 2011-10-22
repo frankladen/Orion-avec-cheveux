@@ -378,40 +378,48 @@ class View():
     #Actions quand on clic sur les fleches du clavier
     def keyPressUP(self, eve):
         if 'UP' not in self.parent.players[self.parent.playerId].camera.movingDirection:
-            self.parent.players[self.parent.playerId].camera.movingDirection.append('UP')
-            self.drawWorld()
+            if self.parent.currentPlanet == None:
+                self.parent.players[self.parent.playerId].camera.movingDirection.append('UP')
+                self.drawWorld()
 
     def keyPressDown(self, eve):
         if 'DOWN' not in self.parent.players[self.parent.playerId].camera.movingDirection:
-            self.parent.players[self.parent.playerId].camera.movingDirection.append('DOWN')
-            self.drawWorld()
+            if self.parent.currentPlanet == None:
+                self.parent.players[self.parent.playerId].camera.movingDirection.append('DOWN')
+                self.drawWorld()
 
     def keyPressLeft(self, eve):
         if 'LEFT' not in self.parent.players[self.parent.playerId].camera.movingDirection:
-            self.parent.players[self.parent.playerId].camera.movingDirection.append('LEFT')
-            self.drawWorld()
+            if self.parent.currentPlanet == None:
+                self.parent.players[self.parent.playerId].camera.movingDirection.append('LEFT')
+                self.drawWorld()
 
     def keyPressRight(self, eve):
         if 'RIGHT' not in self.parent.players[self.parent.playerId].camera.movingDirection:
-            self.parent.players[self.parent.playerId].camera.movingDirection.append('RIGHT')
-            self.drawWorld()
+            if self.parent.currentPlanet == None:
+                self.parent.players[self.parent.playerId].camera.movingDirection.append('RIGHT')
+                self.drawWorld()
 
     #Actions quand on lache les touches
     def keyReleaseUP(self, eve):
-        self.parent.players[self.parent.playerId].camera.movingDirection.remove('UP')
-        self.drawWorld()
+        if self.parent.currentPlanet == None:
+            self.parent.players[self.parent.playerId].camera.movingDirection.remove('UP')
+            self.drawWorld()
 
     def keyReleaseDown(self, eve):
-        self.parent.players[self.parent.playerId].camera.movingDirection.remove('DOWN')
-        self.drawWorld()
+        if self.parent.currentPlanet == None:
+            self.parent.players[self.parent.playerId].camera.movingDirection.remove('DOWN')
+            self.drawWorld()
 
     def keyReleaseLeft(self, eve):
-        self.parent.players[self.parent.playerId].camera.movingDirection.remove('LEFT')
-        self.drawWorld()
+        if self.parent.currentPlanet == None:
+            self.parent.players[self.parent.playerId].camera.movingDirection.remove('LEFT')
+            self.drawWorld()
 
     def keyReleaseRight(self, eve):
-        self.parent.players[self.parent.playerId].camera.movingDirection.remove('RIGHT')
-        self.drawWorld()
+        if self.parent.currentPlanet == None:
+            self.parent.players[self.parent.playerId].camera.movingDirection.remove('RIGHT')
+            self.drawWorld()
 
     #Actions avec la souris    
     def rightclic(self, eve):
