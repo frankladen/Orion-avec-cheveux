@@ -13,6 +13,8 @@ class View():
         self.root.resizable(0,0)
         #la taille du jeu se resize selon la résolution de l'écran, niceshithum?
         self.taille=self.root.winfo_screenheight()-125
+        if self.taille>800:
+            self.taille=800
         self.root.geometry('+25+5')
         self.dragging = False
         self.hpBars=False
