@@ -145,6 +145,7 @@ class Controller():
                                     empty = False
             if empty:
                 self.setMovingFlag(pos[0],pos[1])
+            self.view.drawWorld()
 
     #Selection avec le clic-drag
     def boxSelect(self, selectStart, selectEnd):

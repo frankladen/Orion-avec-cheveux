@@ -433,10 +433,10 @@ class View():
                 if canva == self.gameArea:
                     pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
                     self.parent.rightClic(pos)
-                elif canva == self.minimap:
+                elif canva == self.minimap and self.parent.currentPlanet == None:
                     pos = self.parent.players[self.parent.playerId].camera.calcPointMinimap(x,y)
                     self.parent.setMovingFlag(pos[0], pos[1])
-                self.drawWorld()
+                    self.drawWorld()
 
     #Quand on fait un clic gauche (peu importe ou)
     def leftclic(self, eve):
