@@ -247,6 +247,8 @@ class Controller():
                                     self.killUnit(killedIndex)
                 self.refreshMessages()
                 self.refresh+=1
+                self.view.showMinerals.config(text=self.players[self.playerId].mineral)
+                self.view.showGaz.config(text=self.players[self.playerId].gaz)
                 #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
                 self.pullChange()
                 self.view.drawWorld()
@@ -300,7 +302,7 @@ class Controller():
             #en même temps si le serveur existe réellement à cette adresse.
             if self.server.isGameStarted() == True:
                 self.view.gameHasBeenStarted()
-                self.view.changeFrame(self.view.fMainMenu)
+                self.view.changeFrame(self.view.mainMenu)
             else:
                 #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
                 self.playerId=self.server.getNumSocket(login, self.playerIp)
@@ -330,7 +332,7 @@ class Controller():
         for i in range(0, len(self.server.getSockets())):
             startPos = self.galaxy.getSpawnPoint()
             self.players[i].addBaseUnits(startPos)  
-        self.players[self.playerId].addCamera(self.galaxy)
+        self.players[self.playerId].addCamera(self.galaxy, self.view.taille)
         self.view.gameFrame = self.view.fGame()
         self.view.changeFrame(self.view.gameFrame)
         self.view.root.after(50, self.action)

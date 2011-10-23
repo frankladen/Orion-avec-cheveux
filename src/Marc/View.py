@@ -5,13 +5,15 @@ from Flag import *
 import tkinter.messagebox as mb
 import subprocess
 
-class View():              
+class View():
     def __init__(self, parent):
         self.parent = parent                  
         self.root=Tk()
         self.root.title("Orion")
         self.root.resizable(0,0)
-        self.taille=800
+        #la taille du jeu se resize selon la résolution de l'écran, niceshithum?
+        self.taille=self.root.winfo_screenheight()-125
+        self.root.geometry('+25+5')
         self.dragging = False
         self.hpBars=False
         self.selectStart = [0,0]
@@ -61,15 +63,21 @@ class View():
             self.attackShips.append(PhotoImage(file='images\\Ships\\Attackships\\Attackship'+str(i)+'.gif'))
         for i in range(0,8):
             self.motherShips.append(PhotoImage(file='images\\Ships\\Motherships\\Mothership'+str(i)+'.gif'))
+        Label(gameFrame, text="Mineraux: ", bg="black", fg="white", width=10, anchor=E).grid(column=0, row=0)
+        self.showMinerals=Label(gameFrame, text=self.parent.players[self.parent.playerId].mineral, fg="white", bg="black", anchor=W)
+        self.showMinerals.grid(column=1,row=0)
+        Label(gameFrame, text="Gaz: ", bg="black", fg="white", width=10, anchor=E).grid(column=2, row=0)
+        self.showGaz=Label(gameFrame, text=self.parent.players[self.parent.playerId].gaz, fg="white", bg="black", anchor=W)
+        self.showGaz.grid(column=3,row=0)
         self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille-200, background='Black', relief='ridge')
-        self.gameArea.grid(column=0,row=0, columnspan=5)#place(relx=0, rely=0,width=taille,height=taille)
-        self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
-        self.minimap.grid(column=0,row=1, rowspan=4)
+        self.gameArea.grid(column=0,row=1, columnspan=5)#place(relx=0, rely=0,width=taille,height=taille)
+        self.minimap= Canvas(gameFrame, width=(self.taille/4),height=(self.taille/4), background='Black', relief='raised')
+        self.minimap.grid(column=0,row=2, rowspan=4)
         self.drawWorld()
         self.chat = Label(gameFrame, anchor=W, justify=LEFT, width=75, background='black', fg='white', relief='raised')
-        self.chat.grid(row=1, column=1)
+        self.chat.grid(row=2, column=2)
         self.entryMess = Entry(gameFrame, width=60)
-        self.entryMess.grid(row=2, column=1)
+        self.entryMess.grid(row=5, column=2)
         #send = Button(gameFrame, text='Send', command=lambda:self.enter(0))
         #send.grid(row=2, column=2)
         #createScout = Button(gameFrame, text='Create Scout', command=lambda:self.parent.addUnit('Scout'))
@@ -78,8 +86,8 @@ class View():
         #stopSelectedUnits.grid(row=2,column=3)
         #deleteSelectedUnits = Button(gameFrame, text='Delete', command=self.parent.eraseUnit)
         #deleteSelectedUnits.grid(row=2,column=4)
-        self.Actionmenu = Canvas(gameFrame,width=200,height=200,background='black')
-        self.Actionmenu.grid(column=2,row=1, rowspan=4)
+        self.Actionmenu = Canvas(gameFrame,width=(self.taille/4),height=(self.taille/4),background='black')
+        self.Actionmenu.grid(column=3,row=2, rowspan=4)
         self.createActionMenu()
         self.assignControls()
         return gameFrame
@@ -371,48 +379,48 @@ class View():
 
     #Dessine le carrer de la camera dans la minimap    
     def drawMiniFOV(self):
-        cameraX = (self.parent.players[self.parent.playerId].camera.position[0]-400 + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
-        cameraY = (self.parent.players[self.parent.playerId].camera.position[1]-300 + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
-        width = self.taille / self.parent.galaxy.width * 200
-        height = self.taille / self.parent.galaxy.height * 150
+        cameraX = (self.parent.players[self.parent.playerId].camera.position[0]-(self.taille/2) + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
+        cameraY = (self.parent.players[self.parent.playerId].camera.position[1]-((self.taille/2)-self.taille/8) + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
+        width = self.taille / self.parent.galaxy.width * (self.taille/4)
+        height = self.taille / self.parent.galaxy.height * ((self.taille/16)*3)
         self.minimap.create_rectangle(cameraX, cameraY, cameraX+width, cameraY+height, outline='GREEN', tag='deletable')
 
     #Dessine un soleil dans la minimap    
     def drawMiniSun(self, sun):
         sunPosition = sun.sunPosition
-        sunX = (sunPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
-        sunY = (sunPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
+        sunX = (sunPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
+        sunY = (sunPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
         if sun.discovered:
             self.minimap.create_oval(sunX-3, sunY-3, sunX+3, sunY+3, fill='ORANGE')
 
     #Dessine une planete dans la minimap        
     def drawMiniPlanet(self, planet):
         planetPosition = planet.position
-        planetX = (planetPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
-        planetY = (planetPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
+        planetX = (planetPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
+        planetY = (planetPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
         if planet.discovered:
             self.minimap.create_oval(planetX-1, planetY-1, planetX+1, planetY+1, fill='LIGHT BLUE')
             
     #dessine une nebula dans la minimap
     def drawMiniNebula(self, nebula):
         nebulaPosition = nebula.position
-        nebulaX = (nebulaPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
-        nebulaY = (nebulaPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
+        nebulaX = (nebulaPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
+        nebulaY = (nebulaPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
         if nebula.discovered:
             self.minimap.create_oval(nebulaX-1, nebulaY-1, nebulaX+1, nebulaY+1, fill='PURPLE')
         
     #dessine un asteroid dans la minimap
     def drawMiniAsteroid(self, asteroid):
         asteroidPosition = asteroid.position
-        asteroidX = (asteroidPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
-        asteroidY = (asteroidPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
+        asteroidX = (asteroidPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
+        asteroidY = (asteroidPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
         if asteroid.discovered:
             self.minimap.create_oval(asteroidX-1, asteroidY-1, asteroidX+1, asteroidY+1, fill='CYAN')
         
     #Dessine une unite dans la minimap        
     def drawMiniUnit(self, unit):
-        unitX = (unit.position[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
-        planetY = (unit.position[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
+        unitX = (unit.position[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
+        planetY = (unit.position[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
         if unit.name != "Mothership":
             if unit in self.parent.players[self.parent.playerId].units:
                 self.minimap.create_polygon((unitX-2, planetY+2, unitX, planetY-2, unitX+2, planetY+2),fill='GREEN', tag='deletable')
