@@ -99,78 +99,82 @@ class Controller():
         self.pushChange('lollegarspartdelagame', 'deleteAllUnits')    #Pour selectionner une unit
         
     def select(self, x, y, canva):
-        posSelected = self.players[self.playerId].camera.calcPointInWorld(x,y)
-        #Si on selectionne une planete
-        for i in self.galaxy.solarSystemList:
-            for j in i.planets:
-                if j.position[0] >= posSelected[0]-10 and j.position[0] <= posSelected[0]+10:
-                    if j.position[1] >= posSelected[1]-10 and j.position[1] <= posSelected[1]+10:
-                        if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
-                            self.players[self.playerId].selectedObjects = []
-                            self.players[self.playerId].selectedObjects.append(j)
-            for j in i.nebulas:
-                if j.position[0] >= posSelected[0]-10 and j.position[0] <= posSelected[0]+10:
-                    if j.position[1] >= posSelected[1]-10 and j.position[1] <= posSelected[1]+10:
-                        if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
-                            self.players[self.playerId].selectedObjects = []
-                            self.players[self.playerId].selectedObjects.append(j)
-            for j in i.asteroids:
-                if j.position[0] >= posSelected[0]-10 and j.position[0] <= posSelected[0]+10:
-                    if j.position[1] >= posSelected[1]-10 and j.position[1] <= posSelected[1]+10:
-                        if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
-                            self.players[self.playerId].selectedObjects = []
-                            self.players[self.playerId].selectedObjects.append(j)
-        #Si on selectionne une unit               
-        for j in self.players[self.playerId].units:
-            if j.isAlive:
-                if j.position[0] >= posSelected[0]-8 and j.position[0] <= posSelected[0]+8:
-                    if j.position[1] >= posSelected[1]-8 and j.position[1] <= posSelected[1]+8: 
-                        if self.multiSelect == False:
-                            self.players[self.playerId].selectedObjects = []
-                        if j not in self.players[self.playerId].selectedObjects:
-                            self.players[self.playerId].selectedObjects.append(j)
+        if self.currentPlanet == None:
+            posSelected = self.players[self.playerId].camera.calcPointInWorld(x,y)
+            #Si on selectionne une planete
+            for i in self.galaxy.solarSystemList:
+                for j in i.planets:
+                    if j.position[0] >= posSelected[0]-10 and j.position[0] <= posSelected[0]+10:
+                        if j.position[1] >= posSelected[1]-10 and j.position[1] <= posSelected[1]+10:
+                            if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
+                                self.players[self.playerId].selectedObjects = []
+                                self.players[self.playerId].selectedObjects.append(j)
+                for j in i.nebulas:
+                    if j.position[0] >= posSelected[0]-10 and j.position[0] <= posSelected[0]+10:
+                        if j.position[1] >= posSelected[1]-10 and j.position[1] <= posSelected[1]+10:
+                            if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
+                                self.players[self.playerId].selectedObjects = []
+                                self.players[self.playerId].selectedObjects.append(j)
+                for j in i.asteroids:
+                    if j.position[0] >= posSelected[0]-10 and j.position[0] <= posSelected[0]+10:
+                        if j.position[1] >= posSelected[1]-10 and j.position[1] <= posSelected[1]+10:
+                            if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
+                                self.players[self.playerId].selectedObjects = []
+                                self.players[self.playerId].selectedObjects.append(j)
+            #Si on selectionne une unit dans l'espace             
+            for j in self.players[self.playerId].units:
+                if j.isAlive:
+                    if j.position[0] >= posSelected[0]-8 and j.position[0] <= posSelected[0]+8:
+                        if j.position[1] >= posSelected[1]-8 and j.position[1] <= posSelected[1]+8: 
+                            if self.multiSelect == False:
+                                self.players[self.playerId].selectedObjects = []
+                            if j not in self.players[self.playerId].selectedObjects:
+                                self.players[self.playerId].selectedObjects.append(j)
         self.view.createActionMenu()
 
     def rightClic(self, pos):
         empty = True
-        for i in self.galaxy.solarSystemList:
-            for j in i.planets:
-                if pos[0] > j.position[0]-8 and pos[0] < j.position[0]+8:
-                    if pos[1] > j.position[1]-8 and pos[1] < j.position[1]+8:
-                        if len(self.players[self.playerId].selectedObjects) == 1:
-                            if self.players[self.playerId].selectedObjects[0].name == 'Transport':
-                                self.setLandingFlag(self.players[self.playerId].selectedObjects[0], j)
-                                empty = False
-        if empty:
-            self.setMovingFlag(pos[0],pos[1])
+        if self.currentPlanet == None:
+            for i in self.galaxy.solarSystemList:
+                for j in i.planets:
+                    if pos[0] > j.position[0]-8 and pos[0] < j.position[0]+8:
+                        if pos[1] > j.position[1]-8 and pos[1] < j.position[1]+8:
+                            if len(self.players[self.playerId].selectedObjects) == 1:
+                                if self.players[self.playerId].selectedObjects[0].name == 'Transport':
+                                    self.setLandingFlag(self.players[self.playerId].selectedObjects[0], j)
+                                    empty = False
+            if empty:
+                self.setMovingFlag(pos[0],pos[1])
 
     #Selection avec le clic-drag
     def boxSelect(self, selectStart, selectEnd):
-        realStart = self.players[self.playerId].camera.calcPointInWorld(selectStart[0], selectStart[1])
-        realEnd = self.players[self.playerId].camera.calcPointInWorld(selectEnd[0], selectEnd[1])
-        temp = [0,0]
-        if realStart[0] > realEnd[0]:
-            temp[0] = realStart[0]
-            realStart[0] = realEnd[0]
-            realEnd[0] = temp[0]
-        if realStart[1] > realEnd[1]:
-            temp[1] = realStart[1]
-            realStart[1] = realEnd[1]
-            realEnd[1] = temp[1]
-        first = True
-        for i in self.players[self.playerId].units:
-            if i.position[0] >= realStart[0]-8 and i.position[0] <= realEnd[0]+8:
-                if i.position[1] >= realStart[1]-8 and i.position[1] <= realEnd[1]+8:
-                    if first:
-                        self.players[self.playerId].selectedObjects = []
-                        first = False
-                    self.players[self.playerId].selectedObjects.append(i)
+        if self.currentPlanet == None:
+            realStart = self.players[self.playerId].camera.calcPointInWorld(selectStart[0], selectStart[1])
+            realEnd = self.players[self.playerId].camera.calcPointInWorld(selectEnd[0], selectEnd[1])
+            temp = [0,0]
+            if realStart[0] > realEnd[0]:
+                temp[0] = realStart[0]
+                realStart[0] = realEnd[0]
+                realEnd[0] = temp[0]
+            if realStart[1] > realEnd[1]:
+                temp[1] = realStart[1]
+                realStart[1] = realEnd[1]
+                realEnd[1] = temp[1]
+            first = True
+            for i in self.players[self.playerId].units:
+                if i.position[0] >= realStart[0]-8 and i.position[0] <= realEnd[0]+8:
+                    if i.position[1] >= realStart[1]-8 and i.position[1] <= realEnd[1]+8:
+                        if first:
+                            self.players[self.playerId].selectedObjects = []
+                            first = False
+                        self.players[self.playerId].selectedObjects.append(i)
         self.view.createActionMenu()
         
     #Deplacement rapide de la camera vers un endroit de la minimap
     def quickMove(self, x,y, canva):
-        posSelected = self.players[self.playerId].camera.calcPointOnMap(x,y)
-        self.players[self.playerId].camera.position = posSelected
+        if self.currentPlanet == None:
+            posSelected = self.players[self.playerId].camera.calcPointOnMap(x,y)
+            self.players[self.playerId].camera.position = posSelected
         
     #Envoyer le message pour le chat
     def sendMessage(self, mess):

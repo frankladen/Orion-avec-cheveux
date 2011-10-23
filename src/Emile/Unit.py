@@ -112,6 +112,7 @@ class TransportShip(SpaceUnit):
                 self.move()
         if self.arrived:
             controller.currentPlanet = planet
+            controller.view.changeBackground('PLANET')
             controller.view.drawPlanetGround(planet)
             self.flag = Flag (self.position, self.position, FlagState.STANDBY)
         

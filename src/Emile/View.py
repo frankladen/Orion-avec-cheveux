@@ -35,6 +35,8 @@ class View():
         self.gifCancel = PhotoImage(file='images\\icones\\delete.gif')
         self.gifAttack = PhotoImage(file='images\\icones\\icone1.gif')
         self.gifIcone2 = PhotoImage(file='images\\icones\\icone2.gif')
+        self.planetBackground = PhotoImage(file='images\\Planet\\background.gif')
+        self.galaxyBackground = PhotoImage(file='images\\Galaxy\\night-sky.gif')
         self.attacking = False
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
@@ -60,21 +62,14 @@ class View():
         self.gameArea.grid(column=0,row=0, columnspan=5)#place(relx=0, rely=0,width=taille,height=taille)
         self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
         self.minimap.grid(column=0,row=1, rowspan=4)
-        self.drawWorld()
         self.chat = Label(gameFrame, anchor=W, justify=LEFT, width=75, background='black', fg='white', relief='raised')
         self.chat.grid(row=1, column=1)
         self.entryMess = Entry(gameFrame, width=60)
         self.entryMess.grid(row=2, column=1)
-        #send = Button(gameFrame, text='Send', command=lambda:self.enter(0))
-        #send.grid(row=2, column=2)
-        #createScout = Button(gameFrame, text='Create Scout', command=lambda:self.parent.addUnit('Scout'))
-        #createScout.grid(row=1,column=3)
-        #stopSelectedUnits = Button(gameFrame, text='Stop', command=self.parent.setStandbyFlag)
-        #stopSelectedUnits.grid(row=2,column=3)
-        #deleteSelectedUnits = Button(gameFrame, text='Delete', command=self.parent.eraseUnit)
-        #deleteSelectedUnits.grid(row=2,column=4)
         self.Actionmenu = Canvas(gameFrame,width=200,height=200,background='black')
         self.Actionmenu.grid(column=2,row=1, rowspan=4)
+        self.changeBackground('GALAXY')
+        self.drawWorld()
         self.createActionMenu()
         self.assignControls()
         return gameFrame
@@ -134,15 +129,22 @@ class View():
 
     #Methode pour dessiner la vue d'un planete
     def drawPlanetGround(self, planet):
-        self.gameArea.delete(ALL)
+        self.gameArea.delete('deletable')
         for i in planet.minerals:
-            self.gameArea.create_image(i.position[0], i.position[1], image=self.mineral)
+            self.gameArea.create_image(i.position[0], i.position[1], image=self.mineral, tag='deletable')
         for i in planet.gaz:
-            self.gameArea.create_oval(i.position[0]-12, i.position[1]-12, i.position[0]+12, i.position[1]+12, fill='green')
+            self.gameArea.create_oval(i.position[0]-12, i.position[1]-12, i.position[0]+12, i.position[1]+12, fill='green', tag='deletable')
+
+    def changeBackground(self, type):
+        self.gameArea.delete('background')
+        if type == 'PLANET':
+            self.gameArea.create_image(0,0,image=self.planetBackground, anchor=NW, tag='background')		
+        else:
+            self.gameArea.create_image(0,0,image=self.galaxyBackground, anchor=NW, tag='background')
 
     #Methode pour dessiner la galaxie
     def drawWorld(self):
-        self.gameArea.delete(ALL)
+        self.gameArea.delete('deletable')
         sunList = self.parent.galaxy.solarSystemList
         players = self.parent.players 
         id = self.parent.playerId
@@ -198,9 +200,9 @@ class View():
         if player.camera.isInFOV(sunPosition):
             distance = player.camera.calcDistance(sunPosition)
             if isInFOW:
-                self.gameArea.create_image(distance[0],distance[1], image=self.sun)
+                self.gameArea.create_image(distance[0],distance[1], image=self.sun, tag='deletable')
             else:
-                self.gameArea.create_image(distance[0],distance[1], image=self.sunFOW)
+                self.gameArea.create_image(distance[0],distance[1], image=self.sunFOW, tag='deletable')
             #self.gameArea.create_oval(distance[0]-20, distance[1]-20, distance[0]+20, distance[1]+20, fill='RED')
     
     #pour dessiner une planete        
@@ -210,15 +212,14 @@ class View():
             distance = player.camera.calcDistance(planetPosition)
             if isInFOW:
                 if planet in player.selectedObjects:
-                    self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="green", tag="planet")
+                    self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="green", tag='deletable')
                     mVariable = "Mineral :" + str(planet.mineralQte)
                     gVariable = "Gaz :" + str(planet.gazQte)
-                    self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="cyan",text=mVariable)
-                    self.gameArea.create_text(distance[0]-20, distance[1]-40,fill="green",text=gVariable)
-                self.gameArea.create_image(distance[0],distance[1],image=self.planet)
+                    self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="cyan",text=mVariable, tag='deletable')
+                    self.gameArea.create_text(distance[0]-20, distance[1]-40,fill="green",text=gVariable, tag='deletable')
+                self.gameArea.create_image(distance[0],distance[1],image=self.planet, tag='deletable')
             else:
-                self.gameArea.create_image(distance[0], distance[1], image=self.planetFOW)
-                
+                self.gameArea.create_image(distance[0], distance[1], image=self.planetFOW, tag='deletable')
             #self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10, fill='BLUE', tag="planet")
 
     def drawNebula(self,nebula,player, isInFOW):
@@ -227,12 +228,12 @@ class View():
             distance = player.camera.calcDistance(nebulaPosition)
             if isInFOW:
                 if nebula in player.selectedObjects:
-                    self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="green", tag="nebula")
+                    self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="green", tag='deletable')
                     mVariable = "Gaz :" + str(nebula.gazQte)
-                    self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="green",text=mVariable)
-                self.gameArea.create_image(distance[0],distance[1],image=self.nebula)
+                    self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="green",text=mVariable, tag='deletable')
+                self.gameArea.create_image(distance[0],distance[1],image=self.nebula, tag='deletable')
             else:
-                self.gameArea.create_image(distance[0], distance[1], image=self.nebulaFOW)
+                self.gameArea.create_image(distance[0], distance[1], image=self.nebulaFOW, tag='deletable')
     
     def drawAsteroid(self,asteroid,player, isInFOW):
         asteroidPosition = asteroid.position
@@ -240,12 +241,12 @@ class View():
             distance = player.camera.calcDistance(asteroidPosition)
             if isInFOW:
                 if asteroid in player.selectedObjects:
-                    self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="green", tag="asteroid")
+                    self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="green", tag='deletable')
                     mVariable = "Mineral :" + str(asteroid.mineralQte)
-                    self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="cyan",text=mVariable)
-                self.gameArea.create_image(distance[0],distance[1],image=self.asteroid)
+                    self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="cyan",text=mVariable, tag='deletable')
+                self.gameArea.create_image(distance[0],distance[1],image=self.asteroid, tag='deletable')
             else:
-                self.gameArea.create_image(distance[0],distance[1],image=self.asteroidFOW)
+                self.gameArea.create_image(distance[0],distance[1],image=self.asteroidFOW, tag='deletable')
     
     #pour dessiner un vaisseau        
     def drawUnit(self, unit, player, isInFOW):
@@ -255,25 +256,25 @@ class View():
             if not isInFOW:
                 if unit.name.find('Scout') != -1:
                     if unit in player.selectedObjects:
-                        self.gameArea.create_oval(distance[0]-8,distance[1]-8,distance[0]+8,distance[1]+8, outline="green")
-                    self.gameArea.create_image(distance[0]+1, distance[1], image=self.scoutShips[player.id])#On prend l'image dependamment du joueur que nous sommes
+                        self.gameArea.create_oval(distance[0]-8,distance[1]-8,distance[0]+8,distance[1]+8, outline="green", tag='deletable')
+                    self.gameArea.create_image(distance[0]+1, distance[1], image=self.scoutShips[player.id], tag='deletable')#On prend l'image dependamment du joueur que nous sommes
                 if unit.name.find('Attack') != -1:
                     if unit.attackcount <= 5:
                         d2 = self.parent.players[self.parent.playerId].camera.calcDistance(unit.flag.finalTarget.position)
-                        self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow")
+                        self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='deletable')
                     if unit in player.selectedObjects:
-                        self.gameArea.create_oval(distance[0]-13,distance[1]-13,distance[0]+13,distance[1]+13, outline="green")
-                    self.gameArea.create_image(distance[0]+1, distance[1], image=self.attackShips[player.id])#On prend l'image dependamment du joueur que nous sommes
+                        self.gameArea.create_oval(distance[0]-13,distance[1]-13,distance[0]+13,distance[1]+13, outline="green", tag='deletable')
+                    self.gameArea.create_image(distance[0]+1, distance[1], image=self.attackShips[player.id], tag='deletable')#On prend l'image dependamment du joueur que nous sommes
                 elif unit.name == 'Mothership':
                     if unit in player.selectedObjects:
-                        self.gameArea.create_oval(distance[0]-25,distance[1]-25,distance[0]+25,distance[1]+25, outline="green")
-                    self.gameArea.create_image(distance[0]+1, distance[1], image = self.motherShips[player.id])
+                        self.gameArea.create_oval(distance[0]-25,distance[1]-25,distance[0]+25,distance[1]+25, outline="green", tag='deletable')
+                    self.gameArea.create_image(distance[0]+1, distance[1], image = self.motherShips[player.id], tag='deletable')
                 elif unit.name == 'Transport':
                     if unit in player.selectedObjects:
-                        self.gameArea.create_oval(distance[0]-18,distance[1]-18,distance[0]+18,distance[1]+18, outline="green")
-                    self.gameArea.create_image(distance[0]+1, distance[1], image = self.trasportShips[player.id])
+                        self.gameArea.create_oval(distance[0]-18,distance[1]-18,distance[0]+18,distance[1]+18, outline="green", tag='deletable')
+                    self.gameArea.create_image(distance[0]+1, distance[1], image = self.trasportShips[player.id], tag='deletable')
                 if unit.hitpoints <= 5:
-                    self.gameArea.create_image(distance[0]+1, distance[1], image=self.explosion)
+                    self.gameArea.create_image(distance[0]+1, distance[1], image=self.explosion, tag='deletable')
                     
     #Dessine la minimap
     def drawMinimap(self):
@@ -373,7 +374,7 @@ class View():
 
     #Dessine la boite de selection lors du clic-drag	
     def drawSelectionBox(self):
-        self.gameArea.create_rectangle(self.selectStart[0], self.selectStart[1], self.selectEnd[0], self.selectEnd[1], outline='WHITE')
+        self.gameArea.create_rectangle(self.selectStart[0], self.selectStart[1], self.selectEnd[0], self.selectEnd[1], outline='WHITE', tag='deletable')
 
     #Actions quand on clic sur les fleches du clavier
     def keyPressUP(self, eve):
@@ -500,6 +501,7 @@ class View():
 	
     def checkMotherSip(self, eve):
         self.parent.currentPlanet = None
+        self.changeBackground('GALAXY')
         self.drawWorld()
         cam = self.parent.players[self.parent.playerId].camera
         cam.position = cam.defaultPos
