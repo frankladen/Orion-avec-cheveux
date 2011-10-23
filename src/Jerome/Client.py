@@ -232,7 +232,7 @@ class Controller():
                 self.action()
         except:
             self.view.loginFailed()
-            self.view.changeFrame(self.view.fMainMenu)
+            self.view.changeFrame(self.view.mainMenu)
             
     #Enleve le joueur courant de la partie ainsi que ses units
     def removePlayer(self):

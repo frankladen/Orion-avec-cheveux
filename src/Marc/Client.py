@@ -300,7 +300,7 @@ class Controller():
             #en même temps si le serveur existe réellement à cette adresse.
             if self.server.isGameStarted() == True:
                 self.view.gameHasBeenStarted()
-                self.view.changeFrame(self.view.fLogin)
+                self.view.changeFrame(self.view.fMainMenu)
             else:
                 #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
                 self.playerId=self.server.getNumSocket(login, self.playerIp)
@@ -310,7 +310,7 @@ class Controller():
                 self.action()
         except:
             self.view.loginFailed()
-            self.view.changeFrame(self.view.fLogin)
+            self.view.changeFrame(self.view.mainMenu)
             
     #Enleve le joueur courant de la partie ainsi que ses units
     def removePlayer(self):

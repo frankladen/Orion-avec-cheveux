@@ -100,10 +100,12 @@ class View():
         self.entryLogin = Entry(joinGameFrame, width=20)
         self.entryLogin.focus_set()
         self.entryLogin.grid(row=0, column=1)
+        #self.entryLogin.delete(0,END)
         Label(joinGameFrame, text="Adresse du serveur:", fg="white", bg="black").grid(row=1, column=0)
         self.entryServer = Entry(joinGameFrame, width=20)
         self.entryServer.grid(row=1, column=1)
-        widget = Button(joinGameFrame, text='Connecter', command=lambda:self.lobbyEnter(0))
+        #self.entryServer.delete(0,END)
+        widget = Button(joinGameFrame, text='Connecter', command=lambda:self.lobbyEnter(0, self.entryLogin.get(), self.entryServer.get()))
         widget.grid(row=2, column=1)
         self.entryServer.bind("<Return>",self.lobbyEnter)
         return joinGameFrame
@@ -115,16 +117,16 @@ class View():
         #Crée le label de l'IP du serveur
         Label(createServerFrame, text="Adresse du serveur:", fg="white", bg="black").grid(row=0, column=0)
         #Crée le champ texte pour l'IP du serveur
-        self.entryServer = Entry(createServerFrame, width=20)
+        self.entryCreateServer = Entry(createServerFrame, width=20)
         #On met l'adresse de l'hôte comme valeur par défaut
-        self.entryServer.config(text=self.parent.playerIp)
-        self.entryServer.focus_set()
-        self.entryServer.grid(row=0, column=1)
+        self.entryCreateServer.insert(0,self.parent.playerIp)
+        self.entryCreateServer.focus_set()
+        self.entryCreateServer.grid(row=0, column=1)
         #Crée le label du nom du joueur
         Label(createServerFrame, text="Nom de joueur:", fg="white", bg="black").grid(row=1, column=0)
         #Crée le champ texte pour le nom du joueur
-        self.entryLogin = Entry(createServerFrame, width=20)
-        self.entryLogin.grid(row=1, column=1)
+        self.entryCreateLogin = Entry(createServerFrame, width=20)
+        self.entryCreateLogin.grid(row=1, column=1)
         #Crée le bouton de confirmation
         widget = Button(createServerFrame, text='Créer', command=lambda:self.startServer(False))
         widget.grid(row=2, column=1)
@@ -137,9 +139,9 @@ class View():
         child = subprocess.Popen("C:\python32\python.exe server.py", shell=True)
         #Si l'usager veut se connecter en créant le serveur, on le connecte
         if connect:
-            self.lobbyEnter(0)
+            self.lobbyEnter(0, self.entryCreateLogin.get(), self.entryCreateServer.get())
         else:
-            self.changeFrame()
+            self.changeFrame(self.joinGame)
     
     #Frame du lobby
     def fLobby(self):
@@ -491,8 +493,11 @@ class View():
         self.gameArea.focus_set()
 
     #Quand on appui sur enter dans le login
-    def lobbyEnter(self, eve):
-        self.parent.connectServer(self.entryLogin.get(), self.entryServer.get())
+    def lobbyEnter(self, eve, login="", server=""):
+        if login=="" and server=="":
+            login = self.entryLogin.get()
+            server = self.entryServer.get()
+        self.parent.connectServer(login,server)
 			
     def stop(self, eve):
         self.attacking = False
