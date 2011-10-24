@@ -172,7 +172,6 @@ class Planet(Target):
     def __init__(self, planetPosition, nMineralStack, nGazStack):
         Target.__init__(self, planetPosition)
         self.discovered = False
-        #Un gisement de minerals/gaz = 25px/25px
         self.minerals = []
         self.mineralQte = 0
         self.gazQte = 0

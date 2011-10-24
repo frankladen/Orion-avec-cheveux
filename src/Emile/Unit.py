@@ -103,7 +103,7 @@ class TransportShip(SpaceUnit):
         self.capacity = 10
         self.units = []
 
-    def land(self, controller):
+    def land(self, controller, playerId):
         planet = self.flag.finalTarget
         self.arrived = True
         if self.position[0] < planet.position[0] or self.position[0] > planet.position[0]:
@@ -111,8 +111,9 @@ class TransportShip(SpaceUnit):
                 self.arrived = False
                 self.move()
         if self.arrived:
-            controller.currentPlanet = planet
-            controller.view.changeBackground('PLANET')
-            controller.view.drawPlanetGround(planet)
+            controller.players[playerId].currentPlanet = planet
+            if playerId == controller.playerId:
+                controller.view.changeBackground('PLANET')
+                controller.view.drawPlanetGround(planet)
             self.flag = Flag (self.position, self.position, FlagState.STANDBY)
         
