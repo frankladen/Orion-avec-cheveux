@@ -12,6 +12,7 @@ class PlayerObject(Target):
         self.name = name
         self.flag = Flag(Target([0,0,0]), Target([0,0,0]), FlagState.STANDBY)
         self.owner = owner
+        self.maxHP=hitpoints
         self.hitpoints=hitpoints
         self.isAlive = True;
         if name == 'Scout':
@@ -20,6 +21,8 @@ class PlayerObject(Target):
             self.viewRange = 400
         elif name =='Attack':
             self.viewRange = 150
+        elif name == 'Transport':
+            self.viewRange = 175
         else:
             self.viewRange = 100
     

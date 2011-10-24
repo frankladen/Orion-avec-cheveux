@@ -6,15 +6,16 @@ import math
 
 #Classe representant une unit
 class Unit(t.PlayerObject):
-    def __init__(self, name, position, owner, foodcost=50, moveSpeed=1.0, hitpoints=50):
-        t.PlayerObject.__init__(self, name, position, owner, hitpoints)
+    def __init__(self, name, position, owner, foodcost=50, moveSpeed=1.0):
+        t.PlayerObject.__init__(self, name, position, owner)
         self.FoodCost=foodcost
         self.moveSpeed=moveSpeed
         
     #La deplace d'un pas vers son flag et si elle est rendu, elle change arrete de bouger    
     def move(self):
         if h.Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1]) <= self.moveSpeed:
-            self.position = self.flag.finalTarget.position
+            endPos = [self.flag.finalTarget.position[0],self.flag.finalTarget.position[1]]
+            self.position = endPos
             if self.flag.flagState == FlagState.MOVE:
                 self.flag.flagState = FlagState.STANDBY
             elif self.flag.flagState == FlagState.MOVE+FlagState.ATTACK:
@@ -43,8 +44,8 @@ class Unit(t.PlayerObject):
         return self.flag
               
 class SpaceUnit(Unit):
-    def __init__(self, name, position, owner, moveSpeed):
-        Unit.__init__(self, name, position, owner, moveSpeed)
+    def __init__(self, name, position, owner, movespeed):
+        Unit.__init__(self, name, position, owner, movespeed)
 
 class GroundUnit(Unit):
     def __init__(self,planetid):
@@ -95,3 +96,24 @@ class SpaceAttackUnit(SpaceUnit):
                     self.killCount +=1
                 self.attackcount=self.AttackSpeed
         return (index, killedOwner)
+
+class TransportShip(SpaceUnit):
+    def __init__(self, name, position, owner, moveSpeed):
+        SpaceUnit.__init__(self, name, position, owner, moveSpeed)
+        self.capacity = 10
+        self.units = []
+
+    def land(self, controller, playerId):
+        planet = self.flag.finalTarget
+        self.arrived = True
+        if self.position[0] < planet.position[0] or self.position[0] > planet.position[0]:
+            if self.position[1] < planet.position[1] or self.position[1] > planet.position[1]:
+                self.arrived = False
+                self.move()
+        if self.arrived:
+            controller.players[playerId].currentPlanet = planet
+            if playerId == controller.playerId:
+                controller.view.changeBackground('PLANET')
+                controller.view.drawPlanetGround(planet)
+            self.flag = Flag (self.position, self.position, FlagState.STANDBY)
+        

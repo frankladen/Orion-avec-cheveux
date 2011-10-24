@@ -8,7 +8,7 @@ class FlagState():
     ATTACK=8
     GATHER=16
     BUILD=32
-    REPAIR=64
+    LAND=64
     RESEARCH=128
     DESTROY=256
 

@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 import Pyro4
 import socket
+import sys
 from time import time
 
 class ControleurServeur(object):
@@ -88,7 +89,7 @@ class ControleurServeur(object):
         if self.refreshes[playerId] - frameMin > 5:
             return (self.refreshes[playerId] - frameMin)*50
         return 50
-    
+
     def isEveryoneReady(self, playerId):
         self.readyPlayers[playerId]=True
         for i in self.readyPlayers:
@@ -122,19 +123,28 @@ class ControleurServeur(object):
         return n
           
 
-# le processus qui ecoute les messages des clients
-adresse=socket.gethostbyname(socket.getfqdn())
+if len(sys.argv) > 1:
+    adresse = sys.argv[1]
+    print("adresse: " + adresse)
+else:
+    adresse=socket.gethostbyname(socket.getfqdn())
 #adresse="5.146.234.35"
-daemon = Pyro4.core.Daemon(host=adresse,port=54440) 
-# un objet ControleurServeur() dont les methodes peuvent etre invoquees, 
-# connu sous le nom de controleurServeur
-daemon.register(ControleurServeur(), "controleurServeur")  
- 
-# juste pour voir quelque chose sur la console du serveur
-print("Serveur Pyro actif sous le nom \'controleurServeur\' avec l'adresse "+adresse)
-
-#on demarre l'ecoute des requetes
-daemon.requestLoop()
+try:
+    print("va réserver le port")
+    daemon = Pyro4.core.Daemon(host=adresse,port=54440) 
+    # un objet ControleurServeur() dont les methodes peuvent etre invoquees, 
+    # connu sous le nom de controleurServeur
+    print("va register le serveur")
+    daemon.register(ControleurServeur(), "ServeurOrion")  
+     
+    # juste pour voir quelque chose sur la console du serveur
+    print("Serveur Pyro actif sous le nom \'ServeurOrion\' avec l'adresse "+adresse)
+    print("va requester le loop")
+    #on demarre l'ecoute des requetes
+    daemon.requestLoop()
+except socket.error:
+    print("une erreur est survenue")
+    sys.exit(1)
 
 
         
