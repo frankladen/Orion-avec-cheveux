@@ -522,7 +522,7 @@ class View():
         elif (Button_pressed == "Button_Build"):
             self.actionMenuType = MenuType.MOTHERSHIP_BUILD_MENU
         elif (Button_pressed == "Button_Build_Scout"):
-            self.parent.addUnit(UnitType.SCOUT)
+            self.parent.addUnit('Scout')
             
         
     #Assignation des controles	

@@ -89,6 +89,7 @@ class Controller():
         
     #Pour ajouter une unit
     def addUnit(self, unit):
+        self.players[self.playerId].motherShip.UnitBeingConstruct.append(u.Unit(unit,[0,0,0],self.playerid))
         if unit == UnitType.SCOUT:
             self.pushChange(UnitType.SCOUT, 'addunit')
             
