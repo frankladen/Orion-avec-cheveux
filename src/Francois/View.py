@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 from tkinter import *
 from Unit import *
+from Constants import *
 import tkinter.messagebox as mb
 import subprocess
 
@@ -40,7 +41,7 @@ class View():
         self.gifAttack = PhotoImage(file='images\\icones\\icone1.gif')
         self.gifRallyPoint = PhotoImage(file='images\\icones\\icone2.gif')
         self.gifBuild = PhotoImage(file = 'images\\icones\\build.gif')
-        self.gifScout = PhotoImage(file = 'images\\iconesvhamburger.gif')
+        self.gifScout = PhotoImage(file = 'images\\icones\\hamburger.gif')
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
     
@@ -456,7 +457,8 @@ class View():
             elif canva == self.minimap:
                 self.parent.quickMove(x,y,canva)
         else:
-            self.parent.setMotherShipRallyPoint([x,y,0])
+            pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
+            self.parent.setMotherShipRallyPoint(pos)
             self.isSettingRallyPointPosition = False
             self.actionMenuType = MenuType.MAIN
             
@@ -519,8 +521,8 @@ class View():
             self.isSettingRallyPointPosition = True
         elif (Button_pressed == "Button_Build"):
             self.actionMenuType = MenuType.MOTHERSHIP_BUILD_MENU
-        elif (Button_pressed = "Button_Build_Scout"):
-            print("il reste du travail encore !")
+        elif (Button_pressed == "Button_Build_Scout"):
+            self.parent.addUnit(UnitType.SCOUT)
             
         
     #Assignation des controles	
@@ -545,9 +547,9 @@ class View():
         self.gameArea.bind("a",self.attack)
         self.gameArea.bind("A",self.attack)
         #Bindings des boutons de la souris
-        self.gameArea.bind("<Button-2>", self.rightclic)
-        self.gameArea.bind("<B2-Motion>", self.rightclic)
-        self.minimap.bind("<Button-2>", self.rightclic)
+        self.gameArea.bind("<Button-3>", self.rightclic)
+        self.gameArea.bind("<B3-Motion>", self.rightclic)
+        self.minimap.bind("<Button-3>", self.rightclic)
         self.gameArea.bind("<Button-1>", self.leftclic)
         self.minimap.bind("<B1-Motion>",self.leftclic)
         self.minimap.bind("<Button-1>",self.leftclic)
@@ -556,8 +558,5 @@ class View():
         self.entryMess.bind("<Return>",self.enter)
         self.Actionmenu.bind("<Button-1>", self.clickActionMenu)
         
-class MenuType():
-    MAIN=1
-    WAITING_FOR_RALLY_POINT=2
-    MOTHERSHIP_BUILD_MENU=4
+
 

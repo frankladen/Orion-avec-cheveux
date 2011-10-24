@@ -1,11 +1,11 @@
 # -*- coding: UTF-8 -*-
 import View as v
-from View import MenuType
 import World as w
 import Player as p
 import Target as t
 import Unit as u
 from Flag import *
+from Constants import *
 import Pyro4
 import socket
 import math
@@ -39,6 +39,16 @@ class Controller():
                 send = True
         if send:
             self.pushChange(units, Flag(i,t.Target([x,y,0]),FlagState.MOVE))
+            
+    def setDefaultMovingFlag(self,x,y, unit):
+        units = ''
+        send = False
+        #Si plusieurs unit�s sont s�lectionn�es, on les ajoute toutes dans le changement � envoyer
+
+        if isinstance(unit, u.SpaceAttackUnit):
+            unit.attackcount = unit.AttackSpeed               
+        units += str(self.players[self.playerId].units.index(unit)) + ","
+        self.pushChange(units, Flag(unit,t.Target([x,y,0]),FlagState.MOVE))
     
     #Pour changer le flag des unites selectionne pour l'arret
     def setStandbyFlag(self):
@@ -75,13 +85,12 @@ class Controller():
                 self.pushChange(units, Flag(i,attackedUnit,FlagState.ATTACK))
                 
     def setMotherShipRallyPoint(self, pos):
-        self.players[self.playerId].motherShip.rallyPoint = pos
-        print (self.players[self.playerId].motherShip.rallyPoint)
+        self.players[self.playerId].motherShip.flag.finalTarget.position = pos
         
     #Pour ajouter une unit
     def addUnit(self, unit):
-        if unit == "Scout":
-            self.pushChange('Scout', 'addunit')
+        if unit == UnitType.SCOUT:
+            self.pushChange(UnitType.SCOUT, 'addunit')
             
     #Trade entre joueurs
     def tradePlayers(self, items, playerId2, quantite):
@@ -153,7 +162,6 @@ class Controller():
                         self.players[self.playerId].selectedObjects = []
                         first = False
                     self.players[self.playerId].selectedObjects.append(i)
-        self.view.createActionMenu(MenuType.MAIN)
         
     #Deplacement rapide de la camera vers un endroit de la minimap
     def quickMove(self, x,y, canva):
@@ -299,7 +307,7 @@ class Controller():
             self.server.addChange(actionString)
         elif isinstance(flag, str):
             if flag == 'addunit':
-                actionString = str(self.playerId)+"/"+playerObject+"/"+flag+"/lolcasertarienceboutla"
+                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+flag+"/lolcasertarienceboutla"
             elif flag == 'deleteUnit':
                 actionString = str(self.playerId)+"/"+str(self.players[self.playerId].units.index(playerObject))+"/"+flag+"/klolyvamourirleunit"
             elif flag == 'deleteAllUnits':
@@ -349,8 +357,14 @@ class Controller():
         elif action == 'deleteAllUnits':
             self.players[actionPlayerId].units = []
         elif action == 'addunit':
-            if unitIndex == 'Scout':
-                self.players[actionPlayerId].units.append(u.Unit('Scout00'+str(len(self.players[actionPlayerId].units)),[50,100,0], moveSpeed=5.0))
+            print(unitIndex)
+
+            if int(unitIndex[0]) == UnitType.SCOUT:
+                m = self.players[actionPlayerId].motherShip
+                unit = u.Unit('Scout',[m.position[0],m.position[1],0],actionPlayerId, moveSpeed=MoveSpeed.SCOUT)
+                p = m.flag.finalTarget.position
+                self.players[actionPlayerId].units.append(unit)
+                self.setDefaultMovingFlag(p[0], p[1], unit)
         elif action == 'deleteUnit':
             self.killUnit((int(unitIndex[0]),actionPlayerId))
         elif unitIndex == 'g' or unitIndex == 'm':
@@ -363,3 +377,5 @@ class Controller():
 
 if __name__ == '__main__':
     c = Controller()
+    
+
