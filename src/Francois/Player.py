@@ -1,5 +1,6 @@
 import Unit as u
 from Flag import *
+from Constants import *
 import socket
 
 #Represente un joueur
@@ -14,14 +15,18 @@ class Player():
         self.gaz = 0
         self.mineral = 0
         self.motherShip = None
-
+    
+    def unitsConstructionProgress(self):
+        for i in self.unitBeingConstruct
+            
+    
     def addBaseUnits(self, startPos):
         self.units.append(u.Mothership('Mothership',startPos, self.id))
         self.motherShip = self.units[0]
         
-        self.units.append(u.Unit('Scout',[startPos[0] + 20, startPos[1] + 20 ,0], self.id, moveSpeed=4.0))
-        self.units.append(u.Unit('Scout',[startPos[0] - 20, startPos[1] - 20 ,0], self.id, moveSpeed=4.0))
-        self.units.append(u.SpaceAttackUnit('Attack',[startPos[0] + 30, startPos[1] - 30 ,0], self.id, moveSpeed=2.0, attackspeed=10.0,attackdamage=5.0,range=150.0))
+        self.units.append(u.Unit('Scout',[startPos[0] + 20, startPos[1] + 20 ,0], self.id, moveSpeed=MoveSpeed.SCOUT))
+        self.units.append(u.Unit('Scout',[startPos[0] - 20, startPos[1] - 20 ,0], self.id, moveSpeed=MoveSpeed.SCOUT))
+        self.units.append(u.SpaceAttackUnit('Attack',[startPos[0] + 30, startPos[1] - 30 ,0], self.id, moveSpeed=MoveSpeed.SPACE_ATTACK_UNIT, attackspeed=10.0,attackdamage=5.0,range=150.0))
 
     #Ajoute une camera au joueur seulement quand la partie commence    
     def addCamera(self, galaxy):

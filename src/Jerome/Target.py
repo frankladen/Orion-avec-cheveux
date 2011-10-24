@@ -12,6 +12,7 @@ class PlayerObject(Target):
         self.name = name
         self.flag = Flag(Target([0,0,0]), Target([0,0,0]), FlagState.STANDBY)
         self.owner = owner
+        self.maxHP=hitpoints
         self.hitpoints=hitpoints
         self.isAlive = True;
         if name == 'Scout':
