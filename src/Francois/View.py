@@ -6,6 +6,7 @@ import subprocess
 
 class View():              
     def __init__(self, parent):
+        self.Actionmenu = None
         self.parent = parent                  
         self.root=Tk()
         self.root.title("Orion")
@@ -19,14 +20,17 @@ class View():
         self.pLobby = None
         self.currentFrame = self.fLogin
         self.firstTime = True
+        self.isSettingRallyPointPosition = False
         self.gameFrame = None
         self.sun=PhotoImage(file='images\\Galaxy\\sun.gif')
         self.sunFOW = PhotoImage(file='images\\Galaxy\\sunFOW.gif')
         self.planet=PhotoImage(file='images\\Galaxy\\planet.gif')
         self.planetFOW = PhotoImage(file='images\\Galaxy\\planetFOW.gif')
-        self.nebula=PhotoImage(file='images\\Galaxy\\nebula.gif')
+        self.nebula=PhotoImage(file='images/Galaxy\\nebula.gif')
         self.nebulaFOW=PhotoImage(file='images\\Galaxy\\nebulaFOW.gif')
         self.explosion=PhotoImage(file='images\\explosion.gif')
+        self.actionMenuType = MenuType.MAIN
+
         self.attacking = False
         self.asteroid=PhotoImage(file='images\\Galaxy\\asteroid.gif')
         self.asteroidFOW=PhotoImage(file='images\\Galaxy\\asteroidFOW.gif')
@@ -34,7 +38,9 @@ class View():
         self.gifMove = PhotoImage(file='images\\icones\\move.gif')
         self.gifCancel = PhotoImage(file='images\\icones\\delete.gif')
         self.gifAttack = PhotoImage(file='images\\icones\\icone1.gif')
-        self.gifIcone2 = PhotoImage(file='images\\icones\\icone2.gif')
+        self.gifRallyPoint = PhotoImage(file='images\\icones\\icone2.gif')
+        self.gifBuild = PhotoImage(file = 'images\\icones\\build.gif')
+        self.gifScout = PhotoImage(file = 'images\\iconesvhamburger.gif')
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
     
@@ -59,6 +65,9 @@ class View():
         self.gameArea.grid(column=0,row=0, columnspan=5)#place(relx=0, rely=0,width=taille,height=taille)
         self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
         self.minimap.grid(column=0,row=1, rowspan=4)
+        self.Actionmenu = Canvas(gameFrame,width=200,height=200,background='black')
+        self.Actionmenu.grid(column=2,row=1, rowspan=4)
+        self.createActionMenu(MenuType.MAIN)
         self.drawWorld()
         self.chat = Label(gameFrame, anchor=W, justify=LEFT, width=75, background='black', fg='white', relief='raised')
         self.chat.grid(row=1, column=1)
@@ -72,23 +81,36 @@ class View():
         #stopSelectedUnits.grid(row=2,column=3)
         #deleteSelectedUnits = Button(gameFrame, text='Delete', command=self.parent.eraseUnit)
         #deleteSelectedUnits.grid(row=2,column=4)
-        self.Actionmenu = Canvas(gameFrame,width=200,height=200,background='black')
-        self.Actionmenu.grid(column=2,row=1, rowspan=4)
-        self.createActionMenu()
+
         self.assignControls()
         return gameFrame
 
      #** aghi 
-    def createActionMenu(self):
-        self.Actionmenu.delete(ALL)
-        units = self.parent.players[self.parent.playerId].selectedObjects
-        if len(units) > 0:
-            if isinstance(units[0], Unit):
-                self.Actionmenu.create_image(0,0,image=self.gifMove,anchor = NW)
-                self.Actionmenu.create_image(37,0,image=self.gifStop,anchor = NW)
-                if isinstance(units[0], SpaceAttackUnit):
-                    self.Actionmenu.create_image(74,0,image=self.gifAttack,anchor = NW)
+    def createActionMenu(self, type):
 
+        self.Actionmenu.delete(ALL)
+
+        if(type == MenuType.MAIN):
+            units = self.parent.players[self.parent.playerId].selectedObjects
+            if len(units) > 0:
+                if isinstance(units[0], Unit):
+                    
+                    self.Actionmenu.create_image(0,0,image=self.gifMove,anchor = NW, tags = 'Button_Move')
+                    self.Actionmenu.create_image(37,0,image=self.gifStop,anchor = NW, tags = 'Button_Stop')
+                    if isinstance(units[0], SpaceAttackUnit):
+                        self.Actionmenu.create_image(74,0,image=self.gifAttack,anchor = NW, tags = 'Button_Attack')
+                    if isinstance(units[0], Mothership):
+                        self.Actionmenu.create_image(74,0,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
+                        self.Actionmenu.create_image(111,0,image = self.gifBuild, anchor = NW, tags = 'Button_Build')
+        elif(type == MenuType.MOTHERSHIP_BUILD_MENU):
+            self.Actionmenu.create_image(74,0,image = self.gifScout, anchor = NW, tags = 'Button_Build_Scout')
+        elif(type == MenuType.WAITING_FOR_RALLY_POINT):
+            self.Actionmenu.create_text(0,0,text = "Cliquer a un endroit dans l'aire de jeu afin d'initialiser le point de ralliement du vaisseau mère.",anchor = NW, fill = 'white', width = 200)
+            #self.Actionmenu.create_text("Cliquer sur un endroit dans le jeu afin de mettre en place votre point de ralliement")
+                    
+    
+
+    
     #Frame pour le login    
     def fLogin(self):
         loginFrame = Frame(self.root, bg="black")
@@ -183,6 +205,7 @@ class View():
         if self.dragging:
             self.drawSelectionBox()
         self.drawMinimap()
+        self.createActionMenu(self.actionMenuType)
         
     #Pour dessiner un soleil     
     def drawSun(self, sunPosition, player, isInFOW):
@@ -420,15 +443,23 @@ class View():
     def leftclic(self, eve):
         x = eve.x
         y = eve.y
-        canva = eve.widget
-        if canva == self.gameArea:
-            if self.attacking:
-                pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
-                self.parent.setAttackFlag(pos[0],pos[1])
-            else:
-                self.parent.select(x,y,canva)
-        elif canva == self.minimap:
-            self.parent.quickMove(x,y,canva)
+        if(self.isSettingRallyPointPosition == False):
+            canva = eve.widget
+            if canva == self.gameArea:
+                self.actionMenuType = MenuType.MAIN
+
+                if self.attacking:
+                    pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
+                    self.parent.setAttackFlag(pos[0],pos[1])
+                else:
+                    self.parent.select(x,y,canva)
+            elif canva == self.minimap:
+                self.parent.quickMove(x,y,canva)
+        else:
+            self.parent.setMotherShipRallyPoint([x,y,0])
+            self.isSettingRallyPointPosition = False
+            self.actionMenuType = MenuType.MAIN
+            
 
     #Quand on fait un clic gauche et qu'on bouge
     def clicDrag(self,eve):
@@ -477,6 +508,21 @@ class View():
     def shiftRelease(self, eve):
         self.parent.multiSelect = False
 	
+    
+    def clickActionMenu(self,eve):
+        Button_pressed = (eve.widget.gettags(eve.widget.find_withtag('current')))[0]
+        print (Button_pressed)
+        if (Button_pressed == "Button_Stop"):
+            self.parent.setStandbyFlag()
+        elif (Button_pressed == "Button_RallyPoint"):
+            self.actionMenuType = MenuType.WAITING_FOR_RALLY_POINT
+            self.isSettingRallyPointPosition = True
+        elif (Button_pressed == "Button_Build"):
+            self.actionMenuType = MenuType.MOTHERSHIP_BUILD_MENU
+        elif (Button_pressed = "Button_Build_Scout"):
+            print("il reste du travail encore !")
+            
+        
     #Assignation des controles	
     def assignControls(self):
         self.gameArea.focus_set()
@@ -499,13 +545,19 @@ class View():
         self.gameArea.bind("a",self.attack)
         self.gameArea.bind("A",self.attack)
         #Bindings des boutons de la souris
-        self.gameArea.bind("<Button-3>", self.rightclic)
-        self.gameArea.bind("<B3-Motion>", self.rightclic)
-        self.minimap.bind("<Button-3>", self.rightclic)
+        self.gameArea.bind("<Button-2>", self.rightclic)
+        self.gameArea.bind("<B2-Motion>", self.rightclic)
+        self.minimap.bind("<Button-2>", self.rightclic)
         self.gameArea.bind("<Button-1>", self.leftclic)
         self.minimap.bind("<B1-Motion>",self.leftclic)
         self.minimap.bind("<Button-1>",self.leftclic)
         self.gameArea.bind("<B1-Motion>", self.clicDrag)
         self.gameArea.bind("<ButtonRelease-1>", self.endDrag)
         self.entryMess.bind("<Return>",self.enter)
+        self.Actionmenu.bind("<Button-1>", self.clickActionMenu)
+        
+class MenuType():
+    MAIN=1
+    WAITING_FOR_RALLY_POINT=2
+    MOTHERSHIP_BUILD_MENU=4
 

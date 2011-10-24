@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-
 import View as v
+from View import MenuType
 import World as w
 import Player as p
 import Target as t
@@ -72,6 +73,10 @@ class Controller():
                     units += str(self.players[self.playerId].units.index(i)) + ","
             if units != "":
                 self.pushChange(units, Flag(i,attackedUnit,FlagState.ATTACK))
+                
+    def setMotherShipRallyPoint(self, pos):
+        self.players[self.playerId].motherShip.rallyPoint = pos
+        print (self.players[self.playerId].motherShip.rallyPoint)
         
     #Pour ajouter une unit
     def addUnit(self, unit):
@@ -125,7 +130,7 @@ class Controller():
                             self.players[self.playerId].selectedObjects = []
                         if j not in self.players[self.playerId].selectedObjects:
                             self.players[self.playerId].selectedObjects.append(j)
-        self.view.createActionMenu()
+
         
     #Selection avec le clic-drag
     def boxSelect(self, selectStart, selectEnd):
@@ -148,7 +153,7 @@ class Controller():
                         self.players[self.playerId].selectedObjects = []
                         first = False
                     self.players[self.playerId].selectedObjects.append(i)
-        self.view.createActionMenu()
+        self.view.createActionMenu(MenuType.MAIN)
         
     #Deplacement rapide de la camera vers un endroit de la minimap
     def quickMove(self, x,y, canva):
@@ -190,6 +195,8 @@ class Controller():
                             killedIndex = i.attack(self.players)
                             if killedIndex[0] > -1:
                                 self.killUnit(killedIndex)
+                        #elif i.flag.flagState == FlagState.STANDBY:
+                            #i.flag = i.position
             self.refreshMessages()
             self.refresh+=1
             self.server.refreshPlayer(self.playerId, self.refresh)

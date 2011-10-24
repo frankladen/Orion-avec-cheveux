@@ -67,6 +67,7 @@ class GroundBuildUnit(GroundUnit):
 class Mothership(Unit):
     def __init__(self, name, position, owner):
         Unit.__init__(self, name, position, owner, foodcost=0, moveSpeed=0)
+        self.rallyPoint = position
         
 class SpaceAttackUnit(SpaceUnit):
     def __init__(self, name, position, owner, moveSpeed, attackspeed,attackdamage,range):
