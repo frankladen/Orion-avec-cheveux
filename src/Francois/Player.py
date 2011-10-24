@@ -15,7 +15,11 @@ class Player():
         self.gaz = 0
         self.mineral = 0
         self.motherShip = None
-
+    
+    def unitsConstructionProgress(self):
+        for i in self.unitBeingConstruct
+            
+    
     def addBaseUnits(self, startPos):
         self.units.append(u.Mothership('Mothership',startPos, self.id))
         self.motherShip = self.units[0]

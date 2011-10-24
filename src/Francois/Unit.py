@@ -69,6 +69,12 @@ class Mothership(Unit):
     def __init__(self, name, position, owner):
         Unit.__init__(self, name, position, owner, foodcost=0, moveSpeed=0)
         self.flag.finalTarget = t.Target(position)
+        self.unitBeingConstruct = []
+    
+    def progressUnitsConstruction(self):
+        
+        
+
         
 class SpaceAttackUnit(SpaceUnit):
     def __init__(self, name, position, owner, moveSpeed, attackspeed,attackdamage,range):

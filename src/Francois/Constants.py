@@ -6,6 +6,7 @@ class MenuType():
 class UnitType():
     SCOUT=1
     SPACE_ATTACK_UNIT=2
+    
 
 class FlagState():
     STANDBY=1
@@ -22,4 +23,13 @@ class MoveSpeed():
     SCOUT = 4.0
     SPACE_ATTACK_UNIT = 2.0
     MOTHERSHIP = 0.0
+
+class BuildTime():
+    SCOUT = 200
+    SPACE_ATTACK_UNIT = 400
+    
+class ViewRange():
+    SCOUT = 200
+    SPACE_ATTACK_UNIT = 150
+    MOTHERSHIP = 400
    
