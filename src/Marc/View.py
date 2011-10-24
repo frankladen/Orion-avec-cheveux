@@ -5,7 +5,6 @@ from Flag import *
 from Helper import *
 import tkinter.messagebox as mb
 import subprocess
-import time
 
 class View():              
     def __init__(self, parent):
@@ -166,8 +165,6 @@ class View():
         serverAddress= self.entryCreateServer.get()
         #Démarre le serveur dans un autre processus avec l'adresse spécifiée
         child = subprocess.Popen("C:\python32\python.exe server.py " + serverAddress, shell=True)
-        #On attend 2 secondes afin de s'assurer que si le serveur rencontre une erreur, il se termine
-        time.sleep(2)
         #On vérifie si le serveur s'est terminé en erreur et si oui, on affiche un message à l'utilisateur
         if child.poll():
             if child.returncode != None:

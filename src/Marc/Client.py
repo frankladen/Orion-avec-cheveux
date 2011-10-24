@@ -9,6 +9,7 @@ import Pyro4
 import socket
 import math
 from time import time
+from pygame import mixer
 
 class Controller():
     def __init__(self):
@@ -135,6 +136,10 @@ class Controller():
                                 self.players[self.playerId].selectedObjects = []
                             if j not in self.players[self.playerId].selectedObjects:
                                 self.players[self.playerId].selectedObjects.append(j)
+                                if isinstance(j,u.Mothership):
+                                    mixer.init(44100)
+                                    d1 = mixer.Sound("waka.wav")
+                                    d1.play()
         self.view.createActionMenu()
     def selectAll(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
