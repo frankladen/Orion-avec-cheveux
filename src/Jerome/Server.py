@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 import Pyro4
 import socket
+import sys
 from time import time
 
 class ControleurServeur(object):
@@ -11,7 +12,8 @@ class ControleurServeur(object):
         self.isStopped = True
         self.seed = int(time())
         self.mess = ['Système de chat de Orion']
-        self.changeList = [] 
+        self.changeList = []
+        self.readyPlayers = []
     
     def getSeed(self):
         return self.seed;
@@ -33,6 +35,7 @@ class ControleurServeur(object):
         for i in range(0, self.getNumberOfPlayers()):
             self.changeList.append([])
             self.refreshes.append(0)
+            self.readyPlayers.append(False)
     
     def removePlayer(self, ip, login, playerId):
         self.sockets[playerId][2] = True
@@ -42,6 +45,7 @@ class ControleurServeur(object):
             self.refreshes = []
             self.changeList = []
             self.sockets = []
+            self.readyPlayers = []
             self.mess = ['Système de chat de Orion']
     
     def addMessage(self, text, name):
@@ -85,6 +89,13 @@ class ControleurServeur(object):
         if self.refreshes[playerId] - frameMin > 5:
             return (self.refreshes[playerId] - frameMin)*50
         return 50
+    
+    def isEveryoneReady(self, playerId):
+        self.readyPlayers[playerId]=True
+        for i in self.readyPlayers:
+            if i==False:
+                return False
+        return True
                 
     def getNumberOfPlayers(self):
         return len(self.sockets)
@@ -112,18 +123,28 @@ class ControleurServeur(object):
         return n
           
 
-# le processus qui ecoute les messages des clients
-adresse=socket.gethostbyname(socket.getfqdn())
-daemon = Pyro4.core.Daemon(host=adresse,port=54440) 
-# un objet ControleurServeur() dont les methodes peuvent etre invoquees, 
-# connu sous le nom de controleurServeur
-daemon.register(ControleurServeur(), "controleurServeur")  
- 
-# juste pour voir quelque chose sur la console du serveur
-print("Serveur Pyro actif sous le nom \'controleurServeur\' avec l'adresse "+adresse)
-
-#on demarre l'ecoute des requetes
-daemon.requestLoop()
+if len(sys.argv) > 1:
+    adresse = sys.argv[1]
+    print("adresse: " + adresse)
+else:
+    adresse=socket.gethostbyname(socket.getfqdn())
+#adresse="5.146.234.35"
+try:
+    print("va réserver le port")
+    daemon = Pyro4.core.Daemon(host=adresse,port=54440) 
+    # un objet ControleurServeur() dont les methodes peuvent etre invoquees, 
+    # connu sous le nom de controleurServeur
+    print("va register le serveur")
+    daemon.register(ControleurServeur(), "ServeurOrion")  
+     
+    # juste pour voir quelque chose sur la console du serveur
+    print("Serveur Pyro actif sous le nom \'ServeurOrion\' avec l'adresse "+adresse)
+    print("va requester le loop")
+    #on demarre l'ecoute des requetes
+    daemon.requestLoop()
+except socket.error:
+    print("une erreur est survenue")
+    sys.exit(1)
 
 
         
