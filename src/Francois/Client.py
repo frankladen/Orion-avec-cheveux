@@ -89,9 +89,8 @@ class Controller():
         
     #Pour ajouter une unit
     def addUnit(self, unit):
-        self.players[self.playerId].motherShip.UnitBeingConstruct.append(u.Unit(unit,[0,0,0],self.playerid))
-        if unit == UnitType.SCOUT:
-            self.pushChange(UnitType.SCOUT, 'addunit')
+        self.players[self.playerId].motherShip.unitBeingConstruct.append(u.Unit(unit,[0,0,0],self.playerId))
+
             
     #Trade entre joueurs
     def tradePlayers(self, items, playerId2, quantite):
@@ -193,7 +192,14 @@ class Controller():
             if self.playerId != 0:
                 self.view.showGameIsFinished()
                 self.view.root.destroy()
+                
         elif self.view.currentFrame != self.view.pLobby:
+            self.players[self.playerId].motherShip.progressUnitsConstruction()
+            if self.players[self.playerId].motherShip.isUnitFinished():
+                print('alloooo')
+                self.pushChange(self.players[self.playerId].motherShip.unitBeingConstruct.pop(0).name, 'addunit')
+            
+            
             self.players[self.playerId].camera.move()
             for p in self.players:
                 for i in p.units:
@@ -220,7 +226,6 @@ class Controller():
                 waitTime=1000
                 self.view.pLobby = self.view.fLobby()
                 self.view.changeFrame(self.view.pLobby)
-
         self.view.root.after(waitTime, self.action)
         
     def killUnit(self, killedIndexes):
@@ -257,22 +262,24 @@ class Controller():
 	#Connection au serveur			
     def connectServer(self, login, serverIP):
         self.server=Pyro4.core.Proxy("PYRO:controleurServeur@"+serverIP+":54440")
-        try:
+        #try:
             #Je demande au serveur si la partie est démarrée, si oui on le refuse de la partie, cela permet de vérifier
             #en même temps si le serveur existe réellement à cette adresse.
-            if self.server.isGameStarted() == True:
-                self.view.gameHasBeenStarted()
-                self.view.changeFrame(self.view.fLogin)
-            else:
-                #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
-                self.playerId=self.server.getNumSocket(login, self.playerIp)
-                #Je vais au lobby, si la connection a fonctionner
-                self.view.pLobby = self.view.fLobby()
-                self.view.changeFrame(self.view.pLobby)
-                self.action()
-        except:
-            self.view.loginFailed()
+        if self.server.isGameStarted() == True:
+            self.view.gameHasBeenStarted()
             self.view.changeFrame(self.view.fLogin)
+        else:
+            #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
+            self.playerId=self.server.getNumSocket(login, self.playerIp)
+            #Je vais au lobby, si la connection a fonctionner
+            self.view.pLobby = self.view.fLobby()
+            self.view.changeFrame(self.view.pLobby)
+            print('alllo')
+            self.action()
+        #except :
+            
+#            self.view.loginFailed()
+#            self.view.changeFrame(self.view.fLogin)
             
     #Enleve le joueur courant de la partie ainsi que ses units
     def removePlayer(self):
@@ -307,7 +314,7 @@ class Controller():
                 actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/U"+str(targetId)+"P"+str(flag.finalTarget.owner)
             self.server.addChange(actionString)
         elif isinstance(flag, str):
-            if flag == 'addunit':
+            if flag == 'addunit' and playerObject != 0:
                 actionString = str(self.playerId)+"/"+str(playerObject)+"/"+flag+"/lolcasertarienceboutla"
             elif flag == 'deleteUnit':
                 actionString = str(self.playerId)+"/"+str(self.players[self.playerId].units.index(playerObject))+"/"+flag+"/klolyvamourirleunit"
@@ -358,11 +365,11 @@ class Controller():
         elif action == 'deleteAllUnits':
             self.players[actionPlayerId].units = []
         elif action == 'addunit':
-            print(unitIndex)
 
             if int(unitIndex[0]) == UnitType.SCOUT:
+
                 m = self.players[actionPlayerId].motherShip
-                unit = u.Unit('Scout',[m.position[0],m.position[1],0],actionPlayerId, moveSpeed=MoveSpeed.SCOUT)
+                unit = u.Unit(UnitType.SCOUT,[m.position[0],m.position[1],0],actionPlayerId, moveSpeed=MoveSpeed.SCOUT)
                 p = m.flag.finalTarget.position
                 self.players[actionPlayerId].units.append(unit)
                 self.setDefaultMovingFlag(p[0], p[1], unit)

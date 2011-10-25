@@ -76,7 +76,7 @@ class View():
         self.entryMess.grid(row=2, column=1)
         #send = Button(gameFrame, text='Send', command=lambda:self.enter(0))
         #send.grid(row=2, column=2)
-        #createScout = Button(gameFrame, text='Create Scout', command=lambda:self.parent.addUnit('Scout'))
+        #createScout = Button(gameFrame, text='Create Scout', command=lambda:self.parent.addUnit(UnitType.SCOUT))
         #createScout.grid(row=1,column=3)
         #stopSelectedUnits = Button(gameFrame, text='Stop', command=self.parent.setStandbyFlag)
         #stopSelectedUnits.grid(row=2,column=3)
@@ -200,7 +200,7 @@ class View():
             for j in i.units:
                 if j.isAlive:
                     if self.parent.players[self.parent.playerId].inViewRange(j.position):
-                        if j.name == 'Mothership':
+                        if j.name == UnitType.MOTHERSHIP:
                             j.discovered = True
                         self.drawUnit(j, i, False)
         if self.dragging:
@@ -268,18 +268,18 @@ class View():
         if self.parent.players[self.parent.playerId].camera.isInFOV(unitPosition):
             distance = self.parent.players[self.parent.playerId].camera.calcDistance(unitPosition)
             if not isInFOW:
-                if unit.name.find('Scout') != -1:
+                if unit.name == UnitType.SCOUT:
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-8,distance[1]-8,distance[0]+8,distance[1]+8, outline="green")
                     self.gameArea.create_image(distance[0]+1, distance[1], image=self.scoutShips[player.id])#On prend l'image dependamment du joueur que nous sommes
-                if unit.name.find('Attack') != -1:
+                if unit.name == UnitType.SPACE_ATTACK_UNIT != -1:
                     if unit.attackcount <= 5:
                         d2 = self.parent.players[self.parent.playerId].camera.calcDistance(unit.flag.finalTarget.position)
                         self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow")
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-13,distance[1]-13,distance[0]+13,distance[1]+13, outline="green")
                     self.gameArea.create_image(distance[0]+1, distance[1], image=self.attackShips[player.id])#On prend l'image dependamment du joueur que nous sommes
-                elif unit.name == 'Mothership':
+                elif unit.name == UnitType.MOTHERSHIP:
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-25,distance[1]-25,distance[0]+25,distance[1]+25, outline="green")
                     self.gameArea.create_image(distance[0]+1, distance[1], image = self.motherShips[player.id])
@@ -522,7 +522,7 @@ class View():
         elif (Button_pressed == "Button_Build"):
             self.actionMenuType = MenuType.MOTHERSHIP_BUILD_MENU
         elif (Button_pressed == "Button_Build_Scout"):
-            self.parent.addUnit('Scout')
+            self.parent.addUnit(UnitType.SCOUT)
             
         
     #Assignation des controles	
