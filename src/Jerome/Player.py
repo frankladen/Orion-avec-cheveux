@@ -1,4 +1,3 @@
-# -*- coding: UTF-8 -*-
 import Unit as u
 from Flag import *
 import socket
@@ -13,8 +12,9 @@ class Player():
         self.id = id #Numero du joueur dans la liste de joueur
         self.startPos = [0,0,0] #Position de depart du joueur (pour le mothership)
         self.formation="carre"
-        self.gaz = 0
-        self.mineral = 0
+        self.currentPlanet = None
+        self.gaz = 100
+        self.mineral = 100
 
     def addBaseUnits(self, startPos):
         self.units.append(u.Mothership('Mothership',startPos, self.id))
@@ -24,6 +24,7 @@ class Player():
         self.units.append(u.Unit('Scout',[startPos[0] - 20, startPos[1] - 20 ,0], self.id, moveSpeed=4.0))
         self.units.append(u.Unit('Scout',[startPos[0] + 20, startPos[1] + 20 ,0], self.id, moveSpeed=4.0))
         self.units.append(u.Unit('Scout',[startPos[0] - 20, startPos[1] - 20 ,0], self.id, moveSpeed=4.0))
+        self.units.append(u.TransportShip('Transport', [startPos[0], startPos[1] + 30,0], self.id, moveSpeed=3.0))
         self.units.append(u.SpaceAttackUnit('Attack',[startPos[0] + 30, startPos[1] - 30 ,0], self.id, moveSpeed=2.0, attackspeed=10.0,attackdamage=5.0,range=150.0))
 
     #Ajoute une camera au joueur seulement quand la partie commence    
@@ -55,6 +56,7 @@ class Player():
 #Represente la camera            
 class Camera():
     def __init__(self, defaultPos, galaxy, taille):
+        self.defaultPos = defaultPos
         self.position = defaultPos
         self.screenCenter = (taille/2,(taille/2)-100)
         self.screenWidth = taille
@@ -107,15 +109,15 @@ class Camera():
     def move(self):
         if 'LEFT' in self.movingDirection:
             if self.position[0] > (self.galaxy.width*-1)/2+self.screenCenter[0]:
-                self.position[0]-=5
+                self.position[0]-=10
         elif 'RIGHT' in self.movingDirection:
             if self.position[0] < self.galaxy.width/2 - self.screenCenter[0]:
-                self.position[0]+=5
+                self.position[0]+=10
         if 'UP' in self.movingDirection:
             if self.position[1] > (self.galaxy.height*-1)/2 + self.screenCenter[1]:
-                self.position[1]-=5
+                self.position[1]-=10
         elif 'DOWN' in self.movingDirection:
             if self.position[1] < self.galaxy.height/2 - self.screenCenter[1]:
-                self.position[1]+=5
+                self.position[1]+=10
 
 
