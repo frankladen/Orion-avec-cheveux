@@ -89,7 +89,7 @@ class ControleurServeur(object):
         if self.refreshes[playerId] - frameMin > 5:
             return (self.refreshes[playerId] - frameMin)*50
         return 50
-    
+
     def isEveryoneReady(self, playerId):
         self.readyPlayers[playerId]=True
         for i in self.readyPlayers:

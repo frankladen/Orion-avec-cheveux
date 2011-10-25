@@ -354,7 +354,7 @@ class View():
                         self.gameArea.create_oval(distance[0]-18,distance[1]-18,distance[0]+18,distance[1]+18, outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0]+1, distance[1], image = self.trasportShips[player.id], tag='deletable')
                 if unit.hitpoints <= 5:
-                    self.gameArea.create_image(distance[0]+1, distance[1], image=self.explosion)
+                    self.gameArea.create_image(distance[0]+1, distance[1], image=self.explosion, tag='deletable')
                 if self.hpBars:
                     self.drawHPBars(distance, unit)
                 else:
