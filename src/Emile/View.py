@@ -49,6 +49,8 @@ class View():
         self.gifIcone2 = PhotoImage(file='images\\icones\\icone2.gif')
         self.planetBackground = PhotoImage(file='images\\Planet\\background.gif')
         self.galaxyBackground = PhotoImage(file='images\\Galaxy\\night-sky.gif')
+        self.landingZone = PhotoImage(file='images\\Planet\\landing.gif')
+        self.landedShip = PhotoImage(file='images\\Planet\\landed0.gif')
         self.attacking = False
         self.selectAllUnits = False
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
@@ -192,6 +194,9 @@ class View():
             self.gameArea.create_image(i.position[0], i.position[1], image=self.mineral, tag='deletable')
         for i in planet.gaz:
             self.gameArea.create_oval(i.position[0]-12, i.position[1]-12, i.position[0]+12, i.position[1]+12, fill='green', tag='deletable')
+        for i in planet.landingZones:
+            self.gameArea.create_image(i.position[0], i.position[1], image=self.landingZone, tag='deleteable')
+            self.gameArea.create_image(i.position[0], i.position[1], image=self.landedShip, tag='deleteable')
 
     def changeBackground(self, type):
         self.gameArea.delete('background')

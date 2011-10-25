@@ -111,7 +111,15 @@ class TransportShip(SpaceUnit):
                 self.arrived = False
                 self.move()
         if self.arrived:
-            controller.players[playerId].currentPlanet = planet
+            player = controller.players[playerId]
+            player.currentPlanet = planet
+            alreadyLanded = False
+            for i in planet.landingZones:
+                if i.ownerId == playerId:
+                    alreadyLanded = True
+            if not alreadyLanded:
+                planet.addLandingZone(playerId, self)
+            #player.units.remove(player.units.index(self))
             if playerId == controller.playerId:
                 controller.view.changeBackground('PLANET')
                 controller.view.drawPlanetGround(planet)
