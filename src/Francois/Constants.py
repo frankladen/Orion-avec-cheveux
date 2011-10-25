@@ -6,6 +6,7 @@ class MenuType():
 class UnitType():
     SCOUT=1
     SPACE_ATTACK_UNIT=2
+    MOTHERSHIP = 3
     
 
 class FlagState():

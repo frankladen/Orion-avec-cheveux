@@ -14,7 +14,7 @@ class PlayerObject(Target):
         self.owner = owner
         self.hitpoints=hitpoints
         self.isAlive = True;
-        if name == 'Scout':
+        if name == UnitType.SCOUT:
             self.viewRange = ViewRange.SCOUT
             self.buildTime = BuildTime.SCOUT
         elif name == 'Mothership':

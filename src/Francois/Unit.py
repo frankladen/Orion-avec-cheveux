@@ -72,6 +72,14 @@ class Mothership(Unit):
         self.unitBeingConstruct = []
     
     def progressUnitsConstruction(self):
+        if len(self.unitBeingConstruct) > 0:
+            self.unitBeingConstruct[0].buildTime = self.unitBeingConstruct[0].buildTime - 1
+
+    def isUnitFinished(self):
+        if len(self.unitBeingConstruct) > 0:
+            return self.unitBeingConstruct[0].buildTime <= 0
+
+            
         
         
 

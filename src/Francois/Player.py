@@ -16,23 +16,22 @@ class Player():
         self.mineral = 0
         self.motherShip = None
     
-    def unitsConstructionProgress(self):
-        for i in self.unitBeingConstruct
+
             
     
     def addBaseUnits(self, startPos):
-        self.units.append(u.Mothership('Mothership',startPos, self.id))
+        self.units.append(u.Mothership(UnitType.MOTHERSHIP,startPos, self.id))
         self.motherShip = self.units[0]
         
-        self.units.append(u.Unit('Scout',[startPos[0] + 20, startPos[1] + 20 ,0], self.id, moveSpeed=MoveSpeed.SCOUT))
-        self.units.append(u.Unit('Scout',[startPos[0] - 20, startPos[1] - 20 ,0], self.id, moveSpeed=MoveSpeed.SCOUT))
-        self.units.append(u.SpaceAttackUnit('Attack',[startPos[0] + 30, startPos[1] - 30 ,0], self.id, moveSpeed=MoveSpeed.SPACE_ATTACK_UNIT, attackspeed=10.0,attackdamage=5.0,range=150.0))
+        self.units.append(u.Unit(UnitType.SCOUT,[startPos[0] + 20, startPos[1] + 20 ,0], self.id, moveSpeed=MoveSpeed.SCOUT))
+        self.units.append(u.Unit(UnitType.SCOUT,[startPos[0] - 20, startPos[1] - 20 ,0], self.id, moveSpeed=MoveSpeed.SCOUT))
+        self.units.append(u.SpaceAttackUnit(UnitType.SPACE_ATTACK_UNIT,[startPos[0] + 30, startPos[1] - 30 ,0], self.id, moveSpeed=MoveSpeed.SPACE_ATTACK_UNIT, attackspeed=10.0,attackdamage=5.0,range=150.0))
 
     #Ajoute une camera au joueur seulement quand la partie commence    
     def addCamera(self, galaxy):
         pos = [0,0,0]
         for i in self.units:
-            if i.name == 'Mothership':
+            if i.name == UnitType.MOTHERSHIP:
                 pos = i.position
         default = [pos[0],pos[1]]
         self.camera = Camera(default,galaxy)
