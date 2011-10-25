@@ -100,6 +100,7 @@ class SpaceAttackUnit(SpaceUnit):
 class TransportShip(SpaceUnit):
     def __init__(self, name, position, owner, moveSpeed):
         SpaceUnit.__init__(self, name, position, owner, moveSpeed)
+        self.landed = False
         self.capacity = 10
         self.units = []
 
@@ -119,7 +120,9 @@ class TransportShip(SpaceUnit):
                     alreadyLanded = True
             if not alreadyLanded:
                 planet.addLandingZone(playerId, self)
-            #player.units.remove(player.units.index(self))
+                self.landed = True
+                if self in controller.players[controller.playerId].selectedObjects:
+                    controller.players[controller.playerId].selectedObjects.pop(controller.players[controller.playerId].selectedObjects.index(self))
             if playerId == controller.playerId:
                 controller.view.changeBackground('PLANET')
                 controller.view.drawPlanetGround(planet)

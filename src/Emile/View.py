@@ -333,9 +333,10 @@ class View():
                         self.gameArea.create_oval(distance[0]-65,distance[1]-65,distance[0]+65,distance[1]+65, outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0]+1, distance[1], image = self.motherShips[player.id], tag='deletable')
                 elif unit.name == 'Transport':
-                    if unit in player.selectedObjects:
-                        self.gameArea.create_oval(distance[0]-18,distance[1]-18,distance[0]+18,distance[1]+18, outline="green", tag='deletable')
-                    self.gameArea.create_image(distance[0]+1, distance[1], image = self.trasportShips[player.id], tag='deletable')
+                    if not unit.landed:
+                        if unit in player.selectedObjects:
+                            self.gameArea.create_oval(distance[0]-18,distance[1]-18,distance[0]+18,distance[1]+18, outline="green", tag='deletable')
+                        self.gameArea.create_image(distance[0]+1, distance[1], image = self.trasportShips[player.id], tag='deletable')
                 if unit.hitpoints <= 5:
                     self.gameArea.create_image(distance[0]+1, distance[1], image=self.explosion)
                 if self.hpBars:
@@ -347,18 +348,35 @@ class View():
         posSelected=self.parent.players[self.parent.playerId].camera.calcPointInWorld(self.positionMouse[0],self.positionMouse[1])
         if unit.position[0] >= posSelected[0]-8 and unit.position[0] <= posSelected[0]+8:
             if unit.position[1] >= posSelected[1]-8 and unit.position[1] <= posSelected[1]+8:
+                if unit.name == 'Transport':
+                    if not unit.landed:
+                        hpLeft=((unit.hitpoints/unit.maxHP)*30)-15
+                        hpLost=(hpLeft+(((unit.maxHP-unit.hitpoints)/unit.maxHP)*30))
+                        self.gameArea.create_rectangle(distance[0]-15,distance[1]-11,distance[0]+hpLeft,distance[1]-11, outline="green", tag='deletable')
+                        if int(unit.hitpoints) != int(unit.maxHP):
+                            self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-11,distance[0]+hpLost,distance[1]-11, outline="red", tag='deletable')
+                else:
+                    hpLeft=((unit.hitpoints/unit.maxHP)*30)-15
+                    hpLost=(hpLeft+(((unit.maxHP-unit.hitpoints)/unit.maxHP)*30))
+                    self.gameArea.create_rectangle(distance[0]-15,distance[1]-11,distance[0]+hpLeft,distance[1]-11, outline="green", tag='deletable')
+                    if int(unit.hitpoints) != int(unit.maxHP):
+                        self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-11,distance[0]+hpLost,distance[1]-11, outline="red", tag='deletable')
+    
+    def drawHPBars(self, distance, unit):
+        if unit.name == 'Transport':
+            if not unit.landed:
                 hpLeft=((unit.hitpoints/unit.maxHP)*30)-15
                 hpLost=(hpLeft+(((unit.maxHP-unit.hitpoints)/unit.maxHP)*30))
                 self.gameArea.create_rectangle(distance[0]-15,distance[1]-11,distance[0]+hpLeft,distance[1]-11, outline="green", tag='deletable')
                 if int(unit.hitpoints) != int(unit.maxHP):
                     self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-11,distance[0]+hpLost,distance[1]-11, outline="red", tag='deletable')
-    
-    def drawHPBars(self, distance, unit):
-        hpLeft=((unit.hitpoints/unit.maxHP)*30)-15
-        hpLost=(hpLeft+(((unit.maxHP-unit.hitpoints)/unit.maxHP)*30))
-        self.gameArea.create_rectangle(distance[0]-15,distance[1]-11,distance[0]+hpLeft,distance[1]-11, outline="green", tag='deletable')
-        if int(unit.hitpoints) != int(unit.maxHP):
-            self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-11,distance[0]+hpLost,distance[1]-11, outline="red", tag='deletable')
+        else:
+            hpLeft=((unit.hitpoints/unit.maxHP)*30)-15
+            hpLost=(hpLeft+(((unit.maxHP-unit.hitpoints)/unit.maxHP)*30))
+            self.gameArea.create_rectangle(distance[0]-15,distance[1]-11,distance[0]+hpLeft,distance[1]-11, outline="green", tag='deletable')
+            if int(unit.hitpoints) != int(unit.maxHP):
+                self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-11,distance[0]+hpLost,distance[1]-11, outline="red", tag='deletable')
+
        
                     
     #Dessine la minimap
@@ -448,7 +466,11 @@ class View():
         planetY = (unit.position[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
         if unit.name != "Mothership":
             if unit in self.parent.players[self.parent.playerId].units:
-                self.minimap.create_polygon((unitX-2, planetY+2, unitX, planetY-2, unitX+2, planetY+2),fill='GREEN', tag='deletable')
+                if unit.name == 'Transport':
+                    if not unit.landed:
+                        self.minimap.create_polygon((unitX-2, planetY+2, unitX, planetY-2, unitX+2, planetY+2),fill='GREEN', tag='deletable')
+                else:
+                    self.minimap.create_polygon((unitX-2, planetY+2, unitX, planetY-2, unitX+2, planetY+2),fill='GREEN', tag='deletable')
             else:
                 self.minimap.create_polygon((unitX-2, planetY+2, unitX, planetY-2, unitX+2, planetY+2),fill='RED', tag='deletable')
         else:

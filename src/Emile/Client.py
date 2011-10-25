@@ -106,6 +106,19 @@ class Controller():
 
     def select(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
+            #Si on selectionne une unit dans l'espace             
+            for j in self.players[self.playerId].units:
+                if j.isAlive:
+                    if j.position[0] >= posSelected[0]-8 and j.position[0] <= posSelected[0]+8:
+                        if j.position[1] >= posSelected[1]-8 and j.position[1] <= posSelected[1]+8: 
+                            if self.multiSelect == False:
+                                self.players[self.playerId].selectedObjects = []
+                            if j not in self.players[self.playerId].selectedObjects:
+                                if j.name == 'Transport':
+                                    if not j.landed:
+                                        self.players[self.playerId].selectedObjects.append(j)
+                                else:
+                                    self.players[self.playerId].selectedObjects.append(j)
             #Si on selectionne une planete
             for i in self.galaxy.solarSystemList:
                 for j in i.planets:
@@ -126,15 +139,6 @@ class Controller():
                             if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
                                 self.players[self.playerId].selectedObjects = []
                                 self.players[self.playerId].selectedObjects.append(j)
-            #Si on selectionne une unit dans l'espace             
-            for j in self.players[self.playerId].units:
-                if j.isAlive:
-                    if j.position[0] >= posSelected[0]-8 and j.position[0] <= posSelected[0]+8:
-                        if j.position[1] >= posSelected[1]-8 and j.position[1] <= posSelected[1]+8: 
-                            if self.multiSelect == False:
-                                self.players[self.playerId].selectedObjects = []
-                            if j not in self.players[self.playerId].selectedObjects:
-                                self.players[self.playerId].selectedObjects.append(j)
         self.view.createActionMenu()
     def selectAll(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
@@ -143,7 +147,11 @@ class Controller():
                     if j.position[0] >= posSelected[0]-8 and j.position[0] <= posSelected[0]+8:
                         if j.position[1] >= posSelected[1]-8 and j.position[1] <= posSelected[1]+8:
                             self.players[self.playerId].selectedObjects = []
-                            self.players[self.playerId].selectedObjects.append(j)
+                            if j.name == 'Transport':
+                                if not j.landed:
+                                    self.players[self.playerId].selectedObjects.append(j)
+                                else:
+                                    self.players[self.playerId].selectedObjects.append(j)
                             break
             cam = self.players[self.playerId].camera
             for j in self.players[self.playerId].units:
@@ -151,7 +159,11 @@ class Controller():
                     if j.position[1] > cam.position[1]-cam.screenHeight/2 and j.position[1] < cam.position[1]+cam.screenHeight/2:
                         if j.name == self.players[self.playerId].selectedObjects[0].name:
                             if j != self.players[self.playerId].selectedObjects[0]:
-                                self.players[self.playerId].selectedObjects.append(j)
+                                if j.name == 'Transport':
+                                    if not j.landed:
+                                        self.players[self.playerId].selectedObjects.append(j)
+                                else:
+                                    self.players[self.playerId].selectedObjects.append(j)
 
     #===========================================================================
     # def rightClick(self, x, y):
@@ -212,20 +224,21 @@ class Controller():
                 for j in i.planets:
                     if pos[0] > j.position[0]-8 and pos[0] < j.position[0]+8:
                         if pos[1] > j.position[1]-8 and pos[1] < j.position[1]+8:
-                            if len(self.players[self.playerId].selectedObjects) == 1:
+                            if len(self.players[self.playerId].selectedObjects) > 0:
                                 if self.players[self.playerId].selectedObjects[0].name == 'Transport':
                                     self.setLandingFlag(self.players[self.playerId].selectedObjects[0], j)
                                     empty = False
             if empty:
-                if isinstance(self.players[self.playerId].selectedObjects[0], u.SpaceAttackUnit):
-                    for i in self.players:
-                        if i != self.players[self.playerId]:
-                            for j in i.units:
-                                if j.isAlive:
-                                    if j.position[0] >= pos[0]-8 and j.position[0] <= pos[0]+8:
-                                        if j.position[1] >= pos[1]-8 and j.position[1] <= pos[1]+8: 
-                                            self.setAttackFlag(j)
-                                            empty = False
+                if len(self.players[self.playerId].selectedObjects) > 0:
+                    if isinstance(self.players[self.playerId].selectedObjects[0], u.SpaceAttackUnit):
+                        for i in self.players:
+                            if i != self.players[self.playerId]:
+                                for j in i.units:
+                                    if j.isAlive:
+                                        if j.position[0] >= pos[0]-8 and j.position[0] <= pos[0]+8:
+                                            if j.position[1] >= pos[1]-8 and j.position[1] <= pos[1]+8: 
+                                                self.setAttackFlag(j)
+                                                empty = False
             if empty:
                 self.setMovingFlag(pos[0],pos[1])
             self.view.drawWorld()
@@ -252,7 +265,11 @@ class Controller():
                             self.players[self.playerId].selectedObjects = []
                             first = False
                         if isinstance(i, u.Mothership) == False:
-                            self.players[self.playerId].selectedObjects.append(i)
+                            if i.name == 'Transport':
+                                if not i.landed:
+                                    self.players[self.playerId].selectedObjects.append(i)
+                            else:
+                                self.players[self.playerId].selectedObjects.append(i)
         self.view.createActionMenu()
         
     #Deplacement rapide de la camera vers un endroit de la minimap
