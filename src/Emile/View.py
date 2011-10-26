@@ -50,7 +50,6 @@ class View():
         self.planetBackground = PhotoImage(file='images/Planet/background.gif')
         self.galaxyBackground = PhotoImage(file='images/Galaxy/night-sky.gif')
         self.landingZone = PhotoImage(file='images/Planet/landing.gif')
-        self.landedShip = PhotoImage(file='images/Planet/landed0.gif')
         self.gifStop = PhotoImage(file='images/icones/stop.gif')
         self.gifMove = PhotoImage(file='images/icones/move.gif')
         self.gifCancel = PhotoImage(file='images/icones/delete.gif')
@@ -74,11 +73,13 @@ class View():
         self.attackShips = []
         self.motherShips = []
         self.trasportShips = []
+        self.landedShips = []
         for i in range(0,8):
             self.scoutShips.append(PhotoImage(file='images/Ships/Scoutships/Scoutship'+str(i)+'.gif'))
             self.attackShips.append(PhotoImage(file='images/Ships/Attackships/Attackship'+str(i)+'.gif'))
             self.motherShips.append(PhotoImage(file='images/Ships/Motherships/Mothership'+str(i)+'.gif'))
             self.trasportShips.append(PhotoImage(file='images/Ships/Transport/Transport'+str(i)+'.gif'))
+            self.landedShips.append(PhotoImage(file='images/Planet/LandedShips/landed'+str(i)+'.gif'))
         Label(gameFrame, text="Mineraux: ", bg="black", fg="white", width=10, anchor=E).grid(column=0, row=0)
         self.showMinerals=Label(gameFrame, text=self.parent.players[self.parent.playerId].mineral, fg="white", bg="black", anchor=W)
         self.showMinerals.grid(column=1,row=0)
@@ -237,7 +238,7 @@ class View():
             self.gameArea.create_oval(i.position[0]-12, i.position[1]-12, i.position[0]+12, i.position[1]+12, fill='green', tag='deletable')
         for i in planet.landingZones:
             self.gameArea.create_image(i.position[0], i.position[1], image=self.landingZone, tag='deleteable')
-            self.gameArea.create_image(i.position[0], i.position[1], image=self.landedShip, tag='deleteable')
+            self.gameArea.create_image(i.position[0], i.position[1], image=self.landedShips[i.ownerId], tag='deleteable')
 
     def changeBackground(self, type):
         self.gameArea.delete('background')
