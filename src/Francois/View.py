@@ -4,6 +4,7 @@ from Unit import *
 from Constants import *
 import tkinter.messagebox as mb
 import subprocess
+import platform
 
 class View():              
     def __init__(self, parent):
@@ -42,7 +43,6 @@ class View():
         self.gifAttack = PhotoImage(file='images/icones/icone1.gif')
         self.gifRallyPoint = PhotoImage(file='images/icones/icone2.gif')
         self.gifBuild = PhotoImage(file = 'images/icones/build.gif')
-        self.gifScout = PhotoImage(file = 'images/icones/hamburger.gif')
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
     
@@ -71,8 +71,10 @@ class View():
         self.Actionmenu.grid(column=2,row=1, rowspan=4)
         self.createActionMenu(MenuType.MAIN)
         
-        self.unitsConstructionPanel = Canvas(gameFrame, width = self.taille/4, height = self.taille/2, background = 'white' )
+        self.unitsConstructionPanel = Canvas(gameFrame, width = self.taille/4, height = self.taille/2, background = 'black', relief = "ridge" )
         self.unitsConstructionPanel.grid(column = 3, row = 0)
+        
+
         self.drawWorld()
         self.chat = Label(gameFrame, anchor=W, justify=LEFT, width=75, background='black', fg='white', relief='raised')
         self.chat.grid(row=1, column=1)
@@ -108,16 +110,35 @@ class View():
                         self.Actionmenu.create_image(74,0,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
                         self.Actionmenu.create_image(111,0,image = self.gifBuild, anchor = NW, tags = 'Button_Build')
         elif(type == MenuType.MOTHERSHIP_BUILD_MENU):
-            self.Actionmenu.create_image(74,0,image = self.gifScout, anchor = NW, tags = 'Button_Build_Scout')
+            self.Actionmenu.create_image(10,10,image = self.scoutShips[self.parent.playerId], anchor = NW, tags = 'Button_Build_Scout')
+            self.Actionmenu.create_image(47,10,image = self.attackShips[self.parent.playerId], anchor = NW, tags = 'Button_Build_Attack')
         elif(type == MenuType.WAITING_FOR_RALLY_POINT):
             self.Actionmenu.create_text(0,0,text = "Cliquer a un endroit dans l'aire de jeu afin d'initialiser le point de ralliement du vaisseau mère.",anchor = NW, fill = 'white', width = 200)
             #self.Actionmenu.create_text("Cliquer sur un endroit dans le jeu afin de mettre en place votre point de ralliement")
                     
     
     def createUnitsConstructionPanel(self):
-       self.unitsConstructionPanel.delete(ALL)
-       for i in self.parent.players[self.playerId].motherShip.unitBeingConstruct:
-           self.unitsConstructionPanel.create_window()
+        self.unitsConstructionPanel.delete(ALL)
+        y = 5;
+        ok = False;
+        l = None;
+        r = 1
+        list = self.parent.players[self.parent.playerId].motherShip.unitBeingConstruct
+        for i in list:
+            if(list.index(i) != 0):
+                if (list[list.index(i)].name == list[list.index(i) - 1].name):
+                    ok = True
+                    r += 1
+                else:
+                    r = 1
+                    ok = False
+            
+            arc = self.unitsConstructionPanel.create_arc((175, y, 195, 20+y), start=0, extent= (i.constructionProgress / i.buildTime)*360 , fill="blue")
+            if (ok == True):
+                self.unitsConstructionPanel.itemconfig(l, text = str(r) + " " + i.name)
+            else:
+                l = self.unitsConstructionPanel.create_text(5,y,text = str(r) + " " + i.name, anchor = NW, fill = 'white')
+                y+=20
     
         
     
@@ -522,7 +543,6 @@ class View():
     
     def clickActionMenu(self,eve):
         Button_pressed = (eve.widget.gettags(eve.widget.find_withtag('current')))[0]
-        print (Button_pressed)
         if (Button_pressed == "Button_Stop"):
             self.parent.setStandbyFlag()
         elif (Button_pressed == "Button_RallyPoint"):
@@ -532,6 +552,8 @@ class View():
             self.actionMenuType = MenuType.MOTHERSHIP_BUILD_MENU
         elif (Button_pressed == "Button_Build_Scout"):
             self.parent.addUnit(UnitType.SCOUT)
+        elif (Button_pressed == "Button_Build_Attack"):
+            self.parent.addUnit(UnitType.SPACE_ATTACK_UNIT)
             
         
     #Assignation des controles	
@@ -555,10 +577,16 @@ class View():
         self.gameArea.bind("<Delete>", self.delete)
         self.gameArea.bind("a",self.attack)
         self.gameArea.bind("A",self.attack)
+        #Je sais pas pourquoi, mais sur les plateformes non-windows, les boutons 2-3 ne sont pas les mêmes !
+        if platform.uname()[1].find('Windows') != -1 :
+            button = 3
+        else:
+            button = 2
+        
         #Bindings des boutons de la souris
-        self.gameArea.bind("<Button-3>", self.rightclic)
-        self.gameArea.bind("<B3-Motion>", self.rightclic)
-        self.minimap.bind("<Button-3>", self.rightclic)
+        self.gameArea.bind("<Button-"+str(button)+">", self.rightclic)
+        self.gameArea.bind("<B"+str(button)+"-Motion>", self.rightclic)
+        self.minimap.bind("<Button-"+str(button)+">", self.rightclic)
         self.gameArea.bind("<Button-1>", self.leftclic)
         self.minimap.bind("<B1-Motion>",self.leftclic)
         self.minimap.bind("<Button-1>",self.leftclic)

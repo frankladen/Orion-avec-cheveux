@@ -196,7 +196,6 @@ class Controller():
         elif self.view.currentFrame != self.view.pLobby:
             self.players[self.playerId].motherShip.progressUnitsConstruction()
             if self.players[self.playerId].motherShip.isUnitFinished():
-                print('alloooo')
                 self.pushChange(self.players[self.playerId].motherShip.unitBeingConstruct.pop(0).name, 'addunit')
             
             
@@ -217,6 +216,7 @@ class Controller():
             self.server.refreshPlayer(self.playerId, self.refresh)
             #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
             self.pullChange()
+            self.view.createUnitsConstructionPanel()
             self.view.drawWorld()
             waitTime = self.server.amITooHigh(self.playerId)
         else:
@@ -262,24 +262,22 @@ class Controller():
 	#Connection au serveur			
     def connectServer(self, login, serverIP):
         self.server=Pyro4.core.Proxy("PYRO:controleurServeur@"+serverIP+":54440")
-        #try:
-            #Je demande au serveur si la partie est démarrée, si oui on le refuse de la partie, cela permet de vérifier
-            #en même temps si le serveur existe réellement à cette adresse.
-        if self.server.isGameStarted() == True:
-            self.view.gameHasBeenStarted()
+        try:
+                #Je demande au serveur si la partie est démarrée, si oui on le refuse de la partie, cela permet de vérifier
+                #en même temps si le serveur existe réellement à cette adresse.
+            if self.server.isGameStarted() == True:
+                self.view.gameHasBeenStarted()
+                self.view.changeFrame(self.view.fLogin)
+            else:
+                #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
+                self.playerId=self.server.getNumSocket(login, self.playerIp)
+                #Je vais au lobby, si la connection a fonctionner
+                self.view.pLobby = self.view.fLobby()
+                self.view.changeFrame(self.view.pLobby)
+                self.action()
+        except : 
+            self.view.loginFailed()
             self.view.changeFrame(self.view.fLogin)
-        else:
-            #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
-            self.playerId=self.server.getNumSocket(login, self.playerIp)
-            #Je vais au lobby, si la connection a fonctionner
-            self.view.pLobby = self.view.fLobby()
-            self.view.changeFrame(self.view.pLobby)
-            print('alllo')
-            self.action()
-        #except :
-            
-#            self.view.loginFailed()
-#            self.view.changeFrame(self.view.fLogin)
             
     #Enleve le joueur courant de la partie ainsi que ses units
     def removePlayer(self):
@@ -365,14 +363,18 @@ class Controller():
         elif action == 'deleteAllUnits':
             self.players[actionPlayerId].units = []
         elif action == 'addunit':
+                            
+            m = self.players[actionPlayerId].motherShip
+            p = m.flag.finalTarget.position
 
-            if int(unitIndex[0]) == UnitType.SCOUT:
+            if unitIndex[0] == UnitType.SCOUT:
+                unit = u.Unit(UnitType.SCOUT,[m.position[0],m.position[1],0],actionPlayerId)
+            elif unitIndex[0] == UnitType.SPACE_ATTACK_UNIT:
+                print("alloo")
+                unit = u.SpaceAttackUnit(UnitType.SPACE_ATTACK_UNIT,[m.position[0],m.position[1],0], actionPlayerId, attackspeed=10.0,attackdamage=5.0,range=150.0)
+            self.players[actionPlayerId].units.append(unit)
+            self.setDefaultMovingFlag(p[0], p[1], unit)
 
-                m = self.players[actionPlayerId].motherShip
-                unit = u.Unit(UnitType.SCOUT,[m.position[0],m.position[1],0],actionPlayerId, moveSpeed=MoveSpeed.SCOUT)
-                p = m.flag.finalTarget.position
-                self.players[actionPlayerId].units.append(unit)
-                self.setDefaultMovingFlag(p[0], p[1], unit)
         elif action == 'deleteUnit':
             self.killUnit((int(unitIndex[0]),actionPlayerId))
         elif unitIndex == 'g' or unitIndex == 'm':

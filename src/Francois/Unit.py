@@ -10,7 +10,12 @@ class Unit(t.PlayerObject):
     def __init__(self, name, position, owner, foodcost=50, moveSpeed=1.0):
         t.PlayerObject.__init__(self, name, position, owner)
         self.FoodCost=foodcost
-        self.moveSpeed=moveSpeed
+        if (name == UnitType.SCOUT):
+            self.moveSpeed= MoveSpeed.SCOUT
+        elif(name == UnitType.SPACE_ATTACK_UNIT):
+            self.moveSpeed = MoveSpeed.SPACE_ATTACK_UNIT
+        elif(name == UnitType.MOTHERSHIP):
+            self.moveSpeed = MoveSpeed.MOTHERSHIP
         
     #La deplace d'un pas vers son flag et si elle est rendu, elle change arrete de bouger    
     def move(self):
@@ -44,8 +49,8 @@ class Unit(t.PlayerObject):
         return self.flag
               
 class SpaceUnit(Unit):
-    def __init__(self, name, position, owner, movespeed):
-        Unit.__init__(self, name, position, owner, movespeed)
+    def __init__(self, name, position, owner):
+        Unit.__init__(self, name, position, owner)
 
 class GroundUnit(Unit):
     def __init__(self,planetid):
@@ -70,14 +75,16 @@ class Mothership(Unit):
         Unit.__init__(self, name, position, owner, foodcost=0, moveSpeed=0)
         self.flag.finalTarget = t.Target(position)
         self.unitBeingConstruct = []
+        
     
     def progressUnitsConstruction(self):
         if len(self.unitBeingConstruct) > 0:
-            self.unitBeingConstruct[0].buildTime = self.unitBeingConstruct[0].buildTime - 1
+            self.unitBeingConstruct[0].constructionProgress = self.unitBeingConstruct[0].constructionProgress + 1
 
     def isUnitFinished(self):
+
         if len(self.unitBeingConstruct) > 0:
-            return self.unitBeingConstruct[0].buildTime <= 0
+            return self.unitBeingConstruct[0].constructionProgress >= self.unitBeingConstruct[0].buildTime
 
             
         
@@ -85,8 +92,8 @@ class Mothership(Unit):
 
         
 class SpaceAttackUnit(SpaceUnit):
-    def __init__(self, name, position, owner, moveSpeed, attackspeed,attackdamage,range):
-        SpaceUnit.__init__(self, name, position, owner, moveSpeed)
+    def __init__(self, name, position, owner, attackspeed, attackdamage,range):
+        SpaceUnit.__init__(self, name, position, owner)
         self.AttackSpeed=attackspeed
         self.AttackDamage=attackdamage
         self.range=range

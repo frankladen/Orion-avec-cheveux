@@ -14,15 +14,15 @@ class PlayerObject(Target):
         self.owner = owner
         self.hitpoints=hitpoints
         self.isAlive = True;
+        self.constructionProgress = 0
         if name == UnitType.SCOUT:
             self.viewRange = ViewRange.SCOUT
             self.buildTime = BuildTime.SCOUT
-        elif name == 'Mothership':
+        elif name == UnitType.MOTHERSHIP:
             self.viewRange = ViewRange.MOTHERSHIP
-        elif name =='Attack':
+        elif name == UnitType.SPACE_ATTACK_UNIT:
             self.viewRange = ViewRange.SPACE_ATTACK_UNIT
             self.buildTime = BuildTime.SPACE_ATTACK_UNIT
-
         else:
             self.viewRange = 100
     

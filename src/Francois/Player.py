@@ -23,9 +23,9 @@ class Player():
         self.units.append(u.Mothership(UnitType.MOTHERSHIP,startPos, self.id))
         self.motherShip = self.units[0]
         
-        self.units.append(u.Unit(UnitType.SCOUT,[startPos[0] + 20, startPos[1] + 20 ,0], self.id, moveSpeed=MoveSpeed.SCOUT))
-        self.units.append(u.Unit(UnitType.SCOUT,[startPos[0] - 20, startPos[1] - 20 ,0], self.id, moveSpeed=MoveSpeed.SCOUT))
-        self.units.append(u.SpaceAttackUnit(UnitType.SPACE_ATTACK_UNIT,[startPos[0] + 30, startPos[1] - 30 ,0], self.id, moveSpeed=MoveSpeed.SPACE_ATTACK_UNIT, attackspeed=10.0,attackdamage=5.0,range=150.0))
+        self.units.append(u.Unit(UnitType.SCOUT,[startPos[0] + 20, startPos[1] + 20 ,0], self.id))
+        self.units.append(u.Unit(UnitType.SCOUT,[startPos[0] - 20, startPos[1] - 20 ,0], self.id))
+        self.units.append(u.SpaceAttackUnit(UnitType.SPACE_ATTACK_UNIT,[startPos[0] + 30, startPos[1] - 30 ,0], self.id, attackspeed=10.0,attackdamage=5.0,range=150.0))
 
     #Ajoute une camera au joueur seulement quand la partie commence    
     def addCamera(self, galaxy):
