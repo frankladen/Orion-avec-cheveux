@@ -3,6 +3,7 @@ from tkinter import *
 from Unit import *
 from Flag import *
 from Helper import *
+from Constants import *
 import tkinter.messagebox as mb
 import subprocess
 
@@ -22,7 +23,7 @@ class View():
         self.selectStart = [0,0]
         self.selectEnd = [0,0]
         self.positionMouse = [0,0,0]
-        self.mainMenuBG = PhotoImage(file='images\\Menus\\MainMenuBG.gif')
+        self.mainMenuBG = PhotoImage(file='images/Menus/MainMenuBG.gif')
         self.mainMenu = self.fMainMenu()
         self.mainMenu.pack()
         self.pLobby = None
@@ -31,26 +32,31 @@ class View():
         self.gameFrame = None
         self.joinGame = self.fJoinGame()
         self.createServer = self.fCreateServer()
-        self.sun=PhotoImage(file='images\\Galaxy\\sun.gif')
-        self.sunFOW = PhotoImage(file='images\\Galaxy\\sunFOW.gif')
-        self.planet=PhotoImage(file='images\\Galaxy\\planet.gif')
-        self.planetFOW = PhotoImage(file='images\\Galaxy\\planetFOW.gif')
-        self.nebula=PhotoImage(file='images\\Galaxy\\nebula.gif')
-        self.nebulaFOW=PhotoImage(file='images\\Galaxy\\nebulaFOW.gif')
-        self.explosion=PhotoImage(file='images\\explosion.gif')
+        self.actionMenuType = MenuType.MAIN
+        self.Actionmenu = None
+        self.unitsConstructionPanel = None
+        self.isSettingRallyPointPosition = False
+        self.sun=PhotoImage(file='images/Galaxy/sun.gif')
+        self.sunFOW = PhotoImage(file='images/Galaxy/sunFOW.gif')
+        self.planet=PhotoImage(file='images/Galaxy/planet.gif')
+        self.planetFOW = PhotoImage(file='images/Galaxy/planetFOW.gif')
+        self.nebula=PhotoImage(file='images/Galaxy/nebula.gif')
+        self.nebulaFOW=PhotoImage(file='images/Galaxy/nebulaFOW.gif')
+        self.explosion=PhotoImage(file='images/explosion.gif')
         self.attacking = False
-        self.asteroid=PhotoImage(file='images\\Galaxy\\asteroid.gif')
-        self.asteroidFOW=PhotoImage(file='images\\Galaxy\\asteroidFOW.gif')
-        self.mineral = PhotoImage(file='images\\Planet\\crystal.gif')
-        self.gifStop = PhotoImage(file='images\\icones\\stop.gif')
-        self.gifMove = PhotoImage(file='images\\icones\\move.gif')
-        self.gifCancel = PhotoImage(file='images\\icones\\delete.gif')
-        self.gifAttack = PhotoImage(file='images\\icones\\icone1.gif')
-        self.gifIcone2 = PhotoImage(file='images\\icones\\icone2.gif')
-        self.planetBackground = PhotoImage(file='images\\Planet\\background.gif')
-        self.galaxyBackground = PhotoImage(file='images\\Galaxy\\night-sky.gif')
-        self.landingZone = PhotoImage(file='images\\Planet\\landing.gif')
-        self.landedShip = PhotoImage(file='images\\Planet\\landed0.gif')
+        self.asteroid=PhotoImage(file='images/Galaxy/asteroid.gif')
+        self.asteroidFOW=PhotoImage(file='images/Galaxy/asteroidFOW.gif')
+        self.mineral = PhotoImage(file='images/Planet/crystal.gif')
+        self.planetBackground = PhotoImage(file='images/Planet/background.gif')
+        self.galaxyBackground = PhotoImage(file='images/Galaxy/night-sky.gif')
+        self.landingZone = PhotoImage(file='images/Planet/landing.gif')
+        self.landedShip = PhotoImage(file='images/Planet/landed0.gif')
+        self.gifStop = PhotoImage(file='images/icones/stop.gif')
+        self.gifMove = PhotoImage(file='images/icones/move.gif')
+        self.gifCancel = PhotoImage(file='images/icones/delete.gif')
+        self.gifAttack = PhotoImage(file='images/icones/icone1.gif')
+        self.gifRallyPoint = PhotoImage(file='images/icones/icone2.gif')
+        self.gifBuild = PhotoImage(file = 'images/icones/build.gif')
         self.attacking = False
         self.selectAllUnits = False
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
@@ -69,10 +75,10 @@ class View():
         self.motherShips = []
         self.trasportShips = []
         for i in range(0,8):
-            self.scoutShips.append(PhotoImage(file='images\\Ships\\Scoutships\\Scoutship'+str(i)+'.gif'))
-            self.attackShips.append(PhotoImage(file='images\\Ships\\Attackships\\Attackship'+str(i)+'.gif'))
-            self.motherShips.append(PhotoImage(file='images\\Ships\\Motherships\\Mothership'+str(i)+'.gif'))
-            self.trasportShips.append(PhotoImage(file='images\\Ships\\Transport\\Transport'+str(i)+'.gif'))
+            self.scoutShips.append(PhotoImage(file='images/Ships/Scoutships/Scoutship'+str(i)+'.gif'))
+            self.attackShips.append(PhotoImage(file='images/Ships/Attackships/Attackship'+str(i)+'.gif'))
+            self.motherShips.append(PhotoImage(file='images/Ships/Motherships/Mothership'+str(i)+'.gif'))
+            self.trasportShips.append(PhotoImage(file='images/Ships/Transport/Transport'+str(i)+'.gif'))
         Label(gameFrame, text="Mineraux: ", bg="black", fg="white", width=10, anchor=E).grid(column=0, row=0)
         self.showMinerals=Label(gameFrame, text=self.parent.players[self.parent.playerId].mineral, fg="white", bg="black", anchor=W)
         self.showMinerals.grid(column=1,row=0)
@@ -91,20 +97,55 @@ class View():
         self.Actionmenu.grid(column=3,row=2, rowspan=4)
         self.changeBackground('GALAXY')
         self.drawWorld()
-        self.createActionMenu()
+        self.createActionMenu(MenuType.MAIN)
+        self.unitsConstructionPanel = Canvas(gameFrame, width = self.taille/4, height = self.taille/2, background = 'black', relief = "ridge" )
+        self.unitsConstructionPanel.grid(column = 0, row = 1)
         self.assignControls()
         return gameFrame
 
-     #** aghi 
-    def createActionMenu(self):
+    def createActionMenu(self, type):
         self.Actionmenu.delete(ALL)
-        units = self.parent.players[self.parent.playerId].selectedObjects
-        if len(units) > 0:
-            if isinstance(units[0], Unit):
-                self.Actionmenu.create_image(0,0,image=self.gifMove,anchor = NW)
-                self.Actionmenu.create_image(37,0,image=self.gifStop,anchor = NW)
-                if isinstance(units[0], SpaceAttackUnit):
-                    self.Actionmenu.create_image(74,0,image=self.gifAttack,anchor = NW)
+        if(type == MenuType.MAIN):
+            units = self.parent.players[self.parent.playerId].selectedObjects
+            if len(units) > 0:
+                if isinstance(units[0], Unit):
+                    
+                    self.Actionmenu.create_image(0,0,image=self.gifMove,anchor = NW, tags = 'Button_Move')
+                    self.Actionmenu.create_image(37,0,image=self.gifStop,anchor = NW, tags = 'Button_Stop')
+                    if isinstance(units[0], SpaceAttackUnit):
+                        self.Actionmenu.create_image(74,0,image=self.gifAttack,anchor = NW, tags = 'Button_Attack')
+                    if isinstance(units[0], Mothership):
+                        self.Actionmenu.create_image(74,0,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
+                        self.Actionmenu.create_image(111,0,image = self.gifBuild, anchor = NW, tags = 'Button_Build')
+        elif(type == MenuType.MOTHERSHIP_BUILD_MENU):
+            self.Actionmenu.create_image(10,10,image = self.scoutShips[self.parent.playerId], anchor = NW, tags = 'Button_Build_Scout')
+            self.Actionmenu.create_image(47,10,image = self.attackShips[self.parent.playerId], anchor = NW, tags = 'Button_Build_Attack')
+        elif(type == MenuType.WAITING_FOR_RALLY_POINT):
+            self.Actionmenu.create_text(0,0,text = "Cliquer a un endroit dans l'aire de jeu afin d'initialiser le point de ralliement du vaisseau mère.",anchor = NW, fill = 'white', width = 200)
+            #self.Actionmenu.create_text("Cliquer sur un endroit dans le jeu afin de mettre en place votre point de ralliement")
+
+    def createUnitsConstructionPanel(self):
+        self.unitsConstructionPanel.delete(ALL)
+        y = 5;
+        ok = False;
+        l = None;
+        r = 1
+        list = self.parent.players[self.parent.playerId].motherShip.unitBeingConstruct
+        for i in list:
+            if(list.index(i) != 0):
+                if (list[list.index(i)].name == list[list.index(i) - 1].name):
+                    ok = True
+                    r += 1
+                else:
+                    r = 1
+                    ok = False
+            
+            arc = self.unitsConstructionPanel.create_arc((175, y, 195, 20+y), start=0, extent= (i.constructionProgress / i.buildTime)*360 , fill="blue")
+            if (ok == True):
+                self.unitsConstructionPanel.itemconfig(l, text = str(r) + " " + i.name)
+            else:
+                l = self.unitsConstructionPanel.create_text(5,y,text = str(r) + " " + i.name, anchor = NW, fill = 'white')
+                y+=20
 
 	#Frame du menu principal    
     def fMainMenu(self):
@@ -257,6 +298,7 @@ class View():
         if self.dragging:
             self.drawSelectionBox()
         self.drawMinimap()
+        self.createActionMenu(self.actionMenuType)
         
     #Pour dessiner un soleil     
     def drawSun(self, sunPosition, player, isInFOW):
@@ -553,17 +595,23 @@ class View():
         x = eve.x
         y = eve.y
         canva = eve.widget
-        if canva == self.gameArea:
-            pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
-            if self.attacking:
-                self.parent.setAttackFlag(pos[0],pos[1])
-            else:
-                if not self.selectAllUnits:
-                    self.parent.select(pos)
+        if(self.isSettingRallyPointPosition == False):
+            if canva == self.gameArea:
+                pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
+                if self.attacking:
+                    self.parent.setAttackFlag(pos[0],pos[1])
                 else:
-                    self.parent.selectAll(pos)
-        elif canva == self.minimap:
-            self.parent.quickMove(x,y,canva)
+                    if not self.selectAllUnits:
+                        self.parent.select(pos)
+                    else:
+                        self.parent.selectAll(pos)
+            elif canva == self.minimap:
+                self.parent.quickMove(x,y,canva)
+        else:
+            pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
+            self.parent.setMotherShipRallyPoint(pos)
+            self.isSettingRallyPointPosition = False
+            self.actionMenuType = MenuType.MAIN
 
     def selectAll(self, eve):
         self.selectAllUnits = True
@@ -637,6 +685,20 @@ class View():
         cam = self.parent.players[self.parent.playerId].camera
         cam.position = cam.defaultPos
 
+    def clickActionMenu(self,eve):
+        Button_pressed = (eve.widget.gettags(eve.widget.find_withtag('current')))[0]
+        if (Button_pressed == "Button_Stop"):
+            self.parent.setStandbyFlag()
+        elif (Button_pressed == "Button_RallyPoint"):
+            self.actionMenuType = MenuType.WAITING_FOR_RALLY_POINT
+            self.isSettingRallyPointPosition = True
+        elif (Button_pressed == "Button_Build"):
+            self.actionMenuType = MenuType.MOTHERSHIP_BUILD_MENU
+        elif (Button_pressed == "Button_Build_Scout"):
+            self.parent.addUnit(UnitType.SCOUT)
+        elif (Button_pressed == "Button_Build_Attack"):
+            self.parent.addUnit(UnitType.SPACE_ATTACK_UNIT)
+    
     #Assignation des controles	
     def assignControls(self):
         self.gameArea.focus_set()
@@ -674,4 +736,5 @@ class View():
         self.gameArea.bind("<ButtonRelease-1>", self.endDrag)
         self.gameArea.bind("<Motion>", self.posMouse)
         self.entryMess.bind("<Return>",self.enter)
+        self.Actionmenu.bind("<Button-1>", self.clickActionMenu)
 

@@ -68,7 +68,16 @@ class GroundBuildUnit(GroundUnit):
 class Mothership(Unit):
     def __init__(self, name, position, owner):
         Unit.__init__(self, name, position, owner, foodcost=0, moveSpeed=0)
-        
+        self.flag.finalTarget = t.Target(position)
+        self.unitBeingConstruct = []
+
+    def progressUnitsConstruction(self):
+        if len(self.unitBeingConstruct) > 0:
+            self.unitBeingConstruct[0].constructionProgress = self.unitBeingConstruct[0].constructionProgress + 1
+
+    def isUnitFinished(self):
+        if len(self.unitBeingConstruct) > 0:
+            return self.unitBeingConstruct[0].constructionProgress >= self.unitBeingConstruct[0].buildTime
 class SpaceAttackUnit(SpaceUnit):
     def __init__(self, name, position, owner, moveSpeed, attackspeed,attackdamage,range):
         SpaceUnit.__init__(self, name, position, owner, moveSpeed)

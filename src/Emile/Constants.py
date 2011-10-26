@@ -1,11 +1,15 @@
+# -*- coding: UTF-8 -*-
+
 class MenuType():
     MAIN=1
     WAITING_FOR_RALLY_POINT=2
     MOTHERSHIP_BUILD_MENU=4
 
+#J'ai mis des String, car on aura besoin d'afficher ces valeurs dans le jeu
 class UnitType():
-    SCOUT=1
-    SPACE_ATTACK_UNIT=2
+    SCOUT='Scout'
+    SPACE_ATTACK_UNIT="Attack"
+    MOTHERSHIP = "MotherShip"
     
 
 class FlagState():
@@ -15,7 +19,7 @@ class FlagState():
     ATTACK=8
     GATHER=16
     BUILD=32
-    REPAIR=64
+    LAND=64
     RESEARCH=128
     DESTROY=256 
 

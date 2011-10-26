@@ -5,6 +5,7 @@ import Player as p
 import Target as t
 import Unit as u
 from Flag import *
+from Constants import *
 import Pyro4
 import socket
 import math
@@ -39,6 +40,16 @@ class Controller():
                 send = True
         if send:
             self.pushChange(units, Flag(i,t.Target([x,y,0]),FlagState.MOVE))
+
+    def setDefaultMovingFlag(self,x,y, unit):
+        units = ''
+        send = False
+        #Si plusieurs unit�s sont s�lectionn�es, on les ajoute toutes dans le changement � envoyer
+
+        if isinstance(unit, u.SpaceAttackUnit):
+            unit.attackcount = unit.AttackSpeed               
+        units += str(self.players[self.playerId].units.index(unit)) + ","
+        self.pushChange(units, Flag(unit,t.Target([x,y,0]),FlagState.MOVE))
     
     #Pour changer le flag des unites selectionne pour l'arret
     def setStandbyFlag(self):
@@ -82,11 +93,13 @@ class Controller():
                     solarsystemId = self.galaxy.solarSystemList.index(i)
                     planetIndex = self.galaxy.solarSystemList[solarsystemId].planets.index(planet)
         self.pushChange(str(self.players[self.playerId].units.index(unit)), (solarsystemId, planetIndex, FlagState.LAND))
+
+    def setMotherShipRallyPoint(self, pos):
+        self.players[self.playerId].motherShip.flag.finalTarget.position = pos
         
     #Pour ajouter une unit
     def addUnit(self, unit):
-        if unit == "Scout":
-            self.pushChange('Scout', 'addunit')
+        self.players[self.playerId].motherShip.unitBeingConstruct.append(u.Unit(unit,[0,0,0],self.playerId))
             
     #Trade entre joueurs
     def tradePlayers(self, items, playerId2, quantite):
@@ -115,6 +128,8 @@ class Controller():
                                 if j.name == 'Transport':
                                     if not j.landed:
                                         self.players[self.playerId].selectedObjects = []
+                                else:
+                                    self.players[self.playerId].selectedObjects = []
                             if j not in self.players[self.playerId].selectedObjects:
                                 if j.name == 'Transport':
                                     if not j.landed:
@@ -132,7 +147,6 @@ class Controller():
                                     self.players[self.playerId].selectedObjects.append(j)
                             else:
                                 if j.alreadyLanded(self.players[self.playerId].id):
-                                    print('yay')
                                     self.players[self.playerId].currentPlanet = j
                                     self.view.changeBackground('PLANET')
                                     self.view.drawPlanetGround(j)
@@ -149,7 +163,8 @@ class Controller():
                             if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
                                 self.players[self.playerId].selectedObjects = []
                                 self.players[self.playerId].selectedObjects.append(j)
-        self.view.createActionMenu()
+            self.view.actionMenuType = MenuType.MAIN
+        
     def selectAll(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
             for j in self.players[self.playerId].units:
@@ -174,7 +189,7 @@ class Controller():
                                         self.players[self.playerId].selectedObjects.append(j)
                                 else:
                                     self.players[self.playerId].selectedObjects.append(j)
-
+        self.view.actionMenuType = MenuType.MAIN
     #===========================================================================
     # def rightClick(self, x, y):
     #    toAttack = []
@@ -280,7 +295,7 @@ class Controller():
                                     self.players[self.playerId].selectedObjects.append(i)
                             else:
                                 self.players[self.playerId].selectedObjects.append(i)
-        self.view.createActionMenu()
+        self.view.actionMenuType = MenuType.MAIN
         
     #Deplacement rapide de la camera vers un endroit de la minimap
     def quickMove(self, x,y, canva):
@@ -315,6 +330,9 @@ class Controller():
                 self.view.showGameIsFinished()
                 self.view.root.destroy()
         elif self.view.currentFrame != self.view.pLobby:
+            self.players[self.playerId].motherShip.progressUnitsConstruction()
+            if self.players[self.playerId].motherShip.isUnitFinished():
+                self.pushChange(self.players[self.playerId].motherShip.unitBeingConstruct.pop(0).name, 'addunit')
             if self.refresh==0:
                 self.refreshMessages()
                 response = self.server.isEveryoneReady(self.playerId)
@@ -345,6 +363,7 @@ class Controller():
 	            self.view.showGaz.config(text=self.players[self.playerId].gaz)
 	            #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
 	            self.pullChange()
+	            self.view.createUnitsConstructionPanel()
 	            if self.players[self.playerId].currentPlanet == None:
 	                self.view.drawWorld()
 	            else:
@@ -573,8 +592,16 @@ class Controller():
         elif action == 'deleteAllUnits':
             self.players[actionPlayerId].units = []
         elif action == 'addunit':
-            if unitIndex == 'Scout':
-                self.players[actionPlayerId].units.append(u.Unit('Scout00'+str(len(self.players[actionPlayerId].units)),[50,100,0], moveSpeed=5.0))
+                            
+            m = self.players[actionPlayerId].motherShip
+            p = m.flag.finalTarget.position
+
+            if unitIndex[0] == UnitType.SCOUT:
+                unit = u.Unit(UnitType.SCOUT,[m.position[0],m.position[1],0],actionPlayerId, moveSpeed=4.0)
+            elif unitIndex[0] == UnitType.SPACE_ATTACK_UNIT:
+                unit = u.SpaceAttackUnit(UnitType.SPACE_ATTACK_UNIT,[m.position[0],m.position[1],0], actionPlayerId, attackspeed=10.0,attackdamage=5.0,range=150.0, moveSpeed=2.0)
+            self.players[actionPlayerId].units.append(unit)
+            self.setDefaultMovingFlag(p[0], p[1], unit)
         elif action == 'deleteUnit':
             self.killUnit((int(unitIndex[0]),actionPlayerId))
         elif action == 'changeFormation':

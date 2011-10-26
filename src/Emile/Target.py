@@ -1,4 +1,5 @@
 from Flag import *
+from Constants import *
 
 #Represente une position dans l'espace  
 class Target():
@@ -14,15 +15,16 @@ class PlayerObject(Target):
         self.owner = owner
         self.maxHP=hitpoints
         self.hitpoints=hitpoints
-        self.isAlive = True;
-        if name == 'Scout':
-            self.viewRange = 200
-        elif name == 'Mothership':
-            self.viewRange = 400
-        elif name =='Attack':
-            self.viewRange = 150
-        elif name == 'Transport':
-            self.viewRange = 175
+        self.isAlive = True
+        self.constructionProgress = 0
+        if name == UnitType.SCOUT:
+            self.viewRange = ViewRange.SCOUT
+            self.buildTime = BuildTime.SCOUT
+        elif name == UnitType.MOTHERSHIP:
+            self.viewRange = ViewRange.MOTHERSHIP
+        elif name == UnitType.SPACE_ATTACK_UNIT:
+            self.viewRange = ViewRange.SPACE_ATTACK_UNIT
+            self.buildTime = BuildTime.SPACE_ATTACK_UNIT
         else:
             self.viewRange = 100
     
