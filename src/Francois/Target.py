@@ -13,7 +13,7 @@ class PlayerObject(Target):
         self.flag = Flag(Target([0,0,0]), Target([0,0,0]), FlagState.STANDBY)
         self.owner = owner
         self.hitpoints=hitpoints
-        self.isAlive = True;
+        self.isAlive = True
         self.constructionProgress = 0
         if name == UnitType.SCOUT:
             self.viewRange = ViewRange.SCOUT

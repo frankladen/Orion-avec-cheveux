@@ -62,6 +62,10 @@ class Controller():
                 units += str(self.players[self.playerId].units.index(i)) + ","
         if units != "":
             self.pushChange(units, Flag(i,t.Target([0,0,0]),FlagState.STANDBY))
+
+    def setAStandByFlag(self, unit):
+        units = str(self.players[self.playerId].units.index(unit)) + ","
+        self.pushChange(units, Flag(i,t.Target([0,0,0]),FlagState.STANDBY))
             
     #Pour changer le flag des unit�s s�lectionn�s pour attaquer        
     def setAttackFlag(self, attackedUnit):
@@ -79,8 +83,13 @@ class Controller():
             units = ""
             for i in self.players[self.playerId].selectedObjects:
                 if isinstance(i, u.SpaceAttackUnit):
-                    i.attackcount = i.AttackSpeed
-                    units += str(self.players[self.playerId].units.index(i)) + ","
+                    if attackedUnit.name == 'Transport':
+                        if not attackedUnit.landed:
+                            i.attackcount = i.AttackSpeed
+                            units += str(self.players[self.playerId].units.index(i)) + ","
+                    else:
+                        i.attackcount = i.AttackSpeed
+                        units += str(self.players[self.playerId].units.index(i)) + ","
             if units != "":
                 self.pushChange(units, Flag(i,attackedUnit,FlagState.ATTACK))
 
@@ -350,11 +359,14 @@ class Controller():
 	                for i in p.units:
 	                    if i.isAlive:
 	                        if i.flag.flagState == FlagState.MOVE:
-	                            i.move()
+                                    i.move()
 	                        elif i.flag.flagState == FlagState.ATTACK:
-	                            killedIndex = i.attack(self.players)
-	                            if killedIndex[0] > -1:
-	                                self.killUnit(killedIndex)
+                                    if isinstance(i.flag.finalTarget, u.TransportShip):
+                                        if not i.flag.finalTarget.landed:
+                                            self.setAStandByFlag(i)
+                                    killedIndex = i.attack(self.players)
+                                    if killedIndex[0] > -1:
+                                        self.killUnit(killedIndex)
 	                        elif i.flag.flagState == FlagState.LAND:
 	                            i.land(self, self.players.index(p))
 	            self.refreshMessages()
