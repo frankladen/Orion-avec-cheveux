@@ -275,7 +275,10 @@ class View():
             distance = player.camera.calcDistance(planetPosition)
             if isInFOW:
                 if planet in player.selectedObjects:
-                    self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="green", tag='deletable')
+                    if planet.alreadyLanded(player.id):
+                        self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="green", tag='deletable')
+                    else:
+                        self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="yellow", tag='deletable')
                     mVariable = "Mineral :" + str(planet.mineralQte)
                     gVariable = "Gaz :" + str(planet.gazQte)
                     self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="cyan",text=mVariable, tag='deletable')
@@ -291,7 +294,7 @@ class View():
             distance = player.camera.calcDistance(nebulaPosition)
             if isInFOW:
                 if nebula in player.selectedObjects:
-                    self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="green", tag='deletable')
+                    self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="yellow", tag='deletable')
                     mVariable = "Gaz :" + str(nebula.gazQte)
                     self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="green",text=mVariable, tag='deletable')
                 self.gameArea.create_image(distance[0],distance[1],image=self.nebula, tag='deletable')
@@ -304,7 +307,7 @@ class View():
             distance = player.camera.calcDistance(asteroidPosition)
             if isInFOW:
                 if asteroid in player.selectedObjects:
-                    self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="green", tag='deletable')
+                    self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="yellow", tag='deletable')
                     mVariable = "Mineral :" + str(asteroid.mineralQte)
                     self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="cyan",text=mVariable, tag='deletable')
                 self.gameArea.create_image(distance[0],distance[1],image=self.asteroid, tag='deletable')

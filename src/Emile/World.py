@@ -235,6 +235,13 @@ class Planet(Target):
                         posFound = False 
         self.landingZones.append(LandingZone(position, playerid, landingShip))
 
+    def alreadyLanded(self, playerId):
+        alreadyLanded = False
+        for i in self.landingZones:
+            if i.ownerId == playerId:
+                alreadyLanded = True
+        return alreadyLanded
+
 class MineralStack(Target):
     def __init__(self, nbMinerals, position):
         Target.__init__(self, position)

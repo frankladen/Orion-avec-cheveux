@@ -112,7 +112,9 @@ class Controller():
                     if j.position[0] >= posSelected[0]-8 and j.position[0] <= posSelected[0]+8:
                         if j.position[1] >= posSelected[1]-8 and j.position[1] <= posSelected[1]+8: 
                             if self.multiSelect == False:
-                                self.players[self.playerId].selectedObjects = []
+                                if j.name == 'Transport':
+                                    if not j.landed:
+                                        self.players[self.playerId].selectedObjects = []
                             if j not in self.players[self.playerId].selectedObjects:
                                 if j.name == 'Transport':
                                     if not j.landed:
@@ -124,9 +126,17 @@ class Controller():
                 for j in i.planets:
                     if j.position[0] >= posSelected[0]-10 and j.position[0] <= posSelected[0]+10:
                         if j.position[1] >= posSelected[1]-10 and j.position[1] <= posSelected[1]+10:
-                            if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
-                                self.players[self.playerId].selectedObjects = []
-                                self.players[self.playerId].selectedObjects.append(j)
+                            if j not in self.players[self.playerId].selectedObjects:
+                                if self.players[self.playerId].inViewRange(j.position):
+                                    self.players[self.playerId].selectedObjects = []
+                                    self.players[self.playerId].selectedObjects.append(j)
+                            else:
+                                if j.alreadyLanded(self.players[self.playerId].id):
+                                    print('yay')
+                                    self.players[self.playerId].currentPlanet = j
+                                    self.view.changeBackground('PLANET')
+                                    self.view.drawPlanetGround(j)
+                                
                 for j in i.nebulas:
                     if j.position[0] >= posSelected[0]-10 and j.position[0] <= posSelected[0]+10:
                         if j.position[1] >= posSelected[1]-10 and j.position[1] <= posSelected[1]+10:
