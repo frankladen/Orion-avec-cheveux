@@ -4,9 +4,10 @@ import socket
 
 #Represente un joueur
 class Player():
-    def __init__(self, name, id ,civilization=None):
+    def __init__(self, name, id , colorId, civilization=None):
         self.name = name
         self.civilization = civilization
+        self.colorId = colorId
         self.selectedObjects = [] #Liste des unites selectionnes
         self.units = [] #Liste de toute les unites
         self.id = id #Numero du joueur dans la liste de joueur

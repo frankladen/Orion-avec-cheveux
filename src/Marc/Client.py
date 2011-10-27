@@ -290,7 +290,7 @@ class Controller():
         response = self.server.isThisColorChosen(self.view.variableColor.get(),self.playerId)
         if response == True:
             self.view.colorAlreadyChosen()
-       
+            
     #TIMER D'ACTION DU JOUEUR COURANT
     def action(self, waitTime=50):
         if self.server.isGameStopped() == True and self.view.currentFrame == self.view.gameFrame:
