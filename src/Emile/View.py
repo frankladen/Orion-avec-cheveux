@@ -99,8 +99,8 @@ class View():
         self.changeBackground('GALAXY')
         self.drawWorld()
         self.createActionMenu(MenuType.MAIN)
-        self.unitsConstructionPanel = Canvas(gameFrame, width = self.taille/4, height = self.taille/2, background = 'black', relief = "ridge" )
-        self.unitsConstructionPanel.grid(column = 0, row = 1)
+        self.unitsConstructionPanel = Canvas(gameFrame, width = self.taille/4, height = self.taille/2, background = 'black', relief = "ridge")
+        self.unitsConstructionPanel.grid(column = 5, row = 1)
         self.assignControls()
         return gameFrame
 
