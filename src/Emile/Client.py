@@ -151,7 +151,7 @@ class Controller():
                     if j.position[0] >= posSelected[0]-10 and j.position[0] <= posSelected[0]+10:
                         if j.position[1] >= posSelected[1]-10 and j.position[1] <= posSelected[1]+10:
                             if j not in self.players[self.playerId].selectedObjects:
-                                if self.players[self.playerId].inViewRange(j.position):
+                                if self.players[self.playerId].inViewRange(j.position) or j.alreadyLanded(self.playerId):
                                     self.players[self.playerId].selectedObjects = []
                                     self.players[self.playerId].selectedObjects.append(j)
                             else:

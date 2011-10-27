@@ -54,7 +54,11 @@ class Player():
             if i.isAlive:
                 if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
                     if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
-                        return True
+                        if i.name == 'Transport':
+                            if not i.landed:
+                                return True
+                        else:
+                            return True
         return False
 #Represente la camera            
 class Camera():

@@ -263,7 +263,7 @@ class View():
                 if i.discovered:
                     self.drawSun(i.sunPosition, players[id], False)
             for j in i.planets:
-                if self.parent.players[self.parent.playerId].inViewRange(j.position):
+                if self.parent.players[self.parent.playerId].inViewRange(j.position) or j.alreadyLanded(id):
                     if not j.discovered:
                         j.discovered = True
                         self.redrawMinimap()
