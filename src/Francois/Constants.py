@@ -8,8 +8,8 @@ class MenuType():
 #J'ai mis des String, car on aura besoin d'afficher ces valeurs dans le jeu
 class UnitType():
     SCOUT='Scout'
-    SPACE_ATTACK_UNIT="Vaisseau d'attaque"
-    MOTHERSHIP = "Vaisseau mère"
+    SPACE_ATTACK_UNIT="Attack"
+    MOTHERSHIP = "MotherShip"
     
 
 class FlagState():
@@ -19,7 +19,7 @@ class FlagState():
     ATTACK=8
     GATHER=16
     BUILD=32
-    REPAIR=64
+    LAND=64
     RESEARCH=128
     DESTROY=256 
 

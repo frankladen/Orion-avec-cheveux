@@ -1,7 +1,6 @@
 # -*- coding: UTF-8 -*-
 import Target as t
 from Flag import *
-from Constants import *
 import Helper as h
 import math
 
@@ -10,17 +9,13 @@ class Unit(t.PlayerObject):
     def __init__(self, name, position, owner, foodcost=50, moveSpeed=1.0):
         t.PlayerObject.__init__(self, name, position, owner)
         self.FoodCost=foodcost
-        if (name == UnitType.SCOUT):
-            self.moveSpeed= MoveSpeed.SCOUT
-        elif(name == UnitType.SPACE_ATTACK_UNIT):
-            self.moveSpeed = MoveSpeed.SPACE_ATTACK_UNIT
-        elif(name == UnitType.MOTHERSHIP):
-            self.moveSpeed = MoveSpeed.MOTHERSHIP
+        self.moveSpeed=moveSpeed
         
     #La deplace d'un pas vers son flag et si elle est rendu, elle change arrete de bouger    
     def move(self):
         if h.Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1]) <= self.moveSpeed:
-            self.position = self.flag.finalTarget.position
+            endPos = [self.flag.finalTarget.position[0],self.flag.finalTarget.position[1]]
+            self.position = endPos
             if self.flag.flagState == FlagState.MOVE:
                 self.flag.flagState = FlagState.STANDBY
             elif self.flag.flagState == FlagState.MOVE+FlagState.ATTACK:
@@ -49,8 +44,8 @@ class Unit(t.PlayerObject):
         return self.flag
               
 class SpaceUnit(Unit):
-    def __init__(self, name, position, owner):
-        Unit.__init__(self, name, position, owner)
+    def __init__(self, name, position, owner, movespeed):
+        Unit.__init__(self, name, position, owner, movespeed)
 
 class GroundUnit(Unit):
     def __init__(self,planetid):
@@ -75,25 +70,17 @@ class Mothership(Unit):
         Unit.__init__(self, name, position, owner, foodcost=0, moveSpeed=0)
         self.flag.finalTarget = t.Target(position)
         self.unitBeingConstruct = []
-        
-    
+
     def progressUnitsConstruction(self):
         if len(self.unitBeingConstruct) > 0:
             self.unitBeingConstruct[0].constructionProgress = self.unitBeingConstruct[0].constructionProgress + 1
 
     def isUnitFinished(self):
-
         if len(self.unitBeingConstruct) > 0:
             return self.unitBeingConstruct[0].constructionProgress >= self.unitBeingConstruct[0].buildTime
-
-            
-        
-        
-
-        
 class SpaceAttackUnit(SpaceUnit):
-    def __init__(self, name, position, owner, attackspeed, attackdamage,range):
-        SpaceUnit.__init__(self, name, position, owner)
+    def __init__(self, name, position, owner, moveSpeed, attackspeed,attackdamage,range):
+        SpaceUnit.__init__(self, name, position, owner, moveSpeed)
         self.AttackSpeed=attackspeed
         self.AttackDamage=attackdamage
         self.range=range
@@ -118,3 +105,35 @@ class SpaceAttackUnit(SpaceUnit):
                     self.killCount +=1
                 self.attackcount=self.AttackSpeed
         return (index, killedOwner)
+
+class TransportShip(SpaceUnit):
+    def __init__(self, name, position, owner, moveSpeed):
+        SpaceUnit.__init__(self, name, position, owner, moveSpeed)
+        self.landed = False
+        self.capacity = 10
+        self.units = []
+
+    def land(self, controller, playerId):
+        planet = self.flag.finalTarget
+        self.arrived = True
+        if self.position[0] < planet.position[0] or self.position[0] > planet.position[0]:
+            if self.position[1] < planet.position[1] or self.position[1] > planet.position[1]:
+                self.arrived = False
+                self.move()
+        if self.arrived:
+            player = controller.players[playerId]
+            player.currentPlanet = planet
+            alreadyLanded = False
+            for i in planet.landingZones:
+                if i.ownerId == playerId:
+                    alreadyLanded = True
+            if not alreadyLanded:
+                planet.addLandingZone(playerId, self)
+                self.landed = True
+                if self in controller.players[controller.playerId].selectedObjects:
+                    controller.players[controller.playerId].selectedObjects.pop(controller.players[controller.playerId].selectedObjects.index(self))
+            if playerId == controller.playerId:
+                controller.view.changeBackground('PLANET')
+                controller.view.drawPlanetGround(planet)
+            self.flag = Flag (self.position, self.position, FlagState.STANDBY)
+        

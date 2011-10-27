@@ -1,6 +1,5 @@
 import Unit as u
 from Flag import *
-from Constants import *
 import socket
 
 #Represente un joueur
@@ -12,29 +11,33 @@ class Player():
         self.units = [] #Liste de toute les unites
         self.id = id #Numero du joueur dans la liste de joueur
         self.startPos = [0,0,0] #Position de depart du joueur (pour le mothership)
-        self.gaz = 0
-        self.mineral = 0
         self.motherShip = None
-    
+        self.formation="carre"
+        self.currentPlanet = None
+        self.gaz = 100
+        self.mineral = 100
 
-            
-    
     def addBaseUnits(self, startPos):
-        self.units.append(u.Mothership(UnitType.MOTHERSHIP,startPos, self.id))
+        self.units.append(u.Mothership('Mothership',startPos, self.id))
         self.motherShip = self.units[0]
-        
-        self.units.append(u.Unit(UnitType.SCOUT,[startPos[0] + 20, startPos[1] + 20 ,0], self.id))
-        self.units.append(u.Unit(UnitType.SCOUT,[startPos[0] - 20, startPos[1] - 20 ,0], self.id))
-        self.units.append(u.SpaceAttackUnit(UnitType.SPACE_ATTACK_UNIT,[startPos[0] + 30, startPos[1] - 30 ,0], self.id, attackspeed=10.0,attackdamage=5.0,range=150.0))
+        self.units.append(u.Unit('Scout',[startPos[0] + 20, startPos[1] + 20 ,0], self.id, moveSpeed=4.0))
+        self.units.append(u.Unit('Scout',[startPos[0] - 20, startPos[1] - 20 ,0], self.id, moveSpeed=4.0))
+        self.units.append(u.Unit('Scout',[startPos[0] + 20, startPos[1] + 20 ,0], self.id, moveSpeed=4.0))
+        self.units.append(u.Unit('Scout',[startPos[0] - 20, startPos[1] - 20 ,0], self.id, moveSpeed=4.0))
+        self.units.append(u.Unit('Scout',[startPos[0] + 20, startPos[1] + 20 ,0], self.id, moveSpeed=4.0))
+        self.units.append(u.Unit('Scout',[startPos[0] - 20, startPos[1] - 20 ,0], self.id, moveSpeed=4.0))
+        self.units.append(u.TransportShip('Transport', [startPos[0], startPos[1] + 30,0], self.id, moveSpeed=3.0))
+        self.units.append(u.TransportShip('Transport', [startPos[0], startPos[1] - 30,0], self.id, moveSpeed=3.0))
+        self.units.append(u.SpaceAttackUnit('Attack',[startPos[0] + 30, startPos[1] - 30 ,0], self.id, moveSpeed=2.0, attackspeed=10.0,attackdamage=5.0,range=150.0))
 
     #Ajoute une camera au joueur seulement quand la partie commence    
-    def addCamera(self, galaxy):
+    def addCamera(self, galaxy, taille):
         pos = [0,0,0]
         for i in self.units:
-            if i.name == UnitType.MOTHERSHIP:
+            if i.name == 'Mothership':
                 pos = i.position
         default = [pos[0],pos[1]]
-        self.camera = Camera(default,galaxy)
+        self.camera = Camera(default,galaxy, taille)
         if default[0]-self.camera.screenCenter[0] < (self.camera.galaxy.width*-1)/2:
             self.camera.position[0] = (self.camera.galaxy.width*-1)/2+self.camera.screenCenter[0]
         if default[0]+self.camera.screenCenter[0] > self.camera.galaxy.width/2:
@@ -55,11 +58,12 @@ class Player():
         return False
 #Represente la camera            
 class Camera():
-    def __init__(self, defaultPos, galaxy):
+    def __init__(self, defaultPos, galaxy, taille):
+        self.defaultPos = defaultPos
         self.position = defaultPos
-        self.screenCenter = (400,300)
-        self.screenWidth = 800
-        self.screenHeight = 600
+        self.screenCenter = (taille/2,(taille/2)-100)
+        self.screenWidth = taille
+        self.screenHeight = taille-200
         self.galaxy = galaxy #reference a la galaxie
         self.movingDirection = []
         
@@ -108,15 +112,15 @@ class Camera():
     def move(self):
         if 'LEFT' in self.movingDirection:
             if self.position[0] > (self.galaxy.width*-1)/2+self.screenCenter[0]:
-                self.position[0]-=5
+                self.position[0]-=10
         elif 'RIGHT' in self.movingDirection:
             if self.position[0] < self.galaxy.width/2 - self.screenCenter[0]:
-                self.position[0]+=5
+                self.position[0]+=10
         if 'UP' in self.movingDirection:
             if self.position[1] > (self.galaxy.height*-1)/2 + self.screenCenter[1]:
-                self.position[1]-=5
+                self.position[1]-=10
         elif 'DOWN' in self.movingDirection:
             if self.position[1] < self.galaxy.height/2 - self.screenCenter[1]:
-                self.position[1]+=5
+                self.position[1]+=10
 
 

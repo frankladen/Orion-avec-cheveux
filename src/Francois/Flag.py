@@ -1,7 +1,16 @@
 import Target as t
-from Constants import *
-#Les differents etats qu'un flag peut prendre
 
+#Les differents etats qu'un flag peut prendre
+class FlagState():
+    STANDBY=1
+    MOVE=2
+    PATROL=4
+    ATTACK=8
+    GATHER=16
+    BUILD=32
+    LAND=64
+    RESEARCH=128
+    DESTROY=256
 
 #Represente un flag
 class Flag():

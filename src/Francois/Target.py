@@ -1,5 +1,6 @@
 from Flag import *
 from Constants import *
+
 #Represente une position dans l'espace  
 class Target():
     def __init__(self, position=[0,0,0]):
@@ -12,6 +13,7 @@ class PlayerObject(Target):
         self.name = name
         self.flag = Flag(Target([0,0,0]), Target([0,0,0]), FlagState.STANDBY)
         self.owner = owner
+        self.maxHP=hitpoints
         self.hitpoints=hitpoints
         self.isAlive = True
         self.constructionProgress = 0

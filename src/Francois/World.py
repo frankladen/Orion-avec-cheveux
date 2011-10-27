@@ -99,7 +99,8 @@ class SolarSystem():
                     if self.sunPosition[0]+tempX > j.position[0]-20 and self.sunPosition[0]+tempX < j.position[0]+20:
                         if self.sunPosition[1]+tempY > j.position[1]-20 and self.sunPosition[1]+tempY < j.position[1]+20:
                             placeFound = False
-            self.planets.append(AstronomicalObject('planet', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY)))
+            self.planets.append(Planet([self.sunPosition[0]+tempX,self.sunPosition[1]+tempY],int(random.random()*3),int(random.random()*3)))
+            #self.planets.append(AstronomicalObject('planet', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY)))
         for i in range(0,nNebu):
             tempX=""
             tempY=""
@@ -154,12 +155,12 @@ class AstronomicalObject(Target):
         Target.__init__(self, position)
         self.type = type
         self.discovered = False
-        self.mineralQte = 100
-        self.gazQte = 100
-        if type == 'planet':
-            self.landable = True
-        else:
-            self.landable = False
+        #self.mineralQte = 100
+        #self.gazQte = 100
+        #if type == 'planet':
+            #self.landable = True
+        #else:
+            #self.landable = False
         if type == 'nebula':
             self.gazQte = math.trunc((random.random()*250)+250)
             self.mineralQte = 0
@@ -167,4 +168,92 @@ class AstronomicalObject(Target):
             self.mineralQte = math.trunc((random.random()*250)+250)
             self.gazQte = 0 
             
+class Planet(Target):
+    def __init__(self, planetPosition, nMineralStack, nGazStack):
+        Target.__init__(self, planetPosition)
+        self.discovered = False
+        self.minerals = []
+        self.mineralQte = 0
+        self.gazQte = 0
+        self.gaz = []
+        self.nMineralStack = nMineralStack + 1
+        self.nGazStack = nGazStack + 1
+        self.landingZones = []
+        self.units = []
+        for i in range(0, self.nMineralStack):
+            nMinerals = int(random.random()*100)
+            posFound = False
+            while not posFound:
+                posFound = True
+                position = [random.random()*800, random.random()*600]
+                if position[0] < 0 or position[0] > 800-24:
+                    if position[1] < 0 or position[0] > 600-27:
+                        posFound = False
+                for i in self.minerals:
+                    if position[0] > i.position[0]-25 and position[0] < i.position[0]+25:
+                        if position[1] > i.position[1]-25 and position[1] < i.position[1]+25:
+                            posFound = False
+            self.minerals.append(MineralStack(nMinerals,position))
+        for i in range(0, self.nGazStack):
+            nGaz = int(random.random()*100)
+            posFound = False
+            while not posFound:
+                posFound = True
+                position = [random.random()*800, random.random()*600]
+                if position[0] < 0 or position[0] > 800-25:
+                    if position[1] < 0 or position[1] > 600-25:
+                        posFound = False
+                for i in self.minerals:
+                    if position[0] > i.position[0]-25 and position[0] < i.position[0]+25:
+                        if position[1] > i.position[1]-25 and position[1] < i.position[1]+25:
+                            posFound = False
+                for i in self.gaz:
+                    if position[0] > i.position[0]-25 and position[0] < i.position[0]+25:
+                        if position[1] > i.position[1]-25 and position[1] < i.position[1]+25:
+                            posFound = False
+            self.gaz.append(GazStack(nGaz, position))
+        for i in self.minerals:
+            self.mineralQte += i.nbMinerals
+        for i in self.gaz:
+            self.gazQte += i.nbGaz
+
+    def addLandingZone(self, playerid, landingShip):
+        placeFound = False
+        while not placeFound:
+            placeFound = True
+            position = [random.random()*800, random.random()*600]
+            if position[0] < 0+38 or position[0] > 800-38:
+                if position[1] < 0+38 or position[1] > 600-38:
+                    placeFound = False
+            for i in self.minerals:
+                if position[0] > i.position[0]-25 and position[0] < i.position[0]+25:
+                    if position[1] > i.position[1]-25 and position[1] < i.position[1]+25:
+                        posFound = False
+            for i in self.gaz:
+                if position[0] > i.position[0]-25 and position[0] < i.position[0]+25:
+                    if position[1] > i.position[1]-25 and position[1] < i.position[1]+25:
+                        posFound = False 
+        self.landingZones.append(LandingZone(position, playerid, landingShip))
+
+    def alreadyLanded(self, playerId):
+        alreadyLanded = False
+        for i in self.landingZones:
+            if i.ownerId == playerId:
+                alreadyLanded = True
+        return alreadyLanded
+
+class MineralStack(Target):
+    def __init__(self, nbMinerals, position):
+        Target.__init__(self, position)
+        self.nbMinerals = nbMinerals
         
+class GazStack(Target):
+    def __init__(self, nbGaz, position):
+        Target.__init__(self, position)
+        self.nbGaz= nbGaz
+        
+class LandingZone(Target):
+    def __init__(self, position, ownerId, landingShip):
+        Target.__init__(self, position)
+        self.ownerId = ownerId
+        self.LandedShip = landingShip
