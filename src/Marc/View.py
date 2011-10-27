@@ -190,11 +190,50 @@ class View():
             Label(lobbyFrame, text='Admin : '+self.parent.server.getSockets()[0][1], fg="white", bg="black").grid(row=(pNum+1), column=1)
             if self.parent.playerId == 0:
                 Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame, bg="black", fg="white").grid(row=(pNum+2), column=1)
+        self.chatLobby = Label(lobbyFrame, anchor=W, justify=LEFT, width=45, background='black', fg='white', relief='raised')
+        self.chatLobby.grid(row=(pNum+8), column=1)
+        self.entryMessLobby = Entry(lobbyFrame, width=35)
+        self.entryMessLobby.grid(row=(pNum+9), column=1)
+        self.entryMessLobby.bind("<Return>", self.sendMessLobby)
+        #Choix de couleur
+        self.variableColor = StringVar(lobbyFrame)
+        self.colorOPTIONS = ["Orange","Rouge","Bleu","Vert","Jaune","Brun","Blanc","Rose"]
+        self.variableColor.set(self.colorOPTIONS[0]) # default value
+        self.colorChoice = OptionMenu(lobbyFrame, self.variableColor, *self.colorOPTIONS)
+        self.colorChoice.grid(row=(self.parent.playerId), column=1)
+        self.buttonColor = Button(lobbyFrame, text="OK", command=self.parent.choiceColor, bg="black", fg="white")
+        self.buttonColor.grid(row=(self.parent.playerId), column=2)
         return lobbyFrame
+
+    def redrawLobby(self ,lobbyFrame):
+        if self.parent.server.getSockets()[self.parent.playerId][3] == -1:
+            listOfColors = self.parent.server.getColorChoices()
+            self.colorChoice['menu'].delete(0, END)
+            for i in listOfColors:
+                if i[1] == False:
+                    self.colorChoice['menu'].add_command(label=i[0], command=lambda temp = i[0]: self.colorChoice.setvar(self.colorChoice.cget("textvariable"), value = temp))
+        else:
+            self.buttonColor.configure(state=DISABLED, background='white')
+            self.colorChoice['menu'].delete(0, END)
+        if self.parent.server != None:
+            pNum = len(self.parent.server.getSockets())
+            for i in range(0, pNum):
+                Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i,column=0)
+            Label(lobbyFrame, text='Admin : '+self.parent.server.getSockets()[0][1], fg="white", bg="black").grid(row=(pNum+1), column=1)
+            if self.parent.playerId == 0:
+                Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame, bg="black", fg="white").grid(row=(pNum+2), column=1)
+
+    def sendMessLobby(self, eve):
+        if self.entryMessLobby.get() != "":
+            self.parent.sendMessageLobby(self.entryMessLobby.get(), self.parent.server.getSockets()[self.parent.playerId][1])
+            self.entryMessLobby.delete(0,END)
         
     def loginFailed(self):
         mb.showinfo('Erreur de connection', 'Le serveur est introuvable. Veuillez reessayer.')
-    
+
+    def colorAlreadyChosen(self):
+        mb.showinfo('Trop tard!', 'La couleur sélectionnée a déjà été choisie.')
+        
     def gameHasBeenStarted(self):
         mb.showinfo('Erreur de connection', 'La partie a déjà débutée. Veuillez attendre sa fin.')
     
@@ -337,22 +376,22 @@ class View():
                 if unit.name.find('Scout') != -1:
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-8,distance[1]-8,distance[0]+8,distance[1]+8, outline="green", tag='deletable')
-                    self.gameArea.create_image(distance[0]+1, distance[1], image=self.scoutShips[player.id],tag='deletable')#On prend l'image dependamment du joueur que nous sommes
+                    self.gameArea.create_image(distance[0]+1, distance[1], image=self.scoutShips[player.colorId],tag='deletable')#On prend l'image dependamment du joueur que nous sommes
                 if unit.name.find('Attack') != -1:
                     if unit.attackcount <= 5:
                         d2 = self.parent.players[self.parent.playerId].camera.calcDistance(unit.flag.finalTarget.position)
                         self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='deletable')
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-13,distance[1]-13,distance[0]+13,distance[1]+13, outline="green", tag='deletable')
-                    self.gameArea.create_image(distance[0]+1, distance[1], image=self.attackShips[player.id], tag='deletable')#On prend l'image dependamment du joueur que nous sommes
+                    self.gameArea.create_image(distance[0]+1, distance[1], image=self.attackShips[player.colorId], tag='deletable')#On prend l'image dependamment du joueur que nous sommes
                 elif unit.name == 'Mothership':
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-65,distance[1]-65,distance[0]+65,distance[1]+65, outline="green", tag='deletable')
-                    self.gameArea.create_image(distance[0]+1, distance[1], image = self.motherShips[player.id], tag='deletable')
+                    self.gameArea.create_image(distance[0]+1, distance[1], image = self.motherShips[player.colorId], tag='deletable')
                 elif unit.name == 'Transport':
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-18,distance[1]-18,distance[0]+18,distance[1]+18, outline="green", tag='deletable')
-                    self.gameArea.create_image(distance[0]+1, distance[1], image = self.trasportShips[player.id], tag='deletable')
+                    self.gameArea.create_image(distance[0]+1, distance[1], image = self.trasportShips[player.colorId], tag='deletable')
                 if unit.hitpoints <= 5:
                     self.gameArea.create_image(distance[0]+1, distance[1], image=self.explosion, tag='deletable')
                 if self.hpBars:

@@ -14,12 +14,16 @@ class ControleurServeur(object):
         self.mess = ['Système de chat de Orion']
         self.changeList = []
         self.readyPlayers = []
+        self.choiceColors = [["Orange", False], ["Rouge", False], ["Bleu", False], ["Vert", False], ["Jaune", False], ["Brun", False], ["Blanc", False], ["Rose", False]]
     
     def getSeed(self):
         return self.seed;
     
     def getSockets(self):
         return self.sockets
+
+    def getColorChoices(self):
+        return self.choiceColors
 
     def isGameStopped(self):
         return self.isStopped
@@ -60,7 +64,25 @@ class ControleurServeur(object):
         change = change+'/'+str(self.decideActionRefresh())
         for ch in self.changeList:
             ch.append(change)
-        
+
+    def isThisColorChosen(self, colorName, playerId):
+        for i in range(0,len(self.choiceColors)):
+            if colorName == self.choiceColors[i][0]:
+                colorId = i
+        if self.choiceColors[colorId][1]:
+            return True
+        else:
+            self.sockets[playerId][3]=colorId
+            self.choiceColors[colorId][1] = True
+            return False
+
+    def firstColorNotChosen(self, playerId):
+        for i in self.choiceColors:
+            if i[1] == False:
+                i[1] = True
+                self.sockets[playerId][3] = self.choiceColors.index(i)
+                break
+    
     def refreshPlayer(self, playerId, refresh):
         self.refreshes[playerId] = refresh
     
@@ -114,12 +136,12 @@ class ControleurServeur(object):
         for i in range(0,len(self.sockets)):
             if self.sockets[i][0] == ip:
                 print('a trouver le meme socket que le precedent')
-                self.sockets[i]=[ip,login,False]
+                self.sockets[i]=[ip,login,False, -1]
                 return i
             n=n+1
         print('ajoute le socket a la fin')
         if len(self.sockets) < 8:
-            self.sockets.append([ip,login,False])
+            self.sockets.append([ip,login,False, -1])
         return n
           
 

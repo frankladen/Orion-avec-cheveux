@@ -4,12 +4,12 @@ import World as w
 import Player as p
 import Target as t
 import Unit as u
+import Helper as h
 from Flag import *
 import Pyro4
 import socket
 import math
 from time import time
-from pygame import mixer
 
 class Controller():
     def __init__(self):
@@ -136,10 +136,7 @@ class Controller():
                                 self.players[self.playerId].selectedObjects = []
                             if j not in self.players[self.playerId].selectedObjects:
                                 self.players[self.playerId].selectedObjects.append(j)
-                                if isinstance(j,u.Mothership):
-                                    mixer.init(44100)
-                                    d1 = mixer.Sound("waka.wav")
-                                    d1.play()
+                                
         self.view.createActionMenu()
     def selectAll(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
@@ -273,8 +270,11 @@ class Controller():
         if mess == "t" or "c":
             self.pushChange(mess, "changeFormation")
 
+    def sendMessageLobby(self, mess, nom):
+        self.server.addMessage(mess, self.server.getSockets()[self.playerId][1])
+
     #Pour aller chercher les nouveaux messages
-    def refreshMessages(self):
+    def refreshMessages(self, chat):
         textChat=''
         for i in range(len(self.mess), len(self.server.getMessage())):
             self.mess.append(self.server.getMessage()[i])
@@ -284,8 +284,13 @@ class Controller():
         else:
             for i in range(0, len(self.mess)):
                 textChat+=self.mess[i]+'\r'
-        self.view.chat.config(text=textChat)
-        
+        chat.config(text=textChat)
+
+    def choiceColor(self):
+        response = self.server.isThisColorChosen(self.view.variableColor.get(),self.playerId)
+        if response == True:
+            self.view.colorAlreadyChosen()
+       
     #TIMER D'ACTION DU JOUEUR COURANT
     def action(self, waitTime=50):
         if self.server.isGameStopped() == True and self.view.currentFrame == self.view.gameFrame:
@@ -294,7 +299,7 @@ class Controller():
                 self.view.root.destroy()
         elif self.view.currentFrame != self.view.pLobby:
             if self.refresh==0:
-                self.refreshMessages()
+                self.refreshMessages( self.view.chat)
                 response = self.server.isEveryoneReady(self.playerId)
                 if response:
                     self.refresh+=1
@@ -317,7 +322,7 @@ class Controller():
 	                                self.killUnit(killedIndex)
 	                        elif i.flag.flagState == FlagState.LAND:
 	                            i.land(self, self.players.index(p))
-	            self.refreshMessages()
+	            self.refreshMessages(self.view.chat)
 	            self.refresh+=1
 	            self.view.showMinerals.config(text=self.players[self.playerId].mineral)
 	            self.view.showGaz.config(text=self.players[self.playerId].gaz)
@@ -334,8 +339,10 @@ class Controller():
                 self.startGame()
             else:
                 waitTime=1000
-                self.view.pLobby = self.view.fLobby()
-                self.view.changeFrame(self.view.pLobby)
+                self.refreshMessages(self.view.chatLobby)
+                #self.view.pLobby = self.view.fLobby()
+                self.view.redrawLobby(self.view.pLobby)
+                #elf.view.changeFrame(self.view.pLobby)
 
         self.view.root.after(waitTime, self.action)
         
@@ -403,11 +410,13 @@ class Controller():
         if self.playerId==0:
             self.server.startGame()
         for i in range(0, len(self.server.getSockets())):
-            self.players.append(p.Player(self.server.getSockets()[i][1], i))
+            if self.server.getSockets()[i][3] == -1:
+                self.server.firstColorNotChosen(i)
+            self.players.append(p.Player(self.server.getSockets()[i][1], i, self.server.getSockets()[i][3]))
         self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
         for i in range(0, len(self.server.getSockets())):
             startPos = self.galaxy.getSpawnPoint()
-            self.players[i].addBaseUnits(startPos)  
+            self.players[i].addBaseUnits(startPos)
         self.players[self.playerId].addCamera(self.galaxy, self.view.taille)
         self.view.gameFrame = self.view.fGame()
         self.view.changeFrame(self.view.gameFrame)
