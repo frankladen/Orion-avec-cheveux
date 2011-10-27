@@ -42,13 +42,15 @@ class View():
         self.asteroid=PhotoImage(file='images\\Galaxy\\asteroid.gif')
         self.asteroidFOW=PhotoImage(file='images\\Galaxy\\asteroidFOW.gif')
         self.mineral = PhotoImage(file='images\\Planet\\crystal.gif')
-        self.gifStop = PhotoImage(file='images\\icones\\stop.gif')
-        self.gifMove = PhotoImage(file='images\\icones\\move.gif')
-        self.gifCancel = PhotoImage(file='images\\icones\\delete.gif')
-        self.gifAttack = PhotoImage(file='images\\icones\\icone1.gif')
+        self.gifStop = PhotoImage(file='images\\icones\\stop2.gif')
+        self.gifMove = PhotoImage(file='images\\icones\\move2.gif')
+        self.gifCancel = PhotoImage(file='images\\icones\\delete2.gif')
+        self.gifAttack = PhotoImage(file='images\\icones\\attack2.gif')
         self.gifIcone2 = PhotoImage(file='images\\icones\\icone2.gif')
+        self.gifPatrol = PhotoImage(file='images\\icones\\patrol2.gif')
         self.planetBackground = PhotoImage(file='images\\Planet\\background.gif')
         self.galaxyBackground = PhotoImage(file='images\\Galaxy\\night-sky.gif')
+        self.gifCadreMenuAction = PhotoImage(file='images\\cadreMenuAction2.gif')
         self.attacking = False
         self.selectAllUnits = False
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
@@ -79,13 +81,13 @@ class View():
         self.showGaz.grid(column=3,row=0)
         self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille-200, background='Black', relief='ridge')
         self.gameArea.grid(column=0,row=1, columnspan=5)#place(relx=0, rely=0,width=taille,height=taille)
-        self.minimap= Canvas(gameFrame, width=(self.taille/4),height=(self.taille/4), background='Black', relief='raised')
+        self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
         self.minimap.grid(column=0,row=2, rowspan=4)
         self.chat = Label(gameFrame, anchor=W, justify=LEFT, width=75, background='black', fg='white', relief='raised')
         self.chat.grid(row=2, column=2)
         self.entryMess = Entry(gameFrame, width=60)
         self.entryMess.grid(row=5, column=2)
-        self.Actionmenu = Canvas(gameFrame,width=(self.taille/4),height=(self.taille/4),background='black')
+        self.Actionmenu = Canvas(gameFrame,width=200,height=200,background='black')
         self.Actionmenu.grid(column=3,row=2, rowspan=4)
         self.changeBackground('GALAXY')
         self.drawWorld()
@@ -93,16 +95,21 @@ class View():
         self.assignControls()
         return gameFrame
 
-     #** aghi 
+    #Creation du menu Action
     def createActionMenu(self):
         self.Actionmenu.delete(ALL)
         units = self.parent.players[self.parent.playerId].selectedObjects
+        self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW)
         if len(units) > 0:
             if isinstance(units[0], Unit):
-                self.Actionmenu.create_image(0,0,image=self.gifMove,anchor = NW)
-                self.Actionmenu.create_image(37,0,image=self.gifStop,anchor = NW)
+                self.Actionmenu.create_image(13,35,image=self.gifMove,anchor = NW)
+                self.Actionmenu.create_image(76,35,image=self.gifStop,anchor = NW)
                 if isinstance(units[0], SpaceAttackUnit):
-                    self.Actionmenu.create_image(74,0,image=self.gifAttack,anchor = NW)
+                    self.Actionmenu.create_image(140,35,image=self.gifAttack,anchor = NW)
+            if isinstance(units[0],Mothership):
+                self.Actionmenu.create_image(140,35,image=self.gifAttack,anchor = NW)
+                self.Actionmenu.create_image(13,89,image=self.gifCancel,anchor = NW)
+                self.Actionmenu.create_image(76,89,image=self.gifPatrol,anchor = NW)
 
 	#Frame du menu principal    
     def fMainMenu(self):
@@ -127,7 +134,7 @@ class View():
         #self.entryServer.delete(0,END)
         widget = Button(joinGameFrame, text='Connecter', command=lambda:self.lobbyEnter(0, self.entryLogin.get(), self.entryServer.get()))
         widget.grid(row=2, column=1)
-        #Crée un bouton de retour au menu principal
+		#Crée un bouton de retour au menu principal
         widget = Button(joinGameFrame, text='Retour', command=lambda:self.changeFrame(self.mainMenu), width=10)
         widget.grid(row=3, column=1, columnspan=2, pady=10)
         self.entryServer.bind("<Return>",self.lobbyEnter)
@@ -156,7 +163,7 @@ class View():
         #Crée le bouton de confirmation et se connecte
         widget = Button(createServerFrame, text='Créer et connecter', command=lambda:self.startServer(True))
         widget.grid(row=3, column=1)
-        #Crée un bouton de retour au menu principal
+		#Crée un bouton de retour au menu principal
         widget = Button(createServerFrame, text='Retour', command=lambda:self.changeFrame(self.mainMenu), width=10)
         widget.grid(row=5, column=1, columnspan=2, pady=10)
         return createServerFrame
@@ -174,10 +181,10 @@ class View():
             self.serverCreated(serverAddress)
             #Si l'usager veut se connecter en créant le serveur, on le connecte
             if connect:
-                print('damnyou')
                 self.parent.connectServer(self.entryCreateLogin.get(), self.entryCreateServer.get())
             else:
                 self.changeFrame(self.mainMenu)
+
     
     #Frame du lobby
     def fLobby(self):
@@ -191,18 +198,17 @@ class View():
             if self.parent.playerId == 0:
                 Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame, bg="black", fg="white").grid(row=(pNum+2), column=1)
         self.chatLobby = Label(lobbyFrame, anchor=W, justify=LEFT, width=45, background='black', fg='white', relief='raised')
-        self.chatLobby.grid(row=(pNum+8), column=1)
+        self.chatLobby.grid(row=(pNum+11), column=1)
         self.entryMessLobby = Entry(lobbyFrame, width=35)
-        self.entryMessLobby.grid(row=(pNum+9), column=1)
+        self.entryMessLobby.grid(row=(pNum+12), column=1)
         self.entryMessLobby.bind("<Return>", self.sendMessLobby)
         #Choix de couleur
         self.variableColor = StringVar(lobbyFrame)
         self.colorOPTIONS = ["Orange","Rouge","Bleu","Vert","Jaune","Brun","Blanc","Rose"]
         self.variableColor.set(self.colorOPTIONS[0]) # default value
-        self.colorChoice = OptionMenu(lobbyFrame, self.variableColor, *self.colorOPTIONS)
+        self.colorChoice = OptionMenu(lobbyFrame, self.variableColor, *self.colorOPTIONS, command=self.parent.choiceColor)
         self.colorChoice.grid(row=(self.parent.playerId), column=1)
-        self.buttonColor = Button(lobbyFrame, text="OK", command=self.parent.choiceColor, bg="black", fg="white")
-        self.buttonColor.grid(row=(self.parent.playerId), column=2)
+        self.variableColor.trace('w',self.parent.choiceColor)
         return lobbyFrame
 
     def redrawLobby(self ,lobbyFrame):
@@ -213,12 +219,13 @@ class View():
                 if i[1] == False:
                     self.colorChoice['menu'].add_command(label=i[0], command=lambda temp = i[0]: self.colorChoice.setvar(self.colorChoice.cget("textvariable"), value = temp))
         else:
-            self.buttonColor.configure(state=DISABLED, background='white')
             self.colorChoice['menu'].delete(0, END)
         if self.parent.server != None:
             pNum = len(self.parent.server.getSockets())
             for i in range(0, pNum):
                 Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i,column=0)
+                if self.parent.server.getSockets()[i][3] != -1 and i != self.parent.playerId:
+                    Label(lobbyFrame, text=self.parent.server.getColorChoices()[self.parent.server.getSockets()[i][1]][0], fg="white", bg="black").grid(row=i, column=1)
             Label(lobbyFrame, text='Admin : '+self.parent.server.getSockets()[0][1], fg="white", bg="black").grid(row=(pNum+1), column=1)
             if self.parent.playerId == 0:
                 Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame, bg="black", fg="white").grid(row=(pNum+2), column=1)
@@ -230,10 +237,10 @@ class View():
         
     def loginFailed(self):
         mb.showinfo('Erreur de connection', 'Le serveur est introuvable. Veuillez reessayer.')
-
+    
     def colorAlreadyChosen(self):
         mb.showinfo('Trop tard!', 'La couleur sélectionnée a déjà été choisie.')
-        
+
     def gameHasBeenStarted(self):
         mb.showinfo('Erreur de connection', 'La partie a déjà débutée. Veuillez attendre sa fin.')
     
@@ -245,7 +252,6 @@ class View():
         
     def serverNotCreated(self):
         mb.showinfo('Serveur non créé', 'Une erreur est survenue lors de la création du serveur.\nVeuillez vérifier que les informations entrées sont exactes.')
-
     #Methode pour dessiner la vue d'un planete
     def drawPlanetGround(self, planet):
         self.gameArea.delete('deletable')
@@ -460,48 +466,48 @@ class View():
 
     #Dessine le carrer de la camera dans la minimap    
     def drawMiniFOV(self):
-        cameraX = (self.parent.players[self.parent.playerId].camera.position[0]-(self.taille/2) + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
-        cameraY = (self.parent.players[self.parent.playerId].camera.position[1]-((self.taille/2)-self.taille/8) + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
-        width = self.taille / self.parent.galaxy.width * (self.taille/4)
-        height = self.taille / self.parent.galaxy.height * ((self.taille/16)*3)
+        cameraX = (self.parent.players[self.parent.playerId].camera.position[0]-(self.taille/2) + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
+        cameraY = (self.parent.players[self.parent.playerId].camera.position[1]-((self.taille/2)-self.taille/8) + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
+        width = self.taille / self.parent.galaxy.width * 200
+        height = self.taille / self.parent.galaxy.height * 150
         self.minimap.create_rectangle(cameraX, cameraY, cameraX+width, cameraY+height, outline='GREEN', tag='deletable')
 
     #Dessine un soleil dans la minimap    
     def drawMiniSun(self, sun):
         sunPosition = sun.sunPosition
-        sunX = (sunPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
-        sunY = (sunPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
+        sunX = (sunPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
+        sunY = (sunPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
         if sun.discovered:
             self.minimap.create_oval(sunX-3, sunY-3, sunX+3, sunY+3, fill='ORANGE')
 
     #Dessine une planete dans la minimap        
     def drawMiniPlanet(self, planet):
         planetPosition = planet.position
-        planetX = (planetPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
-        planetY = (planetPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
+        planetX = (planetPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
+        planetY = (planetPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
         if planet.discovered:
             self.minimap.create_oval(planetX-1, planetY-1, planetX+1, planetY+1, fill='LIGHT BLUE')
             
     #dessine une nebula dans la minimap
     def drawMiniNebula(self, nebula):
         nebulaPosition = nebula.position
-        nebulaX = (nebulaPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
-        nebulaY = (nebulaPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
+        nebulaX = (nebulaPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
+        nebulaY = (nebulaPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
         if nebula.discovered:
             self.minimap.create_oval(nebulaX-1, nebulaY-1, nebulaX+1, nebulaY+1, fill='PURPLE')
         
     #dessine un asteroid dans la minimap
     def drawMiniAsteroid(self, asteroid):
         asteroidPosition = asteroid.position
-        asteroidX = (asteroidPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
-        asteroidY = (asteroidPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
+        asteroidX = (asteroidPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
+        asteroidY = (asteroidPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
         if asteroid.discovered:
             self.minimap.create_oval(asteroidX-1, asteroidY-1, asteroidX+1, asteroidY+1, fill='CYAN')
         
     #Dessine une unite dans la minimap        
     def drawMiniUnit(self, unit):
-        unitX = (unit.position[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
-        planetY = (unit.position[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
+        unitX = (unit.position[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
+        planetY = (unit.position[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
         if unit.name != "Mothership":
             if unit in self.parent.players[self.parent.playerId].units:
                 self.minimap.create_polygon((unitX-2, planetY+2, unitX, planetY-2, unitX+2, planetY+2),fill='GREEN', tag='deletable')

@@ -4,7 +4,7 @@ import socket
 
 #Represente un joueur
 class Player():
-    def __init__(self, name, id , colorId,civilization=None):
+    def __init__(self, name, id , colorId, civilization=None):
         self.name = name
         self.civilization = civilization
         self.colorId = colorId
