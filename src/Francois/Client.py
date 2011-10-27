@@ -104,11 +104,12 @@ class Controller():
         self.pushChange(str(self.players[self.playerId].units.index(unit)), (solarsystemId, planetIndex, FlagState.LAND))
 
     def setMotherShipRallyPoint(self, pos):
-        self.players[self.playerId].motherShip.flag.finalTarget.position = pos
+        self.pushChange(0, Flag(finalTarget = pos, flagState = FlagState.CHANGE_RALLY_POINT))
         
     #Pour ajouter une unit
     def addUnit(self, unit):
-        self.players[self.playerId].motherShip.unitBeingConstruct.append(u.Unit(unit,[0,0,0],self.playerId))
+        print(Flag(unit, FlagState.CREATE).flagState)
+        self.pushChange(0, Flag(finalTarget = unit, flagState = FlagState.CREATE))
             
     #Trade entre joueurs
     def tradePlayers(self, items, playerId2, quantite):
@@ -339,9 +340,12 @@ class Controller():
                 self.view.showGameIsFinished()
                 self.view.root.destroy()
         elif self.view.currentFrame != self.view.pLobby:
-            self.players[self.playerId].motherShip.progressUnitsConstruction()
-            if self.players[self.playerId].motherShip.isUnitFinished():
-                self.pushChange(self.players[self.playerId].motherShip.unitBeingConstruct.pop(0).name, 'addunit')
+            for i in self.players:
+                i.motherShip.progressUnitsConstruction()
+                if i.motherShip.isUnitFinished():
+                    u = i.motherShip.unitBeingConstruct.pop(0)
+                    u.changeFlag(i.motherShip.flag.finalTarget, FlagState.MOVE)
+                    i.units.append(u)
             if self.refresh==0:
                 self.refreshMessages()
                 response = self.server.isEveryoneReady(self.playerId)
@@ -469,19 +473,19 @@ class Controller():
     #Méthode de mise à jour auprès du serveur, actionnée à chaque
     def pushChange(self, playerObject, flag):
         if isinstance(flag, Flag):
+            print(flag.flagState)
             if flag.flagState == FlagState.MOVE or flag.flagState == FlagState.STANDBY:
                 actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             elif flag.flagState == FlagState.ATTACK:
                 targetId = self.players[flag.finalTarget.owner].units.index(flag.finalTarget)
                 actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/U"+str(targetId)+"P"+str(flag.finalTarget.owner)
+            elif flag.flagState == FlagState.CREATE:
+                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState) + "/" + str(flag.finalTarget)
+            elif flag.flagState == FlagState.CHANGE_RALLY_POINT:
+                actionString = str(self.playerId) + "/" + "0" + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
+                
         elif isinstance(flag, str):
-            if flag == 'addunit':
-                actionString = str(self.playerId)+"/"+playerObject+"/"+flag+"/lolcasertarienceboutla"
-            elif flag == 'deleteUnit':
-                actionString = str(self.playerId)+"/"+str(self.players[self.playerId].units.index(playerObject))+"/"+flag+"/klolyvamourirleunit"
-            elif flag == 'deleteAllUnits':
-                actionString = str(self.playerId)+"/"+playerObject+"/"+flag+"/lolypartdelapartie"
-            elif flag == 'changeFormation':
+            if flag == 'changeFormation':
                 actionString = str(self.playerId)+"/"+playerObject+"/"+flag+"/changementDeFormation"
 		#Si c'est un échange
         elif isinstance(flag, tuple):
@@ -601,19 +605,25 @@ class Controller():
             self.players[actionPlayerId].units[int(unitIndex[0])].changeFlag(self.galaxy.solarSystemList[int(target[0])].planets[int(target[1])],int(action))
             #self.players[actionPlayerId].units[unitIndex[0]].flag = Flag(self.players[actionPlayerId].units[unitIndex[0]], planet, FlagState.LAND)
         #ici, le target sera l'index de l'unit� dans le tableau de unit du player cibl�
+        
+        elif action == str(FlagState.CREATE):
+            m = self.players[actionPlayerId].motherShip
+            p=[m.position[0],m.position[1],0]
+            m.unitBeingConstruct.append(u.Unit(target,p,actionPlayerId))
+        
+        elif action == str(FlagState.CHANGE_RALLY_POINT):
+            target = target.strip("[")
+            target = target.strip("]")
+            target = target.split(",")
+            for i in range(0, len(target)):
+                target[i]=math.trunc(float(target[i]))
+            self.players[actionPlayerId].motherShip.flag.finalTarget.position = target
+             
         elif action == 'deleteAllUnits':
             self.players[actionPlayerId].units = []
-        elif action == 'addunit':
-                            
-            m = self.players[actionPlayerId].motherShip
-            p = m.flag.finalTarget.position
 
-            if unitIndex[0] == UnitType.SCOUT:
-                unit = u.Unit(UnitType.SCOUT,[m.position[0],m.position[1],0],actionPlayerId, moveSpeed=4.0)
-            elif unitIndex[0] == UnitType.SPACE_ATTACK_UNIT:
-                unit = u.SpaceAttackUnit(UnitType.SPACE_ATTACK_UNIT,[m.position[0],m.position[1],0], actionPlayerId, attackspeed=10.0,attackdamage=5.0,range=150.0, moveSpeed=2.0)
-            self.players[actionPlayerId].units.append(unit)
-            self.setDefaultMovingFlag(p[0], p[1], unit)
+                            
+            
         elif action == 'deleteUnit':
             self.killUnit((int(unitIndex[0]),actionPlayerId))
         elif action == 'changeFormation':

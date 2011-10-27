@@ -21,7 +21,10 @@ class FlagState():
     BUILD=32
     LAND=64
     RESEARCH=128
-    DESTROY=256 
+    DESTROY=256
+    CREATE = 512
+    CHANGE_RALLY_POINT = 1024
+
 
 class MoveSpeed():
     SCOUT = 4.0
