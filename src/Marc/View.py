@@ -194,13 +194,13 @@ class View():
             pNum = len(self.parent.server.getSockets())
             for i in range(0, pNum):
                 Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i,column=0)
-            Label(lobbyFrame, text='Admin : '+self.parent.server.getSockets()[0][1], fg="white", bg="black").grid(row=(pNum+1), column=1)
+            Label(lobbyFrame, text='Admin : '+self.parent.server.getSockets()[0][1], fg="white", bg="black").grid(row=37, column=1)
             if self.parent.playerId == 0:
-                Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame, bg="black", fg="white").grid(row=(pNum+11), column=1)
+                Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame, bg="black", fg="white").grid(row=38, column=1)
         self.chatLobby = Label(lobbyFrame, anchor=W, justify=LEFT, width=45, background='black', fg='white', relief='raised')
-        self.chatLobby.grid(row=(pNum+12), column=1)
+        self.chatLobby.grid(row=39, column=1)
         self.entryMessLobby = Entry(lobbyFrame, width=35)
-        self.entryMessLobby.grid(row=(pNum+13), column=1)
+        self.entryMessLobby.grid(row=40, column=1)
         self.entryMessLobby.bind("<Return>", self.sendMessLobby)
         #Choix de couleur
         self.variableColor = StringVar(lobbyFrame)
@@ -226,8 +226,7 @@ class View():
                 Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i,column=0)
                 if self.parent.server.getSockets()[i][3] != -1 and i != self.parent.playerId:
                     Label(lobbyFrame, text=self.parent.server.getColorChoices()[self.parent.server.getSockets()[i][3]][0], fg="white", bg="black").grid(row=i, column=1)
-            Label(lobbyFrame, text='Admin : '+self.parent.server.getSockets()[0][1], fg="white", bg="black").grid(row=(pNum+1), column=1)
-    
+                
     def sendMessLobby(self, eve):
         if self.entryMessLobby.get() != "":
             self.parent.sendMessageLobby(self.entryMessLobby.get(), self.parent.server.getSockets()[self.parent.playerId][1])
