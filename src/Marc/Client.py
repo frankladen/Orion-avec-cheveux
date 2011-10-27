@@ -4,7 +4,7 @@ import World as w
 import Player as p
 import Target as t
 import Unit as u
-import Helper as h
+from Helper import *
 from Flag import *
 import Pyro4
 import socket
@@ -136,7 +136,6 @@ class Controller():
                                 self.players[self.playerId].selectedObjects = []
                             if j not in self.players[self.playerId].selectedObjects:
                                 self.players[self.playerId].selectedObjects.append(j)
-                                
         self.view.createActionMenu()
     def selectAll(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
@@ -272,7 +271,6 @@ class Controller():
 
     def sendMessageLobby(self, mess, nom):
         self.server.addMessage(mess, self.server.getSockets()[self.playerId][1])
-
     #Pour aller chercher les nouveaux messages
     def refreshMessages(self, chat):
         textChat=''
@@ -286,7 +284,7 @@ class Controller():
                 textChat+=self.mess[i]+'\r'
         chat.config(text=textChat)
 
-    def choiceColor(self):
+    def choiceColor(self, name ,index, mode):
         response = self.server.isThisColorChosen(self.view.variableColor.get(),self.playerId)
         if response == True:
             self.view.colorAlreadyChosen()
@@ -299,7 +297,7 @@ class Controller():
                 self.view.root.destroy()
         elif self.view.currentFrame != self.view.pLobby:
             if self.refresh==0:
-                self.refreshMessages( self.view.chat)
+                self.refreshMessages(self.view.chat)
                 response = self.server.isEveryoneReady(self.playerId)
                 if response:
                     self.refresh+=1
@@ -343,6 +341,7 @@ class Controller():
                 #self.view.pLobby = self.view.fLobby()
                 self.view.redrawLobby(self.view.pLobby)
                 #elf.view.changeFrame(self.view.pLobby)
+
 
         self.view.root.after(waitTime, self.action)
         
@@ -416,7 +415,7 @@ class Controller():
         self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
         for i in range(0, len(self.server.getSockets())):
             startPos = self.galaxy.getSpawnPoint()
-            self.players[i].addBaseUnits(startPos)
+            self.players[i].addBaseUnits(startPos)  
         self.players[self.playerId].addCamera(self.galaxy, self.view.taille)
         self.view.gameFrame = self.view.fGame()
         self.view.changeFrame(self.view.gameFrame)
@@ -468,84 +467,12 @@ class Controller():
         refresh = int(changeInfo[4])
         #si l'action est Move, la target sera sous forme de tableau de positions [x,y,z]
         if action == str(FlagState.MOVE) or action == str(FlagState.STANDBY):
-            lineTaken=[]
-            line=0
             target = target.strip("[")
             target = target.strip("]")
             target = target.split(",")
             for i in range(0, len(target)):
                 target[i]=math.trunc(float(target[i])) #nécessaire afin de s'assurer que les positions sont des entiers
-            targetorig=[0,0]
-            targetorig[0]=target[0]
-            targetorig[1]=target[1]
-            #Formation en carré selon le nombre de unit qui se déplace, OH YEAH
-            if self.players[actionPlayerId].formation == "carre":
-                thatLine = []
-                lineTaken = []
-                numberOfLines = math.sqrt(len(unitIndex)-1)
-                if str(numberOfLines).split('.')[1] != '0':
-                    numberOfLines+=1
-                math.trunc(float(numberOfLines))
-                numberOfLines = int(numberOfLines)
-                for l in range(0,numberOfLines):
-                    thatLine = []
-                    for k in range(0,numberOfLines):
-                        thatLine.append(False)
-                    lineTaken.append(thatLine)
-                for i in range(0,len(unitIndex)-1):
-                    goodPlace=False
-                    line=0
-                    while goodPlace==False:
-                        for p in range(0,len(lineTaken[line])):
-                            if lineTaken[line][p]==False:
-                                lineTaken[line][p]=True
-                                target[0]=targetorig[0]+(p*20)
-                                target[1]=targetorig[1]-(line*20)
-                                goodPlace=True
-                                break
-                        if goodPlace==False:
-                            line+=1
-                            if (len(lineTaken)-1)<line:
-                                numberOfSpaces=1+line
-                                thatLine=[]
-                                for a in range(0,numberOfSpaces):
-                                    thatLine.append(False)
-                                lineTaken.append(thatLine)
-                    self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
-            #Formation en triangle, FUCK YEAH
-            elif self.players[actionPlayerId].formation == "triangle":
-                thatLine=[]
-                xLineBefore=[0,0,0,0,0,0,0,0,0,0,0,0]
-                thatLine.append([False])
-                lineTaken.append(thatLine[False])
-                for i in range(0,len(unitIndex)-1):
-                    goodPlace=False
-                    line=0
-                    while goodPlace==False:
-                        for p in range(0,len(lineTaken[line])):
-                            if lineTaken[line][p]==False:
-                                lineTaken[line][p]=True
-                                if line != 0:
-                                    if p==len(lineTaken[line-1]):
-                                        target[0]=targetorig[0]+(p*20)
-                                        xLineBefore[p] = target[0]
-                                    else:
-                                        target[0]=xLineBefore[p]-20
-                                        xLineBefore[p] = target[0]
-                                target[1]=targetorig[1]-(line*20)
-                                goodPlace=True
-                                break
-                        if goodPlace==False:
-                            line+=1
-                            if (len(lineTaken)-1)<line:
-                                numberOfSpaces=1+line
-                                thatLine=[]
-                                for a in range(0,numberOfSpaces):
-                                    thatLine.append(False)
-                                lineTaken.append(thatLine)
-                        if line == 0:
-                            xLineBefore[0] = target[0]
-                    self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
+            self.makeFormation(actionPlayerId, unitIndex, target, action)
         elif action == str(FlagState.ATTACK):
             target = target.split("P")
             target[0] = target[0].strip("U")
@@ -576,6 +503,81 @@ class Controller():
             elif unitIndex == 'g':
                 self.players[actionPlayerId].gaz-=quantite
                 self.players[int(action)].gaz+=quantite
+
+    def makeFormation(self, actionPlayerId, unitIndex, target, action):
+        lineTaken=[]
+        line=0
+        targetorig=[0,0]
+        targetorig[0]=target[0]
+        targetorig[1]=target[1]
+        #Formation en carré selon le nombre de unit qui se déplace, OH YEAH
+        if self.players[actionPlayerId].formation == "carre":
+            thatLine = []
+            lineTaken = []
+            numberOfLines = math.sqrt(len(unitIndex)-1)
+            if str(numberOfLines).split('.')[1] != '0':
+                numberOfLines+=1
+            math.trunc(float(numberOfLines))
+            numberOfLines = int(numberOfLines)
+            for l in range(0,numberOfLines):
+                thatLine = []
+                for k in range(0,numberOfLines):
+                    thatLine.append(False)
+                lineTaken.append(thatLine)
+            for i in range(0,len(unitIndex)-1):
+                goodPlace=False
+                line=0
+                while goodPlace==False:
+                    for p in range(0,len(lineTaken[line])):
+                        if lineTaken[line][p]==False:
+                            lineTaken[line][p]=True
+                            target[0]=targetorig[0]+(p*20)
+                            target[1]=targetorig[1]-(line*20)
+                            goodPlace=True
+                            break
+                    if goodPlace==False:
+                        line+=1
+                        if (len(lineTaken)-1)<line:
+                            numberOfSpaces=1+line
+                            thatLine=[]
+                            for a in range(0,numberOfSpaces):
+                                thatLine.append(False)
+                            lineTaken.append(thatLine)
+                self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
+        #Formation en triangle, FUCK YEAH
+        elif self.players[actionPlayerId].formation == "triangle":
+            thatLine=[]
+            xLineBefore=[0,0,0,0,0,0,0,0,0,0,0,0]
+            thatLine.append([False])
+            lineTaken.append(thatLine[False])
+            for i in range(0,len(unitIndex)-1):
+                goodPlace=False
+                line=0
+                while goodPlace==False:
+                    for p in range(0,len(lineTaken[line])):
+                        if lineTaken[line][p]==False:
+                            lineTaken[line][p]=True
+                            if line != 0:
+                                if p==len(lineTaken[line-1]):
+                                    target[0]=targetorig[0]+(p*20)
+                                    xLineBefore[p] = target[0]
+                                else:
+                                    target[0]=xLineBefore[p]-20
+                                    xLineBefore[p] = target[0]
+                            target[1]=targetorig[1]-(line*20)
+                            goodPlace=True
+                            break
+                    if goodPlace==False:
+                        line+=1
+                        if (len(lineTaken)-1)<line:
+                            numberOfSpaces=1+line
+                            thatLine=[]
+                            for a in range(0,numberOfSpaces):
+                                thatLine.append(False)
+                            lineTaken.append(thatLine)
+                    if line == 0:
+                        xLineBefore[0] = target[0]
+                self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
 
 if __name__ == '__main__':
     c = Controller()

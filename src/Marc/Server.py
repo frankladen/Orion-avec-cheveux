@@ -64,7 +64,7 @@ class ControleurServeur(object):
         change = change+'/'+str(self.decideActionRefresh())
         for ch in self.changeList:
             ch.append(change)
-
+  
     def isThisColorChosen(self, colorName, playerId):
         for i in range(0,len(self.choiceColors)):
             if colorName == self.choiceColors[i][0]:
@@ -82,7 +82,7 @@ class ControleurServeur(object):
                 i[1] = True
                 self.sockets[playerId][3] = self.choiceColors.index(i)
                 break
-    
+        
     def refreshPlayer(self, playerId, refresh):
         self.refreshes[playerId] = refresh
     
