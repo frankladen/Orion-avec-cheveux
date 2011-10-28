@@ -179,18 +179,19 @@ class Planet(Target):
         self.nMineralStack = nMineralStack + 1
         self.nGazStack = nGazStack + 1
         self.landingZones = []
+        self.units = []
         for i in range(0, self.nMineralStack):
             nMinerals = int(random.random()*100)
             posFound = False
             while not posFound:
                 posFound = True
                 position = [random.random()*800, random.random()*600]
-                if position[0] < 0 or position[0] > 800-25:
-                    if position[1] < 0 or position[0] > 600-25:
+                if position[0] < 0 or position[0] > 800-24:
+                    if position[1] < 0 or position[0] > 600-27:
                         posFound = False
                 for i in self.minerals:
-                    if position[0] > i.position[0] and position[0] < i.position[0]+25:
-                        if position[1] > i.position[1] and position[1] < i.position[1]+25:
+                    if position[0] > i.position[0]-25 and position[0] < i.position[0]+25:
+                        if position[1] > i.position[1]-25 and position[1] < i.position[1]+25:
                             posFound = False
             self.minerals.append(MineralStack(nMinerals,position))
         for i in range(0, self.nGazStack):
@@ -203,18 +204,43 @@ class Planet(Target):
                     if position[1] < 0 or position[1] > 600-25:
                         posFound = False
                 for i in self.minerals:
-                    if position[0] > i.position[0] and position[0] < i.position[0]+25:
-                        if position[1] > i.position[1] and position[1] < i.position[1]+25:
+                    if position[0] > i.position[0]-25 and position[0] < i.position[0]+25:
+                        if position[1] > i.position[1]-25 and position[1] < i.position[1]+25:
                             posFound = False
                 for i in self.gaz:
-                    if position[0] > i.position[0] and position[0] < i.position[0]+25:
-                        if position[1] > i.position[1] and position[1] < i.position[1]+25:
+                    if position[0] > i.position[0]-25 and position[0] < i.position[0]+25:
+                        if position[1] > i.position[1]-25 and position[1] < i.position[1]+25:
                             posFound = False
             self.gaz.append(GazStack(nGaz, position))
         for i in self.minerals:
             self.mineralQte += i.nbMinerals
         for i in self.gaz:
             self.gazQte += i.nbGaz
+
+    def addLandingZone(self, playerid, landingShip):
+        placeFound = False
+        while not placeFound:
+            placeFound = True
+            position = [random.random()*800, random.random()*600]
+            if position[0] < 0+38 or position[0] > 800-38:
+                if position[1] < 0+38 or position[1] > 600-38:
+                    placeFound = False
+            for i in self.minerals:
+                if position[0] > i.position[0]-25 and position[0] < i.position[0]+25:
+                    if position[1] > i.position[1]-25 and position[1] < i.position[1]+25:
+                        posFound = False
+            for i in self.gaz:
+                if position[0] > i.position[0]-25 and position[0] < i.position[0]+25:
+                    if position[1] > i.position[1]-25 and position[1] < i.position[1]+25:
+                        posFound = False 
+        self.landingZones.append(LandingZone(position, playerid, landingShip))
+
+    def alreadyLanded(self, playerId):
+        alreadyLanded = False
+        for i in self.landingZones:
+            if i.ownerId == playerId:
+                alreadyLanded = True
+        return alreadyLanded
 
 class MineralStack(Target):
     def __init__(self, nbMinerals, position):
@@ -225,3 +251,9 @@ class GazStack(Target):
     def __init__(self, nbGaz, position):
         Target.__init__(self, position)
         self.nbGaz= nbGaz
+        
+class LandingZone(Target):
+    def __init__(self, position, ownerId, landingShip):
+        Target.__init__(self, position)
+        self.ownerId = ownerId
+        self.LandedShip = landingShip

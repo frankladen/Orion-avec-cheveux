@@ -4,6 +4,7 @@ import World as w
 import Player as p
 import Target as t
 import Unit as u
+from Helper import *
 from Flag import *
 from Constants import *
 import Pyro4
@@ -120,9 +121,8 @@ class Controller():
     #Pour effacer un Unit
     def eraseUnit(self):
         if len(self.players[self.playerId].selectedObjects) > 0:
-            if self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1].__module__ == 'Unit':
-                self.pushChange(self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1], 'deleteUnit')
-                self.players[self.playerId].selectedObjects.pop(len(self.players[self.playerId].selectedObjects)-1)
+            if isinstance(self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1], u.Unit):
+                self.pushChange(self.players[self.playerId].units.index(self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1]), Flag(None,None,FlagState.DESTROY))
                 
     #Pour effacer tous les units
     def eraseUnits(self):
@@ -321,8 +321,11 @@ class Controller():
         if mess == "t" or "c":
             self.pushChange(mess, "changeFormation")
 
+    def sendMessageLobby(self, mess, nom):
+        self.server.addMessage(mess, self.server.getSockets()[self.playerId][1])
+
     #Pour aller chercher les nouveaux messages
-    def refreshMessages(self):
+    def refreshMessages(self, chat):
         textChat=''
         for i in range(len(self.mess), len(self.server.getMessage())):
             self.mess.append(self.server.getMessage()[i])
@@ -332,8 +335,13 @@ class Controller():
         else:
             for i in range(0, len(self.mess)):
                 textChat+=self.mess[i]+'\r'
-        self.view.chat.config(text=textChat)
-        
+        chat.config(text=textChat)
+
+    def choiceColor(self, name ,index, mode):
+        response = self.server.isThisColorChosen(self.view.variableColor.get(),self.playerId)
+        if response == True:
+            self.view.colorAlreadyChosen()
+            
     #TIMER D'ACTION DU JOUEUR COURANT
     def action(self, waitTime=50):
         if self.server.isGameStopped() == True and self.view.currentFrame == self.view.gameFrame:
@@ -342,7 +350,7 @@ class Controller():
                 self.view.root.destroy()
         elif self.view.currentFrame != self.view.pLobby:
             if self.refresh==0:
-                self.refreshMessages()
+                self.refreshMessages(self.view.chat)
                 response = self.server.isEveryoneReady(self.playerId)
                 if response:
                     self.refresh+=1
@@ -368,15 +376,13 @@ class Controller():
                                         self.killUnit(killedIndex)
 	                        elif i.flag.flagState == FlagState.LAND:
 	                            i.land(self, self.players.index(p))
-	                print(p.motherShip.flag.flagState)
 	                if p.motherShip.flag.flagState == FlagState.CREATE:
-                            print('allo?')
                             p.motherShip.progressUnitsConstruction()
                             if p.motherShip.isUnitFinished():
                                 u = p.motherShip.unitBeingConstruct.pop(0)
                                 u.changeFlag(p.motherShip.flag.finalTarget, FlagState.MOVE)
                                 p.units.append(u)
-	            self.refreshMessages()
+	            self.refreshMessages(self.view.chat)
 	            self.refresh+=1
 	            self.view.showMinerals.config(text=self.players[self.playerId].mineral)
 	            self.view.showGaz.config(text=self.players[self.playerId].gaz)
@@ -394,9 +400,8 @@ class Controller():
                 self.startGame()
             else:
                 waitTime=1000
-                self.view.pLobby = self.view.fLobby()
-                self.view.changeFrame(self.view.pLobby)
-
+                self.refreshMessages(self.view.chatLobby)
+                self.view.redrawLobby(self.view.pLobby)
         self.view.root.after(waitTime, self.action)
         
     def killUnit(self, killedIndexes):
@@ -432,23 +437,23 @@ class Controller():
                 
 	#Connection au serveur			
     def connectServer(self, login, serverIP):
-        self.server=Pyro4.core.Proxy("PYRO:controleurServeur@"+serverIP+":54440")
-        try:
-            #Je demande au serveur si la partie est démarrée, si oui on le refuse de la partie, cela permet de vérifier
-            #en même temps si le serveur existe réellement à cette adresse.
-            if self.server.isGameStarted() == True:
-                self.view.gameHasBeenStarted()
-                self.view.changeFrame(self.view.mainMenu)
-            else:
-                #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
-                self.playerId=self.server.getNumSocket(login, self.playerIp)
-                #Je vais au lobby, si la connection a fonctionner
-                self.view.pLobby = self.view.fLobby()
-                self.view.changeFrame(self.view.pLobby)
-                self.action()
-        except:
-            self.view.loginFailed()
+        self.server=Pyro4.core.Proxy("PYRO:ServeurOrion@"+serverIP+":54440")
+        #try:
+        #Je demande au serveur si la partie est démarrée, si oui on le refuse de la partie, cela permet de vérifier
+        #en même temps si le serveur existe réellement à cette adresse.
+        if self.server.isGameStarted() == True:
+            self.view.gameHasBeenStarted()
             self.view.changeFrame(self.view.mainMenu)
+        else:
+            #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
+            self.playerId=self.server.getNumSocket(login, self.playerIp)
+            #Je vais au lobby, si la connection a fonctionner
+            self.view.pLobby = self.view.fLobby()
+            self.view.changeFrame(self.view.pLobby)
+            self.action()
+        #except:
+        #    self.view.loginFailed()
+        #    self.view.changeFrame(self.view.mainMenu)
             
     #Enleve le joueur courant de la partie ainsi que ses units
     def removePlayer(self):
@@ -463,7 +468,9 @@ class Controller():
         if self.playerId==0:
             self.server.startGame()
         for i in range(0, len(self.server.getSockets())):
-            self.players.append(p.Player(self.server.getSockets()[i][1], i))
+            if self.server.getSockets()[i][3] == -1:
+                self.server.firstColorNotChosen(i)
+            self.players.append(p.Player(self.server.getSockets()[i][1], i, self.server.getSockets()[i][3]))
         self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
         for i in range(0, len(self.server.getSockets())):
             startPos = self.galaxy.getSpawnPoint()
@@ -477,7 +484,6 @@ class Controller():
     def pushChange(self, playerObject, flag):
         actionString = ""
         if isinstance(flag, Flag):
-            print(flag.flagState)
             if flag.flagState == FlagState.MOVE or flag.flagState == FlagState.STANDBY:
                 actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             elif flag.flagState == FlagState.ATTACK:
@@ -487,6 +493,8 @@ class Controller():
                 actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.CHANGE_RALLY_POINT:
                 actionString = str(self.playerId) + "/" + "0" + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
+            elif flag.flagState == FlagState.DESTROY:
+                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/0"
                 
         elif isinstance(flag, str):
             if flag == 'changeFormation':
@@ -520,84 +528,12 @@ class Controller():
         refresh = int(changeInfo[4])
         #si l'action est Move, la target sera sous forme de tableau de positions [x,y,z]
         if action == str(FlagState.MOVE) or action == str(FlagState.STANDBY):
-            lineTaken=[]
-            line=0
             target = target.strip("[")
             target = target.strip("]")
             target = target.split(",")
             for i in range(0, len(target)):
                 target[i]=math.trunc(float(target[i])) #nécessaire afin de s'assurer que les positions sont des entiers
-            targetorig=[0,0]
-            targetorig[0]=target[0]
-            targetorig[1]=target[1]
-            #Formation en carré selon le nombre de unit qui se déplace, OH YEAH
-            if self.players[actionPlayerId].formation == "carre":
-                thatLine = []
-                lineTaken = []
-                numberOfLines = math.sqrt(len(unitIndex)-1)
-                if str(numberOfLines).split('.')[1] != '0':
-                    numberOfLines+=1
-                math.trunc(float(numberOfLines))
-                numberOfLines = int(numberOfLines)
-                for l in range(0,numberOfLines):
-                    thatLine = []
-                    for k in range(0,numberOfLines):
-                        thatLine.append(False)
-                    lineTaken.append(thatLine)
-                for i in range(0,len(unitIndex)-1):
-                    goodPlace=False
-                    line=0
-                    while goodPlace==False:
-                        for p in range(0,len(lineTaken[line])):
-                            if lineTaken[line][p]==False:
-                                lineTaken[line][p]=True
-                                target[0]=targetorig[0]+(p*20)
-                                target[1]=targetorig[1]-(line*20)
-                                goodPlace=True
-                                break
-                        if goodPlace==False:
-                            line+=1
-                            if (len(lineTaken)-1)<line:
-                                numberOfSpaces=1+line
-                                thatLine=[]
-                                for a in range(0,numberOfSpaces):
-                                    thatLine.append(False)
-                                lineTaken.append(thatLine)
-                    self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
-            #Formation en triangle, FUCK YEAH
-            elif self.players[actionPlayerId].formation == "triangle":
-                thatLine=[]
-                xLineBefore=[0,0,0,0,0,0,0,0,0,0,0,0]
-                thatLine.append([False])
-                lineTaken.append(thatLine[False])
-                for i in range(0,len(unitIndex)-1):
-                    goodPlace=False
-                    line=0
-                    while goodPlace==False:
-                        for p in range(0,len(lineTaken[line])):
-                            if lineTaken[line][p]==False:
-                                lineTaken[line][p]=True
-                                if line != 0:
-                                    if p==len(lineTaken[line-1]):
-                                        target[0]=targetorig[0]+(p*20)
-                                        xLineBefore[p] = target[0]
-                                    else:
-                                        target[0]=xLineBefore[p]-20
-                                        xLineBefore[p] = target[0]
-                                target[1]=targetorig[1]-(line*20)
-                                goodPlace=True
-                                break
-                        if goodPlace==False:
-                            line+=1
-                            if (len(lineTaken)-1)<line:
-                                numberOfSpaces=1+line
-                                thatLine=[]
-                                for a in range(0,numberOfSpaces):
-                                    thatLine.append(False)
-                                lineTaken.append(thatLine)
-                        if line == 0:
-                            xLineBefore[0] = target[0]
-                    self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
+            self.makeFormation(actionPlayerId, unitIndex, target, action)
         elif action == str(FlagState.ATTACK):
             target = target.split("P")
             target[0] = target[0].strip("U")
@@ -611,7 +547,6 @@ class Controller():
         #ici, le target sera l'index de l'unit� dans le tableau de unit du player cibl�
         
         elif action == str(FlagState.CREATE):
-            print("va commencer a créer")
             self.players[actionPlayerId].motherShip.changeFlag(self.players[actionPlayerId].motherShip.flag.finalTarget,int(action), actionPlayerId, target)
         
         elif action == str(FlagState.CHANGE_RALLY_POINT):
@@ -621,14 +556,13 @@ class Controller():
             for i in range(0, len(target)):
                 target[i]=math.trunc(float(target[i]))
             self.players[actionPlayerId].motherShip.flag.finalTarget.position = target
-             
+
+        elif action == str(FlagState.DESTROY):
+            self.killUnit((int(unitIndex[0]),actionPlayerId))
+        
         elif action == 'deleteAllUnits':
             self.players[actionPlayerId].units = []
         
-                            
-            
-        elif action == 'deleteUnit':
-            self.killUnit((int(unitIndex[0]),actionPlayerId))
         elif action == 'changeFormation':
             if unitIndex[0]=='t':
                 self.players[actionPlayerId].formation="triangle"
@@ -641,6 +575,97 @@ class Controller():
             elif unitIndex == 'g':
                 self.players[actionPlayerId].gaz-=quantite
                 self.players[int(action)].gaz+=quantite
+
+    def makeFormation(self, actionPlayerId, unitIndex, target, action):
+        lineTaken=[]
+        line=0
+        targetorig=[0,0]
+        targetorig[0]=target[0]
+        targetorig[1]=target[1]
+        #Formation en carré selon le nombre de unit qui se déplace, OH YEAH
+        if self.players[actionPlayerId].formation == "carre":
+            thatLine = []
+            lineTaken = []
+            numberOfLines = math.sqrt(len(unitIndex)-1)
+            if str(numberOfLines).split('.')[1] != '0':
+                numberOfLines+=1
+            math.trunc(float(numberOfLines))
+            numberOfLines = int(numberOfLines)
+            for l in range(0,numberOfLines):
+                thatLine = []
+                for k in range(0,numberOfLines):
+                    thatLine.append(False)
+                lineTaken.append(thatLine)
+            for i in range(0,len(unitIndex)-1):
+                goodPlace=False
+                line=0
+                while goodPlace==False:
+                    for p in range(0,len(lineTaken[line])):
+                        if lineTaken[line][p]==False:
+                            lineTaken[line][p]=True
+                            target[0]=targetorig[0]+(p*20)
+                            if target[0] < -1*(self.galaxy.width/2)+9:
+                                target[0] = -1*(self.galaxy.width/2)+18
+                            elif target[0] > (self.galaxy.width/2)-9:
+                                target[0] = (self.galaxy.width/2)-18
+                            target[1]=targetorig[1]-(line*20)
+                            if target[1] < -1*(self.galaxy.height/2)+9:
+                                target[1] = -1*(self.galaxy.height/2)+18
+                            goodPlace=True
+                            break
+                    if goodPlace==False:
+                        line+=1
+                        if (len(lineTaken)-1)<line:
+                            numberOfSpaces=1+line
+                            thatLine=[]
+                            for a in range(0,numberOfSpaces):
+                                thatLine.append(False)
+                            lineTaken.append(thatLine)
+                self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
+        #Formation en triangle, FUCK YEAH
+        elif self.players[actionPlayerId].formation == "triangle":
+            thatLine=[]
+            xLineBefore=[0,0,0,0,0,0,0,0,0,0,0,0]
+            thatLine.append([False])
+            lineTaken.append(thatLine[False])
+            for i in range(0,len(unitIndex)-1):
+                goodPlace=False
+                line=0
+                while goodPlace==False:
+                    for p in range(0,len(lineTaken[line])):
+                        if lineTaken[line][p]==False:
+                            lineTaken[line][p]=True
+                            if line != 0:
+                                if p==len(lineTaken[line-1]):
+                                    target[0]=targetorig[0]+(p*20)
+                                    #jerome ajoute ca ici la largeur du vaisseau
+                                    if target[0] > (self.galaxy.width/2)-9:
+                                        target[0] = target[0]-(target[0]-(self.galaxy.width/2)+18)
+                                    xLineBefore[p] = target[0]
+                                else:
+                                    target[0]=xLineBefore[p]-20
+                                    if target[0] < -1*(self.galaxy.width/2)+9:
+                                        target[0] = xLineBefore[p]
+                                    elif target[0] > (self.galaxy.width/2)-9:
+                                        target[0] = target[0]-(target[0]-(self.galaxy.width/2)+18)
+                                    xLineBefore[p] = target[0]
+                            target[1]=targetorig[1]-(line*20)
+                            if target[1] < -1*(self.galaxy.height/2)+9:
+                                target[1] = targetorig[1]
+                            goodPlace=True
+                            break
+                    if goodPlace==False:
+                        line+=1
+                        if (len(lineTaken)-1)<line:
+                            numberOfSpaces=1+line
+                            thatLine=[]
+                            for a in range(0,numberOfSpaces):
+                                thatLine.append(False)
+                            lineTaken.append(thatLine)
+                    if line == 0:
+                        xLineBefore[0] = target[0]
+                self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
+
 
 if __name__ == '__main__':
     c = Controller()
