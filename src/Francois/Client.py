@@ -609,7 +609,11 @@ class Controller():
         elif action == str(FlagState.CREATE):
             m = self.players[actionPlayerId].motherShip
             p=[m.position[0],m.position[1],0]
-            m.unitBeingConstruct.append(u.Unit(target,p,actionPlayerId))
+            if (target == UnitType.SCOUT):
+                m.unitBeingConstruct.append(u.Unit(target,p,actionPlayerId,moveSpeed=3.0))
+            if (target == UnitType.SPACE_ATTACK_UNIT):
+                m.unitBeingConstruct.append(u.SpaceAttackUnit(target,p,actionPlayerId,moveSpeed=2.0, attackspeed=10.0,attackdamage=5.0,range=150.0))
+
         
         elif action == str(FlagState.CHANGE_RALLY_POINT):
             target = target.strip("[")
