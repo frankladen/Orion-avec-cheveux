@@ -128,10 +128,11 @@ class TransportShip(SpaceUnit):
                 if i.ownerId == playerId:
                     alreadyLanded = True
             if not alreadyLanded:
-                planet.addLandingZone(playerId, self)
-                self.landed = True
-                if self in controller.players[controller.playerId].selectedObjects:
-                    controller.players[controller.playerId].selectedObjects.pop(controller.players[controller.playerId].selectedObjects.index(self))
+                if len(planet.landingZones) < 4:
+                    planet.addLandingZone(playerId, self)
+                    self.landed = True
+                    if self in controller.players[controller.playerId].selectedObjects:
+                        controller.players[controller.playerId].selectedObjects.pop(controller.players[controller.playerId].selectedObjects.index(self))
             if playerId == controller.playerId:
                 controller.view.changeBackground('PLANET')
                 controller.view.drawPlanetGround(planet)
