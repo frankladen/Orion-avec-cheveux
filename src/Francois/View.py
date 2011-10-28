@@ -100,7 +100,7 @@ class View():
         self.drawWorld()
         self.createActionMenu(MenuType.MAIN)
         self.unitsConstructionPanel = Canvas(gameFrame, width = self.taille/4, height = self.taille/2, background = 'black', relief = "ridge" )
-        self.unitsConstructionPanel.grid(column = 0, row = 1)
+        self.unitsConstructionPanel.grid(column = 543, row = 1)
         self.assignControls()
         return gameFrame
 

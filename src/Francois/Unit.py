@@ -71,9 +71,22 @@ class Mothership(Unit):
         self.flag.finalTarget = t.Target(position)
         self.unitBeingConstruct = []
 
+    def changeFlag(self, finalTarget, flagState, actionPlayerId=0, unitTypeToConstruct=None):
+        p = [self.position[0], self.position[1], 0]
+        if unitTypeToConstruct != None and flagState == FlagState.CREATE:
+            if (unitTypeToConstruct == UnitType.SCOUT):
+                self.unitBeingConstruct.append(Unit(unitTypeToConstruct,p,actionPlayerId,moveSpeed=3.0))
+            if (unitTypeToConstruct == UnitType.SPACE_ATTACK_UNIT):
+                self.unitBeingConstruct.append(SpaceAttackUnit(unitTypeToConstruct,p,actionPlayerId,moveSpeed=2.0, attackspeed=10.0,attackdamage=5.0,range=150.0))
+        Unit.changeFlag(self, finalTarget, flagState)
+
     def progressUnitsConstruction(self):
         if len(self.unitBeingConstruct) > 0:
+            self.flag.flagState = FlagState.CREATE
             self.unitBeingConstruct[0].constructionProgress = self.unitBeingConstruct[0].constructionProgress + 1
+        else:
+            self.flag.flagState = FlagState.STANDBY
+
 
     def isUnitFinished(self):
         if len(self.unitBeingConstruct) > 0:
