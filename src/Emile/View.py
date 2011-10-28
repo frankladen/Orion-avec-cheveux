@@ -4,6 +4,7 @@ from Unit import *
 from Flag import *
 from Helper import *
 from Constants import *
+from winsound import *
 import tkinter.messagebox as mb
 import subprocess
 
@@ -60,6 +61,7 @@ class View():
         self.selectAllUnits = False
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
+        PlaySound('sounds/OrionMenuTheme.wav', SND_ASYNC+SND_LOOP)
     
     def changeFrame(self, frame):
         self.currentFrame.pack_forget()
@@ -102,6 +104,7 @@ class View():
         self.unitsConstructionPanel = Canvas(gameFrame, width = self.taille/4, height = self.taille/2, background = 'black', relief = "ridge")
         self.unitsConstructionPanel.grid(column = 5, row = 1)
         self.assignControls()
+        PlaySound(None, SND_ASYNC)
         return gameFrame
 
     def createActionMenu(self, type):

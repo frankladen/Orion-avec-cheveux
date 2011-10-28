@@ -9,6 +9,7 @@ from Constants import *
 import Pyro4
 import socket
 import math
+from winsound import *
 from time import time
 
 class Controller():
@@ -172,6 +173,7 @@ class Controller():
                             if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
                                 self.players[self.playerId].selectedObjects = []
                                 self.players[self.playerId].selectedObjects.append(j)
+            PlaySound('sounds/Clic.wav', SND_ASYNC)
             self.view.actionMenuType = MenuType.MAIN
         
     def selectAll(self, posSelected):

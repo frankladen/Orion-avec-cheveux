@@ -186,12 +186,12 @@ class Planet(Target):
             while not posFound:
                 posFound = True
                 position = [random.random()*800, random.random()*600]
-                if position[0] < 0 or position[0] > 800-24:
-                    if position[1] < 0 or position[0] > 600-27:
+                if position[0] < 30 or position[0] > 800-30:
+                    if position[1] < 60 or position[0] > 600-60:
                         posFound = False
                 for i in self.minerals:
-                    if position[0] > i.position[0]-25 and position[0] < i.position[0]+25:
-                        if position[1] > i.position[1]-25 and position[1] < i.position[1]+25:
+                    if position[0] > i.position[0]-30 and position[0] < i.position[0]+30:
+                        if position[1] > i.position[1]-30 and position[1] < i.position[1]+30:
                             posFound = False
             self.minerals.append(MineralStack(nMinerals,position))
         for i in range(0, self.nGazStack):
@@ -200,16 +200,16 @@ class Planet(Target):
             while not posFound:
                 posFound = True
                 position = [random.random()*800, random.random()*600]
-                if position[0] < 0 or position[0] > 800-25:
-                    if position[1] < 0 or position[1] > 600-25:
+                if position[0] < 30 or position[0] > 800-30:
+                    if position[1] < 30 or position[1] > 600-30:
                         posFound = False
                 for i in self.minerals:
-                    if position[0] > i.position[0]-25 and position[0] < i.position[0]+25:
-                        if position[1] > i.position[1]-25 and position[1] < i.position[1]+25:
+                    if position[0] > i.position[0]-30 and position[0] < i.position[0]+30:
+                        if position[1] > i.position[1]-30 and position[1] < i.position[1]+30:
                             posFound = False
                 for i in self.gaz:
-                    if position[0] > i.position[0]-25 and position[0] < i.position[0]+25:
-                        if position[1] > i.position[1]-25 and position[1] < i.position[1]+25:
+                    if position[0] > i.position[0]-30 and position[0] < i.position[0]+30:
+                        if position[1] > i.position[1]-30 and position[1] < i.position[1]+30:
                             posFound = False
             self.gaz.append(GazStack(nGaz, position))
         for i in self.minerals:
@@ -222,16 +222,16 @@ class Planet(Target):
         while not placeFound:
             placeFound = True
             position = [random.random()*800, random.random()*600]
-            if position[0] < 0+38 or position[0] > 800-38:
-                if position[1] < 0+38 or position[1] > 600-38:
+            if position[0] < 0+75 or position[0] > 800-75:
+                if position[1] < 0+75 or position[1] > 600-75:
                     placeFound = False
             for i in self.minerals:
-                if position[0] > i.position[0]-25 and position[0] < i.position[0]+25:
-                    if position[1] > i.position[1]-25 and position[1] < i.position[1]+25:
+                if position[0] > i.position[0]-30 and position[0] < i.position[0]+30:
+                    if position[1] > i.position[1]-30 and position[1] < i.position[1]+30:
                         posFound = False
             for i in self.gaz:
-                if position[0] > i.position[0]-25 and position[0] < i.position[0]+25:
-                    if position[1] > i.position[1]-25 and position[1] < i.position[1]+25:
+                if position[0] > i.position[0]-30 and position[0] < i.position[0]+30:
+                    if position[1] > i.position[1]-30 and position[1] < i.position[1]+30:
                         posFound = False 
         self.landingZones.append(LandingZone(position, playerid, landingShip))
 
