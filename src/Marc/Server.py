@@ -72,6 +72,8 @@ class ControleurServeur(object):
         if self.choiceColors[colorId][1]:
             return True
         else:
+            if self.sockets[playerId][3] != -1:
+                self.choiceColors[self.sockets[playerId][3]][1] = False
             self.sockets[playerId][3]=colorId
             self.choiceColors[colorId][1] = True
             return False

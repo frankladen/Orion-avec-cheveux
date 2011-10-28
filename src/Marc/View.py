@@ -212,14 +212,11 @@ class View():
         return lobbyFrame
 
     def redrawLobby(self ,lobbyFrame):
-        if self.parent.server.getSockets()[self.parent.playerId][3] == -1:
-            listOfColors = self.parent.server.getColorChoices()
-            self.colorChoice['menu'].delete(0, END)
-            for i in listOfColors:
-                if i[1] == False:
-                    self.colorChoice['menu'].add_command(label=i[0], command=lambda temp = i[0]: self.colorChoice.setvar(self.colorChoice.cget("textvariable"), value = temp))
-        else:
-            self.colorChoice['menu'].delete(0, END)
+        listOfColors = self.parent.server.getColorChoices()
+        self.colorChoice['menu'].delete(0, END)
+        for i in listOfColors:
+            if i[1] == False or self.parent.server.getSockets()[self.parent.playerId][3] == listOfColors.index(i):
+                self.colorChoice['menu'].add_command(label=i[0], command=lambda temp = i[0]: self.colorChoice.setvar(self.colorChoice.cget("textvariable"), value = temp))
         if self.parent.server != None:
             pNum = len(self.parent.server.getSockets())
             for i in range(0, pNum):

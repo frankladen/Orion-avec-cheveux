@@ -560,11 +560,20 @@ class Controller():
                             if line != 0:
                                 if p==len(lineTaken[line-1]):
                                     target[0]=targetorig[0]+(p*20)
+                                    #jerome ajoute ca ici la largeur du vaisseau
+                                    if target[0] > (self.galaxy.width/2)-9:
+                                        target[0] = target[0]-(target[0]-(self.galaxy.width/2)+18)
                                     xLineBefore[p] = target[0]
                                 else:
                                     target[0]=xLineBefore[p]-20
+                                    if target[0] < -1*(self.galaxy.width/2)+9:
+                                        target[0] = xLineBefore[p]
+                                    elif target[0] > (self.galaxy.width/2)-9:
+                                        target[0] = target[0]-(target[0]-(self.galaxy.width/2)+18)
                                     xLineBefore[p] = target[0]
                             target[1]=targetorig[1]-(line*20)
+                            if target[1] < -1*(self.galaxy.height/2)+9:
+                                target[1] = targetorig[1]
                             goodPlace=True
                             break
                     if goodPlace==False:
