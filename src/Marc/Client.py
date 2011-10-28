@@ -532,7 +532,13 @@ class Controller():
                         if lineTaken[line][p]==False:
                             lineTaken[line][p]=True
                             target[0]=targetorig[0]+(p*20)
+                            if target[0] < -1*(self.galaxy.width/2)+9:
+                                target[0] = -1*(self.galaxy.width/2)+18
+                            elif target[0] > (self.galaxy.width/2)-9:
+                                target[0] = (self.galaxy.width/2)-18
                             target[1]=targetorig[1]-(line*20)
+                            if target[1] < -1*(self.galaxy.height/2)+9:
+                                target[1] = -1*(self.galaxy.height/2)+18
                             goodPlace=True
                             break
                     if goodPlace==False:
