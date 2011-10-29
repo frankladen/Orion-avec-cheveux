@@ -99,7 +99,6 @@ class SpaceAttackUnit(SpaceUnit):
             self.attackcount = self.attackcount - 1
             if self.attackcount == 0:
                 self.flag.finalTarget.hitpoints-=self.AttackDamage
-                PlaySound('sounds/Laser.wav', SND_ASYNC)
                 if self.flag.finalTarget.hitpoints <= 0:
                     index = players[self.flag.finalTarget.owner].units.index(self.flag.finalTarget)
                     killedOwner = self.flag.finalTarget.owner
@@ -135,7 +134,6 @@ class TransportShip(SpaceUnit):
                     self.landed = True
                     if self in controller.players[controller.playerId].selectedObjects:
                         controller.players[controller.playerId].selectedObjects.pop(controller.players[controller.playerId].selectedObjects.index(self))
-                        PlaySound('sounds/Land.wav', SND_ASYNC)
             if playerId == controller.playerId:
                 controller.view.changeBackground('PLANET')
                 controller.view.drawPlanetGround(planet)

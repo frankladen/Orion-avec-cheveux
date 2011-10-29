@@ -186,7 +186,7 @@ class Planet(Target):
             while not posFound:
                 posFound = True
                 position = [random.random()*800, random.random()*600]
-                if position[0] < 30 or position[0] > 800-30:
+                if position[0] < 48 or position[0] > 800-30:
                     if position[1] < 60 or position[0] > 600-60:
                         posFound = False
                 for i in self.minerals:
@@ -222,16 +222,16 @@ class Planet(Target):
         while not placeFound:
             placeFound = True
             position = [random.random()*800, random.random()*600]
-            if position[0] < 0+75 or position[0] > 800-75:
-                if position[1] < 0+75 or position[1] > 600-75:
+            if position[0] < 100 or position[0] > 800-100:
+                if position[1] < 100 or position[1] > 600-100:
                     placeFound = False
             for i in self.minerals:
                 if position[0] > i.position[0]-30 and position[0] < i.position[0]+30:
                     if position[1] > i.position[1]-30 and position[1] < i.position[1]+30:
                         posFound = False
             for i in self.gaz:
-                if position[0] > i.position[0]-30 and position[0] < i.position[0]+30:
-                    if position[1] > i.position[1]-30 and position[1] < i.position[1]+30:
+                if position[0] > i.position[0]-50 and position[0] < i.position[0]+50:
+                    if position[1] > i.position[1]-50 and position[1] < i.position[1]+50:
                         posFound = False 
         self.landingZones.append(LandingZone(position, playerid, landingShip))
 

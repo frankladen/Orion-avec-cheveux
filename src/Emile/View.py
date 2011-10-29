@@ -50,7 +50,6 @@ class View():
         self.mineral = PhotoImage(file='images/Planet/crystal.gif')
         self.planetBackground = PhotoImage(file='images/Planet/background.gif')
         self.galaxyBackground = PhotoImage(file='images/Galaxy/night-sky.gif')
-        self.landingZone = PhotoImage(file='images/Planet/landing.gif')
         self.gifStop = PhotoImage(file='images/icones/stop.gif')
         self.gifMove = PhotoImage(file='images/icones/move.gif')
         self.gifCancel = PhotoImage(file='images/icones/delete.gif')
@@ -74,14 +73,16 @@ class View():
         self.scoutShips = []
         self.attackShips = []
         self.motherShips = []
-        self.trasportShips = []
+        self.transportShips = []
         self.landedShips = []
+        self.landingZones = []
         for i in range(0,8):
             self.scoutShips.append(PhotoImage(file='images/Ships/Scoutships/Scoutship'+str(i)+'.gif'))
             self.attackShips.append(PhotoImage(file='images/Ships/Attackships/Attackship'+str(i)+'.gif'))
             self.motherShips.append(PhotoImage(file='images/Ships/Motherships/Mothership'+str(i)+'.gif'))
-            self.trasportShips.append(PhotoImage(file='images/Ships/Transport/Transport'+str(i)+'.gif'))
+            self.transportShips.append(PhotoImage(file='images/Ships/Transport/Transport'+str(i)+'.gif'))
             self.landedShips.append(PhotoImage(file='images/Planet/LandedShips/landed'+str(i)+'.gif'))
+            self.landingZones.append(PhotoImage(file='images/Planet/LandingZones/landing'+str(i)+'.gif'))
         Label(gameFrame, text="Mineraux: ", bg="black", fg="white", width=10, anchor=E).grid(column=0, row=0)
         self.showMinerals=Label(gameFrame, text=self.parent.players[self.parent.playerId].mineral, fg="white", bg="black", anchor=W)
         self.showMinerals.grid(column=1,row=0)
@@ -236,12 +237,20 @@ class View():
     def drawPlanetGround(self, planet):
         self.gameArea.delete('deletable')
         for i in planet.minerals:
+            if i in self.parent.players[self.parent.playerId].selectedObjects:
+                self.gameArea.create_text(i.position[0], i.position[1]-40, fill="cyan", text="Mineral :" + str(i.nbMinerals), tag='deletable')
+                self.gameArea.create_oval(i.position[0]-25, i.position[1]-32, i.position[0]+25, i.position[1]+32, outline='yellow', tag='deletable')
             self.gameArea.create_image(i.position[0], i.position[1], image=self.mineral, tag='deletable')
         for i in planet.gaz:
+            if i in self.parent.players[self.parent.playerId].selectedObjects:
+                self.gameArea.create_text(i.position[0], i.position[1]-20, fill="green", text="Mineral :" + str(i.nbGaz), tag='deletable')
+                self.gameArea.create_oval(i.position[0]-15, i.position[1]-15, i.position[0]+15, i.position[1]+15, outline='yellow', tag='deletable')
             self.gameArea.create_oval(i.position[0]-12, i.position[1]-12, i.position[0]+12, i.position[1]+12, fill='green', tag='deletable')
         for i in planet.landingZones:
-            self.gameArea.create_image(i.position[0], i.position[1], image=self.landingZone, tag='deleteable')
-            self.gameArea.create_image(i.position[0], i.position[1], image=self.landedShips[i.ownerId], tag='deleteable')
+            if i in self.parent.players[self.parent.playerId].selectedObjects:
+                self.gameArea.create_oval(i.position[0]-40,i.position[1]-40,i.position[0]+40,i.position[1]+40, outline='green', tag='deletable')
+            self.gameArea.create_image(i.position[0], i.position[1], image=self.landingZones[i.ownerId], tag='deletable')
+            self.gameArea.create_image(i.position[0], i.position[1], image=self.landedShips[i.ownerId], tag='deletable')
 
     def changeBackground(self, type):
         self.gameArea.delete('background')
@@ -385,7 +394,7 @@ class View():
                     if not unit.landed:
                         if unit in player.selectedObjects:
                             self.gameArea.create_oval(distance[0]-18,distance[1]-18,distance[0]+18,distance[1]+18, outline="green", tag='deletable')
-                        self.gameArea.create_image(distance[0]+1, distance[1], image = self.trasportShips[player.id], tag='deletable')
+                        self.gameArea.create_image(distance[0]+1, distance[1], image = self.transportShips[player.id], tag='deletable')
                 if unit.hitpoints <= 5:
                     self.gameArea.create_image(distance[0]+1, distance[1], image=self.explosion)
                 if self.hpBars:
@@ -601,14 +610,17 @@ class View():
         canva = eve.widget
         if(self.isSettingRallyPointPosition == False):
             if canva == self.gameArea:
-                pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
-                if self.attacking:
-                    self.parent.setAttackFlag(pos[0],pos[1])
-                else:
-                    if not self.selectAllUnits:
-                        self.parent.select(pos)
+                if self.parent.players[self.parent.playerId].currentPlanet == None:
+                    pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
+                    if self.attacking:
+                        self.parent.setAttackFlag(pos[0],pos[1])
                     else:
-                        self.parent.selectAll(pos)
+                        if not self.selectAllUnits:
+                            self.parent.select(pos)
+                        else:
+                            self.parent.selectAll(pos)
+                else:
+                    self.parent.select([x,y])
             elif canva == self.minimap:
                 self.parent.quickMove(x,y,canva)
         else:

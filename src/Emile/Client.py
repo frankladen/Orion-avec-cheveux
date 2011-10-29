@@ -173,9 +173,28 @@ class Controller():
                             if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
                                 self.players[self.playerId].selectedObjects = []
                                 self.players[self.playerId].selectedObjects.append(j)
-            PlaySound('sounds/Clic.wav', SND_ASYNC)
             self.view.actionMenuType = MenuType.MAIN
-        
+        else:
+            planet = self.players[self.playerId].currentPlanet
+            for i in planet.landingZones:
+                if posSelected[0] > i.position[0]-40 and posSelected[0] < i.position[0]+40:
+                    if posSelected[1] > i.position[1]-40 and posSelected[1] < i.position[1]+40:
+                        if i not in self.players[self.playerId].selectedObjects:
+                            self.players[self.playerId].selectedObjects = []
+                            self.players[self.playerId].selectedObjects.append(i)
+            for i in planet.minerals:
+                if posSelected[0] > i.position[0]-24 and posSelected[0] < i.position[0]+24:
+                    if posSelected[1] > i.position[1]-32 and posSelected[1] < i.position[1]+32:
+                        if i not in self.players[self.playerId].selectedObjects:
+                            self.players[self.playerId].selectedObjects = []
+                            self.players[self.playerId].selectedObjects.append(i)
+            for i in planet.gaz:
+                if posSelected[0] > i.position[0]-12 and posSelected[0] < i.position[0]+12:
+                    if posSelected[1] > i.position[1]-12 and posSelected[1] < i.position[1]+12:
+                        if i not in self.players[self.playerId].selectedObjects:
+                            self.players[self.playerId].selectedObjects = []
+                            self.players[self.playerId].selectedObjects.append(i)
+
     def selectAll(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
             for j in self.players[self.playerId].units:
