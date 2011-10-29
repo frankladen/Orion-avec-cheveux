@@ -39,7 +39,7 @@ class Galaxy():
                     if tempX > j.sunPosition[0]-250 and tempX < j.sunPosition[0]+250:
                         if tempY > j.sunPosition[1]-250 and tempY < j.sunPosition[1]+250:
                             placeFound = False
-            self.solarSystemList.append(SolarSystem(tempX,tempY,0))
+            self.solarSystemList.append(SolarSystem([tempX,tempY,0],i-1))
 
     def getSpawnPoint(self):
         find = False
@@ -68,8 +68,9 @@ class Galaxy():
 
 #Classe qui represente 1 seul systeme solaire                            
 class SolarSystem():
-    def __init__(self,sunX,sunY,sunZ):
-        self.sunPosition = (sunX,sunY,sunZ)
+    def __init__(self,position,sunId):
+        self.sunId = sunId
+        self.sunPosition = position
         self.planets = []
         self.nebulas = []
         self.asteroids = []
@@ -121,7 +122,7 @@ class SolarSystem():
                     if self.sunPosition[0]+tempX > k.position[0]-20 and self.sunPosition[0]+tempX < k.position[0]+20:
                         if self.sunPosition[1]+tempY > k.position[1]-20 and self.sunPosition[1]+tempY < k.position[1]+20:
                             placeFound = False
-            self.nebulas.append(AstronomicalObject('nebula', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY)))
+            self.nebulas.append(AstronomicalObject('nebula', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY),i,self))
         for i in range(0,nAstero):
             tempX=""
             tempY=""
@@ -146,13 +147,15 @@ class SolarSystem():
                     if self.sunPosition[0]+tempX > q.position[0]-20 and self.sunPosition[0]+tempX < q.position[0]+20:
                         if self.sunPosition[1]+tempY > q.position[1]-20 and self.sunPosition[1]+tempY < q.position[1]+20:
                             placeFound = False
-            self.asteroids.append(AstronomicalObject('asteroid', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY)))
+            self.asteroids.append(AstronomicalObject('asteroid', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY),i,self))
 
 #Represente un objet spacial (Planete, Meteorite, Nebuleuse)
 #Le type represente quel objet parmi les 3
 class AstronomicalObject(Target):
-    def __init__(self, type, position):
+    def __init__(self, type, position, id,solarSystem):
         Target.__init__(self, position)
+        self.solarSystem = solarSystem
+        self.id = id
         self.type = type
         self.discovered = False
         #self.mineralQte = 100

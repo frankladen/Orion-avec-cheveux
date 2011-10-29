@@ -56,6 +56,7 @@ class View():
         self.gifAttack = PhotoImage(file='images/icones/icone1.gif')
         self.gifRallyPoint = PhotoImage(file='images/icones/icone2.gif')
         self.gifBuild = PhotoImage(file = 'images/icones/build.gif')
+        self.gifCadreMenuAction = PhotoImage(file = 'images/cadreMenuAction2.gif')
         self.attacking = False
         self.selectAllUnits = False
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
@@ -74,12 +75,14 @@ class View():
         self.motherShips = []
         self.trasportShips = []
         self.landedShips = []
+        self.gatherShips = []
         for i in range(0,8):
             self.scoutShips.append(PhotoImage(file='images/Ships/Scoutships/Scoutship'+str(i)+'.gif'))
             self.attackShips.append(PhotoImage(file='images/Ships/Attackships/Attackship'+str(i)+'.gif'))
             self.motherShips.append(PhotoImage(file='images/Ships/Motherships/Mothership'+str(i)+'.gif'))
             self.trasportShips.append(PhotoImage(file='images/Ships/Transport/Transport'+str(i)+'.gif'))
             self.landedShips.append(PhotoImage(file='images/Planet/LandedShips/landed'+str(i)+'.gif'))
+            self.gatherShips.append(PhotoImage(file='images/Ships/Cargo/Cargo'+str(i)+'.gif'))
         Label(gameFrame, text="Mineraux: ", bg="black", fg="white", width=10, anchor=E).grid(column=0, row=0)
         self.showMinerals=Label(gameFrame, text=self.parent.players[self.parent.playerId].mineral, fg="white", bg="black", anchor=W)
         self.showMinerals.grid(column=1,row=0)
@@ -108,9 +111,9 @@ class View():
         self.Actionmenu.delete(ALL)
         if(type == MenuType.MAIN):
             units = self.parent.players[self.parent.playerId].selectedObjects
+            self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW)
             if len(units) > 0:
                 if isinstance(units[0], Unit):
-                    
                     self.Actionmenu.create_image(0,0,image=self.gifMove,anchor = NW, tags = 'Button_Move')
                     self.Actionmenu.create_image(37,0,image=self.gifStop,anchor = NW, tags = 'Button_Stop')
                     if isinstance(units[0], SpaceAttackUnit):
@@ -324,7 +327,7 @@ class View():
                 if i.discovered:
                     self.drawSun(i.sunPosition, players[id], False)
             for j in i.planets:
-                if self.parent.players[self.parent.playerId].inViewRange(j.position):
+                if self.parent.players[self.parent.playerId].inViewRange(j.position) or j.alreadyLanded(id):
                     if not j.discovered:
                         j.discovered = True
                         self.redrawMinimap()
@@ -394,29 +397,32 @@ class View():
 
     def drawNebula(self,nebula,player, isInFOW):
         nebulaPosition = nebula.position
-        if player.camera.isInFOV(nebulaPosition):
-            distance = player.camera.calcDistance(nebulaPosition)
-            if isInFOW:
-                if nebula in player.selectedObjects:
-                    self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="yellow", tag='deletable')
-                    mVariable = "Gaz :" + str(nebula.gazQte)
-                    self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="green",text=mVariable, tag='deletable')
-                self.gameArea.create_image(distance[0],distance[1],image=self.nebula, tag='deletable')
-            else:
-                self.gameArea.create_image(distance[0], distance[1], image=self.nebulaFOW, tag='deletable')
+        if nebula.gazQte > 0:
+            if player.camera.isInFOV(nebulaPosition):
+                distance = player.camera.calcDistance(nebulaPosition)
+                if isInFOW:
+                    if nebula in player.selectedObjects:
+                        self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="yellow", tag='deletable')
+                        mVariable = "Gaz :" + str(nebula.gazQte)
+                        self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="green",text=mVariable, tag='deletable')
+                    self.gameArea.create_image(distance[0],distance[1],image=self.nebula, tag='deletable')
+                else:
+                    self.gameArea.create_image(distance[0], distance[1], image=self.nebulaFOW, tag='deletable')
     
     def drawAsteroid(self,asteroid,player, isInFOW):
         asteroidPosition = asteroid.position
-        if player.camera.isInFOV(asteroidPosition):
-            distance = player.camera.calcDistance(asteroidPosition)
-            if isInFOW:
-                if asteroid in player.selectedObjects:
-                    self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="yellow", tag='deletable')
-                    mVariable = "Mineral :" + str(asteroid.mineralQte)
-                    self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="cyan",text=mVariable, tag='deletable')
-                self.gameArea.create_image(distance[0],distance[1],image=self.asteroid, tag='deletable')
-            else:
-                self.gameArea.create_image(distance[0],distance[1],image=self.asteroidFOW, tag='deletable')
+        if asteroid.mineralQte > 0:
+            if player.camera.isInFOV(asteroidPosition):
+                distance = player.camera.calcDistance(asteroidPosition)
+                if isInFOW:
+                    if asteroid in player.selectedObjects:
+                        self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="yellow", tag='deletable')
+                        mVariable = "Mineral :" + str(asteroid.mineralQte)
+                        self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="cyan",text=mVariable, tag='deletable')
+                    self.gameArea.create_image(distance[0],distance[1],image=self.asteroid, tag='deletable')
+                else:
+                    self.gameArea.create_image(distance[0],distance[1],image=self.asteroidFOW, tag='deletable')
+    
     
     #pour dessiner un vaisseau        
     def drawUnit(self, unit, player, isInFOW):
@@ -444,6 +450,11 @@ class View():
                         if unit in player.selectedObjects:
                             self.gameArea.create_oval(distance[0]-18,distance[1]-18,distance[0]+18,distance[1]+18, outline="green", tag='deletable')
                         self.gameArea.create_image(distance[0]+1, distance[1], image = self.trasportShips[player.colorId], tag='deletable')
+                elif unit.name == 'Gather':
+                    if unit in player.selectedObjects:
+                            self.gameArea.create_oval(distance[0]-12,distance[1]-18,distance[0]+12,distance[1]+18, outline="green", tag='deletable')
+                    self.gameArea.create_image(distance[0]+1, distance[1], image = self.gatherShips[player.id], tag='deletable')
+                
                 if unit.hitpoints <= 5:
                     self.gameArea.create_image(distance[0]+1, distance[1], image=self.explosion, tag='deletable')
                 if self.hpBars:
