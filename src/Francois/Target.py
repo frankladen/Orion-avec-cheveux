@@ -25,6 +25,12 @@ class PlayerObject(Target):
         elif name == UnitType.SPACE_ATTACK_UNIT:
             self.viewRange = ViewRange.SPACE_ATTACK_UNIT
             self.buildTime = BuildTime.SPACE_ATTACK_UNIT
+        elif name == UnitType.GATHER:
+            self.viewRange = ViewRange.GATHER
+            self.buildTime = BuildTime.GATHER
+        elif name == UnitType.TRANSPORT:
+            self.viewRange = ViewRange.TRANSPORT
+            self.buildTime = BuildTime.TRANSPORT
         else:
             self.viewRange = 100
     

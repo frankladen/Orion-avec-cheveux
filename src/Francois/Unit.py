@@ -80,7 +80,9 @@ class Mothership(Unit):
             if self.flag.finalTarget == UnitType.SCOUT:
                 self.unitBeingConstruct.append(Unit(self.flag.finalTarget,p,self.ownerId, moveSpeed = MoveSpeed.SCOUT))
             elif self.flag.finalTarget == UnitType.SPACE_ATTACK_UNIT:
-                self.unitBeingConstruct.append(SpaceAttackUnit(self.flag.finalTarget, p, self.ownerId, moveSpeed = 2.0, attackspeed = 10.0, attackdamage = 5.0, range = 150.0)) 
+                self.unitBeingConstruct.append(SpaceAttackUnit(self.flag.finalTarget, p, self.ownerId, moveSpeed = 2.0, attackspeed = 10.0, attackdamage = 5.0, range = 150.0))
+            elif self.flag.finalTarget == UnitType.GATHER:
+                self.unitBeingConstruct.append(GatherShip(self.flag.finalTarget,p, self.ownerId, moveSpeed=3.0)) 
         
         elif self.flag.flagState == FlagState.BUILD_UNIT:
             self.progressUnitsConstruction()
@@ -107,7 +109,10 @@ class Mothership(Unit):
 
     def isUnitFinished(self):
         if len(self.unitBeingConstruct) > 0:
+            print (self.unitBeingConstruct[0].buildTime)
+
             return self.unitBeingConstruct[0].constructionProgress >= self.unitBeingConstruct[0].buildTime
+        
 class SpaceAttackUnit(SpaceUnit):
     def __init__(self, name, position, owner, moveSpeed, attackspeed,attackdamage,range):
         SpaceUnit.__init__(self, name, position, owner, moveSpeed)
