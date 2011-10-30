@@ -36,9 +36,11 @@ class Controller():
         for i in self.players[self.playerId].selectedObjects:
             if isinstance(i, u.SpaceAttackUnit):
                 i.attackcount = i.AttackSpeed
-            if i.__module__ == 'Unit':                
+            if isinstance(i, u.Unit) and i.name != "Mothership":              
                 units += str(self.players[self.playerId].units.index(i)) + ","
                 send = True
+            elif isinstance(i, u.Mothership):
+                self.setMotherShipRallyPoint([x,y,0])
         if send:
             self.pushChange(units, Flag(i,t.Target([x,y,0]),FlagState.MOVE))
 
@@ -72,15 +74,6 @@ class Controller():
     #Pour changer le flag des unit�s s�lectionn�s pour attaquer        
     def setAttackFlag(self, attackedUnit):
         attacking = True
-##        #posSelected = self.players[self.playerId].camera.calcPointInWorld(x,y)
-##        for i in self.players:
-##            if i.id != self.playerId:
-##                for j in i.units:
-##                    if j.position[0] >= x-8 and j.position[0] <= x+8:
-##                        if j.position[1] >= y-8 and j.position[1] <= y+8:
-##                            attacking = True
-##                            attackedUnit = j
-##                            break
         if attacking:
             units = ""
             for i in self.players[self.playerId].selectedObjects:
@@ -182,17 +175,6 @@ class Controller():
         
     def selectAll(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
-            for j in self.players[self.playerId].units:
-                if j.isAlive:
-                    if j.position[0] >= posSelected[0]-8 and j.position[0] <= posSelected[0]+8:
-                        if j.position[1] >= posSelected[1]-8 and j.position[1] <= posSelected[1]+8:
-                            self.players[self.playerId].selectedObjects = []
-                            if j.name == 'Transport':
-                                if not j.landed:
-                                    self.players[self.playerId].selectedObjects.append(j)
-                                else:
-                                    self.players[self.playerId].selectedObjects.append(j)
-                            break
             cam = self.players[self.playerId].camera
             for j in self.players[self.playerId].units:
                 if j.position[0] > cam.position[0]-cam.screenWidth/2 and j.position[0] < cam.position[0]+cam.screenWidth/2:
@@ -205,58 +187,7 @@ class Controller():
                                 else:
                                     self.players[self.playerId].selectedObjects.append(j)
         self.view.actionMenuType = MenuType.MAIN
-    #===========================================================================
-    # def rightClick(self, x, y):
-    #    toAttack = []
-    #    toGather = []
-    #    toLand = []
-    #    toMove = []
-    #    for u in self.players[self.playerId].selectObjects:
-    #        if u.name.find('Scout'):
-    #            toMove.append(u)
-    #        elif isinstance(self.players[self.playerId].selectedObjects[0], u.SpaceAttackUnit):
-    #            for i in self.players:
-    #                if i != self.players[self.playerId]:
-    #                    for j in i.units:
-    #                        if j.isAlive:
-    #                            if j.position[0] >= x-8 and j.position[0] <= x+8:
-    #                                if j.position[1] >= y-8 and j.position[1] <= y+8: 
-    #                                    toAttack.append(u)
-    #                            else:
-    #                                toMove.append(u)
-    #        elif isinstance(self.players[self.playerId].selectedObjects[0], u.SpaceLandingUnit):
-    #            for i in self.galaxy.solarSystemList:
-    #                for j in i.planets:
-    #                    if j.position[0] >= x-10 and j.position[0] <= x+10:
-    #                        if j.position[1] >= y-10 and j.position[1] <= y+10:
-    #                            if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
-    #                                toLand.append(u)
-    #                            else:
-    #                                toMove.append(u)
-    #               
-    #        elif isinstance(self.players[self.playerId].selectedObjects[0], u.SpaceGatherUnit):
-    #             for j in i.nebulas:
-    #                if j.position[0] >= x-10 and j.position[0] <= x+10:
-    #                    if j.position[1] >= y-10 and j.position[1] <= y+10:
-    #                        if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
-    #                            toGather.append(u)
-    #                        else:
-    #                            toMove.append(u)
-    #             for j in i.asteroids:
-    #                if j.position[0] >= x-10 and j.position[0] <= x+10:
-    #                    if j.position[1] >= y-10 and j.position[1] <= y+10:
-    #                        if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
-    #                            toGather.append(u)
-    #                        else:
-    #                            toMove.append(u)
-    #        else:
-    #            toMove.append(u)
-    #
-    #    self.setMovingFlag(x,y,toMove)
-    #    self.setAttackFlag(x,y,toAttack)
-    #    self.setLandingFlag(x,y,toLand)
-    #    self.setGatherFlag(x,y,toGather)
-    #===========================================================================
+
     def rightClic(self, pos):
         empty = True
         if self.players[self.playerId].currentPlanet == None:
@@ -371,18 +302,7 @@ class Controller():
                 self.view.showGameIsFinished()
                 self.view.root.destroy()
         elif self.view.currentFrame != self.view.pLobby:
-            if self.refresh==0:
-                self.refreshMessages(self.view.chat)
-                response = self.server.isEveryoneReady(self.playerId)
-                if response:
-                    self.refresh+=1
-                    if self.playerId == 0:
-                        self.sendMessage("La partie va maintenant débuter.")
-                else:
-                    if self.playerId == 0 and self.attenteEcrit == False:
-                        self.attenteEcrit=True
-                        self.sendMessage("Attente des autres joueurs.")
-            else:
+            if self.refresh > 0:
                 self.players[self.playerId].camera.move()
                 for p in self.players:
                     for i in p.units:
@@ -406,7 +326,8 @@ class Controller():
                                 u = p.motherShip.unitBeingConstruct.pop(0)
                                 u.changeFlag(p.motherShip.flag.finalTarget, FlagState.MOVE)
                                 p.units.append(u)
-                self.refreshMessages(self.view.chat)
+                if self.refresh % 10 == 0:
+                    self.refreshMessages(self.view.chat)
                 self.refresh+=1
                 self.view.showMinerals.config(text=self.players[self.playerId].mineral)
                 self.view.showGaz.config(text=self.players[self.playerId].gaz)
@@ -419,6 +340,18 @@ class Controller():
                     self.view.drawPlanetGround(self.players[self.playerId].currentPlanet)
                     self.view.redrawMinimap()
                 waitTime = self.server.amITooHigh(self.playerId)
+
+            else:
+                self.refreshMessages(self.view.chat)
+                response = self.server.isEveryoneReady(self.playerId)
+                if response:
+                    self.refresh+=1
+                    if self.playerId == 0:
+                        self.sendMessage("La partie va maintenant débuter.")
+                else:
+                    if self.playerId == 0 and self.attenteEcrit == False:
+                        self.attenteEcrit=True
+                        self.sendMessage("Attente des autres joueurs.")
         else:
             if self.server.isGameStarted() == True:
                 self.startGame()
@@ -434,50 +367,26 @@ class Controller():
             if self.players[self.playerId].units[killedIndexes[0]] in self.players[self.playerId].selectedObjects:
                self.players[self.playerId].selectedObjects.remove(self.players[self.playerId].units[killedIndexes[0]])
         self.players[killedIndexes[1]].units[killedIndexes[0]].kill()
-#        #On va chercher les derniers changement sur le serveur afin de s'assurer de tous les changer
-#        for i in self.server.getChange(self.playerId, self.refresh):
-#            self.changes.append(i)       
-#        toRemove = []
-#        for i in self.changes:
-#            if int(i.split("/")[0]) == killedIndexes[1] and int(i.split("/")[1] == killedIndexes[0]):
-#                toRemove.append(i)
-#            elif int(i.split("/")[0]) == killedIndexes[1]:
-#                tempI = i.split("/")[1]
-#                tempUnits = tempI.split(",")
-#                tempI = ""
-#                tempUnits.pop(len(tempUnits)-1)
-#                for u in tempUnits:
-#                    if  int(u) > killedIndexes[0]:
-#                        u = str(int(u) -1)
-#                    tempI += str(u) + ","
-#                tempChange = i.split("/")
-#                tempChange[1] = tempI
-#                i = ""
-#                for tc in tempChange:
-#                    i += tc + "/"
-#        for tr in toRemove:
-#            self.changes.remove(tr)
-#        self.players[killedIndexes[1]].units.pop(killedIndexes[0])
                 
 	#Connection au serveur			
     def connectServer(self, login, serverIP):
         self.server=Pyro4.core.Proxy("PYRO:ServeurOrion@"+serverIP+":54440")
-        #try:
-        #Je demande au serveur si la partie est démarrée, si oui on le refuse de la partie, cela permet de vérifier
-        #en même temps si le serveur existe réellement à cette adresse.
-        if self.server.isGameStarted() == True:
-            self.view.gameHasBeenStarted()
+        try:
+            #Je demande au serveur si la partie est démarrée, si oui on le refuse de la partie, cela permet de vérifier
+            #en même temps si le serveur existe réellement à cette adresse.
+            if self.server.isGameStarted() == True:
+                self.view.gameHasBeenStarted()
+                self.view.changeFrame(self.view.mainMenu)
+            else:
+                #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
+                self.playerId=self.server.getNumSocket(login, self.playerIp)
+                #Je vais au lobby, si la connection a fonctionner
+                self.view.pLobby = self.view.fLobby()
+                self.view.changeFrame(self.view.pLobby)
+                self.action()
+        except:
+            self.view.loginFailed()
             self.view.changeFrame(self.view.mainMenu)
-        else:
-            #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
-            self.playerId=self.server.getNumSocket(login, self.playerIp)
-            #Je vais au lobby, si la connection a fonctionner
-            self.view.pLobby = self.view.fLobby()
-            self.view.changeFrame(self.view.pLobby)
-            self.action()
-        #except:
-        #    self.view.loginFailed()
-        #    self.view.changeFrame(self.view.mainMenu)
             
     #Enleve le joueur courant de la partie ainsi que ses units
     def removePlayer(self):

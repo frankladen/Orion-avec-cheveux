@@ -50,10 +50,10 @@ class View():
         self.planetBackground = PhotoImage(file='images/Planet/background.gif')
         self.galaxyBackground = PhotoImage(file='images/Galaxy/night-sky.gif')
         self.landingZone = PhotoImage(file='images/Planet/landing.gif')
-        self.gifStop = PhotoImage(file='images/icones/stop.gif')
-        self.gifMove = PhotoImage(file='images/icones/move.gif')
-        self.gifCancel = PhotoImage(file='images/icones/delete.gif')
-        self.gifAttack = PhotoImage(file='images/icones/icone1.gif')
+        self.gifStop = PhotoImage(file='images/icones/stop2.gif')
+        self.gifMove = PhotoImage(file='images/icones/move2.gif')
+        self.gifCancel = PhotoImage(file='images/icones/delete2.gif')
+        self.gifAttack = PhotoImage(file='images/icones/attack2.gif')
         self.gifRallyPoint = PhotoImage(file='images/icones/icone2.gif')
         self.gifBuild = PhotoImage(file = 'images/icones/build.gif')
         self.gifCadreMenuAction = PhotoImage(file = 'images/cadreMenuAction2.gif')
@@ -110,26 +110,26 @@ class View():
     def createActionMenu(self, type):
         self.Actionmenu.delete(ALL)
         if(type == MenuType.MAIN):
-            units = self.parent.players[self.parent.playerId].selectedObjects
-            self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW)
+            self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
+            units = self.parent.players[self.parent.playerId].selectedObjects 
             if len(units) > 0:
                 if isinstance(units[0], Unit):
-                    self.Actionmenu.create_image(0,0,image=self.gifMove,anchor = NW, tags = 'Button_Move')
-                    self.Actionmenu.create_image(37,0,image=self.gifStop,anchor = NW, tags = 'Button_Stop')
+                    self.Actionmenu.create_image(13,35,image=self.gifMove,anchor = NW, tags = 'Button_Move')
+                    self.Actionmenu.create_image(76,35,image=self.gifStop,anchor = NW, tags = 'Button_Stop', tag='actionMenu')
                     if isinstance(units[0], SpaceAttackUnit):
-                        self.Actionmenu.create_image(74,0,image=self.gifAttack,anchor = NW, tags = 'Button_Attack')
+                        self.Actionmenu.create_image(140,35,image=self.gifAttack,anchor = NW, tags = 'Button_Attack')
                     if isinstance(units[0], Mothership):
-                        self.Actionmenu.create_image(74,0,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
-                        self.Actionmenu.create_image(111,0,image = self.gifBuild, anchor = NW, tags = 'Button_Build')
+                        self.Actionmenu.create_image(140,35,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
+                        self.Actionmenu.create_image(13,89,image = self.gifBuild, anchor = NW, tags = 'Button_Build')
         elif(type == MenuType.MOTHERSHIP_BUILD_MENU):
-            self.Actionmenu.create_image(10,10,image = self.scoutShips[self.parent.playerId], anchor = NW, tags = 'Button_Build_Scout')
-            self.Actionmenu.create_image(47,10,image = self.attackShips[self.parent.playerId], anchor = NW, tags = 'Button_Build_Attack')
+            self.Actionmenu.create_image(13,35,image = self.scoutShips[self.parent.players[self.parent.playerId].colorId], anchor = NW, tags = 'Button_Build_Scout')
+            self.Actionmenu.create_image(76,35,image = self.attackShips[self.parent.players[self.parent.playerId].colorId], anchor = NW, tags = 'Button_Build_Attack')
         elif(type == MenuType.WAITING_FOR_RALLY_POINT):
             self.Actionmenu.create_text(0,0,text = "Cliquer a un endroit dans l'aire de jeu afin d'initialiser le point de ralliement du vaisseau mère.",anchor = NW, fill = 'white', width = 200)
             #self.Actionmenu.create_text("Cliquer sur un endroit dans le jeu afin de mettre en place votre point de ralliement")
 
     def createUnitsConstructionPanel(self):
-        self.unitsConstructionPanel.delete(ALL)
+        self.unitsConstructionPanel.delete('deletable')
         y = 5;
         ok = False;
         l = None;
@@ -144,11 +144,11 @@ class View():
                     r = 1
                     ok = False
             
-            arc = self.unitsConstructionPanel.create_arc((175, y, 195, 20+y), start=0, extent= (i.constructionProgress / i.buildTime)*360 , fill="blue")
+            arc = self.unitsConstructionPanel.create_arc((175, y, 195, 20+y), start=0, extent= (i.constructionProgress / i.buildTime)*360 , fill="blue", tag="deletable")
             if (ok == True):
                 self.unitsConstructionPanel.itemconfig(l, text = str(r) + " " + i.name)
             else:
-                l = self.unitsConstructionPanel.create_text(5,y,text = str(r) + " " + i.name, anchor = NW, fill = 'white')
+                l = self.unitsConstructionPanel.create_text(5,y,text = str(r) + " " + i.name, anchor = NW, fill = 'white', tag="deletable")
                 y+=20
 
 	#Frame du menu principal    
@@ -453,7 +453,7 @@ class View():
                 elif unit.name == 'Gather':
                     if unit in player.selectedObjects:
                             self.gameArea.create_oval(distance[0]-12,distance[1]-18,distance[0]+12,distance[1]+18, outline="green", tag='deletable')
-                    self.gameArea.create_image(distance[0]+1, distance[1], image = self.gatherShips[player.id], tag='deletable')
+                    self.gameArea.create_image(distance[0]+1, distance[1], image = self.gatherShips[player.colorId], tag='deletable')
                 
                 if unit.hitpoints <= 5:
                     self.gameArea.create_image(distance[0]+1, distance[1], image=self.explosion, tag='deletable')
@@ -759,18 +759,20 @@ class View():
         cam.position = cam.defaultPos
 
     def clickActionMenu(self,eve):
-        Button_pressed = (eve.widget.gettags(eve.widget.find_withtag('current')))[0]
-        if (Button_pressed == "Button_Stop"):
-            self.parent.setStandbyFlag()
-        elif (Button_pressed == "Button_RallyPoint"):
-            self.actionMenuType = MenuType.WAITING_FOR_RALLY_POINT
-            self.isSettingRallyPointPosition = True
-        elif (Button_pressed == "Button_Build"):
-            self.actionMenuType = MenuType.MOTHERSHIP_BUILD_MENU
-        elif (Button_pressed == "Button_Build_Scout"):
-            self.parent.addUnit(UnitType.SCOUT)
-        elif (Button_pressed == "Button_Build_Attack"):
-            self.parent.addUnit(UnitType.SPACE_ATTACK_UNIT)
+        bp = (eve.widget.gettags(eve.widget.find_withtag('current')))
+        if bp != ():
+            Button_pressed = bp[0]
+            if (Button_pressed == "Button_Stop"):
+                self.parent.setStandbyFlag()
+            elif (Button_pressed == "Button_RallyPoint"):
+                self.actionMenuType = MenuType.WAITING_FOR_RALLY_POINT
+                self.isSettingRallyPointPosition = True
+            elif (Button_pressed == "Button_Build"):
+                self.actionMenuType = MenuType.MOTHERSHIP_BUILD_MENU
+            elif (Button_pressed == "Button_Build_Scout"):
+                self.parent.addUnit(UnitType.SCOUT)
+            elif (Button_pressed == "Button_Build_Attack"):
+                self.parent.addUnit(UnitType.SPACE_ATTACK_UNIT)
     
     #Assignation des controles	
     def assignControls(self):
