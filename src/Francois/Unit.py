@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 import Target as t
 from Flag import *
+from World import *
 import Helper as h
 import math
 
@@ -93,40 +94,20 @@ class Mothership(Unit):
             target = target.strip("]")
             target = target.split(",")
             for i in range(0, len(target)):
-                target[i]=math.trunc(float(target[i]))
-                
+                target[i]=math.trunc(float(target[i])) 
             self.rallyPoint = target
-            print("rallypoint setté")
-        
-    
-
-        
-#    def changeFlag(self, finalTarget, flagState, actionPlayerId=0, unitTypeToConstruct=None):
-#        p = [self.position[0], self.position[1], 0]
-#        if unitTypeToConstruct != None and flagState == FlagState.CREATE:
-#            if (unitTypeToConstruct == UnitType.SCOUT):
-#                self.unitBeingConstruct.append(Unit(unitTypeToConstruct,p,actionPlayerId,moveSpeed = MoveSpeed.SCOUT))
-#            elif (unitTypeToConstruct == UnitType.SPACE_ATTACK_UNIT):
-#                self.unitBeingConstruct.append(SpaceAttackUnit(unitTypeToConstruct,p,actionPlayerId,moveSpeed=2.0, attackspeed=10.0,attackdamage=5.0,range=150.0))
-#        elif(flagState == FlagState.CANCEL_UNIT):
-#
-#            #self.unitBeingConstruct.remove(self.unitBeingConstruct.pop(int(finalTarget)))
-#            
-            
-        #Unit.changeFlag(self, finalTarget, flagState)
 
     def progressUnitsConstruction(self):
         if len(self.unitBeingConstruct) > 0:
-            self.flag.flagState = FlagState.BUILD_UNIT 
+            self.flag.flagState = FlagState.BUILD_UNIT
             self.unitBeingConstruct[0].constructionProgress = self.unitBeingConstruct[0].constructionProgress + 1
         else:
             self.flag.flagState = FlagState.STANDBY
 
+
     def isUnitFinished(self):
         if len(self.unitBeingConstruct) > 0:
             return self.unitBeingConstruct[0].constructionProgress >= self.unitBeingConstruct[0].buildTime
-        
-        
 class SpaceAttackUnit(SpaceUnit):
     def __init__(self, name, position, owner, moveSpeed, attackspeed,attackdamage,range):
         SpaceUnit.__init__(self, name, position, owner, moveSpeed)
@@ -186,3 +167,70 @@ class TransportShip(SpaceUnit):
                 controller.view.drawPlanetGround(planet)
             self.flag = Flag (self.position, self.position, FlagState.STANDBY)
         
+class GatherShip(SpaceUnit):
+    GATHERTIME=20
+    def __init__(self, name, position, owner, moveSpeed):
+        SpaceUnit.__init__(self, name, position, owner, moveSpeed)
+        self.maxGather = 50
+        self.gatherSpeed = 20
+        self.container = [0,0]
+        self.returning = False
+
+    def gather(self, player):
+        ressource = self.flag.finalTarget
+        arrived = True
+        if isinstance(self.flag.finalTarget, AstronomicalObject):
+            if self.position[0] < ressource.position[0] or self.position[0] > ressource.position[0]:
+                if self.position[1] < ressource.position[1] or self.position[1] > ressource.position[1]:
+                    arrived = False
+                    self.move()
+            if arrived:
+                if self.gatherSpeed==0:
+                    if ressource.type=='asteroid':
+                        if self.container[0] < self.maxGather:
+                            if ressource.mineralQte >= 5:
+                                self.container[0]+=5
+                                ressource.mineralQte-=5
+                            else:
+                                self.container[0]+=ressource.mineralQte
+                                ressource.mineralQte = 0
+                                self.flag.intialTarget = self.flag.finalTarget
+                                self.flag.finalTarget = player.motherShip
+                            self.gatherSpeed = 20
+                        else:
+                            self.flag.intialTarget = self.flag.finalTarget
+                            self.flag.finalTarget = player.motherShip
+                    else:
+                        if self.container[1]<self.maxGather:
+                            if ressource.gazQte >= 5:
+                                self.container[1]+=5
+                                ressource.gazQte-=5
+                            else:
+                                self.container[1]+=ressource.gazQte
+                                ressource.gazQte = 0
+                                self.flag.intialTarget = self.flag.finalTarget
+                                self.flag.finalTarget = player.motherShip
+                            self.gatherSpeed = 20
+                        else:
+                            self.flag.intialTarget = self.flag.finalTarget
+                            self.flag.finalTarget = player.motherShip
+                else:
+                    self.gatherSpeed-=1
+        else:
+            if self.position[0] < ressource.position[0] or self.position[0] > ressource.position[0]:
+                if self.position[1] < ressource.position[1] or self.position[1] > ressource.position[1]:
+                    arrived = False
+                    self.move()
+            if arrived:
+                player.mineral += self.container[0]
+                player.gaz += self.container[1]
+                self.container[0] = 0
+                self.container[1] = 0
+                self.flag.finalTarget = self.flag.intialTarget
+                if self.flag.finalTarget.type == 'asteroid':
+                    if self.flag.finalTarget.mineralQte == 0:
+                        self.flag.flagState = FlagState.STANDBY
+                else:
+                    if self.flag.finalTarget.gazQte == 0:
+                        self.flag.flagState = FlagState.STANDBY
+ 
