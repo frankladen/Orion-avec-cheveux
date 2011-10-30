@@ -109,7 +109,10 @@ class Controller():
     #Pour ajouter une unit
     def addUnit(self, unit):
         self.pushChange(0, Flag(finalTarget = unit, flagState = FlagState.CREATE))
-            
+
+    def cancelUnit(self, unit):
+        self.pushChange(0, Flag(finalTarget = unit, flagState = FlagState.CANCEL_UNIT))
+    
     #Trade entre joueurs
     def tradePlayers(self, items, playerId2, quantite):
         for i in items:
@@ -320,12 +323,16 @@ class Controller():
                                 i.land(self, self.players.index(p))
                             elif i.flag.flagState == FlagState.GATHER:
                                 i.gather(p)
-                    if p.motherShip.flag.flagState == FlagState.CREATE:
-                            p.motherShip.progressUnitsConstruction()
-                            if p.motherShip.isUnitFinished():
-                                u = p.motherShip.unitBeingConstruct.pop(0)
-                                u.changeFlag(p.motherShip.flag.finalTarget, FlagState.MOVE)
-                                p.units.append(u)
+                    p.motherShip.action()
+                    if len(p.motherShip.unitBeingConstruct) > 0:
+                        p.motherShip.flag.flagState = FlagState.BUILD_UNIT
+                        if(p.motherShip.isUnitFinished()):
+                            
+                            unit = p.motherShip.unitBeingConstruct.pop(0)
+                            unit.changeFlag(t.Target(p.motherShip.rallyPoint), FlagState.MOVE)
+                            p.units.append(unit)
+                    else:
+                        p.motherShip.flag.flagState = FlagState.STANDBY
                 if self.refresh % 10 == 0:
                     self.refreshMessages(self.view.chat)
                 self.refresh+=1
@@ -428,6 +435,8 @@ class Controller():
                 actionString = str(self.playerId) + "/" + "0" + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.DESTROY:
                 actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/0"
+            elif flag.flagState == FlagState.CANCEL_UNIT:
+                actionString = str(self.playerId) + "/" + "0" + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.GATHER:
                 if flag.finalTarget.type == 'nebula':
                     nebulaId = flag.finalTarget.id
@@ -499,15 +508,13 @@ class Controller():
         #ici, le target sera l'index de l'unit� dans le tableau de unit du player cibl�
         
         elif action == str(FlagState.CREATE):
-            self.players[actionPlayerId].motherShip.changeFlag(self.players[actionPlayerId].motherShip.flag.finalTarget,int(action), actionPlayerId, target)
+            self.players[actionPlayerId].motherShip.changeFlag(target,int(action))
         
         elif action == str(FlagState.CHANGE_RALLY_POINT):
-            target = target.strip("[")
-            target = target.strip("]")
-            target = target.split(",")
-            for i in range(0, len(target)):
-                target[i]=math.trunc(float(target[i]))
-            self.players[actionPlayerId].motherShip.flag.finalTarget.position = target
+            self.players[actionPlayerId].motherShip.changeFlag(target,int(action))
+        
+        elif action == str(FlagState.CANCEL_UNIT):
+            self.players[actionPlayerId].motherShip.changeFlag(target, int(action))
 
         elif action == str(FlagState.DESTROY):
             self.killUnit((int(unitIndex[0]),actionPlayerId))

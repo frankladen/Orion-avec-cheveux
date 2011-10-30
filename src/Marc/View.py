@@ -57,8 +57,10 @@ class View():
         self.gifRallyPoint = PhotoImage(file='images/icones/icone2.gif')
         self.gifBuild = PhotoImage(file = 'images/icones/build.gif')
         self.gifCadreMenuAction = PhotoImage(file = 'images/cadreMenuAction2.gif')
+        self.iconCancel = PhotoImage(file = 'images/icones/cancelUnit.gif')
         self.attacking = False
         self.selectAllUnits = False
+        self.wantToCancelUnitBuild = False
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
     
@@ -129,7 +131,7 @@ class View():
             #self.Actionmenu.create_text("Cliquer sur un endroit dans le jeu afin de mettre en place votre point de ralliement")
 
     def createUnitsConstructionPanel(self):
-        self.unitsConstructionPanel.delete('deletable')
+        self.unitsConstructionPanel.delete(ALL)
         y = 5;
         ok = False;
         l = None;
@@ -143,12 +145,17 @@ class View():
                 else:
                     r = 1
                     ok = False
-            
-            arc = self.unitsConstructionPanel.create_arc((175, y, 195, 20+y), start=0, extent= (i.constructionProgress / i.buildTime)*360 , fill="blue", tag="deletable")
+                    self.unitsConstructionPanel.create_image(175,5 + y, image = self.iconCancel, anchor = NW, tags = ('cancelUnitButton', list.index(i)))
+            else:
+                if (self.wantToCancelUnitBuild == False):
+                    self.unitsConstructionPanel.create_arc((175, 5, 195, 25), start=0, extent= (i.constructionProgress / i.buildTime)*360 , fill='blue', tags = 'arc')
+                else:
+                    self.unitsConstructionPanel.create_image(175,5, image = self.iconCancel, anchor = NW, tags = ('cancelUnitButton', list.index(i)))
+
             if (ok == True):
                 self.unitsConstructionPanel.itemconfig(l, text = str(r) + " " + i.name)
             else:
-                l = self.unitsConstructionPanel.create_text(5,y,text = str(r) + " " + i.name, anchor = NW, fill = 'white', tag="deletable")
+                l = self.unitsConstructionPanel.create_text(5,y,text = str(r) + " " + i.name, anchor = NW, fill = 'white')
                 y+=20
 
 	#Frame du menu principal    
@@ -773,6 +780,21 @@ class View():
                 self.parent.addUnit(UnitType.SCOUT)
             elif (Button_pressed == "Button_Build_Attack"):
                 self.parent.addUnit(UnitType.SPACE_ATTACK_UNIT)
+
+    def progressCircleMouseOver(self,eve):
+        #if(posX >= self.unitsConstructionPanel.find_withtag('current')):
+        tag = self.unitsConstructionPanel.gettags(self.unitsConstructionPanel.find_withtag('current'))
+        if tag != ():
+            if tag[0] == 'arc':
+                self.wantToCancelUnitBuild = True
+        else:
+            self.wantToCancelUnitBuild = False
+            
+    def clicCancelUnit(self,eve):
+        tag = self.unitsConstructionPanel.gettags(self.unitsConstructionPanel.find_withtag('current'))
+        if tag != ():
+            if tag[0] == 'cancelUnitButton':
+                self.parent.cancelUnit(tag[1])
     
     #Assignation des controles	
     def assignControls(self):
@@ -801,6 +823,8 @@ class View():
         self.gameArea.bind("<Control_L>",self.ctrlPressed)
         self.gameArea.bind("<KeyRelease-Control_L>",self.ctrlDepressed)
         #Bindings des boutons de la souris
+        self.unitsConstructionPanel.bind("<Motion>", self.progressCircleMouseOver)
+        self.unitsConstructionPanel.bind("<Button-1>", self.clicCancelUnit)
         self.gameArea.bind("<Button-3>", self.rightclic)
         self.gameArea.bind("<B3-Motion>", self.rightclic)
         self.minimap.bind("<Button-3>", self.rightclic)
