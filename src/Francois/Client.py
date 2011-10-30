@@ -110,9 +110,11 @@ class Controller():
         
     #Pour ajouter une unit
     def addUnit(self, unit):
-        print(Flag(unit, FlagState.CREATE).flagState)
         self.pushChange(0, Flag(finalTarget = unit, flagState = FlagState.CREATE))
-            
+    
+    def cancelUnit(self, unit):
+        self.pushChange(0, Flag(finalTarget = unit, flagState = FlagState.CANCEL_UNIT))
+           
     #Trade entre joueurs
     def tradePlayers(self, items, playerId2, quantite):
         for i in items:
@@ -361,40 +363,44 @@ class Controller():
                         self.attenteEcrit=True
                         self.sendMessage("Attente des autres joueurs.")
             else:
-	            self.players[self.playerId].camera.move()
-	            for p in self.players:
-	                for i in p.units:
-	                    if i.isAlive:
-	                        if i.flag.flagState == FlagState.MOVE:
+                self.players[self.playerId].camera.move()
+                for p in self.players:
+                    p.motherShip.action()
+                    if len(p.motherShip.unitBeingConstruct) > 0:
+                        p.motherShip.flag.flagState = FlagState.BUILD_UNIT
+                        if(p.motherShip.isUnitFinished()):
+                            
+                            unit = p.motherShip.unitBeingConstruct.pop(0)
+                            unit.changeFlag(t.Target(p.motherShip.rallyPoint), FlagState.MOVE)
+                            p.units.append(unit)
+                    else:
+                        p.motherShip.flag.flagState = FlagState.STANDBY
+                    for i in p.units:
+                        if i.isAlive:
+                            if i.flag.flagState == FlagState.MOVE:
                                     i.move()
-	                        elif i.flag.flagState == FlagState.ATTACK:
+                            elif i.flag.flagState == FlagState.ATTACK:
                                     if isinstance(i.flag.finalTarget, u.TransportShip):
                                         if i.flag.finalTarget.landed:
                                             self.setAStandByFlag(i)
                                     killedIndex = i.attack(self.players)
                                     if killedIndex[0] > -1:
                                         self.killUnit(killedIndex)
-	                        elif i.flag.flagState == FlagState.LAND:
-	                            i.land(self, self.players.index(p))
-	                if p.motherShip.flag.flagState == FlagState.CREATE:
-                            p.motherShip.progressUnitsConstruction()
-                            if p.motherShip.isUnitFinished():
-                                u = p.motherShip.unitBeingConstruct.pop(0)
-                                u.changeFlag(p.motherShip.flag.finalTarget, FlagState.MOVE)
-                                p.units.append(u)
-	            self.refreshMessages(self.view.chat)
-	            self.refresh+=1
-	            self.view.showMinerals.config(text=self.players[self.playerId].mineral)
-	            self.view.showGaz.config(text=self.players[self.playerId].gaz)
-	            #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
-	            self.pullChange()
-	            self.view.createUnitsConstructionPanel()
-	            if self.players[self.playerId].currentPlanet == None:
-	                self.view.drawWorld()
-	            else:
-	                self.view.drawPlanetGround(self.players[self.playerId].currentPlanet)
-	                self.view.redrawMinimap()
-	            waitTime = self.server.amITooHigh(self.playerId)
+                            elif i.flag.flagState == FlagState.LAND:
+                                i.land(self, self.players.index(p))
+                self.refreshMessages(self.view.chat)
+                self.refresh+=1
+                self.view.showMinerals.config(text=self.players[self.playerId].mineral)
+                self.view.showGaz.config(text=self.players[self.playerId].gaz)
+                #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
+                self.pullChange()
+                self.view.createUnitsConstructionPanel()
+                if self.players[self.playerId].currentPlanet == None:
+                    self.view.drawWorld()
+                else:
+                    self.view.drawPlanetGround(self.players[self.playerId].currentPlanet)
+                    self.view.redrawMinimap()
+                waitTime = self.server.amITooHigh(self.playerId)
         else:
             if self.server.isGameStarted() == True:
                 self.startGame()
@@ -408,7 +414,7 @@ class Controller():
         #Désélection de l'unité qui va mourir afin d'éviter le renvoie d'une actio avec cette unité
         if killedIndexes[1] == self.playerId:
             if self.players[self.playerId].units[killedIndexes[0]] in self.players[self.playerId].selectedObjects:
-               self.players[self.playerId].selectedObjects.remove(self.players[self.playerId].units[killedIndexes[0]])
+                self.players[self.playerId].selectedObjects.remove(self.players[self.playerId].units[killedIndexes[0]])
         self.players[killedIndexes[1]].units[killedIndexes[0]].kill()
 #        #On va chercher les derniers changement sur le serveur afin de s'assurer de tous les changer
 #        for i in self.server.getChange(self.playerId, self.refresh):
@@ -493,6 +499,8 @@ class Controller():
                 actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.CHANGE_RALLY_POINT:
                 actionString = str(self.playerId) + "/" + "0" + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
+            elif flag.flagState == FlagState.CANCEL_UNIT:
+                actionString = str(self.playerId) + "/" + "0" + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.DESTROY:
                 actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/0"
                 
@@ -547,16 +555,14 @@ class Controller():
         #ici, le target sera l'index de l'unit� dans le tableau de unit du player cibl�
         
         elif action == str(FlagState.CREATE):
-            self.players[actionPlayerId].motherShip.changeFlag(self.players[actionPlayerId].motherShip.flag.finalTarget,int(action), actionPlayerId, target)
+            self.players[actionPlayerId].motherShip.changeFlag(target,int(action))
         
         elif action == str(FlagState.CHANGE_RALLY_POINT):
-            target = target.strip("[")
-            target = target.strip("]")
-            target = target.split(",")
-            for i in range(0, len(target)):
-                target[i]=math.trunc(float(target[i]))
-            self.players[actionPlayerId].motherShip.flag.finalTarget.position = target
-
+            self.players[actionPlayerId].motherShip.changeFlag(target,int(action))
+        
+        elif action == str(FlagState.CANCEL_UNIT):
+            self.players[actionPlayerId].motherShip.changeFlag(target, int(action))
+        
         elif action == str(FlagState.DESTROY):
             self.killUnit((int(unitIndex[0]),actionPlayerId))
         
