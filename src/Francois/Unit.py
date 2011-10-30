@@ -70,27 +70,63 @@ class Mothership(Unit):
         Unit.__init__(self, name, position, owner, foodcost=0, moveSpeed=0)
         self.flag.finalTarget = t.Target(position)
         self.unitBeingConstruct = []
+        self.rallyPoint = [0,0,0]
+        self.ownerId = owner
 
-    def changeFlag(self, finalTarget, flagState, actionPlayerId=0, unitTypeToConstruct=None):
+    def action(self):
         p = [self.position[0], self.position[1], 0]
-        if unitTypeToConstruct != None and flagState == FlagState.CREATE:
-            if (unitTypeToConstruct == UnitType.SCOUT):
-                self.unitBeingConstruct.append(Unit(unitTypeToConstruct,p,actionPlayerId,moveSpeed=3.0))
-            if (unitTypeToConstruct == UnitType.SPACE_ATTACK_UNIT):
-                self.unitBeingConstruct.append(SpaceAttackUnit(unitTypeToConstruct,p,actionPlayerId,moveSpeed=2.0, attackspeed=10.0,attackdamage=5.0,range=150.0))
-        Unit.changeFlag(self, finalTarget, flagState)
+        if (self.flag.flagState == FlagState.CREATE):
+            if self.flag.finalTarget == UnitType.SCOUT:
+                self.unitBeingConstruct.append(Unit(self.flag.finalTarget,p,self.ownerId, moveSpeed = MoveSpeed.SCOUT))
+            elif self.flag.finalTarget == UnitType.SPACE_ATTACK_UNIT:
+                self.unitBeingConstruct.append(SpaceAttackUnit(self.flag.finalTarget, p, self.ownerId, moveSpeed = 2.0, attackspeed = 10.0, attackdamage = 5.0, range = 150.0)) 
+        
+        elif self.flag.flagState == FlagState.BUILD_UNIT:
+            self.progressUnitsConstruction()
+        
+        elif self.flag.flagState == FlagState.CANCEL_UNIT:
+            self.unitBeingConstruct.pop(int(self.flag.finalTarget))
+        
+        elif self.flag.flagState == FlagState.CHANGE_RALLY_POINT:
+            target = self.flag.finalTarget
+            target = target.strip("[")
+            target = target.strip("]")
+            target = target.split(",")
+            for i in range(0, len(target)):
+                target[i]=math.trunc(float(target[i]))
+                
+            self.rallyPoint = target
+            print("rallypoint setté")
+        
+    
+
+        
+#    def changeFlag(self, finalTarget, flagState, actionPlayerId=0, unitTypeToConstruct=None):
+#        p = [self.position[0], self.position[1], 0]
+#        if unitTypeToConstruct != None and flagState == FlagState.CREATE:
+#            if (unitTypeToConstruct == UnitType.SCOUT):
+#                self.unitBeingConstruct.append(Unit(unitTypeToConstruct,p,actionPlayerId,moveSpeed = MoveSpeed.SCOUT))
+#            elif (unitTypeToConstruct == UnitType.SPACE_ATTACK_UNIT):
+#                self.unitBeingConstruct.append(SpaceAttackUnit(unitTypeToConstruct,p,actionPlayerId,moveSpeed=2.0, attackspeed=10.0,attackdamage=5.0,range=150.0))
+#        elif(flagState == FlagState.CANCEL_UNIT):
+#
+#            #self.unitBeingConstruct.remove(self.unitBeingConstruct.pop(int(finalTarget)))
+#            
+            
+        #Unit.changeFlag(self, finalTarget, flagState)
 
     def progressUnitsConstruction(self):
         if len(self.unitBeingConstruct) > 0:
-            self.flag.flagState = FlagState.CREATE
+            self.flag.flagState = FlagState.BUILD_UNIT 
             self.unitBeingConstruct[0].constructionProgress = self.unitBeingConstruct[0].constructionProgress + 1
         else:
             self.flag.flagState = FlagState.STANDBY
 
-
     def isUnitFinished(self):
         if len(self.unitBeingConstruct) > 0:
             return self.unitBeingConstruct[0].constructionProgress >= self.unitBeingConstruct[0].buildTime
+        
+        
 class SpaceAttackUnit(SpaceUnit):
     def __init__(self, name, position, owner, moveSpeed, attackspeed,attackdamage,range):
         SpaceUnit.__init__(self, name, position, owner, moveSpeed)

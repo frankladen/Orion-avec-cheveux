@@ -56,8 +56,11 @@ class View():
         self.gifAttack = PhotoImage(file='images/icones/icone1.gif')
         self.gifRallyPoint = PhotoImage(file='images/icones/icone2.gif')
         self.gifBuild = PhotoImage(file = 'images/icones/build.gif')
+        self.iconCancel = PhotoImage(file = 'images/icones/cancelUnit.gif')
         self.attacking = False
         self.selectAllUnits = False
+        self.wantToCancelUnitBuild = False
+
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
     
@@ -86,7 +89,7 @@ class View():
         Label(gameFrame, text="Gaz: ", bg="black", fg="white", width=10, anchor=E).grid(column=2, row=0)
         self.showGaz=Label(gameFrame, text=self.parent.players[self.parent.playerId].gaz, fg="white", bg="black", anchor=W)
         self.showGaz.grid(column=3,row=0)
-        self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille-200, background='Black', relief='ridge')
+        self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille-200, background='Black', relief='ridge', cursor = 'cross')
         self.gameArea.grid(column=0,row=1, columnspan=3)#place(relx=0, rely=0,width=taille,height=taille)
         self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
         self.minimap.grid(column=0,row=2, rowspan=4)
@@ -132,6 +135,7 @@ class View():
         l = None;
         r = 1
         list = self.parent.players[self.parent.playerId].motherShip.unitBeingConstruct
+
         for i in list:
             if(list.index(i) != 0):
                 if (list[list.index(i)].name == list[list.index(i) - 1].name):
@@ -140,14 +144,23 @@ class View():
                 else:
                     r = 1
                     ok = False
-            
-            arc = self.unitsConstructionPanel.create_arc((175, y, 195, 20+y), start=0, extent= (i.constructionProgress / i.buildTime)*360 , fill="blue")
+                    self.unitsConstructionPanel.create_image(175,5 + y, image = self.iconCancel, anchor = NW, tags = ('cancelUnitButton', list.index(i)))
+            else:
+                if (self.wantToCancelUnitBuild == False):
+                    self.unitsConstructionPanel.create_arc((175, 5, 195, 25), start=0, extent= (i.constructionProgress / i.buildTime)*360 , fill='blue', tags = 'arc')
+                else:
+                    self.unitsConstructionPanel.create_image(175,5, image = self.iconCancel, anchor = NW, tags = ('cancelUnitButton', list.index(i)))
+
             if (ok == True):
                 self.unitsConstructionPanel.itemconfig(l, text = str(r) + " " + i.name)
             else:
                 l = self.unitsConstructionPanel.create_text(5,y,text = str(r) + " " + i.name, anchor = NW, fill = 'white')
+                
                 y+=20
-
+                
+            
+            
+                 
 	#Frame du menu principal    
     def fMainMenu(self):
         mainMenuFrame = Frame(self.root, bg="black")
@@ -724,7 +737,6 @@ class View():
             login = self.entryLogin.get()
             server = self.entryServer.get()
         self.parent.connectServer(login,server)
-			
     def stop(self, eve):
         self.attacking = False
         self.parent.setStandbyFlag()
@@ -739,7 +751,6 @@ class View():
 
     def shiftRelease(self, eve):
         self.parent.multiSelect = False
-	
     def checkMotherSip(self, eve):
         self.parent.players[self.parent.playerId].currentPlanet = None
         self.changeBackground('GALAXY')
@@ -760,9 +771,30 @@ class View():
             self.parent.addUnit(UnitType.SCOUT)
         elif (Button_pressed == "Button_Build_Attack"):
             self.parent.addUnit(UnitType.SPACE_ATTACK_UNIT)
+            
+    def progressCircleMouseOver(self,eve):
+        #if(posX >= self.unitsConstructionPanel.find_withtag('current')):
+        tag = self.unitsConstructionPanel.gettags(self.unitsConstructionPanel.find_withtag('current'))
+        if tag != ():
+            if tag[0] == 'arc':
+                self.wantToCancelUnitBuild = True
+        else:
+            self.wantToCancelUnitBuild = False
     
-    #Assignation des controles	
+
+            
+    def clicCancelUnit(self,eve):
+        tag = self.unitsConstructionPanel.gettags(self.unitsConstructionPanel.find_withtag('current'))
+        print (tag)
+
+        if tag != ():
+            if tag[0] == 'cancelUnitButton':
+                self.parent.cancelUnit(tag[1])
+
+        
+    #Assignation des controles
     def assignControls(self):
+        
         self.gameArea.focus_set()
         #Bindings des fleches
         self.gameArea.bind ("<Key-Up>", self.keyPressUP)
@@ -788,6 +820,9 @@ class View():
         self.gameArea.bind("<Control_L>",self.ctrlPressed)
         self.gameArea.bind("<KeyRelease-Control_L>",self.ctrlDepressed)
         #Bindings des boutons de la souris
+        self.unitsConstructionPanel.bind("<Motion>", self.progressCircleMouseOver)
+        self.unitsConstructionPanel.bind("<Button-1>", self.clicCancelUnit)
+
         self.gameArea.bind("<Button-3>", self.rightclic)
         self.gameArea.bind("<B3-Motion>", self.rightclic)
         self.minimap.bind("<Button-3>", self.rightclic)
