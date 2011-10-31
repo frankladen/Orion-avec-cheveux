@@ -113,6 +113,7 @@ class TransportShip(SpaceUnit):
         self.landed = False
         self.capacity = 10
         self.units = []
+        self.units.append(Unit('Pilot', [0,0,0], self.owner, moveSpeed=3.0))
 
     def land(self, controller, playerId):
         planet = self.flag.finalTarget
@@ -130,12 +131,21 @@ class TransportShip(SpaceUnit):
                     alreadyLanded = True
             if not alreadyLanded:
                 if len(planet.landingZones) < 4:
-                    planet.addLandingZone(playerId, self)
+                    landingZone = planet.addLandingZone(playerId, self)
                     self.landed = True
+                    for i in self.units:
+                        i.position = [landingZone.position[0] + 40, landingZone.position[1]]
+                        planet.units.append(i)
+                        self.units.pop(self.units.index(i))
                     if self in controller.players[controller.playerId].selectedObjects:
                         controller.players[controller.playerId].selectedObjects.pop(controller.players[controller.playerId].selectedObjects.index(self))
             if playerId == controller.playerId:
                 controller.view.changeBackground('PLANET')
                 controller.view.drawPlanetGround(planet)
             self.flag = Flag (self.position, self.position, FlagState.STANDBY)
-        
+
+    def takeOff(self, planet):
+        self.landed = False
+        for i in planet.landingZones:
+            if i.ownerId == self.owner:
+                i.LandedShip = None

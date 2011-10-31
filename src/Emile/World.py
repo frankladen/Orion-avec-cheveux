@@ -232,8 +232,10 @@ class Planet(Target):
             for i in self.gaz:
                 if position[0] > i.position[0]-50 and position[0] < i.position[0]+50:
                     if position[1] > i.position[1]-50 and position[1] < i.position[1]+50:
-                        posFound = False 
-        self.landingZones.append(LandingZone(position, playerid, landingShip))
+                        posFound = False
+        newSpot = LandingZone(position, playerid, landingShip)
+        self.landingZones.append(newSpot)
+        return newSpot
 
     def alreadyLanded(self, playerId):
         alreadyLanded = False

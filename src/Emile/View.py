@@ -250,7 +250,10 @@ class View():
             if i in self.parent.players[self.parent.playerId].selectedObjects:
                 self.gameArea.create_oval(i.position[0]-40,i.position[1]-40,i.position[0]+40,i.position[1]+40, outline='green', tag='deletable')
             self.gameArea.create_image(i.position[0], i.position[1], image=self.landingZones[i.ownerId], tag='deletable')
-            self.gameArea.create_image(i.position[0], i.position[1], image=self.landedShips[i.ownerId], tag='deletable')
+            if i.LandedShip != None:
+                self.gameArea.create_image(i.position[0], i.position[1], image=self.landedShips[i.ownerId], tag='deletable')
+        for i in planet.units:
+            self.gameArea.create_oval(i.position[0]-12, i.position[1]-12, i.position[0]+12,i.position[1]+12, fill='red', tag='deletable')
 
     def changeBackground(self, type):
         self.gameArea.delete('background')
@@ -336,8 +339,8 @@ class View():
                         self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="yellow", tag='deletable')
                     mVariable = "Mineral :" + str(planet.mineralQte)
                     gVariable = "Gaz :" + str(planet.gazQte)
-                    self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="cyan",text=mVariable, tag='deletable')
-                    self.gameArea.create_text(distance[0]-20, distance[1]-40,fill="green",text=gVariable, tag='deletable')
+                    self.gameArea.create_text(distance[0], distance[1]-25,fill="cyan",text=mVariable, tag='deletable')
+                    self.gameArea.create_text(distance[0], distance[1]-40,fill="green",text=gVariable, tag='deletable')
                 self.gameArea.create_image(distance[0],distance[1],image=self.planet, tag='deletable')
             else:
                 self.gameArea.create_image(distance[0], distance[1], image=self.planetFOW, tag='deletable')
@@ -349,9 +352,9 @@ class View():
             distance = player.camera.calcDistance(nebulaPosition)
             if isInFOW:
                 if nebula in player.selectedObjects:
-                    self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="yellow", tag='deletable')
+                    self.gameArea.create_polygon(distance[0], distance[1]+15, distance[0]-15, distance[1]-10,distance[0]+15, distance[1]-10,outline="yellow", tag='deletable',fill=None)
                     mVariable = "Gaz :" + str(nebula.gazQte)
-                    self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="green",text=mVariable, tag='deletable')
+                    self.gameArea.create_text(distance[0], distance[1]-25,fill="green",text=mVariable, tag='deletable')
                 self.gameArea.create_image(distance[0],distance[1],image=self.nebula, tag='deletable')
             else:
                 self.gameArea.create_image(distance[0], distance[1], image=self.nebulaFOW, tag='deletable')
@@ -362,9 +365,9 @@ class View():
             distance = player.camera.calcDistance(asteroidPosition)
             if isInFOW:
                 if asteroid in player.selectedObjects:
-                    self.gameArea.create_oval(distance[0]-10, distance[1]-10, distance[0]+10, distance[1]+10,outline="yellow", tag='deletable')
+                    self.gameArea.create_polygon(distance[0], distance[1]-16, distance[0]+15, distance[1]+10,distance[0]-15,distance[1]+10,outline="yellow", tag='deletable',fill=None)
                     mVariable = "Mineral :" + str(asteroid.mineralQte)
-                    self.gameArea.create_text(distance[0]-20, distance[1]-25,fill="cyan",text=mVariable, tag='deletable')
+                    self.gameArea.create_text(distance[0], distance[1]+25,fill="cyan",text=mVariable, tag='deletable')
                 self.gameArea.create_image(distance[0],distance[1],image=self.asteroid, tag='deletable')
             else:
                 self.gameArea.create_image(distance[0],distance[1],image=self.asteroidFOW, tag='deletable')
@@ -701,6 +704,14 @@ class View():
         cam = self.parent.players[self.parent.playerId].camera
         cam.position = cam.defaultPos
 
+    def takeOff(self, eve):
+        planet = self.parent.players[self.parent.playerId].currentPlanet
+        if planet != None:
+            for i in planet.landingZones:
+                if i.ownerId == self.parent.playerId and i.LandedShip != None:
+                    if i in self.parent.players[self.parent.playerId].selectedObjects:
+                        self.parent.takeOff(i.LandedShip, planet)
+
     def clickActionMenu(self,eve):
         Button_pressed = (eve.widget.gettags(eve.widget.find_withtag('current')))[0]
         if (Button_pressed == "Button_Stop"):
@@ -737,6 +748,7 @@ class View():
         self.gameArea.bind("a",self.attack)
         self.gameArea.bind("A",self.attack)
         self.gameArea.bind("c", self.selectAll)
+        self.gameArea.bind("t", self.takeOff)
         self.gameArea.bind("<KeyRelease-c>", self.unSelectAll)
         self.gameArea.bind("1", self.checkMotherSip)
         self.gameArea.bind("<Control_L>",self.ctrlPressed)

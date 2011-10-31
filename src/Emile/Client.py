@@ -332,7 +332,15 @@ class Controller():
         if self.players[self.playerId].currentPlanet == None:
             posSelected = self.players[self.playerId].camera.calcPointOnMap(x,y)
             self.players[self.playerId].camera.position = posSelected
-        
+    
+    def takeOff(self, ship, planet):
+        ship.takeOff(planet)
+        self.players[self.playerId].currentPlanet = None
+        cam = self.players[self.playerId].camera
+        cam.position = cam.defaultPos
+        self.view.changeBackground('GALAXY')
+        self.view.drawWorld()
+    
     #Envoyer le message pour le chat
     def sendMessage(self, mess):
         if mess != "":
