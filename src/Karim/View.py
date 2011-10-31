@@ -576,7 +576,7 @@ class View():
     
     #methode test build    
     def build(self,eve):
-        #if self.checkVacantSpace(self.parent.galaxy, self.parent.players):
+        if self.parent.checkVacantSpace(self.parent.galaxy, self.parent.players):
             self.parent.setBuildingFlag(t.Target([self.positionMouse[0],self.positionMouse[1],0]))
         
     #Quand on appui sur enter dans le chat		
