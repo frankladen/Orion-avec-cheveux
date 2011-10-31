@@ -22,7 +22,11 @@ class PlayerObject(Target):
             self.buildTime = BuildTime.SCOUT
         elif name == UnitType.MOTHERSHIP:
             self.viewRange = ViewRange.MOTHERSHIP
+            self.hitpoints = 500
+            self.maxHP=self.hitpoints
         elif name == UnitType.SPACE_ATTACK_UNIT:
+            self.hitpoints = 100
+            self.maxHP=self.hitpoints
             self.viewRange = ViewRange.SPACE_ATTACK_UNIT
             self.buildTime = BuildTime.SPACE_ATTACK_UNIT
         else:

@@ -50,6 +50,7 @@ class ControleurServeur(object):
             self.changeList = []
             self.sockets = []
             self.readyPlayers = []
+            self.choiceColors = [["Orange", False], ["Rouge", False], ["Bleu", False], ["Vert", False], ["Jaune", False], ["Brun", False], ["Blanc", False], ["Rose", False]]
             self.mess = ['Système de chat de Orion']
     
     def addMessage(self, text, name):
