@@ -437,27 +437,27 @@ class View():
         if self.parent.players[self.parent.playerId].camera.isInFOV(unitPosition):
             distance = self.parent.players[self.parent.playerId].camera.calcDistance(unitPosition)
             if not isInFOW:
-                if unit.name.find('Scout') != -1:
+                if unit.name == UnitType.SCOUT:
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-8,distance[1]-8,distance[0]+8,distance[1]+8, outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0]+1, distance[1], image=self.scoutShips[player.colorId],tag='deletable')#On prend l'image dependamment du joueur que nous sommes
-                if unit.name.find('Attack') != -1:
+                if unit.name == UnitType.SPACE_ATTACK_UNIT:
                     if unit.attackcount <= 5:
                         d2 = self.parent.players[self.parent.playerId].camera.calcDistance(unit.flag.finalTarget.position)
                         self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='deletable')
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-13,distance[1]-13,distance[0]+13,distance[1]+13, outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0]+1, distance[1], image=self.attackShips[player.colorId], tag='deletable')#On prend l'image dependamment du joueur que nous sommes
-                elif unit.name == 'Mothership':
+                elif unit.name == UnitType.MOTHERSHIP:
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-65,distance[1]-65,distance[0]+65,distance[1]+65, outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0]+1, distance[1], image = self.motherShips[player.colorId], tag='deletable')
-                elif unit.name == 'Transport':
+                elif unit.name == UnitType.TRANSPORT:
                     if not unit.landed:
                         if unit in player.selectedObjects:
                             self.gameArea.create_oval(distance[0]-18,distance[1]-18,distance[0]+18,distance[1]+18, outline="green", tag='deletable')
                         self.gameArea.create_image(distance[0]+1, distance[1], image = self.trasportShips[player.colorId], tag='deletable')
-                elif unit.name == 'Gather':
+                elif unit.name == UnitType.GATHER:
                     if unit in player.selectedObjects:
                             self.gameArea.create_oval(distance[0]-12,distance[1]-18,distance[0]+12,distance[1]+18, outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0]+1, distance[1], image = self.gatherShips[player.colorId], tag='deletable')

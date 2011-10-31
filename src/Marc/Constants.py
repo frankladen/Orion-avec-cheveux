@@ -7,9 +7,11 @@ class MenuType():
 
 #J'ai mis des String, car on aura besoin d'afficher ces valeurs dans le jeu
 class UnitType():
-    SCOUT='Scout'
+    SCOUT="Scout"
     SPACE_ATTACK_UNIT="Attack"
     MOTHERSHIP = "MotherShip"
+    GATHER = "Gather"
+    TRANSPORT = "Transport"
     
 
 class FlagState():

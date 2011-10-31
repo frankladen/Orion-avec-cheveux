@@ -10,6 +10,8 @@ class Unit(t.PlayerObject):
     def __init__(self, name, position, owner, foodcost=50, moveSpeed=1.0):
         t.PlayerObject.__init__(self, name, position, owner)
         self.FoodCost=foodcost
+        self.mineralCost = 30
+        self.gazCost = 30
         self.moveSpeed=moveSpeed
         
     #La deplace d'un pas vers son flag et si elle est rendu, elle change arrete de bouger    
@@ -87,6 +89,7 @@ class Mothership(Unit):
         
         elif self.flag.flagState == FlagState.CANCEL_UNIT:
             self.unitBeingConstruct.pop(int(self.flag.finalTarget))
+            self.flag.flagState = FlagState.BUILD_UNIT
         
         elif self.flag.flagState == FlagState.CHANGE_RALLY_POINT:
             target = self.flag.finalTarget
@@ -115,32 +118,40 @@ class SpaceAttackUnit(SpaceUnit):
         self.AttackDamage=attackdamage
         self.range=range
         self.attackcount=self.AttackSpeed
+        self.mineralCost = 50
+        self.gazCost = 50
         self.killCount = 0
         
     def attack(self, players):
         index = -1
         killedOwner = -1
         distance = h.Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1])
-        if distance > self.range :
-            self.attackcount=self.AttackSpeed
-            self.move()
-        else:
-            self.attackcount = self.attackcount - 1
-            if self.attackcount == 0:
-                self.flag.finalTarget.hitpoints-=self.AttackDamage
-                if self.flag.finalTarget.hitpoints <= 0:
-                    index = players[self.flag.finalTarget.owner].units.index(self.flag.finalTarget)
-                    killedOwner = self.flag.finalTarget.owner
-                    self.flag = Flag(self.position, self.position, FlagState.STANDBY)
-                    self.killCount +=1
+        try:
+            if distance > self.range :
                 self.attackcount=self.AttackSpeed
-        return (index, killedOwner)
+                self.move()
+            else:
+                self.attackcount = self.attackcount - 1
+                if self.attackcount == 0:
+                    self.flag.finalTarget.hitpoints-=self.AttackDamage
+                    if self.flag.finalTarget.hitpoints <= 0:
+                        index = players[self.flag.finalTarget.owner].units.index(self.flag.finalTarget)
+                        killedOwner = self.flag.finalTarget.owner
+                        self.flag = Flag(self.position, self.position, FlagState.STANDBY)
+                        self.killCount +=1
+                    self.attackcount=self.AttackSpeed
+            return (index, killedOwner)
+        except ValueError:
+            self.flag = Flag(self.position, self.position, FlagState.STANDBY)
+            return (-1, -1)
 
 class TransportShip(SpaceUnit):
     def __init__(self, name, position, owner, moveSpeed):
         SpaceUnit.__init__(self, name, position, owner, moveSpeed)
         self.landed = False
         self.capacity = 10
+        self.mineralCost = 75
+        self.gazCost = 25
         self.units = []
 
     def land(self, controller, playerId):
@@ -173,6 +184,8 @@ class GatherShip(SpaceUnit):
         SpaceUnit.__init__(self, name, position, owner, moveSpeed)
         self.maxGather = 50
         self.gatherSpeed = 20
+        self.mineralCost = 25
+        self.gazCost = 75 
         self.container = [0,0]
         self.returning = False
 

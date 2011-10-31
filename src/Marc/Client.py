@@ -109,7 +109,20 @@ class Controller():
         
     #Pour ajouter une unit
     def addUnit(self, unit):
-        self.pushChange(0, Flag(finalTarget = unit, flagState = FlagState.CREATE))
+        if unit == UnitType.SCOUT:
+            gazCost = 30
+            mineralCost = 30
+        elif unit == UnitType.SPACE_ATTACK_UNIT:
+            gazCost = 50
+            mineralCost = 50
+        elif unit == UnitType.TRANSPORT:
+            gazCost = 25
+            mineralCost = 75
+        elif unit == UnitType.GATHER:
+            gazCost = 75
+            mineralCost = 25
+        if self.players[self.playerId].gaz - gazCost > 0 and self.players[self.playerId].mineral - mineralCost > 0:
+            self.pushChange(0, Flag(finalTarget = unit, flagState = FlagState.CREATE))
 
     def cancelUnit(self, unit):
         self.pushChange(0, Flag(finalTarget = unit, flagState = FlagState.CANCEL_UNIT))
@@ -179,6 +192,7 @@ class Controller():
         
     def selectAll(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
+            self.players[self.playerId].selectedObjects = []
             cam = self.players[self.playerId].camera
             for j in self.players[self.playerId].units:
                 if j.position[0] > cam.position[0]-cam.screenWidth/2 and j.position[0] < cam.position[0]+cam.screenWidth/2:
@@ -327,11 +341,8 @@ class Controller():
                     if p.motherShip.isAlive:
                         p.motherShip.action()
                         if len(p.motherShip.unitBeingConstruct) > 0:
-                            p.motherShip.flag.flagState = FlagState.BUILD_UNIT
                             if(p.motherShip.isUnitFinished()):
-                                unit = p.motherShip.unitBeingConstruct.pop(0)
-                                unit.changeFlag(t.Target(p.motherShip.rallyPoint), FlagState.MOVE)
-                                p.units.append(unit)
+                                self.buildUnit(p)
                         else:
                             p.motherShip.flag.flagState = FlagState.STANDBY
                     else:
@@ -378,7 +389,12 @@ class Controller():
             if self.players[self.playerId].units[killedIndexes[0]] in self.players[self.playerId].selectedObjects:
                self.players[self.playerId].selectedObjects.remove(self.players[self.playerId].units[killedIndexes[0]])
         self.players[killedIndexes[1]].units[killedIndexes[0]].kill()
-                
+
+    def buildUnit(self, player):
+        unit = player.motherShip.unitBeingConstruct.pop(0)
+        unit.changeFlag(t.Target(player.motherShip.rallyPoint), FlagState.MOVE)
+        player.units.append(unit)
+              
 	#Connection au serveur			
     def connectServer(self, login, serverIP):
         self.server=Pyro4.core.Proxy("PYRO:ServeurOrion@"+serverIP+":54440")
@@ -513,11 +529,17 @@ class Controller():
         
         elif action == str(FlagState.CREATE):
             self.players[actionPlayerId].motherShip.changeFlag(target,int(action))
+            self.players[actionPlayerId].motherShip.action()
+            self.players[actionPlayerId].gaz -= self.players[actionPlayerId].motherShip.unitBeingConstruct[len(self.players[actionPlayerId].motherShip.unitBeingConstruct)-1].gazCost
+            self.players[actionPlayerId].mineral -= self.players[actionPlayerId].motherShip.unitBeingConstruct[len(self.players[actionPlayerId].motherShip.unitBeingConstruct)-1].mineralCost
+            self.players[actionPlayerId].motherShip.flag.flagState = FlagState.BUILD_UNIT
         
         elif action == str(FlagState.CHANGE_RALLY_POINT):
             self.players[actionPlayerId].motherShip.changeFlag(target,int(action))
         
         elif action == str(FlagState.CANCEL_UNIT):
+            self.players[actionPlayerId].gaz += self.players[actionPlayerId].motherShip.unitBeingConstruct[int(target)].gazCost
+            self.players[actionPlayerId].mineral += self.players[actionPlayerId].motherShip.unitBeingConstruct[int(target)].mineralCost
             self.players[actionPlayerId].motherShip.changeFlag(target, int(action))
 
         elif action == str(FlagState.DESTROY):
