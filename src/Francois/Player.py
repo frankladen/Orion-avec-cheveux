@@ -30,7 +30,7 @@ class Player():
         self.units.append(u.TransportShip('Transport', [startPos[0], startPos[1] + 30,0], self.id, moveSpeed=3.0))
         self.units.append(u.TransportShip('Transport', [startPos[0], startPos[1] - 30,0], self.id, moveSpeed=3.0))
         self.units.append(u.SpaceAttackUnit('Attack',[startPos[0] + 30, startPos[1] - 30 ,0], self.id, moveSpeed=2.0, attackspeed=10.0,attackdamage=5.0,range=150.0))
-
+        self.units.append(u.GatherShip('Gather',[startPos[0] + 40, startPos[1]+40], self.id, moveSpeed=3.0))
     #Ajoute une camera au joueur seulement quand la partie commence    
     def addCamera(self, galaxy, taille):
         pos = [0,0,0]
@@ -55,7 +55,11 @@ class Player():
             if i.isAlive:
                 if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
                     if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
-                        return True
+                        if i.name == 'Transport':
+                            if not i.landed:
+                                return True
+                        else:
+                            return True
         return False
 #Represente la camera            
 class Camera():
