@@ -121,7 +121,7 @@ class Controller():
         elif unit == UnitType.GATHER:
             gazCost = 75
             mineralCost = 25
-        if self.players[self.playerId].gaz - gazCost > 0 and self.players[self.playerId].mineral - mineralCost > 0:
+        if self.players[self.playerId].gaz - gazCost >= 0 and self.players[self.playerId].mineral - mineralCost >= 0:
             self.pushChange(0, Flag(finalTarget = unit, flagState = FlagState.CREATE))
 
     def cancelUnit(self, unit):
@@ -218,23 +218,25 @@ class Controller():
                                     self.setLandingFlag(self.players[self.playerId].selectedObjects[0], j)
                                     empty = False
             if empty:
-                for i in self.galaxy.solarSystemList:
-                    for j in i.asteroids:
-                        if pos[0] > j.position[0]-8 and pos[0] < j.position[0]+8:
-                            if pos[1] > j.position[1]-8 and pos[1] < j.position[1]+8:
-                                    for unit in self.players[self.playerId].units:
-                                        if unit.name == 'Gather':
-                                            self.setGatherFlag(unit, j)
-                                            empty = False
+                if len(self.players[self.playerId].selectedObjects) > 0:
+                    for i in self.galaxy.solarSystemList:
+                        for j in i.asteroids:
+                            if pos[0] > j.position[0]-8 and pos[0] < j.position[0]+8:
+                                if pos[1] > j.position[1]-8 and pos[1] < j.position[1]+8:
+                                        for unit in self.players[self.playerId].selectedObjects:
+                                            if unit.name == UnitType.GATHER:
+                                                self.setGatherFlag(unit, j)
+                                                empty = False
             if empty:
-                for i in self.galaxy.solarSystemList:
-                    for j in i.nebulas:
-                        if pos[0] > j.position[0]-8 and pos[0] < j.position[0]+8:
-                            if pos[1] > j.position[1]-8 and pos[1] < j.position[1]+8:
-                                    for unit in self.players[self.playerId].units:
-                                        if unit.name == 'Gather':
-                                            self.setGatherFlag(unit, j)
-                                            empty = False
+                if len(self.players[self.playerId].selectedObjects) > 0:
+                    for i in self.galaxy.solarSystemList:
+                        for j in i.nebulas:
+                            if pos[0] > j.position[0]-8 and pos[0] < j.position[0]+8:
+                                if pos[1] > j.position[1]-8 and pos[1] < j.position[1]+8:
+                                        for unit in self.players[self.playerId].selectedObjects:
+                                            if unit.name == UnitType.GATHER:
+                                                self.setGatherFlag(unit, j)
+                                                empty = False
             if empty:
                 if len(self.players[self.playerId].selectedObjects) > 0:
                     for i in self.players:

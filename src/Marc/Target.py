@@ -41,7 +41,7 @@ class PlayerObject(Target):
             self.maxHP=self.hitpoints
         else:
             self.viewRange = 100
-    
+
     def getFlag(self):
         return self.flag
     
