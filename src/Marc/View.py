@@ -75,14 +75,14 @@ class View():
         self.scoutShips = []
         self.attackShips = []
         self.motherShips = []
-        self.trasportShips = []
+        self.transportShips = []
         self.landedShips = []
         self.gatherShips = []
         for i in range(0,8):
             self.scoutShips.append(PhotoImage(file='images/Ships/Scoutships/Scoutship'+str(i)+'.gif'))
             self.attackShips.append(PhotoImage(file='images/Ships/Attackships/Attackship'+str(i)+'.gif'))
             self.motherShips.append(PhotoImage(file='images/Ships/Motherships/Mothership'+str(i)+'.gif'))
-            self.trasportShips.append(PhotoImage(file='images/Ships/Transport/Transport'+str(i)+'.gif'))
+            self.transportShips.append(PhotoImage(file='images/Ships/Transport/Transport'+str(i)+'.gif'))
             self.landedShips.append(PhotoImage(file='images/Planet/LandedShips/landed'+str(i)+'.gif'))
             self.gatherShips.append(PhotoImage(file='images/Ships/Cargo/Cargo'+str(i)+'.gif'))
         Label(gameFrame, text="Mineraux: ", bg="black", fg="white", width=10, anchor=E).grid(column=0, row=0)
@@ -126,6 +126,8 @@ class View():
         elif(type == MenuType.MOTHERSHIP_BUILD_MENU):
             self.Actionmenu.create_image(13,35,image = self.scoutShips[self.parent.players[self.parent.playerId].colorId], anchor = NW, tags = 'Button_Build_Scout')
             self.Actionmenu.create_image(76,35,image = self.attackShips[self.parent.players[self.parent.playerId].colorId], anchor = NW, tags = 'Button_Build_Attack')
+            self.Actionmenu.create_image(139,35,image = self.gatherShips[self.parent.players[self.parent.playerId].colorId], anchor = NW, tags = 'Button_Build_Gather')
+            self.Actionmenu.create_image(13,70,image = self.transportShips[self.parent.players[self.parent.playerId].colorId], anchor = NW, tags = 'Button_Build_Transport')
         elif(type == MenuType.WAITING_FOR_RALLY_POINT):
             self.Actionmenu.create_text(0,0,text = "Cliquer a un endroit dans l'aire de jeu afin d'initialiser le point de ralliement du vaisseau mère.",anchor = NW, fill = 'white', width = 200)
             #self.Actionmenu.create_text("Cliquer sur un endroit dans le jeu afin de mettre en place votre point de ralliement")
@@ -456,10 +458,10 @@ class View():
                     if not unit.landed:
                         if unit in player.selectedObjects:
                             self.gameArea.create_oval(distance[0]-18,distance[1]-18,distance[0]+18,distance[1]+18, outline="green", tag='deletable')
-                        self.gameArea.create_image(distance[0]+1, distance[1], image = self.trasportShips[player.colorId], tag='deletable')
+                        self.gameArea.create_image(distance[0]+1, distance[1], image = self.transportShips[player.colorId], tag='deletable')
                 elif unit.name == UnitType.GATHER:
                     if unit in player.selectedObjects:
-                            self.gameArea.create_oval(distance[0]-12,distance[1]-18,distance[0]+12,distance[1]+18, outline="green", tag='deletable')
+                        self.gameArea.create_oval(distance[0]-12,distance[1]-18,distance[0]+12,distance[1]+18, outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0]+1, distance[1], image = self.gatherShips[player.colorId], tag='deletable')
                 
                 if unit.hitpoints <= 5:
@@ -780,7 +782,10 @@ class View():
                 self.parent.addUnit(UnitType.SCOUT)
             elif (Button_pressed == "Button_Build_Attack"):
                 self.parent.addUnit(UnitType.SPACE_ATTACK_UNIT)
-
+            elif (Button_pressed == "Button_Build_Transport"):
+                self.parent.addUnit(UnitType.TRANSPORT)
+            elif (Button_pressed == "Button_Build_Gather"):
+                self.parent.addUnit(UnitType.GATHER)
     def progressCircleMouseOver(self,eve):
         #if(posX >= self.unitsConstructionPanel.find_withtag('current')):
         tag = self.unitsConstructionPanel.gettags(self.unitsConstructionPanel.find_withtag('current'))

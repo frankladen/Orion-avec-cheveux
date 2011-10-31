@@ -29,6 +29,16 @@ class PlayerObject(Target):
             self.maxHP=self.hitpoints
             self.viewRange = ViewRange.SPACE_ATTACK_UNIT
             self.buildTime = BuildTime.SPACE_ATTACK_UNIT
+        elif name == UnitType.GATHER:
+            self.viewRange = ViewRange.GATHER
+            self.buildTime = BuildTime.GATHER
+            self.hitpoints = 75
+            self.maxHP=self.hitpoints
+        elif name == UnitType.TRANSPORT:
+            self.viewRange = ViewRange.TRANSPORT
+            self.buildTime = BuildTime.TRANSPORT
+            self.hitpoints = 125
+            self.maxHP=self.hitpoints
         else:
             self.viewRange = 100
     

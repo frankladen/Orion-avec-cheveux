@@ -38,8 +38,12 @@ class MoveSpeed():
 class BuildTime():
     SCOUT = 200
     SPACE_ATTACK_UNIT = 400
+    TRANSPORT = 300
+    GATHER = 250
     
 class ViewRange():
+    TRANSPORT = 150
+    GATHER = 150
     SCOUT = 200
     SPACE_ATTACK_UNIT = 150
     MOTHERSHIP = 400
