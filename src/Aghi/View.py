@@ -43,6 +43,7 @@ class View():
         self.asteroidFOW=PhotoImage(file='images\\Galaxy\\asteroidFOW.gif')
         self.mineral = PhotoImage(file='images\\Planet\\crystal.gif')
         self.gifStop = PhotoImage(file='images\\icones\\stop2.gif')
+        self.gifBuild = PhotoImage(file='images\\icones\\build.gif')
         self.gifMove = PhotoImage(file='images\\icones\\move2.gif')
         self.gifCancel = PhotoImage(file='images\\icones\\delete2.gif')
         self.gifAttack = PhotoImage(file='images\\icones\\attack2.gif')
@@ -51,6 +52,10 @@ class View():
         self.gifChat = PhotoImage(file='images\\icones\\boutonChat.gif')
         self.gifTrade = PhotoImage(file='images\\icones\\boutonTrade.gif')
         self.gifTeam = PhotoImage(file='images\\icones\\boutonTeam.gif')
+        self.gifTransport = PhotoImage(file='images\\icones\\transport.gif')
+        self.gifCargo = PhotoImage(file='images\\icones\\cargo.gif')
+        self.gifUnit = PhotoImage(file='images\\icones\\unit.gif')
+        self.gifSelectedUnit = PhotoImage(file='images\\icones\\boutonSelectedUnit.gif')
         self.planetBackground = PhotoImage(file='images\\Planet\\background.gif')
         self.galaxyBackground = PhotoImage(file='images\\Galaxy\\night-sky.gif')
         self.gifCadreMenuAction = PhotoImage(file='images\\cadreMenuAction2.gif')
@@ -87,38 +92,50 @@ class View():
         self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
         self.minimap.grid(column=0,row=2, rowspan=4)
         self.menuModes=Canvas(gameFrame, width=self.taille, height=200, background='black', relief='ridge')
-        self.menuModes.grid(row=2,column=2)       
+        self.menuModes.grid(row=2,column=2, rowspan=4)       
         self.Actionmenu = Canvas(gameFrame,width=200,height=200,background='black')
         self.Actionmenu.grid(column=3,row=2, rowspan=4)
         self.changeBackground('GALAXY')
         self.drawWorld()
         self.createActionMenu()
-        self.menuChat(gameFrame)
+        self.ongletChat(gameFrame)
         self.assignControls()
         return gameFrame
     
-    def menuTeam(self):
-        self.menuModesremove() 
+    def ongletTeam(self):
+        self.menuModesOnlets() 
         self.menuModes.create_text(150,50,text='voici le menu Team',fill='white')
+        self.menuModes.chat.grid_forget()
+        self.menuModes.entryMess.grid_forget()
         
-    def menuTrade(self):
-        self.menuModesremove()
+    def ongletTrade(self):
+        self.menuModesOnlets()
         self.menuModes.create_text(150,50,text='voici le menu Tradeeee',fill='red')
+        self.menuModes.chat.grid_forget()
+        self.menuModes.entryMess.grid_forget()
         
-    def menuChat(self,gameFrame):
-        self.menuModesremove()
+    def ongletSelectedUnit(self):
+        self.menuModesOnlets()
+        self.menuModes.create_text(150,50,text='Selected uniiiiiiiiiiit',fill='yellow')
+        self.menuModes.chat.grid_forget()
+        self.menuModes.entryMess.grid_forget()
+        
+    def ongletChat(self,gameFrame):
+        self.menuModesOnlets()
         self.menuModes.chat = Label(gameFrame, anchor=W, justify=LEFT, width=75, background='black', fg='white', relief='raised')
-        self.menuModes.chat.grid(row=2, column=2)
+        self.menuModes.chat.grid(row=3, column=2)
         self.menuModes.entryMess = Entry(gameFrame, width=60)
-        self.menuModes.entryMess.grid(row=5, column=2)
+        self.menuModes.entryMess.grid(row=4, column=2)
+        self.menuModes.entryMess.bind("<Return>",self.enter)
         
     # delete tout ce qu'il y a dans le canvas menuModes + affiche les 3 menus
-    def menuModesremove(self):
+    def menuModesOnlets(self):
         self.menuModes.delete(ALL)
         self.menuModes.create_image(0,0,image=self.gifChat,anchor = NW,tag='bouton_chat')
         self.menuModes.create_image(77,0,image=self.gifTrade,anchor = NW,tag='bouton_trade')
         self.menuModes.create_image(150,0,image=self.gifTeam,anchor = NW,tag='bouton_team')
-
+        self.menuModes.create_image(227,0,image=self.gifSelectedUnit,anchor = NW,tag='bouton_selectedUnit')
+        
     #Creation du menu Action
     def createActionMenu(self):
         self.Actionmenu.delete(ALL)
@@ -134,8 +151,12 @@ class View():
                 self.Actionmenu.create_image(140,35,image=self.gifAttack,anchor = NW)
                 self.Actionmenu.create_image(13,89,image=self.gifCancel,anchor = NW)
                 self.Actionmenu.create_image(76,89,image=self.gifPatrol,anchor = NW)
+                self.Actionmenu.create_image(139,89,image=self.gifBuild,anchor = NW)
+                self.Actionmenu.create_image(13,143,image=self.gifUnit,anchor = NW)
+                self.Actionmenu.create_image(76,143,image=self.gifCargo,anchor = NW)
+                self.Actionmenu.create_image(139,143,image=self.gifTransport,anchor = NW)
 
-	#Frame du menu principal    
+    #Frame du menu principal    
     def fMainMenu(self):
         mainMenuFrame = Frame(self.root, bg="black")
         panel1 = Label(mainMenuFrame, image=self.mainMenuBG)
@@ -158,7 +179,7 @@ class View():
         #self.entryServer.delete(0,END)
         widget = Button(joinGameFrame, text='Connecter', command=lambda:self.lobbyEnter(0, self.entryLogin.get(), self.entryServer.get()))
         widget.grid(row=2, column=1)
-		#Crée un bouton de retour au menu principal
+        #Crée un bouton de retour au menu principal
         widget = Button(joinGameFrame, text='Retour', command=lambda:self.changeFrame(self.mainMenu), width=10)
         widget.grid(row=3, column=1, columnspan=2, pady=10)
         self.entryServer.bind("<Return>",self.lobbyEnter)
@@ -187,7 +208,7 @@ class View():
         #Crée le bouton de confirmation et se connecte
         widget = Button(createServerFrame, text='Créer et connecter', command=lambda:self.startServer(True))
         widget.grid(row=3, column=1)
-		#Crée un bouton de retour au menu principal
+        #Crée un bouton de retour au menu principal
         widget = Button(createServerFrame, text='Retour', command=lambda:self.changeFrame(self.mainMenu), width=10)
         widget.grid(row=5, column=1, columnspan=2, pady=10)
         return createServerFrame
@@ -287,7 +308,7 @@ class View():
     def changeBackground(self, type):
         self.gameArea.delete('background')
         if type == 'PLANET':
-            self.gameArea.create_image(0,0,image=self.planetBackground, anchor=NW, tag='background')		
+            self.gameArea.create_image(0,0,image=self.planetBackground, anchor=NW, tag='background')        
         else:
             self.gameArea.create_image(0,0,image=self.galaxyBackground, anchor=NW, tag='background')
 
@@ -543,7 +564,7 @@ class View():
             else:
                 self.minimap.create_polygon((unitX-4, planetY+2, unitX, planetY-2, unitX+4, planetY+2),fill='RED', tag='deletable')
 
-    #Dessine la boite de selection lors du clic-drag	
+    #Dessine la boite de selection lors du clic-drag    
     def drawSelectionBox(self):
         self.gameArea.create_rectangle(self.selectStart[0], self.selectStart[1], self.selectEnd[0], self.selectEnd[1], outline='WHITE', tag='deletable')
 
@@ -663,7 +684,7 @@ class View():
     def attack(self,eve):
         self.attacking = True
         
-    #Quand on appui sur enter dans le chat		
+    #Quand on appui sur enter dans le chat        
     def enter(self, eve):
         self.parent.sendMessage(self.menuModes.entryMess.get())
         self.menuModes.entryMess.delete(0,END)
@@ -675,7 +696,7 @@ class View():
             login = self.entryLogin.get()
             server = self.entryServer.get()
         self.parent.connectServer(login,server)
-			
+            
     def stop(self, eve):
         self.attacking = False
         self.parent.setStandbyFlag()
@@ -684,13 +705,13 @@ class View():
         self.attacking = False
         self.parent.eraseUnit()
         
-    #Pour la selection multiple	
+    #Pour la selection multiple    
     def shiftPress(self, eve):
         self.parent.multiSelect = True
 
     def shiftRelease(self, eve):
         self.parent.multiSelect = False
-	
+    
     def checkMotherSip(self, eve):
         self.parent.players[self.parent.playerId].currentPlanet = None
         self.changeBackground('GALAXY')
@@ -702,16 +723,15 @@ class View():
     def clickMenuModes(self,eve):
         Button_pressed = (eve.widget.gettags(eve.widget.find_withtag('current')))[0]
         if (Button_pressed == "bouton_chat"):
-            print('do some shit nigga 1')
-            self.menuChat(self.gameFrame)
+            self.ongletChat(self.gameFrame)
         elif (Button_pressed == "bouton_trade"):
-            print('do some shit nigga 2')
-            self.menuTrade()
+            self.ongletTrade()
         elif (Button_pressed == "bouton_team"):
-            print('do some shit nigga 3')
-            self.menuTeam()
+            self.ongletTeam()
+        elif (Button_pressed == "bouton_selectedUnit"):
+            self.ongletSelectedUnit()
 
-    #Assignation des controles	
+    #Assignation des controles    
     def assignControls(self):
         self.gameArea.focus_set()
         #Bindings des fleches
