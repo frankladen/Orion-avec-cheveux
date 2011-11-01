@@ -1,4 +1,5 @@
 from Flag import *
+from Constants import *
 
 #Represente une position dans l'espace  
 class Target():
@@ -7,25 +8,40 @@ class Target():
 
 #Represente un objet pouvant appartenir a un joueur
 class PlayerObject(Target):
-    def __init__(self, name, position, owner, hitpoints=50):
+    def __init__(self, name, position, owner):
         super(PlayerObject, self).__init__(position)
         self.name = name
         self.flag = Flag(Target([0,0,0]), Target([0,0,0]), FlagState.STANDBY)
         self.owner = owner
-        self.maxHP=hitpoints
-        self.hitpoints=hitpoints
-        self.isAlive = True;
-        if name == 'Scout':
-            self.viewRange = 200
-        elif name == 'Mothership':
-            self.viewRange = 400
-        elif name =='Attack':
-            self.viewRange = 150
-        elif name == 'Transport':
-            self.viewRange = 175
+        self.hitpoints = 50
+        self.maxHP = 50
+        self.isAlive = True
+        self.constructionProgress = 0
+        if name == UnitType.SCOUT:
+            self.viewRange = ViewRange.SCOUT
+            self.buildTime = BuildTime.SCOUT
+        elif name == UnitType.MOTHERSHIP:
+            self.viewRange = ViewRange.MOTHERSHIP
+            self.hitpoints = 500
+            self.maxHP=self.hitpoints
+        elif name == UnitType.SPACE_ATTACK_UNIT:
+            self.hitpoints = 100
+            self.maxHP=self.hitpoints
+            self.viewRange = ViewRange.SPACE_ATTACK_UNIT
+            self.buildTime = BuildTime.SPACE_ATTACK_UNIT
+        elif name == UnitType.GATHER:
+            self.viewRange = ViewRange.GATHER
+            self.buildTime = BuildTime.GATHER
+            self.hitpoints = 75
+            self.maxHP=self.hitpoints
+        elif name == UnitType.TRANSPORT:
+            self.viewRange = ViewRange.TRANSPORT
+            self.buildTime = BuildTime.TRANSPORT
+            self.hitpoints = 125
+            self.maxHP=self.hitpoints
         else:
             self.viewRange = 100
-    
+
     def getFlag(self):
         return self.flag
     
