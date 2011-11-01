@@ -397,7 +397,7 @@ class Controller():
                         p.motherShip.unitBeingConstruct = []
                         self.eraseUnits(self.players.index(p))
                 if self.refresh % 10 == 0:
-                    self.refreshMessages(self.view.chat)
+                    self.refreshMessages(self.view.menuModes.chat)
                 self.refresh+=1
                 self.view.showMinerals.config(text=self.players[self.playerId].mineral)
                 self.view.showGaz.config(text=self.players[self.playerId].gaz)
@@ -412,7 +412,7 @@ class Controller():
                 waitTime = self.server.amITooHigh(self.playerId)
 
             else:
-                self.refreshMessages(self.view.chat)
+                self.refreshMessages(self.view.menuModes.chat)
                 response = self.server.isEveryoneReady(self.playerId)
                 if response:
                     self.refresh+=1

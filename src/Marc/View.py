@@ -57,6 +57,14 @@ class View():
         self.gifBuild = PhotoImage(file = 'images/icones/build.gif')
         self.gifCadreMenuAction = PhotoImage(file = 'images/cadreMenuAction2.gif')
         self.iconCancel = PhotoImage(file = 'images/icones/cancelUnit.gif')
+        self.gifPatrol = PhotoImage(file='images/icones/patrol2.gif')
+        self.gifChat = PhotoImage(file='images/icones/boutonChat.gif')
+        self.gifTrade = PhotoImage(file='images/icones/boutonTrade.gif')
+        self.gifTeam = PhotoImage(file='images/icones/boutonTeam.gif')
+        self.gifTransport = PhotoImage(file='images/icones/transport.gif')
+        self.gifCargo = PhotoImage(file='images/icones/cargo.gif')
+        self.gifUnit = PhotoImage(file='images/icones/unit.gif')
+        self.gifSelectedUnit = PhotoImage(file='images\\icones\\boutonSelectedUnit.gif')
         self.attacking = False
         self.selectAllUnits = False
         self.wantToCancelUnitBuild = False
@@ -93,23 +101,56 @@ class View():
         self.showGaz=Label(gameFrame, text=self.parent.players[self.parent.playerId].gaz, fg="white", bg="black", anchor=W)
         self.showGaz.grid(column=3,row=0)
         self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille-200, background='Black', relief='ridge')
-        self.gameArea.grid(column=0,row=1, columnspan=3)#place(relx=0, rely=0,width=taille,height=taille)
+        self.gameArea.grid(column=0,row=1, columnspan=5)#place(relx=0, rely=0,width=taille,height=taille)
         self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
         self.minimap.grid(column=0,row=2, rowspan=4)
-        self.chat = Label(gameFrame, anchor=W, justify=LEFT, width=75, background='black', fg='white', relief='raised')
-        self.chat.grid(row=2, column=2)
-        self.entryMess = Entry(gameFrame, width=60)
-        self.entryMess.grid(row=5, column=2)
+        self.menuModes=Canvas(gameFrame, width=self.taille, height=200, background='black', relief='ridge')
+        self.menuModes.grid(row=2,column=2, rowspan=4)
         self.Actionmenu = Canvas(gameFrame,width=200,height=200,background='black')
         self.Actionmenu.grid(column=3,row=2, rowspan=4)
         self.changeBackground('GALAXY')
         self.drawWorld()
         self.createActionMenu(MenuType.MAIN)
-        self.unitsConstructionPanel = Canvas(gameFrame, width = self.taille/4, height = self.taille/2, background = 'black', relief = "ridge" )
+        self.unitsConstructionPanel = Canvas(gameFrame, width = 200, height = self.taille/2, background = 'black', relief = "ridge" )
         self.unitsConstructionPanel.grid(column = 3, row = 1)
+        self.ongletChat(gameFrame)
         self.assignControls()
         return gameFrame
 
+    def ongletTeam(self):
+        self.menuModesOnlets() 
+        self.menuModes.create_text(150,50,text='voici le menu Team',fill='white')
+        self.menuModes.chat.grid_forget()
+        self.menuModes.entryMess.grid_forget()
+        
+    def ongletTrade(self):
+        self.menuModesOnlets()
+        self.menuModes.create_text(150,50,text='voici le menu Tradeeee',fill='red')
+        self.menuModes.chat.grid_forget()
+        self.menuModes.entryMess.grid_forget()
+        
+    def ongletSelectedUnit(self):
+        self.menuModesOnlets()
+        self.menuModes.create_text(150,50,text='Selected uniiiiiiiiiiit',fill='yellow')
+        self.menuModes.chat.grid_forget()
+        self.menuModes.entryMess.grid_forget()
+        
+    def ongletChat(self,gameFrame):
+        self.menuModesOnlets()
+        self.menuModes.chat = Label(gameFrame, anchor=W, justify=LEFT, width=75, background='black', fg='white', relief='raised')
+        self.menuModes.chat.grid(row=3, column=2)
+        self.parent.refreshMessages(self.menuModes.chat)
+        self.menuModes.entryMess = Entry(gameFrame, width=60)
+        self.menuModes.entryMess.grid(row=4, column=2)
+        self.menuModes.entryMess.bind("<Return>",self.enter)
+        
+    # delete tout ce qu'il y a dans le canvas menuModes + affiche les 3 menus
+    def menuModesOnlets(self):
+        self.menuModes.delete(ALL)
+        self.menuModes.create_image(0,0,image=self.gifChat,anchor = NW,tag='bouton_chat')
+        self.menuModes.create_image(77,0,image=self.gifTrade,anchor = NW,tag='bouton_trade')
+        self.menuModes.create_image(150,0,image=self.gifTeam,anchor = NW,tag='bouton_team')
+        self.menuModes.create_image(227,0,image=self.gifSelectedUnit,anchor = NW,tag='bouton_selectedUnit')
     def createActionMenu(self, type):
         self.Actionmenu.delete(ALL)
         if(type == MenuType.MAIN):
@@ -125,10 +166,11 @@ class View():
                         self.Actionmenu.create_image(140,35,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
                         self.Actionmenu.create_image(13,89,image = self.gifBuild, anchor = NW, tags = 'Button_Build')
         elif(type == MenuType.MOTHERSHIP_BUILD_MENU):
-            self.Actionmenu.create_image(13,35,image = self.scoutShips[self.parent.players[self.parent.playerId].colorId], anchor = NW, tags = 'Button_Build_Scout')
-            self.Actionmenu.create_image(76,35,image = self.attackShips[self.parent.players[self.parent.playerId].colorId], anchor = NW, tags = 'Button_Build_Attack')
-            self.Actionmenu.create_image(139,35,image = self.gatherShips[self.parent.players[self.parent.playerId].colorId], anchor = NW, tags = 'Button_Build_Gather')
-            self.Actionmenu.create_image(13,70,image = self.transportShips[self.parent.players[self.parent.playerId].colorId], anchor = NW, tags = 'Button_Build_Transport')
+            self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
+            self.Actionmenu.create_image(13,35,image = self.gifUnit, anchor = NW, tags = 'Button_Build_Scout')
+            self.Actionmenu.create_image(76,35,image = self.gifAttack, anchor = NW, tags = 'Button_Build_Attack')
+            self.Actionmenu.create_image(139,35,image = self.gifCargo, anchor = NW, tags = 'Button_Build_Gather')
+            self.Actionmenu.create_image(13,89,image = self.gifTransport, anchor = NW, tags = 'Button_Build_Transport')
         elif(type == MenuType.WAITING_FOR_RALLY_POINT):
             self.Actionmenu.create_text(0,0,text = "Cliquer a un endroit dans l'aire de jeu afin d'initialiser le point de ralliement du vaisseau mère.",anchor = NW, fill = 'white', width = 200)
             #self.Actionmenu.create_text("Cliquer sur un endroit dans le jeu afin de mettre en place votre point de ralliement")
@@ -751,8 +793,8 @@ class View():
         
     #Quand on appui sur enter dans le chat		
     def enter(self, eve):
-        self.parent.sendMessage(self.entryMess.get())
-        self.entryMess.delete(0,END)
+        self.parent.sendMessage(self.menuModes.entryMess.get())
+        self.menuModes.entryMess.delete(0,END)
         self.gameArea.focus_set()
 
     #Quand on appui sur enter dans le login
@@ -784,6 +826,19 @@ class View():
         cam = self.parent.players[self.parent.playerId].camera
         cam.position = cam.defaultPos
 
+    def clickMenuModes(self,eve):
+        bp = (eve.widget.gettags(eve.widget.find_withtag('current')))
+        if bp != ():
+            Button_pressed = bp[0]
+            if (Button_pressed == "bouton_chat"):
+                self.ongletChat(self.gameFrame)
+            elif (Button_pressed == "bouton_trade"):
+                self.ongletTrade()
+            elif (Button_pressed == "bouton_team"):
+                self.ongletTeam()
+            elif (Button_pressed == "bouton_selectedUnit"):
+                self.ongletSelectedUnit()
+
     def takeOff(self, eve):
         planet = self.parent.players[self.parent.playerId].currentPlanet
         if planet != None:
@@ -810,6 +865,7 @@ class View():
                 self.parent.addUnit(UnitType.TRANSPORT)
             elif (Button_pressed == "Button_Build_Gather"):
                 self.parent.addUnit(UnitType.GATHER)
+                
     def progressCircleMouseOver(self,eve):
         #if(posX >= self.unitsConstructionPanel.find_withtag('current')):
         tag = self.unitsConstructionPanel.gettags(self.unitsConstructionPanel.find_withtag('current'))
@@ -864,6 +920,7 @@ class View():
         self.gameArea.bind("<B1-Motion>", self.clicDrag)
         self.gameArea.bind("<ButtonRelease-1>", self.endDrag)
         self.gameArea.bind("<Motion>", self.posMouse)
-        self.entryMess.bind("<Return>",self.enter)
+        self.menuModes.entryMess.bind("<Return>",self.enter)
+        self.menuModes.bind("<Button-1>",self.clickMenuModes)
         self.Actionmenu.bind("<Button-1>", self.clickActionMenu)
 
