@@ -128,8 +128,6 @@ class View():
             self.Actionmenu.create_image(76,35,image = self.attackShips[self.parent.players[self.parent.playerId].colorId], anchor = NW, tags = 'Button_Build_Attack')
             self.Actionmenu.create_image(139,35,image = self.gatherShips[self.parent.players[self.parent.playerId].colorId], anchor = NW, tags = 'Button_Build_Gather')
             self.Actionmenu.create_image(13,70,image = self.transportShips[self.parent.players[self.parent.playerId].colorId], anchor = NW, tags = 'Button_Build_Transport')
-
-
         elif(type == MenuType.WAITING_FOR_RALLY_POINT):
             self.Actionmenu.create_text(0,0,text = "Cliquer a un endroit dans l'aire de jeu afin d'initialiser le point de ralliement du vaisseau mère.",anchor = NW, fill = 'white', width = 200)
             #self.Actionmenu.create_text("Cliquer sur un endroit dans le jeu afin de mettre en place votre point de ralliement")
@@ -441,29 +439,29 @@ class View():
         if self.parent.players[self.parent.playerId].camera.isInFOV(unitPosition):
             distance = self.parent.players[self.parent.playerId].camera.calcDistance(unitPosition)
             if not isInFOW:
-                if unit.name.find('Scout') != -1:
+                if unit.name == UnitType.SCOUT:
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-8,distance[1]-8,distance[0]+8,distance[1]+8, outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0]+1, distance[1], image=self.scoutShips[player.colorId],tag='deletable')#On prend l'image dependamment du joueur que nous sommes
-                if unit.name.find('Attack') != -1:
+                if unit.name == UnitType.SPACE_ATTACK_UNIT:
                     if unit.attackcount <= 5:
                         d2 = self.parent.players[self.parent.playerId].camera.calcDistance(unit.flag.finalTarget.position)
                         self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='deletable')
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-13,distance[1]-13,distance[0]+13,distance[1]+13, outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0]+1, distance[1], image=self.attackShips[player.colorId], tag='deletable')#On prend l'image dependamment du joueur que nous sommes
-                elif unit.name == 'Mothership':
+                elif unit.name == UnitType.MOTHERSHIP:
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-65,distance[1]-65,distance[0]+65,distance[1]+65, outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0]+1, distance[1], image = self.motherShips[player.colorId], tag='deletable')
-                elif unit.name == 'Transport':
+                elif unit.name == UnitType.TRANSPORT:
                     if not unit.landed:
                         if unit in player.selectedObjects:
                             self.gameArea.create_oval(distance[0]-18,distance[1]-18,distance[0]+18,distance[1]+18, outline="green", tag='deletable')
                         self.gameArea.create_image(distance[0]+1, distance[1], image = self.transportShips[player.colorId], tag='deletable')
-                elif unit.name == 'Gather':
+                elif unit.name == UnitType.GATHER:
                     if unit in player.selectedObjects:
-                            self.gameArea.create_oval(distance[0]-12,distance[1]-18,distance[0]+12,distance[1]+18, outline="green", tag='deletable')
+                        self.gameArea.create_oval(distance[0]-12,distance[1]-18,distance[0]+12,distance[1]+18, outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0]+1, distance[1], image = self.gatherShips[player.colorId], tag='deletable')
                 
                 if unit.hitpoints <= 5:
@@ -787,10 +785,7 @@ class View():
             elif (Button_pressed == "Button_Build_Transport"):
                 self.parent.addUnit(UnitType.TRANSPORT)
             elif (Button_pressed == "Button_Build_Gather"):
-                print (bp[0])
-
                 self.parent.addUnit(UnitType.GATHER)
-
     def progressCircleMouseOver(self,eve):
         #if(posX >= self.unitsConstructionPanel.find_withtag('current')):
         tag = self.unitsConstructionPanel.gettags(self.unitsConstructionPanel.find_withtag('current'))
@@ -835,9 +830,9 @@ class View():
         #Bindings des boutons de la souris
         self.unitsConstructionPanel.bind("<Motion>", self.progressCircleMouseOver)
         self.unitsConstructionPanel.bind("<Button-1>", self.clicCancelUnit)
-        self.gameArea.bind("<Button-2>", self.rightclic)
-        self.gameArea.bind("<B2-Motion>", self.rightclic)
-        self.minimap.bind("<Button-2>", self.rightclic)
+        self.gameArea.bind("<Button-3>", self.rightclic)
+        self.gameArea.bind("<B3-Motion>", self.rightclic)
+        self.minimap.bind("<Button-3>", self.rightclic)
         self.gameArea.bind("<Button-1>", self.leftclic)
         self.minimap.bind("<B1-Motion>",self.leftclic)
         self.minimap.bind("<Button-1>",self.leftclic)

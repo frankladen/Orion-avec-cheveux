@@ -1,5 +1,6 @@
 import Unit as u
 from Flag import *
+from Constants import *
 import socket
 
 #Represente un joueur
@@ -19,23 +20,15 @@ class Player():
         self.mineral = 100
 
     def addBaseUnits(self, startPos):
-        self.units.append(u.Mothership('Mothership',startPos, self.id))
+        self.units.append(u.Mothership(UnitType.MOTHERSHIP,startPos, self.id))
         self.motherShip = self.units[0]
-        self.units.append(u.Unit('Scout',[startPos[0] + 20, startPos[1] + 20 ,0], self.id, moveSpeed=4.0))
-        self.units.append(u.Unit('Scout',[startPos[0] - 20, startPos[1] - 20 ,0], self.id, moveSpeed=4.0))
-        self.units.append(u.Unit('Scout',[startPos[0] + 20, startPos[1] + 20 ,0], self.id, moveSpeed=4.0))
-        self.units.append(u.Unit('Scout',[startPos[0] - 20, startPos[1] - 20 ,0], self.id, moveSpeed=4.0))
-        self.units.append(u.Unit('Scout',[startPos[0] + 20, startPos[1] + 20 ,0], self.id, moveSpeed=4.0))
-        self.units.append(u.Unit('Scout',[startPos[0] - 20, startPos[1] - 20 ,0], self.id, moveSpeed=4.0))
-        self.units.append(u.TransportShip('Transport', [startPos[0], startPos[1] + 30,0], self.id, moveSpeed=3.0))
-        self.units.append(u.TransportShip('Transport', [startPos[0], startPos[1] - 30,0], self.id, moveSpeed=3.0))
-        self.units.append(u.SpaceAttackUnit('Attack',[startPos[0] + 30, startPos[1] - 30 ,0], self.id, moveSpeed=2.0, attackspeed=10.0,attackdamage=5.0,range=150.0))
-        self.units.append(u.GatherShip('Gather',[startPos[0] + 40, startPos[1]+40], self.id, moveSpeed=3.0))
+        self.units.append(u.Unit(UnitType.SCOUT,[startPos[0] + 20, startPos[1] + 20 ,0], self.id, moveSpeed=4.0))
+        self.units.append(u.GatherShip(UnitType.GATHER,[startPos[0] + 40, startPos[1]+40], self.id, moveSpeed=3.0))
     #Ajoute une camera au joueur seulement quand la partie commence    
     def addCamera(self, galaxy, taille):
         pos = [0,0,0]
         for i in self.units:
-            if i.name == 'Mothership':
+            if i.name == UnitType.MOTHERSHIP:
                 pos = i.position
         default = [pos[0],pos[1]]
         self.camera = Camera(default,galaxy, taille)

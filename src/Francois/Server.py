@@ -50,6 +50,7 @@ class ControleurServeur(object):
             self.changeList = []
             self.sockets = []
             self.readyPlayers = []
+            self.choiceColors = [["Orange", False], ["Rouge", False], ["Bleu", False], ["Vert", False], ["Jaune", False], ["Brun", False], ["Blanc", False], ["Rose", False]]
             self.mess = ['Système de chat de Orion']
     
     def addMessage(self, text, name):
@@ -147,27 +148,22 @@ class ControleurServeur(object):
         return n
           
 
-if len(sys.argv) > 1:
+if len(sys.argv) >= 1:
     adresse = sys.argv[1]
-    print("adresse: " + adresse)
 else:
     adresse=socket.gethostbyname(socket.getfqdn())
 #adresse="5.146.234.35"
 try:
-    print("va réserver le port")
-    daemon = Pyro4.core.Daemon(host=adresse,port=54440) 
+    daemon = Pyro4.core.Daemon(host=adresse,port=54400) 
     # un objet ControleurServeur() dont les methodes peuvent etre invoquees, 
-    # connu sous le nom de controleurServeur
-    print("va register le serveur")
     daemon.register(ControleurServeur(), "ServeurOrion")  
      
     # juste pour voir quelque chose sur la console du serveur
     print("Serveur Pyro actif sous le nom \'ServeurOrion\' avec l'adresse "+adresse)
-    print("va requester le loop")
     #on demarre l'ecoute des requetes
     daemon.requestLoop()
 except socket.error:
-    print("une erreur est survenue")
+    print("Une erreur est survenue")
     sys.exit(1)
 
 
