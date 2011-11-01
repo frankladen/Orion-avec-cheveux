@@ -104,6 +104,7 @@ class Mothership(Unit):
             for i in range(0, len(target)):
                 target[i]=math.trunc(float(target[i])) 
             self.rallyPoint = target
+            self.flag.flagState = FlagState.BUILD_UNIT
 
     def progressUnitsConstruction(self):
         if len(self.unitBeingConstruct) > 0:
@@ -147,7 +148,7 @@ class SpaceAttackUnit(SpaceUnit):
                     self.attackcount=self.AttackSpeed
             return (index, killedOwner)
         except ValueError:
-            self.flag = Flag(self.position, self.position, FlagState.STANDBY)
+            self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.STANDBY)
             return (-1, -1)
 
 class TransportShip(SpaceUnit):
