@@ -138,8 +138,10 @@ class Controller():
                 self.pushChange(self.players[self.playerId].units.index(self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1]), Flag(None,None,FlagState.DESTROY))
                 
     #Pour effacer tous les units
-    def eraseUnits(self):
-        self.pushChange('lollegarspartdelagame', 'deleteAllUnits')    #Pour selectionner une unit
+    def eraseUnits(self, playerId=None):
+        if playerId == None:
+            playerId = self.playerId
+        self.pushChange(playerId, 'deleteAllUnits')    #Pour selectionner une unit
 
     def select(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
@@ -323,12 +325,14 @@ class Controller():
         self.view.drawWorld()
     #Envoyer le message pour le chat
     def sendMessage(self, mess):
-        if mess == "t" or "c":
+        if mess == "t" or mess == "c" and len(mess) == 1:
             self.pushChange(mess, "changeFormation")
-        elif mess != "":
+        elif len(mess)>0:
+            mess = mess.replace('\\','/')
             self.server.addMessage(mess, self.players[self.playerId].name)
 
     def sendMessageLobby(self, mess, nom):
+        mess = mess.replace('\\','/')
         self.server.addMessage(mess, self.server.getSockets()[self.playerId][1])
 
     #Pour aller chercher les nouveaux messages
@@ -383,7 +387,7 @@ class Controller():
                             p.motherShip.flag.flagState = FlagState.STANDBY
                     else:
                         p.motherShip.unitBeingConstruct = []
-                        p.units = []
+                        self.eraseUnits(self.players.index(p))
                 if self.refresh % 10 == 0:
                     self.refreshMessages(self.view.chat)
                 self.refresh+=1
@@ -507,7 +511,9 @@ class Controller():
                     actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/retouraumothership,sansbriserlaactionstring,2"
             
         elif isinstance(flag, str):
-            if flag == 'changeFormation':
+            if flag == 'deleteAllUnits':
+                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+flag+"/deleteAllUnits"
+            elif flag == 'changeFormation':
                 actionString = str(self.playerId)+"/"+playerObject+"/"+flag+"/changementDeFormation"
 		#Si c'est un échange
         elif isinstance(flag, tuple):
@@ -587,7 +593,7 @@ class Controller():
             self.killUnit((int(unitIndex[0]),actionPlayerId))
         
         elif action == 'deleteAllUnits':
-            self.players[actionPlayerId].units = []
+            self.players[int(unitIndex[0])].units = []
         
         elif action == 'changeFormation':
             if unitIndex[0]=='t':
