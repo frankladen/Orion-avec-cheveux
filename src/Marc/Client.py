@@ -90,8 +90,7 @@ class Controller():
                 self.pushChange(units, Flag(i,attackedUnit,FlagState.ATTACK))
 
     def setGatherFlag(self,ship,ressource):
-        units = ""
-        units += str(self.players[self.playerId].units.index(ship)) + ","
+        units = str(self.players[self.playerId].units.index(ship)) + ","
         self.pushChange(units, Flag(t.Target([0,0,0]),ressource, FlagState.GATHER))
     
     def setLandingFlag(self, unit, planet):
@@ -236,6 +235,14 @@ class Controller():
                                         for unit in self.players[self.playerId].selectedObjects:
                                             if unit.name == UnitType.GATHER:
                                                 self.setGatherFlag(unit, j)
+                                                empty = False
+            if empty:
+                if len(self.players[self.playerId].selectedObjects) > 0:
+                    if pos[0] > self.players[self.playerId].motherShip.position[0]-8 and pos[0] < self.players[self.playerId].motherShip.position[0]+8:
+                                if pos[1] > self.players[self.playerId].motherShip.position[1]-8 and pos[1] < self.players[self.playerId].motherShip.position[1]+8:
+                                        for unit in self.players[self.playerId].selectedObjects:
+                                            if unit.name == UnitType.GATHER:
+                                                self.setGatherFlag(unit, UnitType.MOTHERSHIP)
                                                 empty = False
             if empty:
                 if len(self.players[self.playerId].selectedObjects) > 0:
@@ -399,7 +406,7 @@ class Controller():
               
 	#Connection au serveur			
     def connectServer(self, login, serverIP):
-        self.server=Pyro4.core.Proxy("PYRO:ServeurOrion@"+serverIP+":54440")
+        self.server=Pyro4.core.Proxy("PYRO:ServeurOrion@"+serverIP+":54400")
         try:
             #Je demande au serveur si la partie est démarrée, si oui on le refuse de la partie, cela permet de vérifier
             #en même temps si le serveur existe réellement à cette adresse.
@@ -460,14 +467,17 @@ class Controller():
             elif flag.flagState == FlagState.CANCEL_UNIT:
                 actionString = str(self.playerId) + "/" + "0" + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.GATHER:
-                if flag.finalTarget.type == 'nebula':
-                    nebulaId = flag.finalTarget.id
-                    solarId = flag.finalTarget.solarSystem.sunId
-                    actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(nebulaId)+","+str(solarId)+",0"
+                if isinstance(flag.finalTarget, w.AstronomicalObject):
+                    if flag.finalTarget.type == 'nebula':
+                        nebulaId = flag.finalTarget.id
+                        solarId = flag.finalTarget.solarSystem.sunId
+                        actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(nebulaId)+","+str(solarId)+",0"
+                    elif flag.finalTarget.type == 'asteroid':
+                        mineralId = flag.finalTarget.id
+                        solarId = flag.finalTarget.solarSystem.sunId
+                        actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(mineralId)+","+str(solarId)+",1"
                 else:
-                    mineralId = flag.finalTarget.id
-                    solarId = flag.finalTarget.solarSystem.sunId
-                    actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(mineralId)+","+str(solarId)+",1"
+                    actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/retouraumothership,sansbriserlaactionstring,2"
             
         elif isinstance(flag, str):
             if flag == 'changeFormation':
@@ -524,8 +534,10 @@ class Controller():
                     i = int(i)
                     if target[2] == '0':
                         self.players[actionPlayerId].units[i].changeFlag(self.galaxy.solarSystemList[int(target[1])].nebulas[int(target[0])],int(action))
-                    else:
+                    elif target[2] == '1':
                         self.players[actionPlayerId].units[i].changeFlag(self.galaxy.solarSystemList[int(target[1])].asteroids[int(target[0])],int(action))
+                    else:
+                        self.players[actionPlayerId].units[i].changeFlag(self.players[actionPlayerId].motherShip,int(action))
         
         #ici, le target sera l'index de l'unit� dans le tableau de unit du player cibl�
         

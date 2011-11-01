@@ -148,13 +148,13 @@ class ControleurServeur(object):
         return n
           
 
-if len(sys.argv) > 1:
+if len(sys.argv) >= 1:
     adresse = sys.argv[1]
 else:
     adresse=socket.gethostbyname(socket.getfqdn())
 #adresse="5.146.234.35"
 try:
-    daemon = Pyro4.core.Daemon(host=adresse,port=54440) 
+    daemon = Pyro4.core.Daemon(host=adresse,port=54400) 
     # un objet ControleurServeur() dont les methodes peuvent etre invoquees, 
     daemon.register(ControleurServeur(), "ServeurOrion")  
      
