@@ -235,9 +235,10 @@ class Controller():
                     if pos[0] > j.position[0]-8 and pos[0] < j.position[0]+8:
                         if pos[1] > j.position[1]-8 and pos[1] < j.position[1]+8:
                             if len(self.players[self.playerId].selectedObjects) > 0:
-                                if self.players[self.playerId].selectedObjects[0].name == 'Transport':
-                                    self.setLandingFlag(self.players[self.playerId].selectedObjects[0], j)
-                                    empty = False
+                                if isinstance(self.players[self.playerId].selectedObjects[0], w.AstronomicalObject) == False and isinstance(self.players[self.playerId].selectedObjects[0], w.Planet) == False:               
+                                    if self.players[self.playerId].selectedObjects[0].name == UnitType.TRANSPORT:
+                                        self.setLandingFlag(self.players[self.playerId].selectedObjects[0], j)
+                                        empty = False
             if empty:
                 if len(self.players[self.playerId].selectedObjects) > 0:
                     for i in self.galaxy.solarSystemList:
@@ -245,9 +246,10 @@ class Controller():
                             if pos[0] > j.position[0]-8 and pos[0] < j.position[0]+8:
                                 if pos[1] > j.position[1]-8 and pos[1] < j.position[1]+8:
                                         for unit in self.players[self.playerId].selectedObjects:
-                                            if unit.name == UnitType.GATHER:
-                                                self.setGatherFlag(unit, j)
-                                                empty = False
+                                            if isinstance(unit, w.AstronomicalObject) == False and isinstance(unit, w.Planet) == False:
+                                                if unit.name == UnitType.GATHER:
+                                                    self.setGatherFlag(unit, j)
+                                                    empty = False
             if empty:
                 if len(self.players[self.playerId].selectedObjects) > 0:
                     for i in self.galaxy.solarSystemList:
@@ -255,17 +257,19 @@ class Controller():
                             if pos[0] > j.position[0]-8 and pos[0] < j.position[0]+8:
                                 if pos[1] > j.position[1]-8 and pos[1] < j.position[1]+8:
                                         for unit in self.players[self.playerId].selectedObjects:
-                                            if unit.name == UnitType.GATHER:
-                                                self.setGatherFlag(unit, j)
-                                                empty = False
+                                            if isinstance(unit, w.AstronomicalObject) == False and isinstance(unit, w.Planet) == False:
+                                                if unit.name == UnitType.GATHER:
+                                                    self.setGatherFlag(unit, j)
+                                                    empty = False
             if empty:
                 if len(self.players[self.playerId].selectedObjects) > 0:
                     if pos[0] > self.players[self.playerId].motherShip.position[0]-8 and pos[0] < self.players[self.playerId].motherShip.position[0]+8:
                                 if pos[1] > self.players[self.playerId].motherShip.position[1]-8 and pos[1] < self.players[self.playerId].motherShip.position[1]+8:
                                         for unit in self.players[self.playerId].selectedObjects:
-                                            if unit.name == UnitType.GATHER:
-                                                self.setGatherFlag(unit, UnitType.MOTHERSHIP)
-                                                empty = False
+                                            if isinstance(unit, w.AstronomicalObject) == False and isinstance(unit, w.Planet) == False:
+                                                if unit.name == UnitType.GATHER:
+                                                    self.setGatherFlag(unit, j)
+                                                    empty = False
             if empty:
                 if len(self.players[self.playerId].selectedObjects) > 0:
                     for i in self.players:
@@ -327,6 +331,10 @@ class Controller():
     def sendMessage(self, mess):
         if mess == "t" or mess == "c" and len(mess) == 1:
             self.pushChange(mess, "changeFormation")
+        elif mess == "forcegaz":
+            self.players[self.playerId].gaz += 500
+        elif mess == "forcemine":
+            self.players[self.playerId].mineral += 500
         elif len(mess)>0:
             mess = mess.replace('\\','/')
             self.server.addMessage(mess, self.players[self.playerId].name)
