@@ -36,7 +36,7 @@ class Controller():
         for i in self.players[self.playerId].selectedObjects:
             if isinstance(i, u.SpaceAttackUnit):
                 i.attackcount = i.AttackSpeed
-            if isinstance(i, u.Unit) and i.name != "Mothership":              
+            if isinstance(i, u.Unit) and i.name != UnitType.MOTHERSHIP:              
                 units += str(self.players[self.playerId].units.index(i)) + ","
                 send = True
             elif isinstance(i, u.Mothership):
@@ -188,7 +188,27 @@ class Controller():
                                 self.players[self.playerId].selectedObjects = []
                                 self.players[self.playerId].selectedObjects.append(j)
             self.view.actionMenuType = MenuType.MAIN
-        
+        else:
+            planet = self.players[self.playerId].currentPlanet
+            for i in planet.landingZones:
+                if posSelected[0] > i.position[0]-40 and posSelected[0] < i.position[0]+40:
+                    if posSelected[1] > i.position[1]-40 and posSelected[1] < i.position[1]+40:
+                        if i not in self.players[self.playerId].selectedObjects:
+                            self.players[self.playerId].selectedObjects = []
+                            self.players[self.playerId].selectedObjects.append(i)
+            for i in planet.minerals:
+                if posSelected[0] > i.position[0]-24 and posSelected[0] < i.position[0]+24:
+                    if posSelected[1] > i.position[1]-32 and posSelected[1] < i.position[1]+32:
+                        if i not in self.players[self.playerId].selectedObjects:
+                            self.players[self.playerId].selectedObjects = []
+                            self.players[self.playerId].selectedObjects.append(i)
+            for i in planet.gaz:
+                if posSelected[0] > i.position[0]-12 and posSelected[0] < i.position[0]+12:
+                    if posSelected[1] > i.position[1]-12 and posSelected[1] < i.position[1]+12:
+                        if i not in self.players[self.playerId].selectedObjects:
+                            self.players[self.playerId].selectedObjects = []
+                            self.players[self.playerId].selectedObjects.append(i)
+  
     def selectAll(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
             self.players[self.playerId].selectedObjects = []
@@ -294,6 +314,13 @@ class Controller():
             posSelected = self.players[self.playerId].camera.calcPointOnMap(x,y)
             self.players[self.playerId].camera.position = posSelected
         
+    def takeOff(self, ship, planet):
+        ship.takeOff(planet)
+        self.players[self.playerId].currentPlanet = None
+        cam = self.players[self.playerId].camera
+        cam.position = cam.defaultPos
+        self.view.changeBackground('GALAXY')
+        self.view.drawWorld()
     #Envoyer le message pour le chat
     def sendMessage(self, mess):
         if mess == "t" or "c":
@@ -346,7 +373,7 @@ class Controller():
                             elif i.flag.flagState == FlagState.LAND:
                                 i.land(self, self.players.index(p))
                             elif i.flag.flagState == FlagState.GATHER:
-                                i.gather(p)
+                                i.gather(p,self)
                     if p.motherShip.isAlive:
                         p.motherShip.action()
                         if len(p.motherShip.unitBeingConstruct) > 0:

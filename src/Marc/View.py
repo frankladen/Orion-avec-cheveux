@@ -49,7 +49,6 @@ class View():
         self.mineral = PhotoImage(file='images/Planet/crystal.gif')
         self.planetBackground = PhotoImage(file='images/Planet/background.gif')
         self.galaxyBackground = PhotoImage(file='images/Galaxy/night-sky.gif')
-        self.landingZone = PhotoImage(file='images/Planet/landing.gif')
         self.gifStop = PhotoImage(file='images/icones/stop2.gif')
         self.gifMove = PhotoImage(file='images/icones/move2.gif')
         self.gifCancel = PhotoImage(file='images/icones/delete2.gif')
@@ -78,6 +77,7 @@ class View():
         self.transportShips = []
         self.landedShips = []
         self.gatherShips = []
+        self.landingZones = []
         for i in range(0,8):
             self.scoutShips.append(PhotoImage(file='images/Ships/Scoutships/Scoutship'+str(i)+'.gif'))
             self.attackShips.append(PhotoImage(file='images/Ships/Attackships/Attackship'+str(i)+'.gif'))
@@ -85,6 +85,7 @@ class View():
             self.transportShips.append(PhotoImage(file='images/Ships/Transport/Transport'+str(i)+'.gif'))
             self.landedShips.append(PhotoImage(file='images/Planet/LandedShips/landed'+str(i)+'.gif'))
             self.gatherShips.append(PhotoImage(file='images/Ships/Cargo/Cargo'+str(i)+'.gif'))
+            self.landingZones.append(PhotoImage(file='images/Planet/LandingZones/landing'+str(i)+'.gif'))
         Label(gameFrame, text="Mineraux: ", bg="black", fg="white", width=10, anchor=E).grid(column=0, row=0)
         self.showMinerals=Label(gameFrame, text=self.parent.players[self.parent.playerId].mineral, fg="white", bg="black", anchor=W)
         self.showMinerals.grid(column=1,row=0)
@@ -306,12 +307,24 @@ class View():
     def drawPlanetGround(self, planet):
         self.gameArea.delete('deletable')
         for i in planet.minerals:
+            if i in self.parent.players[self.parent.playerId].selectedObjects:
+                self.gameArea.create_text(i.position[0], i.position[1]-40, fill="cyan", text="Mineral :" + str(i.nbMinerals), tag='deletable')
+                self.gameArea.create_oval(i.position[0]-25, i.position[1]-32, i.position[0]+25, i.position[1]+32, outline='yellow', tag='deletable')
             self.gameArea.create_image(i.position[0], i.position[1], image=self.mineral, tag='deletable')
         for i in planet.gaz:
+            if i in self.parent.players[self.parent.playerId].selectedObjects:
+                self.gameArea.create_text(i.position[0], i.position[1]-20, fill="green", text="Gaz :" + str(i.nbGaz), tag='deletable')
+                self.gameArea.create_oval(i.position[0]-15, i.position[1]-15, i.position[0]+15, i.position[1]+15, outline='yellow', tag='deletable')
             self.gameArea.create_oval(i.position[0]-12, i.position[1]-12, i.position[0]+12, i.position[1]+12, fill='green', tag='deletable')
         for i in planet.landingZones:
-            self.gameArea.create_image(i.position[0], i.position[1], image=self.landingZone, tag='deleteable')
-            self.gameArea.create_image(i.position[0], i.position[1], image=self.landedShips[i.ownerId], tag='deleteable')
+            if i in self.parent.players[self.parent.playerId].selectedObjects:
+                self.gameArea.create_oval(i.position[0]-40,i.position[1]-40,i.position[0]+40,i.position[1]+40, outline='green', tag='deletable')
+            self.gameArea.create_image(i.position[0], i.position[1], image=self.landingZones[i.ownerId], tag='deletable')
+            if i.LandedShip != None:
+                self.gameArea.create_image(i.position[0], i.position[1], image=self.landedShips[i.ownerId], tag='deletable')
+        for i in planet.units:
+            self.gameArea.create_oval(i.position[0]-12, i.position[1]-12, i.position[0]+12,i.position[1]+12, fill='red', tag='deletable')
+
 
     def changeBackground(self, type):
         self.gameArea.delete('background')
@@ -431,8 +444,7 @@ class View():
                     self.gameArea.create_image(distance[0],distance[1],image=self.asteroid, tag='deletable')
                 else:
                     self.gameArea.create_image(distance[0],distance[1],image=self.asteroidFOW, tag='deletable')
-    
-    
+
     #pour dessiner un vaisseau        
     def drawUnit(self, unit, player, isInFOW):
         unitPosition = unit.position
@@ -573,19 +585,21 @@ class View():
             
     #dessine une nebula dans la minimap
     def drawMiniNebula(self, nebula):
-        nebulaPosition = nebula.position
-        nebulaX = (nebulaPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
-        nebulaY = (nebulaPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
-        if nebula.discovered:
-            self.minimap.create_oval(nebulaX-1, nebulaY-1, nebulaX+1, nebulaY+1, fill='PURPLE')
+        if nebula.gazQte > 0:
+            nebulaPosition = nebula.position
+            nebulaX = (nebulaPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
+            nebulaY = (nebulaPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
+            if nebula.discovered:
+                self.minimap.create_oval(nebulaX-1, nebulaY-1, nebulaX+1, nebulaY+1, fill='PURPLE')
         
     #dessine un asteroid dans la minimap
     def drawMiniAsteroid(self, asteroid):
-        asteroidPosition = asteroid.position
-        asteroidX = (asteroidPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
-        asteroidY = (asteroidPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
-        if asteroid.discovered:
-            self.minimap.create_oval(asteroidX-1, asteroidY-1, asteroidX+1, asteroidY+1, fill='CYAN')
+        if asteroid.mineralQte > 0:
+            asteroidPosition = asteroid.position
+            asteroidX = (asteroidPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * 200
+            asteroidY = (asteroidPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * 200
+            if asteroid.discovered:
+                self.minimap.create_oval(asteroidX-1, asteroidY-1, asteroidX+1, asteroidY+1, fill='CYAN')
         
     #Dessine une unite dans la minimap        
     def drawMiniUnit(self, unit):
@@ -679,14 +693,17 @@ class View():
         canva = eve.widget
         if(self.isSettingRallyPointPosition == False):
             if canva == self.gameArea:
-                pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
-                if self.attacking:
-                    self.parent.setAttackFlag(pos[0],pos[1])
-                else:
-                    if not self.selectAllUnits:
-                        self.parent.select(pos)
+                if self.parent.players[self.parent.playerId].currentPlanet == None:
+                    pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
+                    if self.attacking:
+                        self.parent.setAttackFlag(pos[0],pos[1])
                     else:
-                        self.parent.selectAll(pos)
+                        if not self.selectAllUnits:
+                            self.parent.select(pos)
+                        else:
+                            self.parent.selectAll(pos)
+                else:
+                    self.parent.select([x,y])
             elif canva == self.minimap:
                 self.parent.quickMove(x,y,canva)
         else:
@@ -767,6 +784,13 @@ class View():
         cam = self.parent.players[self.parent.playerId].camera
         cam.position = cam.defaultPos
 
+    def takeOff(self, eve):
+        planet = self.parent.players[self.parent.playerId].currentPlanet
+        if planet != None:
+            for i in planet.landingZones:
+                if i.ownerId == self.parent.playerId and i.LandedShip != None:
+                    if i in self.parent.players[self.parent.playerId].selectedObjects:
+                        self.parent.takeOff(i.LandedShip, planet)
     def clickActionMenu(self,eve):
         bp = (eve.widget.gettags(eve.widget.find_withtag('current')))
         if bp != ():
@@ -823,6 +847,7 @@ class View():
         self.gameArea.bind("a",self.attack)
         self.gameArea.bind("A",self.attack)
         self.gameArea.bind("c", self.selectAll)
+        self.gameArea.bind("t", self.takeOff)
         self.gameArea.bind("<KeyRelease-c>", self.unSelectAll)
         self.gameArea.bind("1", self.checkMotherSip)
         self.gameArea.bind("<Control_L>",self.ctrlPressed)
