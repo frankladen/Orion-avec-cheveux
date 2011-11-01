@@ -148,7 +148,7 @@ class ControleurServeur(object):
         return n
           
 
-if len(sys.argv) >= 1:
+if len(sys.argv) > 1:
     adresse = sys.argv[1]
 else:
     adresse=socket.gethostbyname(socket.getfqdn())
