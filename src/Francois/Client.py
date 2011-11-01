@@ -142,6 +142,7 @@ class Controller():
         self.pushChange('lollegarspartdelagame', 'deleteAllUnits')    #Pour selectionner une unit
 
     def select(self, posSelected):
+
         if self.players[self.playerId].currentPlanet == None:
             #Si on selectionne une unit dans l'espace             
             for j in self.players[self.playerId].units:
@@ -187,9 +188,12 @@ class Controller():
                             if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
                                 self.players[self.playerId].selectedObjects = []
                                 self.players[self.playerId].selectedObjects.append(j)
+            self.view.createSelectedUnitsPanel()
             self.view.actionMenuType = MenuType.MAIN
         
     def selectAll(self, posSelected):
+        self.view.createSelectedUnitsPanel()
+
         if self.players[self.playerId].currentPlanet == None:
             self.players[self.playerId].selectedObjects = []
             cam = self.players[self.playerId].camera
@@ -286,6 +290,7 @@ class Controller():
                                         self.players[self.playerId].selectedObjects.append(i)
                                 else:
                                     self.players[self.playerId].selectedObjects.append(i)
+        self.view.createSelectedUnitsPanel()
         self.view.actionMenuType = MenuType.MAIN
         
     #Deplacement rapide de la camera vers un endroit de la minimap
@@ -293,12 +298,12 @@ class Controller():
         if self.players[self.playerId].currentPlanet == None:
             posSelected = self.players[self.playerId].camera.calcPointOnMap(x,y)
             self.players[self.playerId].camera.position = posSelected
-        
-    #Envoyer le message pour le chat
+    
+    def changeFormation(self, newFormation):
+        self.pushChange(newFormation, "changeFormation")
+    
     def sendMessage(self, mess):
-        if mess == "t" or "c":
-            self.pushChange(mess, "changeFormation")
-        elif mess != "":
+        if mess != "":
             self.server.addMessage(mess, self.players[self.playerId].name)
 
     def sendMessageLobby(self, mess, nom):
@@ -481,7 +486,8 @@ class Controller():
             
         elif isinstance(flag, str):
             if flag == 'changeFormation':
-                actionString = str(self.playerId)+"/"+playerObject+"/"+flag+"/changementDeFormation"
+                print (playerObject)
+                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+flag+"/changementDeFormation"
 		#Si c'est un échange
         elif isinstance(flag, tuple):
             if flag[2] == FlagState.LAND:
@@ -563,10 +569,8 @@ class Controller():
             self.players[actionPlayerId].units = []
         
         elif action == 'changeFormation':
-            if unitIndex[0]=='t':
-                self.players[actionPlayerId].formation="triangle"
-            elif unitIndex[0]=='c':
-                self.players[actionPlayerId].formation="carre"
+            self.players[actionPlayerId].formation=int(unitIndex[0])
+
         elif unitIndex == 'g' or unitIndex == 'm':
             if unitIndex == 'm':
                 self.players[actionPlayerId].mineral-=quantite
@@ -581,8 +585,9 @@ class Controller():
         targetorig=[0,0]
         targetorig[0]=target[0]
         targetorig[1]=target[1]
+
         #Formation en carré selon le nombre de unit qui se déplace, OH YEAH
-        if self.players[actionPlayerId].formation == "carre":
+        if self.players[actionPlayerId].formation == FormationType.SQUARE:
             thatLine = []
             lineTaken = []
             numberOfLines = math.sqrt(len(unitIndex)-1)
@@ -621,8 +626,10 @@ class Controller():
                                 thatLine.append(False)
                             lineTaken.append(thatLine)
                 self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
+
         #Formation en triangle, FUCK YEAH
-        elif self.players[actionPlayerId].formation == "triangle":
+        elif self.players[actionPlayerId].formation == FormationType.TRIANGLE:
+
             thatLine=[]
             xLineBefore=[0,0,0,0,0,0,0,0,0,0,0,0]
             thatLine.append([False])

@@ -14,10 +14,10 @@ class Player():
         self.id = id #Numero du joueur dans la liste de joueur
         self.startPos = [0,0,0] #Position de depart du joueur (pour le mothership)
         self.motherShip = None
-        self.formation="carre"
+        self.formation=FormationType.SQUARE
         self.currentPlanet = None
-        self.gaz = 100
-        self.mineral = 100
+        self.gaz = 1000
+        self.mineral = 1000
 
     def addBaseUnits(self, startPos):
         self.units.append(u.Mothership(UnitType.MOTHERSHIP,startPos, self.id))

@@ -58,6 +58,8 @@ class View():
         self.gifBuild = PhotoImage(file = 'images/icones/build.gif')
         self.gifCadreMenuAction = PhotoImage(file = 'images/cadreMenuAction2.gif')
         self.iconCancel = PhotoImage(file = 'images/icones/cancelUnit.gif')
+        self.iconTriangleFormation = PhotoImage(file = 'images/icones/iconeFormationTriangle.gif')
+        self.iconSquareFormation = PhotoImage(file = 'images/icones/iconeFormationCarre.gif')
         self.attacking = False
         self.selectAllUnits = False
         self.wantToCancelUnitBuild = False
@@ -92,7 +94,7 @@ class View():
         self.showGaz=Label(gameFrame, text=self.parent.players[self.parent.playerId].gaz, fg="white", bg="black", anchor=W)
         self.showGaz.grid(column=3,row=0)
         self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille-200, background='Black', relief='ridge')
-        self.gameArea.grid(column=0,row=1, columnspan=3)#place(relx=0, rely=0,width=taille,height=taille)
+        self.gameArea.grid(column=1,row=1, columnspan=3)#place(relx=0, rely=0,width=taille,height=taille)
         self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
         self.minimap.grid(column=0,row=2, rowspan=4)
         self.chat = Label(gameFrame, anchor=W, justify=LEFT, width=75, background='black', fg='white', relief='raised')
@@ -105,7 +107,9 @@ class View():
         self.drawWorld()
         self.createActionMenu(MenuType.MAIN)
         self.unitsConstructionPanel = Canvas(gameFrame, width = self.taille/4, height = self.taille/2, background = 'black', relief = "ridge" )
-        self.unitsConstructionPanel.grid(column = 3, row = 1)
+        self.unitsConstructionPanel.grid(column = 5, row = 1)
+        self.selectedUnitsPanel = Canvas(gameFrame, width = self.taille/4, height = self.taille/2, background = 'black', relief = "ridge" )
+        self.selectedUnitsPanel.grid(column = 0, row = 1)
         self.assignControls()
         return gameFrame
 
@@ -138,28 +142,59 @@ class View():
         ok = False;
         l = None;
         r = 1
-        list = self.parent.players[self.parent.playerId].motherShip.unitBeingConstruct
-        for i in list:
-            if(list.index(i) != 0):
-                if (list[list.index(i)].name == list[list.index(i) - 1].name):
+        buildList = self.parent.players[self.parent.playerId].motherShip.unitBeingConstruct
+        for i in buildList:
+            if(buildList.index(i) != 0):
+                if (buildList[buildList.index(i)].name == buildList[buildList.index(i) - 1].name):
                     ok = True
                     r += 1
                 else:
                     r = 1
                     ok = False
-                    self.unitsConstructionPanel.create_image(175,5 + y, image = self.iconCancel, anchor = NW, tags = ('cancelUnitButton', list.index(i)))
+                    self.unitsConstructionPanel.create_image(175,5 + y, image = self.iconCancel, anchor = NW, tags = ('cancelUnitButton', buildList.index(i)))
             else:
                 if (self.wantToCancelUnitBuild == False):
                     self.unitsConstructionPanel.create_arc((175, 5, 195, 25), start=0, extent= (i.constructionProgress / i.buildTime)*360 , fill='blue', tags = 'arc')
                 else:
-                    self.unitsConstructionPanel.create_image(175,5, image = self.iconCancel, anchor = NW, tags = ('cancelUnitButton', list.index(i)))
+                    self.unitsConstructionPanel.create_image(175,5, image = self.iconCancel, anchor = NW, tags = ('cancelUnitButton', buildList.index(i)))
 
             if (ok == True):
                 self.unitsConstructionPanel.itemconfig(l, text = str(r) + " " + i.name)
             else:
                 l = self.unitsConstructionPanel.create_text(5,y,text = str(r) + " " + i.name, anchor = NW, fill = 'white')
                 y+=20
+    
+    def createSelectedUnitsPanel(self):
+        self.selectedUnitsPanel.delete(ALL)
+        unitList = self.parent.players[self.parent.playerId].selectedObjects
+        countList = [0,0,0,0]
+        frenchNameList = ["Vaisseau d'attaque", "Scout", "Vaisseau fermier (LOL)", "Vaisseau de transport"] #en attendant les constantes à jerôme...
+        y = 5
+        
+        for i in unitList:
+            if i.name == UnitType.SPACE_ATTACK_UNIT:
+                countList[0] += 1
+            elif i.name == UnitType.SCOUT:
+                countList[1] += 1
+            elif i.name == UnitType.GATHER:
+                countList[2] += 1
+            elif i.name == UnitType.TRANSPORT:
+                countList[3] += 1
+        
+        
+        for u in range(0, len(countList)):
+            if countList[u] != 0:
+                self.selectedUnitsPanel.create_text(5, y, text = str(countList[u]) + " " + frenchNameList[u], anchor = NW, fill = 'white')
+                y+=20
+        
+        if len(unitList) > 1 :
+            self.selectedUnitsPanel.create_image(10,345, image = self.iconSquareFormation, anchor = NW, tag = FormationType.SQUARE)
+            self.selectedUnitsPanel.create_image(140,350 , image = self.iconTriangleFormation, anchor = NW, tag = FormationType.TRIANGLE)
+        
 
+        
+
+    
 	#Frame du menu principal    
     def fMainMenu(self):
         mainMenuFrame = Frame(self.root, bg="black")
@@ -662,15 +697,21 @@ class View():
         x = eve.x
         y = eve.y
         canva = eve.widget
-        if x > 0 and x < self.taille:
-            if y > 0 and y < self.taille-200:
-                if canva == self.gameArea:
-                    pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
-                    self.parent.rightClic(pos)
-                elif canva == self.minimap and self.parent.players[self.parent.playerId].currentPlanet == None:
-                    pos = self.parent.players[self.parent.playerId].camera.calcPointMinimap(x,y)
-                    self.parent.setMovingFlag(pos[0], pos[1])
-                    self.drawWorld()
+        if(self.isSettingRallyPointPosition == False):
+            if x > 0 and x < self.taille:
+                if y > 0 and y < self.taille-200:
+                    if canva == self.gameArea:
+                        pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
+                        self.parent.rightClic(pos)
+                    elif canva == self.minimap and self.parent.players[self.parent.playerId].currentPlanet == None:
+                        pos = self.parent.players[self.parent.playerId].camera.calcPointMinimap(x,y)
+                        self.parent.setMovingFlag(pos[0], pos[1])
+                        self.drawWorld()
+        else:
+            pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
+            self.parent.setMotherShipRallyPoint(pos)
+            self.isSettingRallyPointPosition = False
+            self.actionMenuType = MenuType.MAIN
 
     #Quand on fait un clic gauche (peu importe ou)
     def leftclic(self, eve):
@@ -800,6 +841,13 @@ class View():
         if tag != ():
             if tag[0] == 'cancelUnitButton':
                 self.parent.cancelUnit(tag[1])
+                
+    def clickSelectedUnitsPanel(self,eve):
+        tag = self.selectedUnitsPanel.gettags(self.selectedUnitsPanel.find_withtag('current'))
+        if tag[0] != 'current':
+            self.parent.changeFormation(int(tag[0]))
+            
+                
     
     #Assignation des controles	
     def assignControls(self):
@@ -841,4 +889,5 @@ class View():
         self.gameArea.bind("<Motion>", self.posMouse)
         self.entryMess.bind("<Return>",self.enter)
         self.Actionmenu.bind("<Button-1>", self.clickActionMenu)
+        self.selectedUnitsPanel.bind("<Button-1>", self.clickSelectedUnitsPanel)
 

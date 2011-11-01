@@ -105,6 +105,8 @@ class Mothership(Unit):
                 target[i]=math.trunc(float(target[i])) 
             self.rallyPoint = target
 
+            self.flag.flagState = FlagState.BUILD_UNIT
+
     def progressUnitsConstruction(self):
         if len(self.unitBeingConstruct) > 0:
             self.flag.flagState = FlagState.BUILD_UNIT

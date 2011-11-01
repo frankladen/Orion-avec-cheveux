@@ -13,6 +13,9 @@ class UnitType():
     GATHER = "Gather"
     TRANSPORT = "Transport"
     
+class FormationType():
+    SQUARE = 1
+    TRIANGLE = 2
 
 class FlagState():
     STANDBY=1
