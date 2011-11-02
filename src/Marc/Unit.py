@@ -135,10 +135,10 @@ class SpaceAttackUnit(SpaceUnit):
                 if self.position[1] < self.flag.finalTarget.position[1] or self.position[1] > self.flag.finalTarget.position[1]:
                     for p in players:
                         if players.index(p) != self.owner:
-                            for u in units:
-                                if u.position[0] > self.position[0]-self.range and u.position[0] < self.position[0]+self.range:
-                                    if u.position[1] > self.position[1]-self.range and u.position[1] < self.position[1]+self.range:
-                                        return u
+                            for uni in p.units:
+                                if uni.position[0] > self.position[0]-self.range and uni.position[0] < self.position[0]+self.range:
+                                    if uni.position[1] > self.position[1]-self.range and uni.position[1] < self.position[1]+self.range:
+                                        return uni
                     self.move()
                     arrived = False
         if arrived == True:

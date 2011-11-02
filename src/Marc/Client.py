@@ -402,9 +402,9 @@ class Controller():
                                 if killedIndex[0] > -1:
                                     self.killUnit(killedIndex)
                             elif i.flag.flagState == FlagState.PATROL:
-                                u = i.patrol(self.players)
-                                if u != None:
-                                    self.setAttackFlag(u)
+                                unit = i.patrol(self.players)
+                                if unit != None:
+                                    self.setAttackFlag(unit)
                             elif i.flag.flagState == FlagState.LAND:
                                 i.land(self, self.players.index(p))
                             elif i.flag.flagState == FlagState.GATHER:
