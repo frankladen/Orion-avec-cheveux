@@ -1,6 +1,6 @@
-import Unit as u
+# -*- coding: UTF-8 -*-
+from Unit import *
 from Flag import *
-from Constants import *
 import socket
 
 #Represente un joueur
@@ -20,15 +20,16 @@ class Player():
         self.mineral = 100
 
     def addBaseUnits(self, startPos):
-        self.units.append(u.Mothership(UnitType.MOTHERSHIP,startPos, self.id))
+        self.units.append(Mothership('Mothership', Unit.MOTHERSHIP,startPos, self.id))
         self.motherShip = self.units[0]
-        self.units.append(u.Unit(UnitType.SCOUT,[startPos[0] + 20, startPos[1] + 20 ,0], self.id, moveSpeed=4.0))
-        self.units.append(u.GatherShip(UnitType.GATHER,[startPos[0] + 40, startPos[1]+40], self.id, moveSpeed=3.0))
+        self.units.append(Unit('Scout', Unit.SCOUT,[startPos[0] + 20, startPos[1] + 20 ,0], self.id))
+        self.units.append(GatherShip('Gather ship', Unit.CARGO,[startPos[0] + 40, startPos[1]+40], self.id))
+        
     #Ajoute une camera au joueur seulement quand la partie commence    
     def addCamera(self, galaxy, taille):
         pos = [0,0,0]
         for i in self.units:
-            if i.name == UnitType.MOTHERSHIP:
+            if i.type == i.MOTHERSHIP:
                 pos = i.position
         default = [pos[0],pos[1]]
         self.camera = Camera(default,galaxy, taille)
