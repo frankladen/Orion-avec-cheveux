@@ -44,6 +44,19 @@ class Unit(PlayerObject):
             temp = Helper.getAngledPoint(angle, self.moveSpeed, self.position[0], self.position[1])
             self.position[0] = temp[0]
             self.position[1] = temp[1]
+
+    def patrol(self, players):
+        arrived = True
+        if self.position[0] < self.flag.finalTarget.position[0] or self.position[0] > self.flag.finalTarget.position[0]:
+                if self.position[1] < self.flag.finalTarget.position[1] or self.position[1] > self.flag.finalTarget.position[1]:
+                    self.move()
+                    arrived = False
+        if arrived == True:
+            self.before = self.flag.initialTarget
+            self.flag.initialTarget = self.flag.finalTarget
+            self.flag.finalTarget = self.before
+            self.move()
+        return None
             
     #Efface la unit
     def eraseUnit(self):
@@ -54,7 +67,7 @@ class Unit(PlayerObject):
     def changeFlag(self, finalTarget, state):
         #On doit vérifier si l'unité est encore vivante
         if self.isAlive:
-            self.flag.initialTarget = t.Target(self.position)
+            self.flag.initialTarget = t.Target([self.position[0],self.position[1],0])
             self.flag.finalTarget = finalTarget
             self.flag.flagState = state
             
@@ -94,6 +107,7 @@ class Mothership(Unit):
 
     def action(self):
         p = [self.position[0], self.position[1], 0]
+
         if (self.flag.flagState == FlagState.CREATE):
             if self.flag.finalTarget == self.SCOUT:
                 self.unitBeingConstruct.append(Unit('Scout', self.SCOUT, p, self.ownerId))
@@ -103,11 +117,14 @@ class Mothership(Unit):
                 self.unitBeingConstruct.append(GatherShip('Cargo', self.CARGO, p, self.ownerId))
             elif self.flag.finalTarget == self.TRANSPORT:
                 self.unitBeingConstruct.append(TransportShip('Transport', self.TRANSPORT, p, self.ownerId))
+
         elif self.flag.flagState == FlagState.BUILD_UNIT:
             self.progressUnitsConstruction()
+
         elif self.flag.flagState == FlagState.CANCEL_UNIT:
             self.unitBeingConstruct.pop(int(self.flag.finalTarget))
             self.flag.flagState = FlagState.BUILD_UNIT
+
         elif self.flag.flagState == FlagState.CHANGE_RALLY_POINT:
             target = self.flag.finalTarget
             target = target.strip("[")
@@ -116,6 +133,7 @@ class Mothership(Unit):
             for i in range(0, len(target)):
                 target[i]=math.trunc(float(target[i])) 
             self.rallyPoint = target
+            self.flag.flagState = FlagState.BUILD_UNIT
 
     def progressUnitsConstruction(self):
         if len(self.unitBeingConstruct) > 0:
@@ -160,6 +178,25 @@ class SpaceAttackUnit(SpaceUnit):
         except ValueError:
             self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.STANDBY)
             return (-1, -1)
+
+    def patrol(self, players):
+        arrived = True
+        if self.position[0] < self.flag.finalTarget.position[0] or self.position[0] > self.flag.finalTarget.position[0]:
+                if self.position[1] < self.flag.finalTarget.position[1] or self.position[1] > self.flag.finalTarget.position[1]:
+                    for p in players:
+                        if players.index(p) != self.owner:
+                            for uni in p.units:
+                                if uni.position[0] > self.position[0]-self.range and uni.position[0] < self.position[0]+self.range:
+                                    if uni.position[1] > self.position[1]-self.range and uni.position[1] < self.position[1]+self.range:
+                                        return uni
+                    self.move()
+                    arrived = False
+        if arrived == True:
+            self.before = self.flag.initialTarget
+            self.flag.initialTarget = self.flag.finalTarget
+            self.flag.finalTarget = self.before
+
+        return None
 
 class TransportShip(SpaceUnit):
     def __init__(self, name, type, position, owner):

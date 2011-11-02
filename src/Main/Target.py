@@ -25,33 +25,6 @@ class PlayerObject(Target):
             self.maxHP=self.hitpoints
             self.buildTime = u.Unit.BUILD_TIME[type]
             self.buildCost = u.Unit.BUILD_COST[type]
-##        if type == u.Unit.SCOUT:
-##            self.viewRange = u.Unit.VIEW_RANGE[type]
-##            self.hitpoints = u.Unit.MAX_HP[type]
-##            self.maxHP=self.hitpoints
-##            self.buildTime = u.Unit.BUILD_TIME[type]
-##            self.buildCost = u.Unit.BUILD_COST[type]
-##        elif type == u.Unit.MOTHERSHIP:
-##            self.viewRange = u.Unit.VIEW_RANGE[type]
-##            self.hitpoints = u.Unit.MAX_HP[type]
-##            self.maxHP=self.hitpoints
-##            self.buildTime = u.Unit.BUILD_TIME[type]
-##            self.buildCost = u.Unit.BUILD_COST[type]
-##        elif type == u.Unit.ATTACK_SHIP:
-##            self.hitpoints = u.Unit.MAX_HP[type]
-##            self.maxHP=self.hitpoints
-##            self.viewRange = u.Unit.VIEW_RANGE[type]
-##            self.buildTime = u.Unit.BUILD_TIME[type]
-##        elif type == u.Unit.CARGO:
-##            self.viewRange = u.Unit.VIEW_RANGE[type]
-##            self.buildTime = u.Unit.BUILD_TIME[type]
-##            self.hitpoints = u.Unit.MAX_HP[type]
-##            self.maxHP=self.hitpoints
-##        elif type == u.Unit.TRANSPORT:
-##            self.viewRange = u.Unit.VIEW_RANGE[type]
-##            self.buildTime = u.Unit.BUILD_TIME[type]
-##            self.hitpoints = u.Unit.MAX_HP[type]
-##            self.maxHP=self.hitpoints
         else:
             self.viewRange = u.Unit.VIEW_RANGE[u.Unit.DEFAULT]
             self.hitpoints = u.Unit.MAX_HP[u.Unit.DEFAULT]

@@ -36,7 +36,7 @@ class Controller():
         for i in self.players[self.playerId].selectedObjects:
             if isinstance(i, u.SpaceAttackUnit):
                 i.attackcount = i.AttackSpeed
-            if isinstance(i, u.Unit) and i.name != i.MOTHERSHIP:              
+            if isinstance(i, u.Unit) and i.type != i.MOTHERSHIP:              
                 units += str(self.players[self.playerId].units.index(i)) + ","
                 send = True
             elif isinstance(i, u.Mothership):
@@ -69,6 +69,21 @@ class Controller():
     def setAStandByFlag(self, unit):
         units = str(self.players[self.playerId].units.index(unit)) + ","
         self.pushChange(units, Flag(i,t.Target([0,0,0]),FlagState.STANDBY))
+
+    def setPatrolFlag(self, pos):
+        units = ''
+        send = False
+        #Si plusieurs unit�s sont s�lectionn�es, on les ajoute toutes dans le changement � envoyer
+        for i in self.players[self.playerId].selectedObjects:
+            if isinstance(i, u.SpaceAttackUnit) and i.type != i.MOTHERSHIP:
+                i.attackcount = i.AttackSpeed
+                units += str(self.players[self.playerId].units.index(i)) + ","
+                send = True
+            elif isinstance(i, u.Unit) and i.type != i.MOTHERSHIP:
+                units += str(self.players[self.playerId].units.index(i)) + ","
+                send = True
+        if send:
+            self.pushChange(units, Flag(i,t.Target([pos[0],pos[1],0]),FlagState.PATROL))
             
     #Pour changer le flag des unit�s s�lectionn�s pour attaquer        
     def setAttackFlag(self, attackedUnit):
@@ -124,7 +139,7 @@ class Controller():
     #Pour effacer un Unit
     def eraseUnit(self):
         if len(self.players[self.playerId].selectedObjects) > 0:
-            if isinstance(self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1], u.Unit):
+            if isinstance(self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1], u.Unit) and self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1].type != self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1].MOTHERSHIP:
                 self.pushChange(self.players[self.playerId].units.index(self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1]), Flag(None,None,FlagState.DESTROY))
                 
     #Pour effacer tous les units
@@ -132,6 +147,17 @@ class Controller():
         if playerId == None:
             playerId = self.playerId
         self.pushChange(playerId, 'deleteAllUnits')    #Pour selectionner une unit
+
+    def selectUnitEnemy(self, posSelected):
+        if self.players[self.playerId].currentPlanet == None:
+            if len(self.players[self.playerId].selectedObjects) > 0:
+                    for i in self.players:
+                        if i != self.players[self.playerId]:
+                            for j in i.units:
+                                if j.isAlive:
+                                    if j.position[0] >= pos[0]-j.SIZE[j.type][0]/2 and j.position[0] <= pos[0]+j.SIZE[j.type][0]/2 :
+                                        if j.position[1] >= pos[1]-j.SIZE[j.type][1]/2  and j.position[1] <= pos[1]+j.SIZE[j.type][1]/2 :
+                                            self.setAttackFlag(j)
 
     def select(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
@@ -200,6 +226,7 @@ class Controller():
                         if i not in self.players[self.playerId].selectedObjects:
                             self.players[self.playerId].selectedObjects = []
                             self.players[self.playerId].selectedObjects.append(i)
+                            
     def selectAll(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
             self.select(posSelected)
@@ -320,9 +347,7 @@ class Controller():
         self.view.drawWorld()
     #Envoyer le message pour le chat
     def sendMessage(self, mess):
-        if mess == "t" or mess == "c" and len(mess) == 1:
-            self.pushChange(mess, "changeFormation")
-        elif mess == "forcegaz":
+        if mess == "forcegaz":
             self.players[self.playerId].gaz += 500
         elif mess == "forcemine":
             self.players[self.playerId].mineral += 500
@@ -373,6 +398,10 @@ class Controller():
                                 killedIndex = i.attack(self.players)
                                 if killedIndex[0] > -1:
                                     self.killUnit(killedIndex)
+                            elif i.flag.flagState == FlagState.PATROL:
+                                unit = i.patrol(self.players)
+                                if unit != None:
+                                    self.setAttackFlag(unit)
                             elif i.flag.flagState == FlagState.LAND:
                                 i.land(self, self.players.index(p))
                             elif i.flag.flagState == FlagState.GATHER:
@@ -390,8 +419,8 @@ class Controller():
                 if self.refresh % 10 == 0:
                     self.refreshMessages(self.view.menuModes.chat)
                 self.refresh+=1
-                self.view.showMinerals.config(text=self.players[self.playerId].mineral)
-                self.view.showGaz.config(text=self.players[self.playerId].gaz)
+                self.view.showMinerals.config(text="Mineraux: "+str(self.players[self.playerId].mineral))
+                self.view.showGaz.config(text="Gaz: "+str(self.players[self.playerId].gaz))
 	            #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
                 self.pullChange()
                 self.view.createUnitsConstructionPanel()
@@ -496,6 +525,8 @@ class Controller():
                 actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/0"
             elif flag.flagState == FlagState.CANCEL_UNIT:
                 actionString = str(self.playerId) + "/" + "0" + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
+            elif flag.flagState == FlagState.PATROL:
+                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             elif flag.flagState == FlagState.GATHER:
                 if isinstance(flag.finalTarget, w.AstronomicalObject):
                     if flag.finalTarget.type == 'nebula':
@@ -542,7 +573,7 @@ class Controller():
         target = changeInfo[3]
         refresh = int(changeInfo[4])
         #si l'action est Move, la target sera sous forme de tableau de positions [x,y,z]
-        if action == str(FlagState.MOVE) or action == str(FlagState.STANDBY):
+        if action == str(FlagState.MOVE) or action == str(FlagState.STANDBY) or action == str(FlagState.PATROL):
             target = target.strip("[")
             target = target.strip("]")
             target = target.split(",")
@@ -599,6 +630,12 @@ class Controller():
                 self.players[actionPlayerId].formation="triangle"
             elif unitIndex[0]=='c':
                 self.players[actionPlayerId].formation="carre"
+            unitIndex = []
+            for i in self.players[actionPlayerId].selectedObjects:
+                unitIndex.append(self.players[actionPlayerId].units.index(i))
+            unitIndex.append(987123465)
+            self.makeFormation(actionPlayerId, unitIndex, self.players[actionPlayerId].selectedObjects[0].flag.finalTarget.position, FlagState.MOVE)
+
         elif unitIndex == 'g' or unitIndex == 'm':
             if unitIndex == 'm':
                 self.players[actionPlayerId].mineral-=quantite

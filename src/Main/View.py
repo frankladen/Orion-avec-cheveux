@@ -13,6 +13,9 @@ class View():
     MAIN_MENU=1
     WAITING_FOR_RALLY_POINT_MENU=2
     MOTHERSHIP_BUILD_MENU=3
+    WAITING_FOR_MOVE_POINT_MENU=4
+    WAITING_FOR_ATTACK_POINT_MENU=5
+    WAITING_FOR_PATROL_POINT_MENU=6
         
     def __init__(self, parent):
         self.parent = parent                  
@@ -24,8 +27,6 @@ class View():
         if self.taille>800:
             self.taille=800
         self.root.geometry('+25+5')
-        self.dragging = False
-        self.hpBars=False
         self.selectStart = [0,0]
         self.selectEnd = [0,0]
         self.positionMouse = [0,0,0]
@@ -34,14 +35,12 @@ class View():
         self.mainMenu.pack()
         self.pLobby = None
         self.currentFrame = self.mainMenu
-        self.firstTime = True
         self.gameFrame = None
         self.joinGame = self.fJoinGame()
         self.createServer = self.fCreateServer()
         self.actionMenuType = self.MAIN_MENU
         self.Actionmenu = None
         self.unitsConstructionPanel = None
-        self.isSettingRallyPointPosition = False
         self.sun=PhotoImage(file='images/Galaxy/sun.gif')
         self.sunFOW = PhotoImage(file='images/Galaxy/sunFOW.gif')
         self.planet=PhotoImage(file='images/Galaxy/planet.gif')
@@ -49,7 +48,6 @@ class View():
         self.nebula=PhotoImage(file='images/Galaxy/nebula.gif')
         self.nebulaFOW=PhotoImage(file='images/Galaxy/nebulaFOW.gif')
         self.explosion=PhotoImage(file='images/explosion.gif')
-        self.attacking = False
         self.asteroid=PhotoImage(file='images/Galaxy/asteroid.gif')
         self.asteroidFOW=PhotoImage(file='images/Galaxy/asteroidFOW.gif')
         self.mineral = PhotoImage(file='images/Planet/crystal.gif')
@@ -59,6 +57,7 @@ class View():
         self.gifMove = PhotoImage(file='images/icones/move2.gif')
         self.gifCancel = PhotoImage(file='images/icones/delete2.gif')
         self.gifAttack = PhotoImage(file='images/icones/attack2.gif')
+        self.gifAttackUnit = PhotoImage(file='images/icones/attack3.gif')
         self.gifRallyPoint = PhotoImage(file='images/icones/icone2.gif')
         self.gifBuild = PhotoImage(file = 'images/icones/build.gif')
         self.gifCadreMenuAction = PhotoImage(file = 'images/cadreMenuAction2.gif')
@@ -71,9 +70,19 @@ class View():
         self.gifCargo = PhotoImage(file='images/icones/cargo.gif')
         self.gifUnit = PhotoImage(file='images/icones/unit.gif')
         self.gifSelectedUnit = PhotoImage(file='images/icones/boutonSelectedUnit.gif')
+        self.gifTriangle = PhotoImage(file='images/icones/iconeFormationTriangle.gif')
+        self.gifSquare = PhotoImage(file='images/icones/iconeFormationCarre.gif')
+        #booleens d'actions
+        self.firstTime = True
         self.attacking = False
         self.selectAllUnits = False
         self.wantToCancelUnitBuild = False
+        self.isSettingPatrolPosition = False
+        self.isSettingRallyPointPosition = False
+        self.isSettingMovePosition = False
+        self.isSettingAttackPosition = False
+        self.dragging = False
+        self.hpBars=False
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
     
@@ -100,12 +109,10 @@ class View():
             self.landedShips.append(PhotoImage(file='images/Planet/LandedShips/landed'+str(i)+'.gif'))
             self.gatherShips.append(PhotoImage(file='images/Ships/Cargo/Cargo'+str(i)+'.gif'))
             self.landingZones.append(PhotoImage(file='images/Planet/LandingZones/landing'+str(i)+'.gif'))
-        Label(gameFrame, text="Mineraux: ", bg="black", fg="white", width=10, anchor=E).grid(column=0, row=0)
-        self.showMinerals=Label(gameFrame, text=self.parent.players[self.parent.playerId].mineral, fg="white", bg="black", anchor=W)
-        self.showMinerals.grid(column=1,row=0)
-        Label(gameFrame, text="Gaz: ", bg="black", fg="white", width=10, anchor=E).grid(column=2, row=0)
-        self.showGaz=Label(gameFrame, text=self.parent.players[self.parent.playerId].gaz, fg="white", bg="black", anchor=W)
-        self.showGaz.grid(column=3,row=0)
+        self.showMinerals = Label(gameFrame, text="Mineraux: "+str(self.parent.players[self.parent.playerId].mineral), bg="black", fg="white", anchor=E)
+        self.showMinerals.grid(column=2, row=0)
+        self.showGaz = Label(gameFrame, text="Gaz: "+str(self.parent.players[self.parent.playerId].gaz), bg="black", fg="white", anchor=E)
+        self.showGaz.grid(column=3, row=0)
         self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille-200, background='Black', relief='ridge')
         self.gameArea.grid(column=0,row=1, columnspan=5)#place(relx=0, rely=0,width=taille,height=taille)
         self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
@@ -119,7 +126,7 @@ class View():
         self.changeBackground('GALAXY')
         self.drawWorld()
         self.createActionMenu(self.MAIN_MENU)
-        self.unitsConstructionPanel = Canvas(gameFrame, width = self.taille/4, height = self.taille/2, background = 'black', relief = "ridge")
+        self.unitsConstructionPanel = Canvas(gameFrame, width = 200, height = self.taille/2, background = 'black', relief = "ridge")
         self.unitsConstructionPanel.grid(column = 3, row = 1)
         self.ongletChat(gameFrame)
         self.assignControls()
@@ -186,23 +193,33 @@ class View():
             self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
             units = self.parent.players[self.parent.playerId].selectedObjects 
             if len(units) > 0:
-                if isinstance(units[0], Unit):
+                if isinstance(units[0], Mothership):
+                        self.Actionmenu.create_image(13,35,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
+                        self.Actionmenu.create_image(76,35,image = self.gifBuild, anchor = NW, tags = 'Button_Build')
+                elif isinstance(units[0], Unit):
                     self.Actionmenu.create_image(13,35,image=self.gifMove,anchor = NW, tags = 'Button_Move')
-                    self.Actionmenu.create_image(76,35,image=self.gifStop,anchor = NW, tags = 'Button_Stop', tag='actionMenu')
+                    self.Actionmenu.create_image(76,35,image=self.gifStop,anchor = NW, tags = 'Button_Stop')
+                    self.Actionmenu.create_image(140,35,image=self.gifPatrol,anchor = NW, tags = 'Button_Patrol')
                     if isinstance(units[0], SpaceAttackUnit):
-                        self.Actionmenu.create_image(140,35,image=self.gifAttack,anchor = NW, tags = 'Button_Attack')
-                    if isinstance(units[0], Mothership):
-                        self.Actionmenu.create_image(140,35,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
-                        self.Actionmenu.create_image(13,89,image = self.gifBuild, anchor = NW, tags = 'Button_Build')
+                        self.Actionmenu.create_image(13,89,image=self.gifAttack,anchor = NW, tags = 'Button_Attack')
+                if len(self.parent.players[self.parent.playerId].selectedObjects) > 1:
+                    self.Actionmenu.create_image(76,143,image=self.gifTriangle,anchor = NW, tags = 'Button_Triangle')
+                    self.Actionmenu.create_image(140,143,image=self.gifSquare,anchor = NW, tags = 'Button_Square')
         elif(type == self.MOTHERSHIP_BUILD_MENU):
             self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
             self.Actionmenu.create_image(13,35,image = self.gifUnit, anchor = NW, tags = 'Button_Build_Scout')
-            self.Actionmenu.create_image(76,35,image = self.gifAttack, anchor = NW, tags = 'Button_Build_Attack')
+            self.Actionmenu.create_image(76,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Build_Attack')
             self.Actionmenu.create_image(139,35,image = self.gifCargo, anchor = NW, tags = 'Button_Build_Gather')
             self.Actionmenu.create_image(13,89,image = self.gifTransport, anchor = NW, tags = 'Button_Build_Transport')
         elif(type == self.WAITING_FOR_RALLY_POINT_MENU):
-            self.Actionmenu.create_text(0,0,text = "Cliquer a un endroit dans l'aire de jeu afin d'initialiser le point de ralliement du vaisseau mère.",anchor = NW, fill = 'white', width = 200)
-            #self.Actionmenu.create_text("Cliquer sur un endroit dans le jeu afin de mettre en place votre point de ralliement")
+            self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le point de ralliement du vaisseau mère.",anchor = NW, fill = 'white', width = 200)
+        elif(type == self.WAITING_FOR_ATTACK_POINT_MENU):
+            self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le unit / building que vous voulez attaquer.",anchor = NW, fill = 'white', width = 200)
+        elif(type == self.WAITING_FOR_MOVE_POINT_MENU):
+            self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le mouvement de vos units sélectionnés.",anchor = NW, fill = 'white', width = 200)
+        elif(type == self.WAITING_FOR_PATROL_POINT_MENU):
+            self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le mouvement de patrouille de vos units d'attaques sélectionnés",anchor = NW, fill = 'white', width = 200)
+        
 
     def createUnitsConstructionPanel(self):
         self.unitsConstructionPanel.delete(ALL)
@@ -520,23 +537,23 @@ class View():
                 if unit.type == unit.SCOUT:
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
-                    self.gameArea.create_image(distance[0], distance[1], image=self.scoutShips[player.id],tag='deletable')#On prend l'image dependamment du joueur que nous sommes
+                    self.gameArea.create_image(distance[0], distance[1], image=self.scoutShips[player.colorId],tag='deletable')#On prend l'image dependamment du joueur que nous sommes
                 if unit.type == unit.ATTACK_SHIP:
                     if unit.attackcount <= 5:
                         d2 = self.parent.players[self.parent.playerId].camera.calcDistance(unit.flag.finalTarget.position)
                         self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='deletable')
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
-                    self.gameArea.create_image(distance[0], distance[1], image=self.attackShips[player.id], tag='deletable')#On prend l'image dependamment du joueur que nous sommes
+                    self.gameArea.create_image(distance[0], distance[1], image=self.attackShips[player.colorId], tag='deletable')#On prend l'image dependamment du joueur que nous sommes
                 elif unit.type == unit.MOTHERSHIP:
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
-                    self.gameArea.create_image(distance[0], distance[1], image = self.motherShips[player.id], tag='deletable')
+                    self.gameArea.create_image(distance[0], distance[1], image = self.motherShips[player.colorId], tag='deletable')
                 elif unit.type == unit.TRANSPORT:
                     if not unit.landed:
                         if unit in player.selectedObjects:
                             self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
-                        self.gameArea.create_image(distance[0], distance[1], image = self.transportShips[player.id], tag='deletable')
+                        self.gameArea.create_image(distance[0], distance[1], image = self.transportShips[player.colorId], tag='deletable')
                 elif unit.type == unit.CARGO:
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
@@ -754,12 +771,33 @@ class View():
         x = eve.x
         y = eve.y
         canva = eve.widget
-        if(self.isSettingRallyPointPosition == False):
-            if canva == self.gameArea:
-                if self.parent.players[self.parent.playerId].currentPlanet == None:
-                    pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
-                    if self.attacking:
-                        self.parent.setAttackFlag(pos[0],pos[1])
+        if canva == self.gameArea:
+            if self.parent.players[self.parent.playerId].currentPlanet == None:
+                pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
+                if self.attacking or self.isSettingAttackPosition:
+                    self.parent.selectUnitEnemy(pos)
+                    self.isSettingAttackPosition = False
+                    self.actionMenuType = self.MAIN_MENU
+                    
+                elif self.isSettingRallyPointPosition:
+                    self.parent.setMotherShipRallyPoint(pos)
+                    self.isSettingRallyPointPosition = False
+                    self.actionMenuType = self.MAIN_MENU
+                    
+                elif self.isSettingPatrolPosition:
+                    self.parent.setPatrolFlag(pos)
+                    self.isSettingPatrolPosition = False
+                    self.actionMenuType = self.MAIN_MENU
+                    
+                elif self.isSettingMovePosition:
+                    self.parent.setMovingFlag(pos[0],pos[1])
+                    self.isSettingMovePosition = False
+                    self.actionMenuType = self.MAIN_MENU
+                    
+                else:
+                    if not self.selectAllUnits:
+                        self.parent.select(pos)
+                        self.ongletSelectedUnit()
                     else:
                         if not self.selectAllUnits:
                             self.parent.select(pos)
@@ -767,16 +805,11 @@ class View():
                         else:
                             self.parent.selectAll(pos)
                             self.ongletSelectedUnit()
-                else:
-                    self.parent.select([x,y])
-                    self.ongletSelectedUnit()
-            elif canva == self.minimap:
-                self.parent.quickMove(x,y,canva)
-        else:
-            pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
-            self.parent.setMotherShipRallyPoint(pos)
-            self.isSettingRallyPointPosition = False
-            self.actionMenuType = self.MAIN_MENU
+            else:
+                self.parent.select([x,y])
+                self.ongletSelectedUnit()
+        elif canva == self.minimap:
+            self.parent.quickMove(x,y,canva)
 
     def selectAll(self, eve):
         self.selectAllUnits = True
@@ -883,6 +916,15 @@ class View():
                 self.isSettingRallyPointPosition = True
             elif (Button_pressed == "Button_Build"):
                 self.actionMenuType = self.MOTHERSHIP_BUILD_MENU
+            elif (Button_pressed == "Button_Patrol"):
+                self.actionMenuType = self.WAITING_FOR_PATROL_POINT_MENU
+                self.isSettingPatrolPosition = True
+            elif (Button_pressed == "Button_Attack"):
+                self.actionMenuType = self.WAITING_FOR_ATTACK_POINT_MENU
+                self.isSettingAttackPosition = True
+            elif (Button_pressed == "Button_Move"):
+                self.actionMenuType = self.WAITING_FOR_MOVE_POINT_MENU
+                self.isSettingMovePosition = True
             elif (Button_pressed == "Button_Build_Scout"):
                 self.parent.addUnit(Unit.SCOUT)
             elif (Button_pressed == "Button_Build_Attack"):
@@ -891,6 +933,10 @@ class View():
                 self.parent.addUnit(Unit.TRANSPORT)
             elif (Button_pressed == "Button_Build_Gather"):
                 self.parent.addUnit(Unit.CARGO)
+            elif (Button_pressed == "Button_Triangle"):
+                self.parent.pushChange('t','changeFormation')
+            elif (Button_pressed == "Button_Square"):
+                self.parent.pushChange('c','changeFormation')
                 
     def progressCircleMouseOver(self,eve):
         #if(posX >= self.unitsConstructionPanel.find_withtag('current')):
@@ -900,6 +946,10 @@ class View():
                 self.wantToCancelUnitBuild = True
         else:
             self.wantToCancelUnitBuild = False
+
+    def enterChat(self,eve):
+        self.ongletChat(self.gameFrame)
+        self.menuModes.entryMess.focus_set()
             
     def clicCancelUnit(self,eve):
         tag = self.unitsConstructionPanel.gettags(self.unitsConstructionPanel.find_withtag('current'))
@@ -926,8 +976,8 @@ class View():
         self.gameArea.bind("s", self.stop)
         self.gameArea.bind("S", self.stop)
         self.gameArea.bind("<Delete>", self.delete)
-        #self.gameArea.bind("a",self.attack)
-        #self.gameArea.bind("A",self.attack)
+        self.gameArea.bind("a",self.attack)
+        self.gameArea.bind("A",self.attack)
         self.gameArea.bind("c", self.selectAll)
         self.gameArea.bind("t", self.takeOff)
         self.gameArea.bind("T", self.takeOff)
@@ -935,6 +985,7 @@ class View():
         self.gameArea.bind("1", self.checkMotherSip)
         self.gameArea.bind("<Control_L>",self.ctrlPressed)
         self.gameArea.bind("<KeyRelease-Control_L>",self.ctrlDepressed)
+        self.gameArea.bind("<Tab>",self.enterChat)
         #Bindings des boutons de la souris
         self.unitsConstructionPanel.bind("<Motion>", self.progressCircleMouseOver)
         self.unitsConstructionPanel.bind("<Button-1>", self.clicCancelUnit)
