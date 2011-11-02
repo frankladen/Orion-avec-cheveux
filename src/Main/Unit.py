@@ -1,22 +1,38 @@
 # -*- coding: UTF-8 -*-
-import Target as t
+from Target import *
 from Flag import *
-from World import *
-import Helper as h
+import World as w
+from Helper import *
 import math
 
-#Classe representant une unit
-class Unit(t.PlayerObject):
-    def __init__(self, name, position, owner, foodcost=50, moveSpeed=1.0):
-        t.PlayerObject.__init__(self, name, position, owner)
-        self.FoodCost=foodcost
-        self.mineralCost = 30
-        self.gazCost = 30
-        self.moveSpeed=moveSpeed
+class Unit(PlayerObject):
+    DEFAULT = 0
+    MOTHERSHIP = 1
+    SCOUT = 2
+    ATTACK_SHIP = 3
+    TRANSPORT = 4
+    CARGO = 5
+    GROUND_UNIT = 6
+    MINERAL=0
+    GAS=1
+    FOOD=2
+    SIZE=((0,0), (125,125), (18,15), (28,32), (32,29), (20,30))
+    MAX_HP = (50,500,50,100,125,75)
+    MOVE_SPEED=(1.0, 0.0, 4.0, 2.0, 3.0, 3.0)
+    BUILD_TIME=(300, 0, 200, 400, 300, 250)
+    BUILD_COST=((50,50,1), (0,0,0), (50,0,1), (150,100,1), (75,20,1), (50,10,1))
+    VIEW_RANGE=(150, 400, 200, 150, 175, 175)
+    
+    def __init__(self, name, type, position, owner):
+        PlayerObject.__init__(self, name, type, position, owner)
+        if type <= self.CARGO:
+            self.moveSpeed=self.MOVE_SPEED[type]
+        else:
+            self.moveSpeed=self.MOVE_SPEED[self.DEFAULT]
         
     #La deplace d'un pas vers son flag et si elle est rendu, elle change arrete de bouger    
     def move(self):
-        if h.Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1]) <= self.moveSpeed:
+        if Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1]) <= self.moveSpeed:
             endPos = [self.flag.finalTarget.position[0],self.flag.finalTarget.position[1]]
             self.position = endPos
             if self.flag.flagState == FlagState.MOVE:
@@ -24,8 +40,8 @@ class Unit(t.PlayerObject):
             elif self.flag.flagState == FlagState.MOVE+FlagState.ATTACK:
                 self.flag.flagState = FlagState.ATTACK
         else:
-            angle = h.Helper.calcAngle(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1])
-            temp = h.Helper.getAngledPoint(angle, self.moveSpeed, self.position[0], self.position[1])
+            angle = Helper.calcAngle(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1])
+            temp = Helper.getAngledPoint(angle, self.moveSpeed, self.position[0], self.position[1])
             self.position[0] = temp[0]
             self.position[1] = temp[1]
             
@@ -47,8 +63,8 @@ class Unit(t.PlayerObject):
         return self.flag
               
 class SpaceUnit(Unit):
-    def __init__(self, name, position, owner, movespeed):
-        Unit.__init__(self, name, position, owner, movespeed)
+    def __init__(self, name, type, position, owner):
+        Unit.__init__(self, name, type, position, owner)
 
 class GroundUnit(Unit):
     def __init__(self,planetid):
@@ -69,8 +85,8 @@ class GroundBuildUnit(GroundUnit):
         print("build")
 
 class Mothership(Unit):
-    def __init__(self, name, position, owner):
-        Unit.__init__(self, name, position, owner, foodcost=0, moveSpeed=0)
+    def __init__(self, name, type, position, owner):
+        Unit.__init__(self, name, type, position, owner)
         self.flag.finalTarget = t.Target(position)
         self.unitBeingConstruct = []
         self.rallyPoint = [0,0,0]
@@ -79,23 +95,19 @@ class Mothership(Unit):
     def action(self):
         p = [self.position[0], self.position[1], 0]
         if (self.flag.flagState == FlagState.CREATE):
-            if self.flag.finalTarget == UnitType.SCOUT:
-                self.unitBeingConstruct.append(Unit(self.flag.finalTarget,p,self.ownerId, moveSpeed = MoveSpeed.SCOUT))
-            elif self.flag.finalTarget == UnitType.SPACE_ATTACK_UNIT:
-                self.unitBeingConstruct.append(SpaceAttackUnit(self.flag.finalTarget, p, self.ownerId, moveSpeed = 2.0, attackspeed = 10.0, attackdamage = 5.0, range = 150.0))
-            elif self.flag.finalTarget == UnitType.GATHER:
-                self.unitBeingConstruct.append(GatherShip(self.flag.finalTarget,p, self.ownerId, moveSpeed=3.0))
-            elif self.flag.finalTarget == UnitType.TRANSPORT:
-                self.unitBeingConstruct.append(TransportShip(self.flag.finalTarget,p,self.ownerId, moveSpeed=3.0))
-        
-        
+            if self.flag.finalTarget == self.SCOUT:
+                self.unitBeingConstruct.append(Unit('Scout', self.SCOUT, p, self.ownerId))
+            elif self.flag.finalTarget == self.ATTACK_SHIP:
+                self.unitBeingConstruct.append(SpaceAttackUnit('Attack ship', self.ATTACK_SHIP, p, self.ownerId))
+            elif self.flag.finalTarget == self.CARGO:
+                self.unitBeingConstruct.append(GatherShip('Cargo', self.CARGO, p, self.ownerId))
+            elif self.flag.finalTarget == self.TRANSPORT:
+                self.unitBeingConstruct.append(TransportShip('Transport', self.TRANSPORT, p, self.ownerId))
         elif self.flag.flagState == FlagState.BUILD_UNIT:
             self.progressUnitsConstruction()
-        
         elif self.flag.flagState == FlagState.CANCEL_UNIT:
             self.unitBeingConstruct.pop(int(self.flag.finalTarget))
             self.flag.flagState = FlagState.BUILD_UNIT
-        
         elif self.flag.flagState == FlagState.CHANGE_RALLY_POINT:
             target = self.flag.finalTarget
             target = target.strip("[")
@@ -104,7 +116,6 @@ class Mothership(Unit):
             for i in range(0, len(target)):
                 target[i]=math.trunc(float(target[i])) 
             self.rallyPoint = target
-            self.flag.flagState = FlagState.BUILD_UNIT
 
     def progressUnitsConstruction(self):
         if len(self.unitBeingConstruct) > 0:
@@ -117,21 +128,20 @@ class Mothership(Unit):
     def isUnitFinished(self):
         if len(self.unitBeingConstruct) > 0:
             return self.unitBeingConstruct[0].constructionProgress >= self.unitBeingConstruct[0].buildTime
+        
 class SpaceAttackUnit(SpaceUnit):
-    def __init__(self, name, position, owner, moveSpeed, attackspeed,attackdamage,range):
-        SpaceUnit.__init__(self, name, position, owner, moveSpeed)
-        self.AttackSpeed=attackspeed
-        self.AttackDamage=attackdamage
-        self.range=range
+    def __init__(self, name, type, position, owner):
+        SpaceUnit.__init__(self, name, type, position, owner)
+        self.AttackSpeed=10.0
+        self.AttackDamage=5.0
+        self.range=150.0
         self.attackcount=self.AttackSpeed
-        self.mineralCost = 50
-        self.gazCost = 50
         self.killCount = 0
         
     def attack(self, players):
         index = -1
         killedOwner = -1
-        distance = h.Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1])
+        distance = Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1])
         try:
             if distance > self.range :
                 self.attackcount=self.AttackSpeed
@@ -152,14 +162,12 @@ class SpaceAttackUnit(SpaceUnit):
             return (-1, -1)
 
 class TransportShip(SpaceUnit):
-    def __init__(self, name, position, owner, moveSpeed):
-        SpaceUnit.__init__(self, name, position, owner, moveSpeed)
+    def __init__(self, name, type, position, owner):
+        SpaceUnit.__init__(self, name, type, position, owner)
         self.landed = False
         self.capacity = 10
-        self.mineralCost = 75
-        self.gazCost = 25
         self.units = []
-        self.units.append(Unit('Pilot', [0,0,0], self.owner, moveSpeed=3.0))
+        self.units.append(Unit('Pilot', self.GROUND_UNIT, [0,0,0], self.owner))
 
     def land(self, controller, playerId):
         planet = self.flag.finalTarget
@@ -199,19 +207,17 @@ class TransportShip(SpaceUnit):
 
 class GatherShip(SpaceUnit):
     GATHERTIME=20
-    def __init__(self, name, position, owner, moveSpeed):
-        SpaceUnit.__init__(self, name, position, owner, moveSpeed)
+    def __init__(self, name, type, position, owner):
+        SpaceUnit.__init__(self, name, type, position, owner)
         self.maxGather = 50
         self.gatherSpeed = 20
-        self.mineralCost = 25
-        self.gazCost = 75 
         self.container = [0,0]
         self.returning = False
 
     def gather(self, player, controller):
         ressource = self.flag.finalTarget
         arrived = True
-        if isinstance(self.flag.finalTarget, AstronomicalObject):
+        if isinstance(self.flag.finalTarget, w.AstronomicalObject):
             if self.position[0] < ressource.position[0] or self.position[0] > ressource.position[0]:
                 if self.position[1] < ressource.position[1] or self.position[1] > ressource.position[1]:
                     arrived = False
