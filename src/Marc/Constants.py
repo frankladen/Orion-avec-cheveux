@@ -3,7 +3,10 @@
 class MenuType():
     MAIN=1
     WAITING_FOR_RALLY_POINT=2
-    MOTHERSHIP_BUILD_MENU=4
+    MOTHERSHIP_BUILD_MENU=3
+    WAITING_FOR_MOVE_POINT=4
+    WAITING_FOR_ATTACK_POINT=5
+    WAITING_FOR_PATROL_POINT=6
 
 #J'ai mis des String, car on aura besoin d'afficher ces valeurs dans le jeu
 class UnitType():

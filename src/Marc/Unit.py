@@ -127,6 +127,26 @@ class SpaceAttackUnit(SpaceUnit):
         self.mineralCost = 50
         self.gazCost = 50
         self.killCount = 0
+
+    def patrol(self, players):
+        arrived = True
+        print(self.flag.initialTarget.position)
+        if self.position[0] < self.flag.finalTarget.position[0] or self.position[0] > self.flag.finalTarget.position[0]:
+                if self.position[1] < self.flag.finalTarget.position[1] or self.position[1] > self.flag.finalTarget.position[1]:
+                    for p in players:
+                        if players.index(p) != self.owner:
+                            for u in units:
+                                if u.position[0] > self.position[0]-self.range and u.position[0] < self.position[0]+self.range:
+                                    if u.position[1] > self.position[1]-self.range and u.position[1] < self.position[1]+self.range:
+                                        return u
+                    self.move()
+                    arrived = False
+        if arrived == True:
+            self.before = self.flag.initialTarget
+            self.flag.initialTarget = self.flag.finalTarget
+            self.flag.finalTarget = self.before
+
+        return None
         
     def attack(self, players):
         index = -1
@@ -260,7 +280,7 @@ class GatherShip(SpaceUnit):
                 player.gaz += self.container[1]
                 self.container[0] = 0
                 self.container[1] = 0
-                self.flag.finalTarget = self.flag.intialTarget
+                self.flag.finalTarget = self.flag.initialTarget
                 if self.flag.finalTarget.type == 'asteroid':
                     if self.flag.finalTarget.mineralQte == 0:
                         self.flag.flagState = FlagState.STANDBY

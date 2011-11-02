@@ -18,8 +18,6 @@ class View():
         if self.taille>800:
             self.taille=800
         self.root.geometry('+25+5')
-        self.dragging = False
-        self.hpBars=False
         self.selectStart = [0,0]
         self.selectEnd = [0,0]
         self.positionMouse = [0,0,0]
@@ -28,14 +26,13 @@ class View():
         self.mainMenu.pack()
         self.pLobby = None
         self.currentFrame = self.mainMenu
-        self.firstTime = True
         self.gameFrame = None
         self.joinGame = self.fJoinGame()
         self.createServer = self.fCreateServer()
         self.actionMenuType = MenuType.MAIN
         self.Actionmenu = None
         self.unitsConstructionPanel = None
-        self.isSettingRallyPointPosition = False
+        #images
         self.sun=PhotoImage(file='images/Galaxy/sun.gif')
         self.sunFOW = PhotoImage(file='images/Galaxy/sunFOW.gif')
         self.planet=PhotoImage(file='images/Galaxy/planet.gif')
@@ -43,7 +40,6 @@ class View():
         self.nebula=PhotoImage(file='images/Galaxy/nebula.gif')
         self.nebulaFOW=PhotoImage(file='images/Galaxy/nebulaFOW.gif')
         self.explosion=PhotoImage(file='images/explosion.gif')
-        self.attacking = False
         self.asteroid=PhotoImage(file='images/Galaxy/asteroid.gif')
         self.asteroidFOW=PhotoImage(file='images/Galaxy/asteroidFOW.gif')
         self.mineral = PhotoImage(file='images/Planet/crystal.gif')
@@ -53,6 +49,7 @@ class View():
         self.gifMove = PhotoImage(file='images/icones/move2.gif')
         self.gifCancel = PhotoImage(file='images/icones/delete2.gif')
         self.gifAttack = PhotoImage(file='images/icones/attack2.gif')
+        self.gifAttackUnit = PhotoImage(file='images/icones/attack3.gif')
         self.gifRallyPoint = PhotoImage(file='images/icones/icone2.gif')
         self.gifBuild = PhotoImage(file = 'images/icones/build.gif')
         self.gifCadreMenuAction = PhotoImage(file = 'images/cadreMenuAction2.gif')
@@ -64,10 +61,18 @@ class View():
         self.gifTransport = PhotoImage(file='images/icones/transport.gif')
         self.gifCargo = PhotoImage(file='images/icones/cargo.gif')
         self.gifUnit = PhotoImage(file='images/icones/unit.gif')
-        self.gifSelectedUnit = PhotoImage(file='images\\icones\\boutonSelectedUnit.gif')
+        self.gifSelectedUnit = PhotoImage(file='images/icones/boutonSelectedUnit.gif')
+        #booleens d'actions
+        self.firstTime = True
         self.attacking = False
         self.selectAllUnits = False
         self.wantToCancelUnitBuild = False
+        self.isSettingPatrolPosition = False
+        self.isSettingRallyPointPosition = False
+        self.isSettingMovePosition = False
+        self.isSettingAttackPosition = False
+        self.dragging = False
+        self.hpBars=False
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
     
@@ -106,6 +111,8 @@ class View():
         self.minimap.grid(column=0,row=2, rowspan=4)
         self.menuModes=Canvas(gameFrame, width=self.taille, height=200, background='black', relief='ridge')
         self.menuModes.grid(row=2,column=2, rowspan=4)
+        self.menuModes.chat = Label(gameFrame, anchor=W, justify=LEFT, width=75, background='black', fg='white', relief='raised')
+        self.menuModes.entryMess = Entry(gameFrame, width=60)
         self.Actionmenu = Canvas(gameFrame,width=200,height=200,background='black')
         self.Actionmenu.grid(column=3,row=2, rowspan=4)
         self.changeBackground('GALAXY')
@@ -131,18 +138,39 @@ class View():
         
     def ongletSelectedUnit(self):
         self.menuModesOnlets()
-        self.menuModes.create_text(150,50,text='Selected uniiiiiiiiiiit',fill='yellow')
+        if len(self.parent.players[self.parent.playerId].selectedObjects) > 0:
+            if isinstance(self.parent.players[self.parent.playerId].selectedObjects[0],Unit):
+                unitList = self.parent.players[self.parent.playerId].selectedObjects
+                countList = [0,0,0,0,0]
+                frenchNameList = ["Vaisseau d'attaque", "Scout", "Cargo", "Vaisseau de transport", "Vaisseau mère"] #en attendant les constantes à jerôme...
+                y = 30
+                
+                for i in unitList:
+                    if i.name == UnitType.SPACE_ATTACK_UNIT:
+                        countList[0] += 1
+                    elif i.name == UnitType.SCOUT:
+                        countList[1] += 1
+                    elif i.name == UnitType.GATHER:
+                        countList[2] += 1
+                    elif i.name == UnitType.TRANSPORT:
+                        countList[3] += 1
+                    elif i.name == UnitType.MOTHERSHIP:
+                        countList[4] += 1
+                
+                
+                for u in range(0, len(countList)):
+                    if countList[u] != 0:
+                        self.menuModes.create_text(5, y, text = str(countList[u]) + " " + frenchNameList[u], anchor = NW, fill = 'white')
+                        y+=20
         self.menuModes.chat.grid_forget()
         self.menuModes.entryMess.grid_forget()
         
     def ongletChat(self,gameFrame):
         self.menuModesOnlets()
-        self.menuModes.chat = Label(gameFrame, anchor=W, justify=LEFT, width=75, background='black', fg='white', relief='raised')
         self.menuModes.chat.grid(row=3, column=2)
-        self.parent.refreshMessages(self.menuModes.chat)
-        self.menuModes.entryMess = Entry(gameFrame, width=60)
         self.menuModes.entryMess.grid(row=4, column=2)
         self.menuModes.entryMess.bind("<Return>",self.enter)
+        self.parent.refreshMessages(self.menuModes.chat)
         
     # delete tout ce qu'il y a dans le canvas menuModes + affiche les 3 menus
     def menuModesOnlets(self):
@@ -159,21 +187,28 @@ class View():
             if len(units) > 0:
                 if isinstance(units[0], Unit):
                     self.Actionmenu.create_image(13,35,image=self.gifMove,anchor = NW, tags = 'Button_Move')
-                    self.Actionmenu.create_image(76,35,image=self.gifStop,anchor = NW, tags = 'Button_Stop', tag='actionMenu')
+                    self.Actionmenu.create_image(76,35,image=self.gifStop,anchor = NW, tags = 'Button_Stop')
                     if isinstance(units[0], SpaceAttackUnit):
                         self.Actionmenu.create_image(140,35,image=self.gifAttack,anchor = NW, tags = 'Button_Attack')
+                        self.Actionmenu.create_image(13,89,image=self.gifPatrol,anchor = NW, tags = 'Button_Patrol')
                     if isinstance(units[0], Mothership):
                         self.Actionmenu.create_image(140,35,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
                         self.Actionmenu.create_image(13,89,image = self.gifBuild, anchor = NW, tags = 'Button_Build')
         elif(type == MenuType.MOTHERSHIP_BUILD_MENU):
             self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
             self.Actionmenu.create_image(13,35,image = self.gifUnit, anchor = NW, tags = 'Button_Build_Scout')
-            self.Actionmenu.create_image(76,35,image = self.gifAttack, anchor = NW, tags = 'Button_Build_Attack')
+            self.Actionmenu.create_image(76,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Build_Attack')
             self.Actionmenu.create_image(139,35,image = self.gifCargo, anchor = NW, tags = 'Button_Build_Gather')
             self.Actionmenu.create_image(13,89,image = self.gifTransport, anchor = NW, tags = 'Button_Build_Transport')
         elif(type == MenuType.WAITING_FOR_RALLY_POINT):
-            self.Actionmenu.create_text(0,0,text = "Cliquer a un endroit dans l'aire de jeu afin d'initialiser le point de ralliement du vaisseau mère.",anchor = NW, fill = 'white', width = 200)
-            #self.Actionmenu.create_text("Cliquer sur un endroit dans le jeu afin de mettre en place votre point de ralliement")
+            self.Actionmenu.create_text(0,0,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le point de ralliement du vaisseau mère.",anchor = NW, fill = 'white', width = 200)
+        elif(type == MenuType.WAITING_FOR_ATTACK_POINT):
+            self.Actionmenu.create_text(0,0,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le unit / building que vous voulez attaquer.",anchor = NW, fill = 'white', width = 200)
+        elif(type == MenuType.WAITING_FOR_MOVE_POINT):
+            self.Actionmenu.create_text(0,0,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le mouvement de vos units sélectionnés.",anchor = NW, fill = 'white', width = 200)
+        elif(type == MenuType.WAITING_FOR_PATROL_POINT):
+            self.Actionmenu.create_text(0,0,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le mouvement de patrouille de vos units d'attaques sélectionnés",anchor = NW, fill = 'white', width = 200)
+        
 
     def createUnitsConstructionPanel(self):
         self.unitsConstructionPanel.delete(ALL)
@@ -421,7 +456,7 @@ class View():
             for j in i.units:
                 if j.isAlive:
                     if self.parent.players[self.parent.playerId].inViewRange(j.position):
-                        if j.name == 'Mothership':
+                        if j.name == UnitType.MOTHERSHIP:
                             j.discovered = True
                         self.drawUnit(j, i, False)
         if self.dragging:
@@ -529,7 +564,7 @@ class View():
         posSelected=self.parent.players[self.parent.playerId].camera.calcPointInWorld(self.positionMouse[0],self.positionMouse[1])
         if unit.position[0] >= posSelected[0]-8 and unit.position[0] <= posSelected[0]+8:
             if unit.position[1] >= posSelected[1]-8 and unit.position[1] <= posSelected[1]+8:
-                if unit.name == 'Transport':
+                if unit.name == UnitType.TRANSPORT:
                     if not unit.landed:
                         hpLeft=((unit.hitpoints/unit.maxHP)*30)-15
                         hpLost=(hpLeft+(((unit.maxHP-unit.hitpoints)/unit.maxHP)*30))
@@ -544,7 +579,7 @@ class View():
                         self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-11,distance[0]+hpLost,distance[1]-11, outline="red", tag='deletable')
     
     def drawHPBars(self, distance, unit):
-        if unit.name == 'Transport':
+        if unit.name == UnitType.TRANSPORT:
             if not unit.landed:
                 hpLeft=((unit.hitpoints/unit.maxHP)*30)-15
                 hpLost=(hpLeft+(((unit.maxHP-unit.hitpoints)/unit.maxHP)*30))
@@ -733,26 +768,42 @@ class View():
         x = eve.x
         y = eve.y
         canva = eve.widget
-        if(self.isSettingRallyPointPosition == False):
-            if canva == self.gameArea:
-                if self.parent.players[self.parent.playerId].currentPlanet == None:
-                    pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
-                    if self.attacking:
-                        self.parent.setAttackFlag(pos[0],pos[1])
-                    else:
-                        if not self.selectAllUnits:
-                            self.parent.select(pos)
-                        else:
-                            self.parent.selectAll(pos)
+        if canva == self.gameArea:
+            if self.parent.players[self.parent.playerId].currentPlanet == None:
+                pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
+                if self.attacking or self.isSettingAttackPosition:
+                    self.parent.selectUnitEnemy(pos)
+                    self.isSettingAttackPosition = False
+                    self.actionMenuType = MenuType.MAIN
+                    
+                elif self.isSettingRallyPointPosition:
+                    self.parent.setMotherShipRallyPoint(pos)
+                    self.isSettingRallyPointPosition = False
+                    self.actionMenuType = MenuType.MAIN
+                    
+                elif self.isSettingPatrolPosition:
+                    self.parent.setPatrolFlag(pos)
+                    self.isSettingPatrolPosition = False
+                    self.actionMenuType = MenuType.MAIN
+                    
+                elif self.isSettingMovePosition:
+                    self.parent.setMovingFlag(pos[0],pos[1])
+                    self.isSettingMovePosition = False
+                    self.actionMenuType = MenuType.MAIN
+                    
                 else:
-                    self.parent.select([x,y])
-            elif canva == self.minimap:
-                self.parent.quickMove(x,y,canva)
-        else:
-            pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
-            self.parent.setMotherShipRallyPoint(pos)
-            self.isSettingRallyPointPosition = False
-            self.actionMenuType = MenuType.MAIN
+                    if not self.selectAllUnits:
+                        self.parent.select(pos)
+                        self.ongletSelectedUnit()
+                    else:
+                        self.parent.selectAll(pos)
+                        self.ongletSelectedUnit()
+            else:
+                self.parent.select([x,y])
+                self.ongletSelectedUnit()
+        elif canva == self.minimap:
+            self.parent.quickMove(x,y,canva)
+            
 
     def selectAll(self, eve):
         self.selectAllUnits = True
@@ -776,6 +827,7 @@ class View():
             self.dragging = False
             self.selectEnd = [eve.x, eve.y]
             self.parent.boxSelect(self.selectStart, self.selectEnd)
+            self.ongletSelectedUnit()
 
     def posMouse(self, eve):
         self.positionMouse[0] = eve.x
@@ -846,6 +898,7 @@ class View():
                 if i.ownerId == self.parent.playerId and i.LandedShip != None:
                     if i in self.parent.players[self.parent.playerId].selectedObjects:
                         self.parent.takeOff(i.LandedShip, planet)
+
     def clickActionMenu(self,eve):
         bp = (eve.widget.gettags(eve.widget.find_withtag('current')))
         if bp != ():
@@ -857,6 +910,15 @@ class View():
                 self.isSettingRallyPointPosition = True
             elif (Button_pressed == "Button_Build"):
                 self.actionMenuType = MenuType.MOTHERSHIP_BUILD_MENU
+            elif (Button_pressed == "Button_Patrol"):
+                self.actionMenuType = MenuType.WAITING_FOR_PATROL_POINT
+                self.isSettingPatrolPosition = True
+            elif (Button_pressed == "Button_Attack"):
+                self.actionMenuType = MenuType.WAITING_FOR_ATTACK_POINT
+                self.isSettingAttackPosition = True
+            elif (Button_pressed == "Button_Move"):
+                self.actionMenuType = MenuType.WAITING_FOR_MOVE_POINT
+                self.isSettingMovePosition = True
             elif (Button_pressed == "Button_Build_Scout"):
                 self.parent.addUnit(UnitType.SCOUT)
             elif (Button_pressed == "Button_Build_Attack"):
@@ -865,6 +927,7 @@ class View():
                 self.parent.addUnit(UnitType.TRANSPORT)
             elif (Button_pressed == "Button_Build_Gather"):
                 self.parent.addUnit(UnitType.GATHER)
+            
                 
     def progressCircleMouseOver(self,eve):
         #if(posX >= self.unitsConstructionPanel.find_withtag('current')):
