@@ -1,12 +1,14 @@
-import Unit as u
+# -*- coding: UTF-8 -*-
+from Unit import *
 from Flag import *
 import socket
 
 #Represente un joueur
 class Player():
-    def __init__(self, name, id ,civilization=None):
+    def __init__(self, name, id , colorId, civilization=None):
         self.name = name
         self.civilization = civilization
+        self.colorId = colorId
         self.selectedObjects = [] #Liste des unites selectionnes
         self.units = [] #Liste de toute les unites
         self.id = id #Numero du joueur dans la liste de joueur
@@ -18,23 +20,16 @@ class Player():
         self.mineral = 100
 
     def addBaseUnits(self, startPos):
-        self.units.append(u.Mothership('Mothership',startPos, self.id))
+        self.units.append(Mothership('Mothership', Unit.MOTHERSHIP,startPos, self.id))
         self.motherShip = self.units[0]
-        self.units.append(u.Unit('Scout',[startPos[0] + 20, startPos[1] + 20 ,0], self.id, moveSpeed=4.0))
-        self.units.append(u.Unit('Scout',[startPos[0] - 20, startPos[1] - 20 ,0], self.id, moveSpeed=4.0))
-        self.units.append(u.Unit('Scout',[startPos[0] + 20, startPos[1] + 20 ,0], self.id, moveSpeed=4.0))
-        self.units.append(u.Unit('Scout',[startPos[0] - 20, startPos[1] - 20 ,0], self.id, moveSpeed=4.0))
-        self.units.append(u.Unit('Scout',[startPos[0] + 20, startPos[1] + 20 ,0], self.id, moveSpeed=4.0))
-        self.units.append(u.Unit('Scout',[startPos[0] - 20, startPos[1] - 20 ,0], self.id, moveSpeed=4.0))
-        self.units.append(u.TransportShip('Transport', [startPos[0], startPos[1] + 30,0], self.id, moveSpeed=3.0))
-        self.units.append(u.TransportShip('Transport', [startPos[0], startPos[1] - 30,0], self.id, moveSpeed=3.0))
-        self.units.append(u.SpaceAttackUnit('Attack',[startPos[0] + 30, startPos[1] - 30 ,0], self.id, moveSpeed=2.0, attackspeed=10.0,attackdamage=5.0,range=150.0))
-
+        self.units.append(Unit('Scout', Unit.SCOUT,[startPos[0] + 20, startPos[1] + 20 ,0], self.id))
+        self.units.append(GatherShip('Gather ship', Unit.CARGO,[startPos[0] + 40, startPos[1]+40], self.id))
+        
     #Ajoute une camera au joueur seulement quand la partie commence    
     def addCamera(self, galaxy, taille):
         pos = [0,0,0]
         for i in self.units:
-            if i.name == 'Mothership':
+            if i.type == i.MOTHERSHIP:
                 pos = i.position
         default = [pos[0],pos[1]]
         self.camera = Camera(default,galaxy, taille)

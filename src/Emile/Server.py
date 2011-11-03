@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 import Pyro4
 import socket
+import sys
 from time import time
 
 class ControleurServeur(object):
@@ -13,12 +14,16 @@ class ControleurServeur(object):
         self.mess = ['Système de chat de Orion']
         self.changeList = []
         self.readyPlayers = []
+        self.choiceColors = [["Orange", False], ["Rouge", False], ["Bleu", False], ["Vert", False], ["Jaune", False], ["Brun", False], ["Blanc", False], ["Rose", False]]
     
     def getSeed(self):
         return self.seed;
     
     def getSockets(self):
         return self.sockets
+
+    def getColorChoices(self):
+        return self.choiceColors
 
     def isGameStopped(self):
         return self.isStopped
@@ -45,6 +50,7 @@ class ControleurServeur(object):
             self.changeList = []
             self.sockets = []
             self.readyPlayers = []
+            self.choiceColors = [["Orange", False], ["Rouge", False], ["Bleu", False], ["Vert", False], ["Jaune", False], ["Brun", False], ["Blanc", False], ["Rose", False]]
             self.mess = ['Système de chat de Orion']
     
     def addMessage(self, text, name):
@@ -59,6 +65,26 @@ class ControleurServeur(object):
         change = change+'/'+str(self.decideActionRefresh())
         for ch in self.changeList:
             ch.append(change)
+  
+    def isThisColorChosen(self, colorName, playerId):
+        for i in range(0,len(self.choiceColors)):
+            if colorName == self.choiceColors[i][0]:
+                colorId = i
+        if self.choiceColors[colorId][1]:
+            return True
+        else:
+            if self.sockets[playerId][3] != -1:
+                self.choiceColors[self.sockets[playerId][3]][1] = False
+            self.sockets[playerId][3]=colorId
+            self.choiceColors[colorId][1] = True
+            return False
+
+    def firstColorNotChosen(self, playerId):
+        for i in self.choiceColors:
+            if i[1] == False:
+                i[1] = True
+                self.sockets[playerId][3] = self.choiceColors.index(i)
+                break
         
     def refreshPlayer(self, playerId, refresh):
         self.refreshes[playerId] = refresh
@@ -113,28 +139,32 @@ class ControleurServeur(object):
         for i in range(0,len(self.sockets)):
             if self.sockets[i][0] == ip:
                 print('a trouver le meme socket que le precedent')
-                self.sockets[i]=[ip,login,False]
+                self.sockets[i]=[ip,login,False, -1]
                 return i
             n=n+1
         print('ajoute le socket a la fin')
         if len(self.sockets) < 8:
-            self.sockets.append([ip,login,False])
+            self.sockets.append([ip,login,False, -1])
         return n
           
 
-# le processus qui ecoute les messages des clients
-adresse=socket.gethostbyname(socket.getfqdn())
+if len(sys.argv) > 1:
+    adresse = sys.argv[1]
+else:
+    adresse=socket.gethostbyname(socket.getfqdn())
 #adresse="5.146.234.35"
-daemon = Pyro4.core.Daemon(host=adresse,port=54440) 
-# un objet ControleurServeur() dont les methodes peuvent etre invoquees, 
-# connu sous le nom de controleurServeur
-daemon.register(ControleurServeur(), "controleurServeur")  
- 
-# juste pour voir quelque chose sur la console du serveur
-print("Serveur Pyro actif sous le nom \'controleurServeur\' avec l'adresse "+adresse)
-
-#on demarre l'ecoute des requetes
-daemon.requestLoop()
+try:
+    daemon = Pyro4.core.Daemon(host=adresse,port=54400) 
+    # un objet ControleurServeur() dont les methodes peuvent etre invoquees, 
+    daemon.register(ControleurServeur(), "ServeurOrion")  
+     
+    # juste pour voir quelque chose sur la console du serveur
+    print("Serveur Pyro actif sous le nom \'ServeurOrion\' avec l'adresse "+adresse)
+    #on demarre l'ecoute des requetes
+    daemon.requestLoop()
+except socket.error:
+    print("Une erreur est survenue")
+    sys.exit(1)
 
 
         
