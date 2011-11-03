@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 from tkinter import *
 from Unit import *
-
+import time
 from Constants import *
 from winsound import *
 import tkinter.messagebox as mb
@@ -16,6 +16,8 @@ class View():
     WAITING_FOR_MOVE_POINT_MENU=4
     WAITING_FOR_ATTACK_POINT_MENU=5
     WAITING_FOR_PATROL_POINT_MENU=6
+    MINIMAP_WIDTH=200
+    MINIMAP_HEIGHT=200
         
     def __init__(self, parent):
         self.parent = parent                  
@@ -308,10 +310,11 @@ class View():
         serverAddress= self.entryCreateServer.get()
         #Démarre le serveur dans un autre processus avec l'adresse spécifiée
         child = subprocess.Popen("C:\python32\python.exe server.py " + serverAddress, shell=True)
+        #On doit attendre un peu afin de laisser le temps au serveur de partir et de se terminer si une erreur arrive
+        time.sleep(1)
         #On vérifie si le serveur s'est terminé en erreur et si oui, on affiche un message à l'utilisateur
         if child.poll():
             if child.returncode != None:
-                child.terminate()
                 self.serverNotCreated()
         else:
             self.serverCreated(serverAddress)
@@ -684,21 +687,23 @@ class View():
     #Dessine une unite dans la minimap        
     def drawMiniUnit(self, unit):
         unitX = (unit.position[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
-        planetY = (unit.position[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
-        if unit.name != "Mothership":
+        unitY = (unit.position[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
+        if unit.type != unit.MOTHERSHIP:
             if unit in self.parent.players[self.parent.playerId].units:
-                if unit.name == 'Transport':
+                if unit.type == unit.TRANSPORT:
                     if not unit.landed:
-                        self.minimap.create_polygon((unitX-2, planetY+2, unitX, planetY-2, unitX+2, planetY+2),fill='GREEN', tag='deletable')
+                        self.minimap.create_polygon((unitX-2, unitY+2, unitX, unitY-2, unitX+2, unitY+2),fill='GREEN', tag='deletable')
                 else:
-                    self.minimap.create_polygon((unitX-2, planetY+2, unitX, planetY-2, unitX+2, planetY+2),fill='GREEN', tag='deletable')
+                    self.minimap.create_polygon((unitX-2, unitY+2, unitX, unitY-2, unitX+2, unitY+2),fill='GREEN', tag='deletable')
             else:
-                self.minimap.create_polygon((unitX-2, planetY+2, unitX, planetY-2, unitX+2, planetY+2),fill='RED', tag='deletable')
+                self.minimap.create_polygon((unitX-2, unitY+2, unitX, unitY-2, unitX+2, unitY+2),fill='RED', tag='deletable')
         else:
+            width = self.MINIMAP_WIDTH / self.parent.galaxy.width * unit.SIZE[unit.type][0]
+            height = self.MINIMAP_HEIGHT / self.parent.galaxy.height * unit.SIZE[unit.type][1]
             if unit in self.parent.players[self.parent.playerId].units:
-                self.minimap.create_polygon((unitX-4, planetY+2, unitX, planetY-2, unitX+4, planetY+2),fill='WHITE', tag='deletable')
+                self.minimap.create_oval((unitX-width/2, unitY-height/2, unitX+width/2, unitY+height/2),fill='WHITE', tag='deletable')
             else:
-                self.minimap.create_polygon((unitX-4, planetY+2, unitX, planetY-2, unitX+4, planetY+2),fill='RED', tag='deletable')
+                self.minimap.create_oval((unitX-width/2, unitY-height/2, unitX+width/2, unitY+height/2),fill='RED', tag='deletable')
 
     #Dessine la boite de selection lors du clic-drag	
     def drawSelectionBox(self):
