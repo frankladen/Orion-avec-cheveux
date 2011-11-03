@@ -14,6 +14,7 @@ class Unit(PlayerObject):
     CARGO = 5
     GROUND_UNIT = 6
     MINERAL=0
+    FRENCHNAME = ('Unité', 'Vaisseau mère','Scout', "Vaisseau d'attaque", "Vaisseau de Transport", "Cargo", 'Unité terrestre')
     GAS=1
     FOOD=2
     SIZE=((0,0), (125,125), (18,15), (28,32), (32,29), (20,30))

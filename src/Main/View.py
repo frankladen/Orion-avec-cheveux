@@ -151,26 +151,25 @@ class View():
         if len(self.parent.players[self.parent.playerId].selectedObjects) > 0:
             if isinstance(self.parent.players[self.parent.playerId].selectedObjects[0],Unit):
                 unitList = self.parent.players[self.parent.playerId].selectedObjects
-                countList = [0,0,0,0,0]
-                frenchNameList = ["Vaisseau d'attaque", "Scout", "Cargo", "Vaisseau de transport", "Vaisseau mère"] #en attendant les constantes à jerôme...
+                
+                unitToDraw = [[self.scoutShips[self.parent.playerId], Unit.FRENCHNAME[Unit.SCOUT], 0]#Le Unit par défaut
+                              ,[self.motherShips[self.parent.playerId],Unit.FRENCHNAME[Unit.MOTHERSHIP],0]
+                              ,[self.scoutShips[self.parent.playerId], Unit.FRENCHNAME[Unit.SCOUT], 0]
+                              ,[self.attackShips[self.parent.playerId], Unit.FRENCHNAME[Unit.ATTACK_SHIP], 0]
+                              ,[self.transportShips[self.parent.playerId], Unit.FRENCHNAME[Unit.TRANSPORT], 0]
+                              ,[self.gatherShips[self.parent.playerId], Unit.FRENCHNAME[Unit.CARGO], 0] 
+                              ,[self.scoutShips[self.parent.playerId], Unit.FRENCHNAME[Unit.SCOUT], 0]]
+                              
                 y = 30
-                
                 for i in unitList:
-                    if i.type == i.ATTACK_SHIP:
-                        countList[0] += 1
-                    elif i.type == i.SCOUT:
-                        countList[1] += 1
-                    elif i.type == i.CARGO:
-                        countList[2] += 1
-                    elif i.type == i.TRANSPORT:
-                        countList[3] += 1
-                    elif i.type == i.MOTHERSHIP:
-                        countList[4] += 1
+                    unitToDraw[i.type][2] += 1
                 
-                for u in range(0, len(countList)):
-                    if countList[u] != 0:
-                        self.menuModes.create_text(5, y, text = str(countList[u]) + " " + frenchNameList[u], anchor = NW, fill = 'white')
-                        y+=20
+                for u in range(0, len(unitToDraw)):
+                    if unitToDraw[u][2] != 0:
+                        for numberofunit in range(0, unitToDraw[u][2]):
+                            self.menuModes.create_image((numberofunit*30)+ 5, y, image = unitToDraw[u][0], anchor = NW)
+                        y+=35
+                            
         self.menuModes.chat.grid_forget()
         self.menuModes.entryMess.grid_forget()
         
