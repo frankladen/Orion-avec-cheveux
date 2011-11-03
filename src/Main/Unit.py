@@ -230,7 +230,18 @@ class TransportShip(SpaceUnit):
                         self.units.pop(self.units.index(i))
                     if self in controller.players[controller.playerId].selectedObjects:
                         controller.players[controller.playerId].selectedObjects.pop(controller.players[controller.playerId].selectedObjects.index(self))
-            
+            else:
+                landingZone = None
+                for i in planet.landingZones:
+                    if i.ownerId == playerId:
+                        landingZone = i
+                if landingZone.LandedShip == None:
+                    self.landed = True
+                    for i in self.units:
+                        i.position = [landingZone.position[0] + 40, landingZone.position[1]]
+                        planet.units.append(i)
+                        self.units.pop(self.units.index(i))
+                    landingZone.LandedShip = self
             if playerId == controller.playerId:
                 controller.view.changeBackground('PLANET')
                 controller.view.drawPlanetGround(planet)
