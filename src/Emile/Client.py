@@ -338,12 +338,9 @@ class Controller():
             posSelected = self.players[self.playerId].camera.calcPointOnMap(x,y)
             self.players[self.playerId].camera.position = posSelected
         
-    def takeOff(self, ship, planet):
+    def takeOff(self, ship, planet, playerId):
         ship.takeOff(planet)
-        self.players[self.playerId].currentPlanet = None
-        cam = self.players[self.playerId].camera
-        cam.position = cam.defaultPos
-        self.view.changeBackground('GALAXY')
+        self.players[playerId].currentPlanet = None
         self.view.drawWorld()
         
     def setTakeOffFlag(self, ship, planet):
@@ -607,7 +604,11 @@ class Controller():
             target = target.split(',')
             unit = self.players[actionPlayerId].units[int(unitIndex[0])]
             planet = self.galaxy.solarSystemList[int(target[1])].planets[int(target[0])]
-            self.takeOff(unit, planet)
+            self.takeOff(unit, planet, actionPlayerId)
+            if actionPlayerId == self.playerId:
+                cam = self.players[self.playerId].camera
+                cam.position = cam.defaultPos
+                self.view.changeBackground('GALAXY')
         elif action == str(FlagState.GATHER):
             target = target.split(',')
             for i in unitIndex:
