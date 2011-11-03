@@ -345,6 +345,7 @@ class Controller():
         cam.position = cam.defaultPos
         self.view.changeBackground('GALAXY')
         self.view.drawWorld()
+
     #Envoyer le message pour le chat
     def sendMessage(self, mess):
         if mess == "forcegaz":

@@ -392,6 +392,7 @@ class View():
     #Methode pour dessiner la vue d'un planete
     def drawPlanetGround(self, planet):
         self.gameArea.delete('deletable')
+        color = self.parent.players[self.parent.playerId].colorId
         for i in planet.minerals:
             if i in self.parent.players[self.parent.playerId].selectedObjects:
                 self.gameArea.create_text(i.position[0], i.position[1]-40, fill="cyan", text="Mineral :" + str(i.nbMinerals), tag='deletable')
@@ -399,15 +400,15 @@ class View():
             self.gameArea.create_image(i.position[0], i.position[1], image=self.mineral, tag='deletable')
         for i in planet.gaz:
             if i in self.parent.players[self.parent.playerId].selectedObjects:
-                self.gameArea.create_text(i.position[0], i.position[1]-20, fill="green", text="Mineral :" + str(i.nbGaz), tag='deletable')
+                self.gameArea.create_text(i.position[0], i.position[1]-20, fill="green", text="Gaz :" + str(i.nbGaz), tag='deletable')
                 self.gameArea.create_oval(i.position[0]-(i.WIDTH/2+3), i.position[1]-(i.HEIGHT/2+3), i.position[0]+(i.WIDTH/2+3), i.position[1]+(i.HEIGHT/2+3), outline='yellow', tag='deletable')
             self.gameArea.create_oval(i.position[0]-(i.WIDTH/2+2), i.position[1]-(i.HEIGHT/2+2), i.position[0]+(i.WIDTH/2+2), i.position[1]+(i.HEIGHT/2+2), fill='green', tag='deletable')
         for i in planet.landingZones:
             if i in self.parent.players[self.parent.playerId].selectedObjects:
                 self.gameArea.create_oval(i.position[0]-(i.WIDTH/2+3),i.position[1]-(i.HEIGHT/2+3),i.position[0]+(i.WIDTH/2+3),i.position[1]+(i.HEIGHT/2+3), outline='green', tag='deletable')
-            self.gameArea.create_image(i.position[0], i.position[1], image=self.landingZones[i.ownerId], tag='deletable')
+            self.gameArea.create_image(i.position[0], i.position[1], image=self.landingZones[color], tag='deletable')
             if i.LandedShip != None:
-                self.gameArea.create_image(i.position[0]+1, i.position[1], image=self.landedShips[i.ownerId], tag='deletable')
+                self.gameArea.create_image(i.position[0]+1, i.position[1], image=self.landedShips[color], tag='deletable')
         for i in planet.units:
             self.gameArea.create_oval(i.position[0]-12, i.position[1]-12, i.position[0]+12,i.position[1]+12, fill='red', tag='deletable')
 
