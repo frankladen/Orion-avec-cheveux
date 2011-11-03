@@ -345,6 +345,17 @@ class Controller():
         cam.position = cam.defaultPos
         self.view.changeBackground('GALAXY')
         self.view.drawWorld()
+        
+    def setTakeOffFlag(self, ship, planet):
+        planetId = 0
+        sunId = 0
+        shipId = self.players[self.playerId].units.index(ship)
+        for i in self.galaxy.solarSystemList:
+            for j in i.planets:
+                if j == planet:
+                    planetId = i.planets.index(j)
+                    sunId = self.galaxy.solarSystemList.index(i)
+        self.pushChange(shipId,(planetId, sunId, 'TAKEOFF'))
 
     #Envoyer le message pour le chat
     def sendMessage(self, mess):
@@ -550,6 +561,8 @@ class Controller():
         elif isinstance(flag, tuple):
             if flag[2] == FlagState.LAND:
                 actionString = str(self.playerId)+"/"+playerObject+"/"+str(flag[2])+"/"+str(flag[0])+","+str(flag[1])
+            elif flag[2] == 'TAKEOFF':
+                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag[2])+"/"+str(flag[0])+","+str(flag[1])
             else:
                 actionString = str(self.playerId)+"/"+playerObject+"/"+flag[0]+"/"+flag[1]
         self.server.addChange(actionString)
@@ -590,7 +603,11 @@ class Controller():
         elif action == str(FlagState.LAND):
             target = target.split(',')
             self.players[actionPlayerId].units[int(unitIndex[0])].changeFlag(self.galaxy.solarSystemList[int(target[0])].planets[int(target[1])],int(action))
-
+        elif action == 'TAKEOFF':
+            target = target.split(',')
+            unit = self.players[actionPlayerId].units[int(unitIndex[0])]
+            planet = self.galaxy.solarSystemList[int(target[1])].planets[int(target[0])]
+            self.takeOff(unit, planet)
         elif action == str(FlagState.GATHER):
             target = target.split(',')
             for i in unitIndex:

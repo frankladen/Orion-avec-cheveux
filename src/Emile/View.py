@@ -904,7 +904,7 @@ class View():
             for i in planet.landingZones:
                 if i.ownerId == self.parent.playerId and i.LandedShip != None:
                     if i in self.parent.players[self.parent.playerId].selectedObjects:
-                        self.parent.takeOff(i.LandedShip, planet)
+                        self.parent.setTakeOffFlag(i.LandedShip, planet)
 
     def clickActionMenu(self,eve):
         bp = (eve.widget.gettags(eve.widget.find_withtag('current')))
