@@ -15,6 +15,7 @@ class FlagState():
     CHANGE_RALLY_POINT = 1024
     CANCEL_UNIT = 2048
     BUILD_UNIT = 4096
+    GROUND_MOVE = 8192
 
 #Represente un flag
 class Flag():

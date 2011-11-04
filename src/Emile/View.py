@@ -410,7 +410,9 @@ class View():
             if i.LandedShip != None:
                 self.gameArea.create_image(i.position[0]+1, i.position[1], image=self.landedShips[color], tag='deletable')
         for i in planet.units:
-            self.gameArea.create_oval(i.position[0]-12, i.position[1]-12, i.position[0]+12,i.position[1]+12, fill='red', tag='deletable')
+            if i in self.parent.players[self.parent.playerId].selectedObjects:
+                self.gameArea.create_oval(i.position[0]-(i.SIZE[i.type][0]/2+3), i.position[1]-(i.SIZE[i.type][1]/2+3), i.position[0]+(i.SIZE[i.type][0]/2+3),i.position[1]+(i.SIZE[i.type][1]/2+3),outline='green', tag='deletable')
+            self.gameArea.create_oval(i.position[0]-i.SIZE[i.type][0]/2, i.position[1]-i.SIZE[i.type][1]/2, i.position[0]+i.SIZE[i.type][0]/2,i.position[1]+i.SIZE[i.type][1]/2, fill='red', tag='deletable')
 
     def changeBackground(self, type):
         self.gameArea.delete('background')
@@ -567,22 +569,23 @@ class View():
                     self.drawHPHoverUnit(unit, distance)
      
     def drawHPHoverUnit(self, unit, distance):
-        posSelected=self.parent.players[self.parent.playerId].camera.calcPointInWorld(self.positionMouse[0],self.positionMouse[1])
-        if unit.position[0] >= posSelected[0]-(unit.SIZE[unit.type][0]/2) and unit.position[0] <= posSelected[0]+(unit.SIZE[unit.type][0]/2):
-            if unit.position[1] >= posSelected[1]-(unit.SIZE[unit.type][1]/2) and unit.position[1] <= posSelected[1]+(unit.SIZE[unit.type][1]/2):
-                if unit.type == unit.TRANSPORT:
-                    if not unit.landed:
+        if not isinstance(unit, GroundUnit):
+            posSelected=self.parent.players[self.parent.playerId].camera.calcPointInWorld(self.positionMouse[0],self.positionMouse[1])
+            if unit.position[0] >= posSelected[0]-(unit.SIZE[unit.type][0]/2) and unit.position[0] <= posSelected[0]+(unit.SIZE[unit.type][0]/2):
+                if unit.position[1] >= posSelected[1]-(unit.SIZE[unit.type][1]/2) and unit.position[1] <= posSelected[1]+(unit.SIZE[unit.type][1]/2):
+                    if unit.type == unit.TRANSPORT:
+                        if not unit.landed:
+                            hpLeft=((unit.hitpoints/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
+                            hpLost=(hpLeft+(((unit.MAX_HP[unit.type]-unit.hitpoints)/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0])))
+                            self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="green", tag='deletable')
+                            if int(unit.hitpoints) != int(unit.MAX_HP[unit.type]):
+                                self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLost,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="red", tag='deletable')
+                    else:
                         hpLeft=((unit.hitpoints/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
                         hpLost=(hpLeft+(((unit.MAX_HP[unit.type]-unit.hitpoints)/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0])))
                         self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="green", tag='deletable')
                         if int(unit.hitpoints) != int(unit.MAX_HP[unit.type]):
                             self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLost,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="red", tag='deletable')
-                else:
-                    hpLeft=((unit.hitpoints/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
-                    hpLost=(hpLeft+(((unit.MAX_HP[unit.type]-unit.hitpoints)/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0])))
-                    self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="green", tag='deletable')
-                    if int(unit.hitpoints) != int(unit.MAX_HP[unit.type]):
-                        self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLost,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="red", tag='deletable')
     
     def drawHPBars(self, distance, unit):
         if unit.type == unit.TRANSPORT:
@@ -760,8 +763,11 @@ class View():
         if x > 0 and x < self.taille:
             if y > 0 and y < self.taille-200:
                 if canva == self.gameArea:
-                    pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
-                    self.parent.rightClic(pos)
+                    if self.parent.players[self.parent.playerId].currentPlanet == None:
+                        pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
+                        self.parent.rightClic(pos)
+                    else:
+                        self.parent.rightClic([x,y])
                 elif canva == self.minimap and self.parent.players[self.parent.playerId].currentPlanet == None:
                     pos = self.parent.players[self.parent.playerId].camera.calcPointMinimap(x,y)
                     self.parent.setMovingFlag(pos[0], pos[1])

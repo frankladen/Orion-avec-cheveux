@@ -34,16 +34,23 @@ class Controller():
         send = False
         #Si plusieurs unit�s sont s�lectionn�es, on les ajoute toutes dans le changement � envoyer
         for i in self.players[self.playerId].selectedObjects:
-            if isinstance(i, u.SpaceAttackUnit):
-                i.attackcount = i.AttackSpeed
-            if isinstance(i, u.Unit) and i.type != i.MOTHERSHIP:              
-                units += str(self.players[self.playerId].units.index(i)) + ","
-                send = True
-            elif isinstance(i, u.Mothership):
-                self.setMotherShipRallyPoint([x,y,0])
+            if self.players[self.playerId].currentPlanet == None:
+                if isinstance(i, u.SpaceAttackUnit):
+                    i.attackcount = i.AttackSpeed
+                if isinstance(i, u.Unit) and i.type != i.MOTHERSHIP:              
+                    units += str(self.players[self.playerId].units.index(i)) + ","
+                    send = True
+                elif isinstance(i, u.Mothership):
+                    self.setMotherShipRallyPoint([x,y,0])
         if send:
             self.pushChange(units, Flag(i,t.Target([x,y,0]),FlagState.MOVE))
-
+    def setGroundMovingFlag(self,x,y):
+        units = ''
+        #Si plusieurs unit�s sont s�lectionn�es, on les ajoute toutes dans le changement � envoyer
+        for i in self.players[self.playerId].selectedObjects:
+            units += str(self.players[self.playerId].units.index(i))+ ","
+        print('units going to move: '+units)
+        self.pushChange(units, Flag(i, t.Target([x,y,0]),FlagState.GROUND_MOVE))
     def setDefaultMovingFlag(self,x,y, unit):
         units = ''
         send = False
@@ -226,7 +233,12 @@ class Controller():
                         if i not in self.players[self.playerId].selectedObjects:
                             self.players[self.playerId].selectedObjects = []
                             self.players[self.playerId].selectedObjects.append(i)
-                            
+            for i in planet.units:
+                if posSelected[0] > i.position[0]-i.SIZE[i.type][0]/2 and posSelected[0] < i.position[0]+i.SIZE[i.type][0]/2:
+                    if posSelected[1] > i.position[1]-i.SIZE[i.type][1]/2 and posSelected[1] < i.position[1]++i.SIZE[i.type][1]/2:
+                        if i not in self.players[self.playerId].selectedObjects:
+                            self.players[self.playerId].selectedObjects = []
+                            self.players[self.playerId].selectedObjects.append(i)
     def selectAll(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
             self.select(posSelected)
@@ -301,7 +313,10 @@ class Controller():
             if empty:
                 self.setMovingFlag(pos[0],pos[1])
             self.view.drawWorld()
-
+        else:
+            if empty:
+                print('want to move on planet to'+str(pos))
+                self.setGroundMovingFlag(pos[0], pos[1])
     #Selection avec le clic-drag
     def boxSelect(self, selectStart, selectEnd):
         if self.players[self.playerId].currentPlanet == None:
@@ -398,7 +413,7 @@ class Controller():
                 for p in self.players:
                     for i in p.units:
                         if i.isAlive:
-                            if i.flag.flagState == FlagState.MOVE:
+                            if i.flag.flagState == FlagState.MOVE or i.flag.flagState == FlagState.GROUND_MOVE:
                                 i.move()
                             elif i.flag.flagState == FlagState.ATTACK:
                                 if isinstance(i.flag.finalTarget, u.TransportShip):
@@ -412,7 +427,7 @@ class Controller():
                                 if unit != None:
                                     self.setAttackFlag(unit)
                             elif i.flag.flagState == FlagState.LAND:
-                                i.land(self, self.players.index(p))
+                                i.land(self, self.players.index(p),self.galaxy)
                             elif i.flag.flagState == FlagState.GATHER:
                                 i.gather(p,self)
                     if p.motherShip.isAlive:
@@ -439,7 +454,6 @@ class Controller():
                     self.view.drawPlanetGround(self.players[self.playerId].currentPlanet)
                     self.view.redrawMinimap()
                 waitTime = self.server.amITooHigh(self.playerId)
-
             else:
                 self.refreshMessages(self.view.menuModes.chat)
                 response = self.server.isEveryoneReady(self.playerId)
@@ -469,6 +483,10 @@ class Controller():
 
     def buildUnit(self, player):
         unit = player.motherShip.unitBeingConstruct.pop(0)
+        if unit.type == u.Unit.TRANSPORT:
+            pilot = u.GroundUnit('Builder', u.Unit.GROUND_UNIT, [0,0,0], player.id,-1,-1)
+            unit.units.append(pilot)
+            player.units.append(pilot)
         unit.changeFlag(t.Target(player.motherShip.rallyPoint), FlagState.MOVE)
         player.units.append(unit)
               
@@ -522,6 +540,9 @@ class Controller():
         actionString = ""
         if isinstance(flag, Flag):
             if flag.flagState == FlagState.MOVE or flag.flagState == FlagState.STANDBY:
+                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
+            elif flag.flagState == FlagState.GROUND_MOVE:
+                print('pushing ground move')
                 actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             elif flag.flagState == FlagState.ATTACK:
                 targetId = self.players[flag.finalTarget.owner].units.index(flag.finalTarget)
@@ -591,6 +612,16 @@ class Controller():
             for i in range(0, len(target)):
                 target[i]=math.trunc(float(target[i])) #nécessaire afin de s'assurer que les positions sont des entiers
             self.makeFormation(actionPlayerId, unitIndex, target, action)
+        elif action == str(FlagState.GROUND_MOVE):
+            print('about to '+action+' to:'+target)
+            target = target.strip("[")
+            target = target.strip("]")
+            target = target.split(",")
+            for i in range(0, len(target)):
+                target[i]=math.trunc(float(target[i])) #nécessaire afin de s'assurer que les positions sont des entiers
+            for i in unitIndex:
+                if i != '':
+                    self.players[actionPlayerId].units[int(i)].changeFlag(t.Target([int(target[0]),int(target[1]),int(target[2])]),int(action))
         elif action == str(FlagState.ATTACK):
             target = target.split("P")
             target[0] = target[0].strip("U")
