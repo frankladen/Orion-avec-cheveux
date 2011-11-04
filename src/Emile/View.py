@@ -413,7 +413,8 @@ class View():
             if i in self.parent.players[self.parent.playerId].selectedObjects:
                 self.gameArea.create_oval(i.position[0]-(i.SIZE[i.type][0]/2+3), i.position[1]-(i.SIZE[i.type][1]/2+3), i.position[0]+(i.SIZE[i.type][0]/2+3),i.position[1]+(i.SIZE[i.type][1]/2+3),outline='green', tag='deletable')
             self.gameArea.create_oval(i.position[0]-i.SIZE[i.type][0]/2, i.position[1]-i.SIZE[i.type][1]/2, i.position[0]+i.SIZE[i.type][0]/2,i.position[1]+i.SIZE[i.type][1]/2, fill='red', tag='deletable')
-
+        if self.dragging:
+            self.drawSelectionBox()
     def changeBackground(self, type):
         self.gameArea.delete('background')
         if type == 'PLANET':
@@ -690,14 +691,15 @@ class View():
         unitX = (unit.position[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
         planetY = (unit.position[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
         if unit.name != "Mothership":
-            if unit in self.parent.players[self.parent.playerId].units:
-                if unit.name == 'Transport':
-                    if not unit.landed:
+            if unit.type != Unit.GROUND_UNIT:
+                if unit in self.parent.players[self.parent.playerId].units:
+                    if unit.name == 'Transport':
+                        if not unit.landed:
+                            self.minimap.create_polygon((unitX-2, planetY+2, unitX, planetY-2, unitX+2, planetY+2),fill='GREEN', tag='deletable')
+                    else:
                         self.minimap.create_polygon((unitX-2, planetY+2, unitX, planetY-2, unitX+2, planetY+2),fill='GREEN', tag='deletable')
                 else:
-                    self.minimap.create_polygon((unitX-2, planetY+2, unitX, planetY-2, unitX+2, planetY+2),fill='GREEN', tag='deletable')
-            else:
-                self.minimap.create_polygon((unitX-2, planetY+2, unitX, planetY-2, unitX+2, planetY+2),fill='RED', tag='deletable')
+                    self.minimap.create_polygon((unitX-2, planetY+2, unitX, planetY-2, unitX+2, planetY+2),fill='RED', tag='deletable')
         else:
             if unit in self.parent.players[self.parent.playerId].units:
                 self.minimap.create_polygon((unitX-4, planetY+2, unitX, planetY-2, unitX+4, planetY+2),fill='WHITE', tag='deletable')
@@ -827,9 +829,9 @@ class View():
     def clicDrag(self,eve):
         self.attacking = False
         if self.dragging == False:
-            self.selectStart = [eve.x, eve.y]
-            self.selectEnd = [eve.x, eve.y]
-            self.dragging = True
+                self.selectStart = [eve.x, eve.y]
+                self.selectEnd = [eve.x, eve.y]
+                self.dragging = True
         else:
             self.selectEnd = [eve.x, eve.y]
 
@@ -890,6 +892,7 @@ class View():
         self.drawWorld()
         cam = self.parent.players[self.parent.playerId].camera
         cam.position = cam.defaultPos
+        self.parent.players[self.parent.playerId].selectedUnit = []
 
     def clickMenuModes(self,eve):
         bp = (eve.widget.gettags(eve.widget.find_withtag('current')))

@@ -322,16 +322,20 @@ class Controller():
         if self.players[self.playerId].currentPlanet == None:
             realStart = self.players[self.playerId].camera.calcPointInWorld(selectStart[0], selectStart[1])
             realEnd = self.players[self.playerId].camera.calcPointInWorld(selectEnd[0], selectEnd[1])
-            temp = [0,0]
-            if realStart[0] > realEnd[0]:
-                temp[0] = realStart[0]
-                realStart[0] = realEnd[0]
-                realEnd[0] = temp[0]
-            if realStart[1] > realEnd[1]:
-                temp[1] = realStart[1]
-                realStart[1] = realEnd[1]
-                realEnd[1] = temp[1]
-            first = True
+        else:
+            realStart = [selectStart[0],selectStart[1]]
+            realEnd = [selectEnd[0], selectEnd[1]]
+        temp = [0,0]
+        if realStart[0] > realEnd[0]:
+            temp[0] = realStart[0]
+            realStart[0] = realEnd[0]
+            realEnd[0] = temp[0]
+        if realStart[1] > realEnd[1]:
+            temp[1] = realStart[1]
+            realStart[1] = realEnd[1]
+            realEnd[1] = temp[1]
+        first = True
+        if self.players[self.playerId].currentPlanet == None:
             for i in self.players[self.playerId].units:
                 if i.isAlive:
                     if i.position[0] >= realStart[0]-i.SIZE[i.type][0]/2 and i.position[0] <= realEnd[0]+i.SIZE[i.type][0]/2:
@@ -344,7 +348,17 @@ class Controller():
                                     if not i.landed:
                                         self.players[self.playerId].selectedObjects.append(i)
                                 else:
+                                    print('adding unit')
                                     self.players[self.playerId].selectedObjects.append(i)
+        else:
+            for i in self.players[self.playerId].currentPlanet.units:
+                if i.isAlive:
+                    if i.position[0] >= realStart[0]-i.SIZE[i.type][0]/2 and i.position[0] <= realEnd[0]+i.SIZE[i.type][0]/2:
+                        if i.position[1] >= realStart[1]-i.SIZE[i.type][1]/2 and i.position[1] <= realEnd[1]+i.SIZE[i.type][1]/2:
+                            if first:
+                                self.players[self.playerId].selectedObjects = []
+                                first = False
+                            self.players[self.playerId].selectedObjects.append(i)
         self.view.actionMenuType = self.view.MAIN_MENU
         
     #Deplacement rapide de la camera vers un endroit de la minimap
@@ -362,6 +376,7 @@ class Controller():
         planetId = 0
         sunId = 0
         shipId = self.players[self.playerId].units.index(ship)
+        self.players[self.playerId].selectedUnit = []
         for i in self.galaxy.solarSystemList:
             for j in i.planets:
                 if j == planet:
