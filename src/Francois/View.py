@@ -28,7 +28,7 @@ class View():
         self.taille=self.root.winfo_screenheight()-125
         if self.taille>800:
             self.taille=800
-        self.root.geometry('+25+5')
+        self.root.geometry('+5+5')
         self.selectStart = [0,0]
         self.selectEnd = [0,0]
         self.positionMouse = [0,0,0]
@@ -55,25 +55,26 @@ class View():
         self.mineral = PhotoImage(file='images/Planet/crystal.gif')
         self.planetBackground = PhotoImage(file='images/Planet/background.gif')
         self.galaxyBackground = PhotoImage(file='images/Galaxy/night-sky.gif')
-        self.gifStop = PhotoImage(file='images/icones/stop2.gif')
-        self.gifMove = PhotoImage(file='images/icones/move2.gif')
-        self.gifCancel = PhotoImage(file='images/icones/delete2.gif')
-        self.gifAttack = PhotoImage(file='images/icones/attack2.gif')
-        self.gifAttackUnit = PhotoImage(file='images/icones/attack3.gif')
-        self.gifRallyPoint = PhotoImage(file='images/icones/icone2.gif')
+        self.gifStop = PhotoImage(file='images/icones/stop.gif')
+        self.gifMove = PhotoImage(file='images/icones/move.gif')
+        self.gifDelete = PhotoImage(file='images/icones/delete.gif')
+        self.gifAttack = PhotoImage(file='images/icones/attack.gif')
+        self.gifAttackUnit = PhotoImage(file='images/icones/attackUnit.gif')
+        self.gifRallyPoint = PhotoImage(file='images/icones/flag.gif')
         self.gifBuild = PhotoImage(file = 'images/icones/build.gif')
-        self.gifCadreMenuAction = PhotoImage(file = 'images/cadreMenuAction2.gif')
+        self.gifCadreMenuAction = PhotoImage(file = 'images/Menus/cadreMenuAction.gif')
         self.iconCancel = PhotoImage(file = 'images/icones/cancelUnit.gif')
-        self.gifPatrol = PhotoImage(file='images/icones/patrol2.gif')
+        self.gifPatrol = PhotoImage(file='images/icones/patrol.gif')
         self.gifChat = PhotoImage(file='images/icones/boutonChat.gif')
         self.gifTrade = PhotoImage(file='images/icones/boutonTrade.gif')
         self.gifTeam = PhotoImage(file='images/icones/boutonTeam.gif')
         self.gifTransport = PhotoImage(file='images/icones/transport.gif')
         self.gifCargo = PhotoImage(file='images/icones/cargo.gif')
-        self.gifUnit = PhotoImage(file='images/icones/unit.gif')
+        self.gifUnit = PhotoImage(file='images/icones/scout.gif')
         self.gifSelectedUnit = PhotoImage(file='images/icones/boutonSelectedUnit.gif')
         self.gifTriangle = PhotoImage(file='images/icones/iconeFormationTriangle.gif')
         self.gifSquare = PhotoImage(file='images/icones/iconeFormationCarre.gif')
+        self.gifReturn = PhotoImage(file='images/icones/return.gif')
         #booleens d'actions
         self.firstTime = True
         self.attacking = False
@@ -201,6 +202,7 @@ class View():
                     self.Actionmenu.create_image(13,35,image=self.gifMove,anchor = NW, tags = 'Button_Move')
                     self.Actionmenu.create_image(76,35,image=self.gifStop,anchor = NW, tags = 'Button_Stop')
                     self.Actionmenu.create_image(140,35,image=self.gifPatrol,anchor = NW, tags = 'Button_Patrol')
+                    self.Actionmenu.create_image(13,143,image=self.gifDelete,anchor = NW, tags = 'Button_Delete')
                     if isinstance(units[0], SpaceAttackUnit):
                         self.Actionmenu.create_image(13,89,image=self.gifAttack,anchor = NW, tags = 'Button_Attack')
                 if len(self.parent.players[self.parent.playerId].selectedObjects) > 1:
@@ -210,16 +212,20 @@ class View():
             self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
             self.Actionmenu.create_image(13,35,image = self.gifUnit, anchor = NW, tags = 'Button_Build_Scout')
             self.Actionmenu.create_image(76,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Build_Attack')
-            self.Actionmenu.create_image(139,35,image = self.gifCargo, anchor = NW, tags = 'Button_Build_Gather')
+            self.Actionmenu.create_image(140,35,image = self.gifCargo, anchor = NW, tags = 'Button_Build_Gather')
             self.Actionmenu.create_image(13,89,image = self.gifTransport, anchor = NW, tags = 'Button_Build_Transport')
         elif(type == self.WAITING_FOR_RALLY_POINT_MENU):
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le point de ralliement du vaisseau mère.",anchor = NW, fill = 'white', width = 200)
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.WAITING_FOR_ATTACK_POINT_MENU):
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le unit / building que vous voulez attaquer.",anchor = NW, fill = 'white', width = 200)
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.WAITING_FOR_MOVE_POINT_MENU):
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le mouvement de vos units sélectionnés.",anchor = NW, fill = 'white', width = 200)
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.WAITING_FOR_PATROL_POINT_MENU):
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le mouvement de patrouille de vos units d'attaques sélectionnés",anchor = NW, fill = 'white', width = 200)
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         
 
     def createUnitsConstructionPanel(self):
@@ -310,13 +316,13 @@ class View():
         #Démarre le serveur dans un autre processus avec l'adresse spécifiée
         child = subprocess.Popen("C:\python32\python.exe server.py " + serverAddress, shell=True)
         #On doit attendre un peu afin de laisser le temps au serveur de partir et de se terminer si une erreur arrive
-        time.sleep(1)
+        #time.sleep(1)
         #On vérifie si le serveur s'est terminé en erreur et si oui, on affiche un message à l'utilisateur
         if child.poll():
             if child.returncode != None:
                 self.serverNotCreated()
         else:
-            self.serverCreated(serverAddress)
+            #self.serverCreated(serverAddress)
             #Si l'usager veut se connecter en créant le serveur, on le connecte
             if connect:
                 self.parent.connectServer(self.entryCreateLogin.get(), self.entryCreateServer.get())
@@ -929,6 +935,10 @@ class View():
             elif (Button_pressed == "Button_Move"):
                 self.actionMenuType = self.WAITING_FOR_MOVE_POINT_MENU
                 self.isSettingMovePosition = True
+            elif (Button_pressed == "Button_Delete"):
+                self.parent.eraseUnit()
+            elif (Button_pressed == "Button_Return"):
+                self.actionMenuType = self.MAIN_MENU
             elif (Button_pressed == "Button_Build_Scout"):
                 self.parent.addUnit(Unit.SCOUT)
             elif (Button_pressed == "Button_Build_Attack"):
@@ -938,9 +948,9 @@ class View():
             elif (Button_pressed == "Button_Build_Gather"):
                 self.parent.addUnit(Unit.CARGO)
             elif (Button_pressed == "Button_Triangle"):
-                self.parent.pushChange('t','changeFormation')
+                self.parent.setChangeFormationFlag('t')
             elif (Button_pressed == "Button_Square"):
-                self.parent.pushChange('c','changeFormation')
+                self.parent.setChangeFormationFlag('c')
                 
     def progressCircleMouseOver(self,eve):
         #if(posX >= self.unitsConstructionPanel.find_withtag('current')):
