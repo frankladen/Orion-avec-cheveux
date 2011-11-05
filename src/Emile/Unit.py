@@ -232,6 +232,9 @@ class TransportShip(SpaceUnit):
                 if len(planet.landingZones) < 4:
                     landingZone = planet.addLandingZone(playerId, self)
                     self.landed = True
+                    cam = controller.players[playerId].camera
+                    cam.position = [landingZone.position[0], landingZone.position[1]]
+                    cam.placeOnLanding()
                     for i in self.units:
                         i.position = [landingZone.position[0] + 40, landingZone.position[1]]
                         i.planetId = planetId
@@ -247,6 +250,9 @@ class TransportShip(SpaceUnit):
                         landingZone = i
                 if landingZone.LandedShip == None:
                     self.landed = True
+                    cam = controller.players[playerId].camera
+                    cam.position = [landingZone.position[0], landingZone.position[1]]
+                    cam.placeOnLanding()
                     for i in self.units:
                         i.position = [landingZone.position[0] + 40, landingZone.position[1]]
                         i.planetId = planetId

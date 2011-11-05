@@ -177,8 +177,8 @@ class AstronomicalObject(Target):
 class Planet(Target):
     IMAGE_WIDTH=15
     IMAGE_HEIGHT=15
-    WIDTH=800
-    HEIGHT=600
+    WIDTH=1600
+    HEIGHT=1200
     PADDING=25
     MAX_DIST_FROM_SUN=125
     def __init__(self, planetPosition, nMineralStack, nGazStack):
@@ -204,8 +204,9 @@ class Planet(Target):
                     posFound = False
                 for i in self.minerals:
                     if position[0] > i.position[0]-i.WIDTH and position[0] < i.position[0]+i.WIDTH:
-                        if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
-                            posFound = False
+                        posFound = False
+                    if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
+                        posFound = False
             self.minerals.append(MineralStack(nMinerals,position))
         for i in range(0, self.nGazStack):
             nGaz = int(random.random()*GazStack.MAX_QTY/2+GazStack.MAX_QTY/2)
@@ -219,12 +220,14 @@ class Planet(Target):
                     posFound = False
                 for i in self.minerals:
                     if position[0] > i.position[0]-i.WIDTH and position[0] < i.position[0]+i.WIDTH:
-                        if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
-                            posFound = False
+                        posFound = False
+                    if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
+                        posFound = False
                 for i in self.gaz:
                     if position[0] > i.position[0]-i.WIDTH and position[0] < i.position[0]+i.WIDTH:
-                        if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
-                            posFound = False
+                        posFound = False
+                    if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
+                        posFound = False
             self.gaz.append(GazStack(nGaz, position))
         for i in self.minerals:
             self.mineralQte += i.nbMinerals
@@ -242,12 +245,14 @@ class Planet(Target):
                 placeFound = False
             for i in self.minerals:
                 if position[0] > i.position[0]-i.WIDTH and position[0] < i.position[0]+i.WIDTH:
-                    if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
-                        posFound = False
+                    posFound = False
+                if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
+                    posFound = False
             for i in self.gaz:
                 if position[0] > i.position[0]-i.WIDTH and position[0] < i.position[0]+i.WIDTH:
-                    if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
-                        posFound = False 
+                    posFound = False
+                if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
+                    posFound = False 
         newSpot = LandingZone(position, playerid, landingShip)
         self.landingZones.append(newSpot)
         return newSpot
@@ -258,7 +263,11 @@ class Planet(Target):
             if i.ownerId == playerId:
                 alreadyLanded = True
         return alreadyLanded
-
+    def getLandingSpot(self, playerId):
+        for i in self.landingZones:
+            if i.ownerId == playerId:
+                return i
+        return None
 class MineralStack(Target):
     WIDTH = 48
     HEIGHT = 64

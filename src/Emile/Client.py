@@ -49,7 +49,7 @@ class Controller():
         #Si plusieurs unit�s sont s�lectionn�es, on les ajoute toutes dans le changement � envoyer
         for i in self.players[self.playerId].selectedObjects:
             units += str(self.players[self.playerId].units.index(i))+ ","
-        self.pushChange(units, Flag(i, t.Target([x,y,0]),FlagState.GROUND_MOVE))
+        self.pushChange(units, Flag(t.Target([0,0,0]), t.Target([x,y,0]),FlagState.GROUND_MOVE))
     def setDefaultMovingFlag(self,x,y, unit):
         units = ''
         send = False
@@ -197,6 +197,9 @@ class Controller():
                                 if j.alreadyLanded(self.players[self.playerId].id):
                                     self.players[self.playerId].currentPlanet = j
                                     self.view.changeBackground('PLANET')
+                                    spot = j.getLandingSpot(self.playerId)
+                                    self.players[self.playerId].camera.position = [spot.position[0], spot.position[1]]
+                                    self.players[self.playerId].camera.placeOnLanding()
                                     self.view.drawPlanetGround(j)
                                 
                 for j in i.nebulas:
@@ -317,12 +320,8 @@ class Controller():
                 self.setGroundMovingFlag(pos[0], pos[1])
     #Selection avec le clic-drag
     def boxSelect(self, selectStart, selectEnd):
-        if self.players[self.playerId].currentPlanet == None:
-            realStart = self.players[self.playerId].camera.calcPointInWorld(selectStart[0], selectStart[1])
-            realEnd = self.players[self.playerId].camera.calcPointInWorld(selectEnd[0], selectEnd[1])
-        else:
-            realStart = [selectStart[0],selectStart[1]]
-            realEnd = [selectEnd[0], selectEnd[1]]
+        realStart = self.players[self.playerId].camera.calcPointInWorld(selectStart[0], selectStart[1])
+        realEnd = self.players[self.playerId].camera.calcPointInWorld(selectEnd[0], selectEnd[1])
         temp = [0,0]
         if realStart[0] > realEnd[0]:
             temp[0] = realStart[0]
@@ -648,7 +647,8 @@ class Controller():
             self.takeOff(unit, planet, actionPlayerId)
             if actionPlayerId == self.playerId:
                 cam = self.players[self.playerId].camera
-                cam.position = cam.defaultPos
+                cam.position = [unit.position[0], unit.position[1]]
+                cam.placeOverPlanet()
                 self.view.changeBackground('GALAXY')
         elif action == str(FlagState.GATHER):
             target = target.split(',')

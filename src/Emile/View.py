@@ -15,14 +15,13 @@ class View():
     MOTHERSHIP_BUILD_MENU=3
     WAITING_FOR_MOVE_POINT_MENU=4
     WAITING_FOR_ATTACK_POINT_MENU=5
-    WAITING_FOR_PATROL_POINT_MENU=6
-        
+    WAITING_FOR_PATROL_POINT_MENU=6    
     def __init__(self, parent):
         self.parent = parent                  
         self.root=Tk()
         self.root.title("Orion")
         self.root.resizable(0,0)
-        #la taille du jeu se resize selon la résolution de l'écran, niceshithum?
+        #la taille du jeu se resize selon la résolution de l'écran, niceshithum? NOPE, chuck testa
         self.taille=self.root.winfo_screenheight()-125
         if self.taille>800:
             self.taille=800
@@ -392,33 +391,47 @@ class View():
     #Methode pour dessiner la vue d'un planete
     def drawPlanetGround(self, planet):
         self.gameArea.delete('deletable')
+        self.drawPlanetBackground()
         color = self.parent.players[self.parent.playerId].colorId
         for i in planet.minerals:
+            distance = self.parent.players[self.parent.playerId].camera.calcDistance(i.position)
             if i in self.parent.players[self.parent.playerId].selectedObjects:
-                self.gameArea.create_text(i.position[0], i.position[1]-40, fill="cyan", text="Mineral :" + str(i.nbMinerals), tag='deletable')
-                self.gameArea.create_oval(i.position[0]-(i.WIDTH/2+3), i.position[1]-(i.HEIGHT/2+3), i.position[0]+(i.WIDTH/2+3), i.position[1]+(i.HEIGHT/2+3), outline='yellow', tag='deletable')
-            self.gameArea.create_image(i.position[0], i.position[1], image=self.mineral, tag='deletable')
+                self.gameArea.create_text(distance[0], distance[1]-40, fill="cyan", text="Mineral :" + str(i.nbMinerals), tag='deletable')
+                self.gameArea.create_oval(distance[0]-(i.WIDTH/2+3), distance[1]-(i.HEIGHT/2+3), distance[0]+(i.WIDTH/2+3), distance[1]+(i.HEIGHT/2+3), outline='yellow', tag='deletable')
+            self.gameArea.create_image(distance[0], distance[1], image=self.mineral, tag='deletable')
         for i in planet.gaz:
+            distance = self.parent.players[self.parent.playerId].camera.calcDistance(i.position)
             if i in self.parent.players[self.parent.playerId].selectedObjects:
-                self.gameArea.create_text(i.position[0], i.position[1]-20, fill="green", text="Gaz :" + str(i.nbGaz), tag='deletable')
-                self.gameArea.create_oval(i.position[0]-(i.WIDTH/2+3), i.position[1]-(i.HEIGHT/2+3), i.position[0]+(i.WIDTH/2+3), i.position[1]+(i.HEIGHT/2+3), outline='yellow', tag='deletable')
-            self.gameArea.create_oval(i.position[0]-(i.WIDTH/2+2), i.position[1]-(i.HEIGHT/2+2), i.position[0]+(i.WIDTH/2+2), i.position[1]+(i.HEIGHT/2+2), fill='green', tag='deletable')
+                self.gameArea.create_text(distance[0], distance[1]-20, fill="green", text="Gaz :" + str(i.nbGaz), tag='deletable')
+                self.gameArea.create_oval(distance[0]-(i.WIDTH/2+3), distance[1]-(i.HEIGHT/2+3), distance[0]+(i.WIDTH/2+3), distance[1]+(i.HEIGHT/2+3), outline='yellow', tag='deletable')
+            self.gameArea.create_oval(distance[0]-(i.WIDTH/2+2), distance[1]-(i.HEIGHT/2+2), distance[0]+(i.WIDTH/2+2), distance[1]+(i.HEIGHT/2+2), fill='green', tag='deletable')
         for i in planet.landingZones:
+            distance = self.parent.players[self.parent.playerId].camera.calcDistance(i.position)
             if i in self.parent.players[self.parent.playerId].selectedObjects:
-                self.gameArea.create_oval(i.position[0]-(i.WIDTH/2+3),i.position[1]-(i.HEIGHT/2+3),i.position[0]+(i.WIDTH/2+3),i.position[1]+(i.HEIGHT/2+3), outline='green', tag='deletable')
-            self.gameArea.create_image(i.position[0], i.position[1], image=self.landingZones[color], tag='deletable')
+                self.gameArea.create_oval(distance[0]-(i.WIDTH/2+3),distance[1]-(i.HEIGHT/2+3),distance[0]+(i.WIDTH/2+3),distance[1]+(i.HEIGHT/2+3), outline='green', tag='deletable')
+            self.gameArea.create_image(distance[0], distance[1], image=self.landingZones[color], tag='deletable')
             if i.LandedShip != None:
-                self.gameArea.create_image(i.position[0]+1, i.position[1], image=self.landedShips[color], tag='deletable')
+                self.gameArea.create_image(distance[0]+1, distance[1], image=self.landedShips[color], tag='deletable')
         for i in planet.units:
+            distance = self.parent.players[self.parent.playerId].camera.calcDistance(i.position)
             if i in self.parent.players[self.parent.playerId].selectedObjects:
-                self.gameArea.create_oval(i.position[0]-(i.SIZE[i.type][0]/2+3), i.position[1]-(i.SIZE[i.type][1]/2+3), i.position[0]+(i.SIZE[i.type][0]/2+3),i.position[1]+(i.SIZE[i.type][1]/2+3),outline='green', tag='deletable')
-            self.gameArea.create_oval(i.position[0]-i.SIZE[i.type][0]/2, i.position[1]-i.SIZE[i.type][1]/2, i.position[0]+i.SIZE[i.type][0]/2,i.position[1]+i.SIZE[i.type][1]/2, fill='red', tag='deletable')
+                self.gameArea.create_oval(distance[0]-(i.SIZE[i.type][0]/2+3), distance[1]-(i.SIZE[i.type][1]/2+3), distance[0]+(i.SIZE[i.type][0]/2+3),distance[1]+(i.SIZE[i.type][1]/2+3),outline='green', tag='deletable')
+            self.gameArea.create_oval(distance[0]-i.SIZE[i.type][0]/2, distance[1]-i.SIZE[i.type][1]/2, distance[0]+i.SIZE[i.type][0]/2,distance[1]+i.SIZE[i.type][1]/2, fill='red', tag='deletable')
         if self.dragging:
             self.drawSelectionBox()
+
+    def drawPlanetBackground(self):
+        self.gameArea.delete('background')
+        camera = self.parent.players[self.parent.playerId].camera
+        pos = camera.calcDistance([0,0])
+        self.gameArea.create_image(pos[0],pos[1],image=self.planetBackground, anchor=NW, tag='background')
+
     def changeBackground(self, type):
         self.gameArea.delete('background')
         if type == 'PLANET':
-            self.gameArea.create_image(0,0,image=self.planetBackground, anchor=NW, tag='background')		
+            camera = self.parent.players[self.parent.playerId].camera
+            pos = camera.calcDistance([0,0])
+            self.gameArea.create_image(pos[0],pos[1],image=self.planetBackground, anchor=NW, tag='background')		
         else:
             self.gameArea.create_image(0,0,image=self.galaxyBackground, anchor=NW, tag='background')
 
@@ -606,9 +619,42 @@ class View():
     #Dessine la minimap
     def drawMinimap(self):
         self.minimap.delete('deletable')
-        sunList = self.parent.galaxy.solarSystemList
-        players = self.parent.players
-        if self.firstTime:
+        if self.parent.players[self.parent.playerId].currentPlanet == None:
+            sunList = self.parent.galaxy.solarSystemList
+            players = self.parent.players
+            if self.firstTime:
+                for i in sunList:
+                    self.drawMiniSun(i)
+                    for j in i.planets:
+                        self.drawMiniPlanet(j)
+                    for n in i.nebulas:
+                        self.drawMiniNebula(n)
+                    for q in i.asteroids:
+                        self.drawMiniAsteroid(q)
+                self.firstTime = False
+            for i in players:
+                for j in i.units:
+                    if j.isAlive:
+                        if players[self.parent.playerId].inViewRange(j.position):
+                            self.drawMiniUnit(j)
+        else:
+            self.minimap.create_rectangle(0,0,200,200, fill='white', tag='deletable')
+            planet = self.parent.players[self.parent.playerId].currentPlanet
+            # for i in planet.minerals:
+                # self.drawMiniMinerals(i)
+            # for i in planet.gaz:
+                # self.drawMiniGaz(i)
+            # for i in planet.landingZones:
+                # self.drawMiniLandingZone(i)
+            # for i in planet.units:
+                # self.drawMiniGroundUnit(i)
+        self.drawMiniFOV()
+        
+    def redrawMinimap(self):
+        self.minimap.delete(ALL)
+        if self.parent.players[self.parent.playerId].currentPlanet == None:
+            sunList = self.parent.galaxy.solarSystemList
+            players = self.parent.players
             for i in sunList:
                 self.drawMiniSun(i)
                 for j in i.planets:
@@ -617,40 +663,42 @@ class View():
                     self.drawMiniNebula(n)
                 for q in i.asteroids:
                     self.drawMiniAsteroid(q)
-            self.firstTime = False
-        for i in players:
-            for j in i.units:
-                if j.isAlive:
-                    if players[self.parent.playerId].inViewRange(j.position):
-                        self.drawMiniUnit(j)
-        self.drawMiniFOV()
-        
-    def redrawMinimap(self):
-        self.minimap.delete(ALL)
-        sunList = self.parent.galaxy.solarSystemList
-        players = self.parent.players
-        for i in sunList:
-            self.drawMiniSun(i)
-            for j in i.planets:
-                self.drawMiniPlanet(j)
-            for n in i.nebulas:
-                self.drawMiniNebula(n)
-            for q in i.asteroids:
-                self.drawMiniAsteroid(q)
-        for i in players:
-            for j in i.units:
-                if j.isAlive:
-                    if players[self.parent.playerId].inViewRange(j.position):
-                        self.drawMiniUnit(j)
+            for i in players:
+                for j in i.units:
+                    if j.isAlive:
+                        if players[self.parent.playerId].inViewRange(j.position):
+                            self.drawMiniUnit(j)
+        else:
+            self.minimap.create_rectangle(0,0,200,200, fill='white', tag='deletable')
+            planet = self.parent.players[self.parent.playerId].currentPlanet
+            # for i in planet.minerals:
+                # self.drawMiniMinerals(i)
+            # for i in planet.gaz:
+                # self.drawMiniGaz(i)
+            # for i in planet.landingZones:
+                # self.drawMiniLandingZone(i)
+            # for i in planet.units:
+                # self.drawMiniGroundUnit(i)
         self.drawMiniFOV()
 
     #Dessine le carrer de la camera dans la minimap    
     def drawMiniFOV(self):
-        cameraX = (self.parent.players[self.parent.playerId].camera.position[0]-(self.taille/2) + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
-        cameraY = (self.parent.players[self.parent.playerId].camera.position[1]-((self.taille/2)-self.taille/8) + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
-        width = self.taille / self.parent.galaxy.width * (self.taille/4)
-        height = self.taille / self.parent.galaxy.height * ((self.taille/16)*3)
-        self.minimap.create_rectangle(cameraX, cameraY, cameraX+width, cameraY+height, outline='GREEN', tag='deletable')
+        camera = self.parent.players[self.parent.playerId].camera
+        if self.parent.players[self.parent.playerId].currentPlanet == None:
+            cameraX = (camera.position[0]-(self.taille/2) + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
+            cameraY = (camera.position[1]-((self.taille/2)-self.taille/8) + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
+            width = self.taille / self.parent.galaxy.width * (self.taille/4)
+            height = self.taille / self.parent.galaxy.height * ((self.taille/16)*3)
+            self.minimap.create_rectangle(cameraX, cameraY, cameraX+width, cameraY+height, outline='GREEN', tag='deletable')
+        else:
+            planet = self.parent.players[self.parent.playerId].currentPlanet
+            cameraX = (camera.position[0] * (planet.WIDTH / 8)) / planet.WIDTH
+            cameraY = (camera.position[1] * (planet.HEIGHT / 6)) / planet.HEIGHT
+            width = camera.screenWidth * (camera.screenWidth/4) / planet.WIDTH
+            height = camera.screenHeight * (camera.screenHeight/3) / planet.HEIGHT
+			#width = self.taille / planet.WIDTH * (self.taille/4)
+            #height = self.taille / planet.HEIGHT * ((self.taille/16)*3)
+            self.minimap.create_rectangle(cameraX-width/2, cameraY-height/2, cameraX+width/2, cameraY+height/2, outline='GREEN', tag='deletable')
 
     #Dessine un soleil dans la minimap    
     def drawMiniSun(self, sun):
@@ -705,7 +753,14 @@ class View():
                 self.minimap.create_polygon((unitX-4, planetY+2, unitX, planetY-2, unitX+4, planetY+2),fill='WHITE', tag='deletable')
             else:
                 self.minimap.create_polygon((unitX-4, planetY+2, unitX, planetY-2, unitX+4, planetY+2),fill='RED', tag='deletable')
-
+    # def drawMiniMinerals(self, mineral):
+	    # print('mineral')
+    # def drawMiniGaz(self, gaz):
+        # print('gaz')
+    # def drawMiniLandingZone(self, zone):
+        # print('landing')
+    # def drawMiniGroundUnit(self, unit):
+        # print('Ground')
     #Dessine la boite de selection lors du clic-drag	
     def drawSelectionBox(self):
         self.gameArea.create_rectangle(self.selectStart[0], self.selectStart[1], self.selectEnd[0], self.selectEnd[1], outline='WHITE', tag='deletable')
@@ -713,48 +768,64 @@ class View():
     #Actions quand on clic sur les fleches du clavier
     def keyPressUP(self, eve):
         if 'UP' not in self.parent.players[self.parent.playerId].camera.movingDirection:
+            self.parent.players[self.parent.playerId].camera.movingDirection.append('UP')
             if self.parent.players[self.parent.playerId].currentPlanet == None:
-                self.parent.players[self.parent.playerId].camera.movingDirection.append('UP')
                 self.drawWorld()
+            else:
+                self.drawPlanetGround(self.parent.players[self.parent.playerId].currentPlanet)
 
     def keyPressDown(self, eve):
         if 'DOWN' not in self.parent.players[self.parent.playerId].camera.movingDirection:
+            self.parent.players[self.parent.playerId].camera.movingDirection.append('DOWN')
             if self.parent.players[self.parent.playerId].currentPlanet == None:
-                self.parent.players[self.parent.playerId].camera.movingDirection.append('DOWN')
                 self.drawWorld()
+            else:
+                self.drawPlanetGround(self.parent.players[self.parent.playerId].currentPlanet)
 
     def keyPressLeft(self, eve):
         if 'LEFT' not in self.parent.players[self.parent.playerId].camera.movingDirection:
+            self.parent.players[self.parent.playerId].camera.movingDirection.append('LEFT')
             if self.parent.players[self.parent.playerId].currentPlanet == None:
-                self.parent.players[self.parent.playerId].camera.movingDirection.append('LEFT')
                 self.drawWorld()
+            else:
+                self.drawPlanetGround(self.parent.players[self.parent.playerId].currentPlanet)
 
     def keyPressRight(self, eve):
         if 'RIGHT' not in self.parent.players[self.parent.playerId].camera.movingDirection:
+            self.parent.players[self.parent.playerId].camera.movingDirection.append('RIGHT')
             if self.parent.players[self.parent.playerId].currentPlanet == None:
-                self.parent.players[self.parent.playerId].camera.movingDirection.append('RIGHT')
                 self.drawWorld()
+            else:
+                self.drawPlanetGround(self.parent.players[self.parent.playerId].currentPlanet)
 
     #Actions quand on lache les touches
     def keyReleaseUP(self, eve):
+        self.parent.players[self.parent.playerId].camera.movingDirection.remove('UP')
         if self.parent.players[self.parent.playerId].currentPlanet == None:
-            self.parent.players[self.parent.playerId].camera.movingDirection.remove('UP')
             self.drawWorld()
+        else:
+            self.drawPlanetGround(self.parent.players[self.parent.playerId].currentPlanet)
 
     def keyReleaseDown(self, eve):
+        self.parent.players[self.parent.playerId].camera.movingDirection.remove('DOWN')
         if self.parent.players[self.parent.playerId].currentPlanet == None:
-            self.parent.players[self.parent.playerId].camera.movingDirection.remove('DOWN')
             self.drawWorld()
+        else:
+            self.drawPlanetGround(self.parent.players[self.parent.playerId].currentPlanet)
 
     def keyReleaseLeft(self, eve):
+        self.parent.players[self.parent.playerId].camera.movingDirection.remove('LEFT')
         if self.parent.players[self.parent.playerId].currentPlanet == None:
-            self.parent.players[self.parent.playerId].camera.movingDirection.remove('LEFT')
             self.drawWorld()
+        else:
+            self.drawPlanetGround(self.parent.players[self.parent.playerId].currentPlanet)
 
     def keyReleaseRight(self, eve):
+        self.parent.players[self.parent.playerId].camera.movingDirection.remove('RIGHT')
         if self.parent.players[self.parent.playerId].currentPlanet == None:
-            self.parent.players[self.parent.playerId].camera.movingDirection.remove('RIGHT')
             self.drawWorld()
+        else:
+            self.drawPlanetGround(self.parent.players[self.parent.playerId].currentPlanet)
 
     #Actions avec la souris    
     def rightclic(self, eve):
@@ -765,11 +836,8 @@ class View():
         if x > 0 and x < self.taille:
             if y > 0 and y < self.taille-200:
                 if canva == self.gameArea:
-                    if self.parent.players[self.parent.playerId].currentPlanet == None:
-                        pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
-                        self.parent.rightClic(pos)
-                    else:
-                        self.parent.rightClic([x,y])
+                    pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
+                    self.parent.rightClic(pos)
                 elif canva == self.minimap and self.parent.players[self.parent.playerId].currentPlanet == None:
                     pos = self.parent.players[self.parent.playerId].camera.calcPointMinimap(x,y)
                     self.parent.setMovingFlag(pos[0], pos[1])
@@ -781,42 +849,37 @@ class View():
         y = eve.y
         canva = eve.widget
         if canva == self.gameArea:
-            if self.parent.players[self.parent.playerId].currentPlanet == None:
-                pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
-                if self.attacking or self.isSettingAttackPosition:
-                    self.parent.selectUnitEnemy(pos)
-                    self.isSettingAttackPosition = False
-                    self.actionMenuType = self.MAIN_MENU
+            pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
+            if self.attacking or self.isSettingAttackPosition:
+                self.parent.selectUnitEnemy(pos)
+                self.isSettingAttackPosition = False
+                self.actionMenuType = self.MAIN_MENU  
+            elif self.isSettingRallyPointPosition:
+                self.parent.setMotherShipRallyPoint(pos)
+                self.isSettingRallyPointPosition = False
+                self.actionMenuType = self.MAIN_MENU
+                
+            elif self.isSettingPatrolPosition:
+                self.parent.setPatrolFlag(pos)
+                self.isSettingPatrolPosition = False
+                self.actionMenuType = self.MAIN_MENU
                     
-                elif self.isSettingRallyPointPosition:
-                    self.parent.setMotherShipRallyPoint(pos)
-                    self.isSettingRallyPointPosition = False
-                    self.actionMenuType = self.MAIN_MENU
+            elif self.isSettingMovePosition:
+                self.parent.setMovingFlag(pos[0],pos[1])
+                self.isSettingMovePosition = False
+                self.actionMenuType = self.MAIN_MENU
                     
-                elif self.isSettingPatrolPosition:
-                    self.parent.setPatrolFlag(pos)
-                    self.isSettingPatrolPosition = False
-                    self.actionMenuType = self.MAIN_MENU
-                    
-                elif self.isSettingMovePosition:
-                    self.parent.setMovingFlag(pos[0],pos[1])
-                    self.isSettingMovePosition = False
-                    self.actionMenuType = self.MAIN_MENU
-                    
+            else:
+                if not self.selectAllUnits:
+                    self.parent.select(pos)
+                    self.ongletSelectedUnit()
                 else:
                     if not self.selectAllUnits:
                         self.parent.select(pos)
                         self.ongletSelectedUnit()
                     else:
-                        if not self.selectAllUnits:
-                            self.parent.select(pos)
-                            self.ongletSelectedUnit()
-                        else:
-                            self.parent.selectAll(pos)
-                            self.ongletSelectedUnit()
-            else:
-                self.parent.select([x,y])
-                self.ongletSelectedUnit()
+                        self.parent.selectAll(pos)
+                        self.ongletSelectedUnit()
         elif canva == self.minimap:
             self.parent.quickMove(x,y,canva)
 
