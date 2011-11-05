@@ -98,11 +98,14 @@ class Controller():
                             units += str(self.players[self.playerId].units.index(i)) + ","
                     else:
                         i.attackcount = i.AttackSpeed
-                        units += str(self.players[self.playerId].units.index(i)) + ","
+                        units += str(self.players[self.playerId].units.index(i)) + ","             
                 else:
                     self.pushChange((str(self.players[self.playerId].units.index(i)) + ","), Flag(i,t.Target([attackedUnit.position[0],attackedUnit.position[1],0]),FlagState.MOVE))
             if units != "":
                 self.pushChange(units, Flag(i,attackedUnit,FlagState.ATTACK))
+                if attackedUnit.type == attackedUnit.MOTHERSHIP:
+                    unit = self.players[self.playerId].units[int(units.split(",")[0])]
+                    self.pushChange((str(self.players[attackedUnit.owner].units.index(attackedUnit)) + ","), Flag(attackedUnit,unit,FlagState.ATTACK))
 
     def setGatherFlag(self,ship,ressource):
         units = str(self.players[self.playerId].units.index(ship)) + ","
@@ -429,7 +432,8 @@ class Controller():
                             if(p.motherShip.isUnitFinished()):
                                 self.buildUnit(p)
                         else:
-                            p.motherShip.flag.flagState = FlagState.STANDBY
+                            if p.motherShip.flag.flagState != FlagState.ATTACK:
+                                p.motherShip.flag.flagState = FlagState.STANDBY
                     else:
                         p.motherShip.unitBeingConstruct = []
                         self.eraseUnits(self.players.index(p))
