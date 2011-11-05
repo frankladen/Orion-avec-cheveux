@@ -17,15 +17,15 @@ class Unit(PlayerObject):
     GAS=1
     FOOD=2
     SIZE=((0,0), (125,125), (18,15), (28,32), (32,29), (20,30),(24,24))
-    MAX_HP = (50,500,50,100,125,75)
-    MOVE_SPEED=(1.0, 0.0, 4.0, 2.0, 3.0, 3.0)
-    BUILD_TIME=(300, 0, 200, 400, 300, 250)
-    BUILD_COST=((50,50,1), (0,0,0), (50,0,1), (150,100,1), (75,20,1), (50,10,1))
-    VIEW_RANGE=(150, 400, 200, 150, 175, 175)
+    MAX_HP = (50,500,50,100,125,75,100)
+    MOVE_SPEED=(1.0, 0.0, 4.0, 2.0, 3.0, 3.0, 5.0)
+    BUILD_TIME=(300, 0, 200, 400, 300, 250, 200)
+    BUILD_COST=((50,50,1), (0,0,0), (50,0,1), (150,100,1), (75,20,1), (50,10,1), (50,10,1))
+    VIEW_RANGE=(150, 400, 200, 150, 175, 175,200)
     
     def __init__(self, name, type, position, owner):
         PlayerObject.__init__(self, name, type, position, owner)
-        if type <= self.CARGO:
+        if type <= self.GROUND_UNIT:
             self.moveSpeed=self.MOVE_SPEED[type]
         else:
             self.moveSpeed=self.MOVE_SPEED[self.DEFAULT]
@@ -333,4 +333,4 @@ class GatherShip(SpaceUnit):
                 else:
                     if self.flag.finalTarget.gazQte == 0:
                         self.flag.flagState = FlagState.STANDBY
- 
+
