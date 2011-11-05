@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 from tkinter import *
 from Unit import *
-
+import time
 from Constants import *
 from winsound import *
 import tkinter.messagebox as mb
@@ -16,6 +16,8 @@ class View():
     WAITING_FOR_MOVE_POINT_MENU=4
     WAITING_FOR_ATTACK_POINT_MENU=5
     WAITING_FOR_PATROL_POINT_MENU=6
+    MINIMAP_WIDTH=200
+    MINIMAP_HEIGHT=200
         
     def __init__(self, parent):
         self.parent = parent                  
@@ -26,7 +28,7 @@ class View():
         self.taille=self.root.winfo_screenheight()-125
         if self.taille>800:
             self.taille=800
-        self.root.geometry('+25+5')
+        self.root.geometry('+5+5')
         self.selectStart = [0,0]
         self.selectEnd = [0,0]
         self.positionMouse = [0,0,0]
@@ -53,25 +55,26 @@ class View():
         self.mineral = PhotoImage(file='images/Planet/crystal.gif')
         self.planetBackground = PhotoImage(file='images/Planet/background.gif')
         self.galaxyBackground = PhotoImage(file='images/Galaxy/night-sky.gif')
-        self.gifStop = PhotoImage(file='images/icones/stop2.gif')
-        self.gifMove = PhotoImage(file='images/icones/move2.gif')
-        self.gifCancel = PhotoImage(file='images/icones/delete2.gif')
-        self.gifAttack = PhotoImage(file='images/icones/attack2.gif')
-        self.gifAttackUnit = PhotoImage(file='images/icones/attack3.gif')
-        self.gifRallyPoint = PhotoImage(file='images/icones/icone2.gif')
+        self.gifStop = PhotoImage(file='images/icones/stop.gif')
+        self.gifMove = PhotoImage(file='images/icones/move.gif')
+        self.gifDelete = PhotoImage(file='images/icones/delete.gif')
+        self.gifAttack = PhotoImage(file='images/icones/attack.gif')
+        self.gifAttackUnit = PhotoImage(file='images/icones/attackUnit.gif')
+        self.gifRallyPoint = PhotoImage(file='images/icones/flag.gif')
         self.gifBuild = PhotoImage(file = 'images/icones/build.gif')
-        self.gifCadreMenuAction = PhotoImage(file = 'images/cadreMenuAction2.gif')
+        self.gifCadreMenuAction = PhotoImage(file = 'images/Menus/cadreMenuAction.gif')
         self.iconCancel = PhotoImage(file = 'images/icones/cancelUnit.gif')
-        self.gifPatrol = PhotoImage(file='images/icones/patrol2.gif')
+        self.gifPatrol = PhotoImage(file='images/icones/patrol.gif')
         self.gifChat = PhotoImage(file='images/icones/boutonChat.gif')
         self.gifTrade = PhotoImage(file='images/icones/boutonTrade.gif')
         self.gifTeam = PhotoImage(file='images/icones/boutonTeam.gif')
         self.gifTransport = PhotoImage(file='images/icones/transport.gif')
         self.gifCargo = PhotoImage(file='images/icones/cargo.gif')
-        self.gifUnit = PhotoImage(file='images/icones/unit.gif')
+        self.gifUnit = PhotoImage(file='images/icones/scout.gif')
         self.gifSelectedUnit = PhotoImage(file='images/icones/boutonSelectedUnit.gif')
         self.gifTriangle = PhotoImage(file='images/icones/iconeFormationTriangle.gif')
         self.gifSquare = PhotoImage(file='images/icones/iconeFormationCarre.gif')
+        self.gifReturn = PhotoImage(file='images/icones/return.gif')
         #booleens d'actions
         self.firstTime = True
         self.attacking = False
@@ -149,26 +152,25 @@ class View():
         if len(self.parent.players[self.parent.playerId].selectedObjects) > 0:
             if isinstance(self.parent.players[self.parent.playerId].selectedObjects[0],Unit):
                 unitList = self.parent.players[self.parent.playerId].selectedObjects
-                countList = [0,0,0,0,0]
-                frenchNameList = ["Vaisseau d'attaque", "Scout", "Cargo", "Vaisseau de transport", "Vaisseau mère"] #en attendant les constantes à jerôme...
+                
+                unitToDraw = [[self.scoutShips[self.parent.playerId], Unit.FRENCHNAME[Unit.SCOUT], 0]#Le Unit par défaut
+                              ,[self.motherShips[self.parent.playerId],Unit.FRENCHNAME[Unit.MOTHERSHIP],0]
+                              ,[self.scoutShips[self.parent.playerId], Unit.FRENCHNAME[Unit.SCOUT], 0]
+                              ,[self.attackShips[self.parent.playerId], Unit.FRENCHNAME[Unit.ATTACK_SHIP], 0]
+                              ,[self.transportShips[self.parent.playerId], Unit.FRENCHNAME[Unit.TRANSPORT], 0]
+                              ,[self.gatherShips[self.parent.playerId], Unit.FRENCHNAME[Unit.CARGO], 0] 
+                              ,[self.scoutShips[self.parent.playerId], Unit.FRENCHNAME[Unit.SCOUT], 0]]
+                              
                 y = 30
-                
                 for i in unitList:
-                    if i.type == i.ATTACK_SHIP:
-                        countList[0] += 1
-                    elif i.type == i.SCOUT:
-                        countList[1] += 1
-                    elif i.type == i.CARGO:
-                        countList[2] += 1
-                    elif i.type == i.TRANSPORT:
-                        countList[3] += 1
-                    elif i.type == i.MOTHERSHIP:
-                        countList[4] += 1
+                    unitToDraw[i.type][2] += 1
                 
-                for u in range(0, len(countList)):
-                    if countList[u] != 0:
-                        self.menuModes.create_text(5, y, text = str(countList[u]) + " " + frenchNameList[u], anchor = NW, fill = 'white')
-                        y+=20
+                for u in range(0, len(unitToDraw)):
+                    if unitToDraw[u][2] != 0:
+                        for numberofunit in range(0, unitToDraw[u][2]):
+                            self.menuModes.create_image((numberofunit*30)+ 5, y, image = unitToDraw[u][0], anchor = NW)
+                        y+=35
+                            
         self.menuModes.chat.grid_forget()
         self.menuModes.entryMess.grid_forget()
         
@@ -200,6 +202,7 @@ class View():
                     self.Actionmenu.create_image(13,35,image=self.gifMove,anchor = NW, tags = 'Button_Move')
                     self.Actionmenu.create_image(76,35,image=self.gifStop,anchor = NW, tags = 'Button_Stop')
                     self.Actionmenu.create_image(140,35,image=self.gifPatrol,anchor = NW, tags = 'Button_Patrol')
+                    self.Actionmenu.create_image(13,143,image=self.gifDelete,anchor = NW, tags = 'Button_Delete')
                     if isinstance(units[0], SpaceAttackUnit):
                         self.Actionmenu.create_image(13,89,image=self.gifAttack,anchor = NW, tags = 'Button_Attack')
                 if len(self.parent.players[self.parent.playerId].selectedObjects) > 1:
@@ -209,16 +212,20 @@ class View():
             self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
             self.Actionmenu.create_image(13,35,image = self.gifUnit, anchor = NW, tags = 'Button_Build_Scout')
             self.Actionmenu.create_image(76,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Build_Attack')
-            self.Actionmenu.create_image(139,35,image = self.gifCargo, anchor = NW, tags = 'Button_Build_Gather')
+            self.Actionmenu.create_image(140,35,image = self.gifCargo, anchor = NW, tags = 'Button_Build_Gather')
             self.Actionmenu.create_image(13,89,image = self.gifTransport, anchor = NW, tags = 'Button_Build_Transport')
         elif(type == self.WAITING_FOR_RALLY_POINT_MENU):
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le point de ralliement du vaisseau mère.",anchor = NW, fill = 'white', width = 200)
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.WAITING_FOR_ATTACK_POINT_MENU):
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le unit / building que vous voulez attaquer.",anchor = NW, fill = 'white', width = 200)
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.WAITING_FOR_MOVE_POINT_MENU):
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le mouvement de vos units sélectionnés.",anchor = NW, fill = 'white', width = 200)
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.WAITING_FOR_PATROL_POINT_MENU):
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le mouvement de patrouille de vos units d'attaques sélectionnés",anchor = NW, fill = 'white', width = 200)
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         
 
     def createUnitsConstructionPanel(self):
@@ -308,13 +315,14 @@ class View():
         serverAddress= self.entryCreateServer.get()
         #Démarre le serveur dans un autre processus avec l'adresse spécifiée
         child = subprocess.Popen("C:\python32\python.exe server.py " + serverAddress, shell=True)
+        #On doit attendre un peu afin de laisser le temps au serveur de partir et de se terminer si une erreur arrive
+        #time.sleep(1)
         #On vérifie si le serveur s'est terminé en erreur et si oui, on affiche un message à l'utilisateur
         if child.poll():
             if child.returncode != None:
-                child.terminate()
                 self.serverNotCreated()
         else:
-            self.serverCreated(serverAddress)
+            #self.serverCreated(serverAddress)
             #Si l'usager veut se connecter en créant le serveur, on le connecte
             if connect:
                 self.parent.connectServer(self.entryCreateLogin.get(), self.entryCreateServer.get())
@@ -684,21 +692,23 @@ class View():
     #Dessine une unite dans la minimap        
     def drawMiniUnit(self, unit):
         unitX = (unit.position[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
-        planetY = (unit.position[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
-        if unit.name != "Mothership":
+        unitY = (unit.position[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
+        if unit.type != unit.MOTHERSHIP:
             if unit in self.parent.players[self.parent.playerId].units:
-                if unit.name == 'Transport':
+                if unit.type == unit.TRANSPORT:
                     if not unit.landed:
-                        self.minimap.create_polygon((unitX-2, planetY+2, unitX, planetY-2, unitX+2, planetY+2),fill='GREEN', tag='deletable')
+                        self.minimap.create_polygon((unitX-2, unitY+2, unitX, unitY-2, unitX+2, unitY+2),fill='GREEN', tag='deletable')
                 else:
-                    self.minimap.create_polygon((unitX-2, planetY+2, unitX, planetY-2, unitX+2, planetY+2),fill='GREEN', tag='deletable')
+                    self.minimap.create_polygon((unitX-2, unitY+2, unitX, unitY-2, unitX+2, unitY+2),fill='GREEN', tag='deletable')
             else:
-                self.minimap.create_polygon((unitX-2, planetY+2, unitX, planetY-2, unitX+2, planetY+2),fill='RED', tag='deletable')
+                self.minimap.create_polygon((unitX-2, unitY+2, unitX, unitY-2, unitX+2, unitY+2),fill='RED', tag='deletable')
         else:
+            width = self.MINIMAP_WIDTH / self.parent.galaxy.width * unit.SIZE[unit.type][0]
+            height = self.MINIMAP_HEIGHT / self.parent.galaxy.height * unit.SIZE[unit.type][1]
             if unit in self.parent.players[self.parent.playerId].units:
-                self.minimap.create_polygon((unitX-4, planetY+2, unitX, planetY-2, unitX+4, planetY+2),fill='WHITE', tag='deletable')
+                self.minimap.create_oval((unitX-width/2, unitY-height/2, unitX+width/2, unitY+height/2),fill='WHITE', tag='deletable')
             else:
-                self.minimap.create_polygon((unitX-4, planetY+2, unitX, planetY-2, unitX+4, planetY+2),fill='RED', tag='deletable')
+                self.minimap.create_oval((unitX-width/2, unitY-height/2, unitX+width/2, unitY+height/2),fill='RED', tag='deletable')
 
     #Dessine la boite de selection lors du clic-drag	
     def drawSelectionBox(self):
@@ -903,7 +913,7 @@ class View():
             for i in planet.landingZones:
                 if i.ownerId == self.parent.playerId and i.LandedShip != None:
                     if i in self.parent.players[self.parent.playerId].selectedObjects:
-                        self.parent.takeOff(i.LandedShip, planet)
+                        self.parent.setTakeOffFlag(i.LandedShip, planet)
 
     def clickActionMenu(self,eve):
         bp = (eve.widget.gettags(eve.widget.find_withtag('current')))
@@ -925,6 +935,10 @@ class View():
             elif (Button_pressed == "Button_Move"):
                 self.actionMenuType = self.WAITING_FOR_MOVE_POINT_MENU
                 self.isSettingMovePosition = True
+            elif (Button_pressed == "Button_Delete"):
+                self.parent.eraseUnit()
+            elif (Button_pressed == "Button_Return"):
+                self.actionMenuType = self.MAIN_MENU
             elif (Button_pressed == "Button_Build_Scout"):
                 self.parent.addUnit(Unit.SCOUT)
             elif (Button_pressed == "Button_Build_Attack"):
@@ -934,9 +948,9 @@ class View():
             elif (Button_pressed == "Button_Build_Gather"):
                 self.parent.addUnit(Unit.CARGO)
             elif (Button_pressed == "Button_Triangle"):
-                self.parent.pushChange('t','changeFormation')
+                self.parent.setChangeFormationFlag('t')
             elif (Button_pressed == "Button_Square"):
-                self.parent.pushChange('c','changeFormation')
+                self.parent.setChangeFormationFlag('c')
                 
     def progressCircleMouseOver(self,eve):
         #if(posX >= self.unitsConstructionPanel.find_withtag('current')):
