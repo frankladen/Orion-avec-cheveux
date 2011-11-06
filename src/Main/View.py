@@ -32,17 +32,6 @@ class View():
         self.selectStart = [0,0]
         self.selectEnd = [0,0]
         self.positionMouse = [0,0,0]
-        self.mainMenuBG = PhotoImage(file='images/Menus/MainMenuBG.gif')
-        self.mainMenu = self.fMainMenu()
-        self.mainMenu.pack()
-        self.pLobby = None
-        self.currentFrame = self.mainMenu
-        self.gameFrame = None
-        self.joinGame = self.fJoinGame()
-        self.createServer = self.fCreateServer()
-        self.actionMenuType = self.MAIN_MENU
-        self.Actionmenu = None
-        self.unitsConstructionPanel = None
         self.sun=PhotoImage(file='images/Galaxy/sun.gif')
         self.sunFOW = PhotoImage(file='images/Galaxy/sunFOW.gif')
         self.planet=PhotoImage(file='images/Galaxy/planet.gif')
@@ -55,6 +44,8 @@ class View():
         self.mineral = PhotoImage(file='images/Planet/crystal.gif')
         self.planetBackground = PhotoImage(file='images/Planet/background.gif')
         self.galaxyBackground = PhotoImage(file='images/Galaxy/night-sky.gif')
+        self.lobbyBackground = PhotoImage(file='images/Menus/lobby.gif')
+        self.mainMenuBG = PhotoImage(file='images/Menus/MainMenuBG.gif')
         self.gifStop = PhotoImage(file='images/icones/stop.gif')
         self.gifMove = PhotoImage(file='images/icones/move.gif')
         self.gifDelete = PhotoImage(file='images/icones/delete.gif')
@@ -75,6 +66,17 @@ class View():
         self.gifTriangle = PhotoImage(file='images/icones/iconeFormationTriangle.gif')
         self.gifSquare = PhotoImage(file='images/icones/iconeFormationCarre.gif')
         self.gifReturn = PhotoImage(file='images/icones/return.gif')
+        #fenetres
+        self.mainMenu = self.fMainMenu()
+        self.mainMenu.pack()
+        self.pLobby = None
+        self.currentFrame = self.mainMenu
+        self.gameFrame = None
+        self.joinGame = self.fJoinGame()
+        self.createServer = self.fCreateServer()
+        self.actionMenuType = self.MAIN_MENU
+        self.Actionmenu = None
+        self.unitsConstructionPanel = None
         #booleens d'actions
         self.firstTime = True
         self.attacking = False
@@ -268,18 +270,19 @@ class View():
     #Frame permettant de rejoindre une partie
     def fJoinGame(self):
         joinGameFrame = Frame(self.root, bg="black")
-        Label(joinGameFrame, text="Nom de joueur:", fg="white", bg="black").grid(row=0, column=0)
+        Label(joinGameFrame, image=self.lobbyBackground).grid(row=0,column=0,rowspan=10,columnspan=4)
+        Label(joinGameFrame, text="Nom de joueur:", fg="white", bg="black").grid(row=3, column=1)
         self.entryLogin = Entry(joinGameFrame, width=20)
         self.entryLogin.focus_set()
-        self.entryLogin.grid(row=0, column=1)
-        Label(joinGameFrame, text="Adresse du serveur:", fg="white", bg="black").grid(row=1, column=0)
+        self.entryLogin.grid(row=3, column=2)
+        Label(joinGameFrame, text="Adresse du serveur:", fg="white", bg="black").grid(row=4, column=1)
         self.entryServer = Entry(joinGameFrame, width=20)
-        self.entryServer.grid(row=1, column=1)
+        self.entryServer.grid(row=4, column=2)
         widget = Button(joinGameFrame, text='Connecter', command=lambda:self.lobbyEnter(0, self.entryLogin.get(), self.entryServer.get()))
-        widget.grid(row=2, column=1)
+        widget.grid(row=5, column=2)
 		#Crée un bouton de retour au menu principal
         widget = Button(joinGameFrame, text='Retour', command=lambda:self.changeFrame(self.mainMenu), width=10)
-        widget.grid(row=3, column=1, columnspan=2, pady=10)
+        widget.grid(row=6, column=2, pady=10)
         self.entryServer.bind("<Return>",self.lobbyEnter)
         return joinGameFrame
     
@@ -287,28 +290,30 @@ class View():
     def fCreateServer(self):
         #Crée le frame
         createServerFrame = Frame(self.root, bg="black")
+        #Background
+        Label(createServerFrame, image=self.lobbyBackground).grid(row=0,column=0,rowspan=10,columnspan=4)
         #Crée le label de l'IP du serveur
-        Label(createServerFrame, text="Adresse du serveur:", fg="white", bg="black").grid(row=0, column=0)
+        Label(createServerFrame, text="Adresse du serveur:", fg="white", bg="black").grid(row=3, column=1)
         #Crée le champ texte pour l'IP du serveur
         self.entryCreateServer = Entry(createServerFrame, width=20)
         #On met l'adresse de l'hôte comme valeur par défaut
         self.entryCreateServer.insert(0,self.parent.playerIp)
-        self.entryCreateServer.grid(row=0, column=1)
+        self.entryCreateServer.grid(row=3, column=2)
         #Crée le label du nom du joueur
-        Label(createServerFrame, text="Nom de joueur:", fg="white", bg="black").grid(row=1, column=0)
+        Label(createServerFrame, text="Nom de joueur:", fg="white", bg="black").grid(row=4, column=1)
         #Crée le champ texte pour le nom du joueur
         self.entryCreateLogin = Entry(createServerFrame, width=20)
         self.entryCreateLogin.focus_set()
-        self.entryCreateLogin.grid(row=1, column=1)
+        self.entryCreateLogin.grid(row=4, column=2)
         #Crée le bouton de confirmation
         widget = Button(createServerFrame, text='Créer', command=lambda:self.startServer(False))
-        widget.grid(row=2, column=1)
+        widget.grid(row=5, column=2)
         #Crée le bouton de confirmation et se connecte
         widget = Button(createServerFrame, text='Créer et connecter', command=lambda:self.startServer(True))
-        widget.grid(row=3, column=1)
+        widget.grid(row=6, column=2)
 		#Crée un bouton de retour au menu principal
         widget = Button(createServerFrame, text='Retour', command=lambda:self.changeFrame(self.mainMenu), width=10)
-        widget.grid(row=5, column=1, columnspan=2, pady=10)
+        widget.grid(row=7, column=2, pady=10)
         return createServerFrame
 
     def startServer(self, connect):
@@ -334,17 +339,18 @@ class View():
     def fLobby(self):
         self.entryServer.unbind("<Return>")
         lobbyFrame = Frame(self.root, bg="black")
+        Label(lobbyFrame, image=self.lobbyBackground).grid(row=0,column=0,rowspan=15,columnspan=8)
         if self.parent.server != None:
             pNum = len(self.parent.server.getSockets())
             for i in range(0, pNum):
-                Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i,column=0)
-            Label(lobbyFrame, text='Admin : '+self.parent.server.getSockets()[0][1], fg="white", bg="black").grid(row=37, column=1)
+                Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i+3,column=0)
+            Label(lobbyFrame, text='Admin : '+self.parent.server.getSockets()[0][1], fg="white", bg="black").grid(row=12, column=0)
             if self.parent.playerId == 0:
-                Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame, bg="black", fg="white").grid(row=38, column=1)
+                Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame, bg="black", fg="white").grid(row=12, column=1)
         self.chatLobby = Label(lobbyFrame, anchor=W, justify=LEFT, width=45, background='black', fg='white', relief='raised')
-        self.chatLobby.grid(row=39, column=1)
+        self.chatLobby.grid(row=2, column=5, rowspan=5)
         self.entryMessLobby = Entry(lobbyFrame, width=35)
-        self.entryMessLobby.grid(row=40, column=1)
+        self.entryMessLobby.grid(row=6, column=5)
         self.entryMessLobby.bind("<Return>", self.sendMessLobby)
         #Choix de couleur
         self.variableColor = StringVar(lobbyFrame)
@@ -352,7 +358,7 @@ class View():
         self.colorOPTIONS = ["Orange","Rouge","Bleu"]
         self.variableColor.set(self.colorOPTIONS[0]) # default value
         self.colorChoice = OptionMenu(lobbyFrame, self.variableColor, *self.colorOPTIONS, command=self.parent.choiceColor)
-        self.colorChoice.grid(row=(self.parent.playerId), column=1)
+        self.colorChoice.grid(row=(self.parent.playerId)+3, column=1)
         self.colorChoice['menu'].delete(0, END)
         for i in listOfColors:
             if i[1] == False or self.parent.server.getSockets()[self.parent.playerId][3] == listOfColors.index(i):
@@ -369,9 +375,9 @@ class View():
         if self.parent.server != None:
             pNum = len(self.parent.server.getSockets())
             for i in range(0, pNum):
-                Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i,column=0)
+                Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i+3,column=0)
                 if self.parent.server.getSockets()[i][3] != -1 and i != self.parent.playerId:
-                    Label(lobbyFrame, text=self.parent.server.getColorChoices()[self.parent.server.getSockets()[i][3]][0], fg="white", bg="black").grid(row=i, column=1)
+                    Label(lobbyFrame, text=self.parent.server.getColorChoices()[self.parent.server.getSockets()[i][3]][0], fg="white", bg="black").grid(row=i+3, column=1)
                 
     def sendMessLobby(self, eve):
         if self.entryMessLobby.get() != "":
@@ -557,6 +563,9 @@ class View():
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0], distance[1], image = self.motherShips[player.colorId], tag='deletable')
+                    if unit.attackcount <= 5:
+                        d2 = self.parent.players[self.parent.playerId].camera.calcDistance(unit.flag.finalTarget.position)
+                        self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='deletable')
                 elif unit.type == unit.TRANSPORT:
                     if not unit.landed:
                         if unit in player.selectedObjects:

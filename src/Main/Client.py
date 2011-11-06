@@ -103,6 +103,9 @@ class Controller():
                     self.pushChange((str(self.players[self.playerId].units.index(i)) + ","), Flag(i,t.Target([attackedUnit.position[0],attackedUnit.position[1],0]),FlagState.MOVE))
             if units != "":
                 self.pushChange(units, Flag(i,attackedUnit,FlagState.ATTACK))
+            if attackedUnit.type == attackedUnit.MOTHERSHIP or attackedUnit.type == attackedUnit.ATTACK_SHIP:
+                    unit = self.players[self.playerId].units[int(units.split(",")[0])]
+                    self.pushChange((str(self.players[attackedUnit.owner].units.index(attackedUnit)) + ","), Flag(attackedUnit.owner,unit,FlagState.ATTACK))
 
     def setGatherFlag(self,ship,ressource):
         units = str(self.players[self.playerId].units.index(ship)) + ","
@@ -429,7 +432,8 @@ class Controller():
                             if(p.motherShip.isUnitFinished()):
                                 self.buildUnit(p)
                         else:
-                            p.motherShip.flag.flagState = FlagState.STANDBY
+                            if p.motherShip.flag.flagState != FlagState.ATTACK:
+                                p.motherShip.flag.flagState = FlagState.STANDBY 
                     else:
                         p.motherShip.unitBeingConstruct = []
                         self.eraseUnits(self.players.index(p))
@@ -533,7 +537,10 @@ class Controller():
                 actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             elif flag.flagState == FlagState.ATTACK:
                 targetId = self.players[flag.finalTarget.owner].units.index(flag.finalTarget)
-                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/U"+str(targetId)+"P"+str(flag.finalTarget.owner)
+                if isinstance(flag.initialTarget, int):
+                    actionString = str(flag.initialTarget)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/U"+str(targetId)+"P"+str(flag.finalTarget.owner)
+                else:
+                    actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/U"+str(targetId)+"P"+str(flag.finalTarget.owner)
             elif flag.flagState == FlagState.CREATE:
                 actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.CHANGE_RALLY_POINT:
