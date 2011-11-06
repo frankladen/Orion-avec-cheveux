@@ -106,8 +106,8 @@ class Mothership(Unit):
         self.rallyPoint = [position[0],position[1]+(self.SIZE[type][1]/2)+5,0]
         self.ownerId = owner
         self.range=250.0
-        self.AttackSpeed=15.0
-        self.AttackDamage=7.0
+        self.AttackSpeed=10.0
+        self.AttackDamage=3.0
         self.attackcount=self.AttackSpeed
         self.killCount = 0
 
@@ -153,7 +153,6 @@ class Mothership(Unit):
     def isUnitFinished(self):
         if len(self.unitBeingConstruct) > 0:
             return self.unitBeingConstruct[0].constructionProgress >= self.unitBeingConstruct[0].buildTime
-
     def attack(self, players):
         index = -1
         killedOwner = -1
@@ -161,6 +160,8 @@ class Mothership(Unit):
         try:
             if distance > self.range :
                 self.attackcount=self.AttackSpeed
+                if self.flag.finalTarget.flag.flagState != FlagState.ATTACK:
+                    self.flag.flagState = FlagState.BUILD_UNIT
             else:
                 self.attackcount = self.attackcount - 1
                 if self.attackcount == 0:
@@ -168,14 +169,13 @@ class Mothership(Unit):
                     if self.flag.finalTarget.hitpoints <= 0:
                         index = players[self.flag.finalTarget.owner].units.index(self.flag.finalTarget)
                         killedOwner = self.flag.finalTarget.owner
-                        self.flag = Flag(self.position, self.position, FlagState.STANDBY)
+                        self.flag = Flag(self.position, self.position, FlagState.BUILD_UNIT)
                         self.killCount +=1
                     self.attackcount=self.AttackSpeed
             return (index, killedOwner)
         except ValueError:
-            self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.STANDBY)
+            self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.BUILD_UNIT)
             return (-1, -1)
-
         
 class SpaceAttackUnit(SpaceUnit):
     def __init__(self, name, type, position, owner):
