@@ -103,7 +103,7 @@ class Mothership(Unit):
         Unit.__init__(self, name, type, position, owner)
         self.flag.finalTarget = t.Target(position)
         self.unitBeingConstruct = []
-        self.rallyPoint = [0,0,0]
+        self.rallyPoint = [position[0],position[1]+(self.SIZE[type][1]/2)+5,0]
         self.ownerId = owner
 
     def action(self):

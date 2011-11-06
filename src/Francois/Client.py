@@ -120,7 +120,29 @@ class Controller():
 
     def setMotherShipRallyPoint(self, pos):
         self.pushChange(0, Flag(finalTarget = pos, flagState = FlagState.CHANGE_RALLY_POINT))
+
+    def setChangeFormationFlag(self, formation):
+        units = ""
+        for i in self.players[self.playerId].selectedObjects:           
+            units += str(self.players[self.playerId].units.index(i)) + ","
+        self.pushChange(units, Flag(i,formation,FlagState.CHANGE_FORMATION))
         
+    def setTakeOffFlag(self, ship, planet):
+        planetId = 0
+        sunId = 0
+        shipId = self.players[self.playerId].units.index(ship)
+        for i in self.galaxy.solarSystemList:
+            for j in i.planets:
+                if j == planet:
+                    planetId = i.planets.index(j)
+                    sunId = self.galaxy.solarSystemList.index(i)
+        self.pushChange(shipId,(planetId, sunId, 'TAKEOFF'))
+
+    #Trade entre joueurs
+    def setTradeFlag(self, item, playerId2, quantite):
+        for i in items:
+            self.pushChange(playerId2, Flag(i, quantite[items.index(i)], FlagState.TRADE))
+
     #Pour ajouter une unit
     def addUnit(self, unit):
         mineralCost = u.Unit.BUILD_COST[unit][0]
@@ -130,11 +152,6 @@ class Controller():
 
     def cancelUnit(self, unit):
         self.pushChange(0, Flag(finalTarget = unit, flagState = FlagState.CANCEL_UNIT))
-    
-    #Trade entre joueurs
-    def tradePlayers(self, items, playerId2, quantite):
-        for i in items:
-            self.pushChange(i, (self.playerId2, quantite))
             
     #Pour effacer un Unit
     def eraseUnit(self):
@@ -146,7 +163,7 @@ class Controller():
     def eraseUnits(self, playerId=None):
         if playerId == None:
             playerId = self.playerId
-        self.pushChange(playerId, 'deleteAllUnits')    #Pour selectionner une unit
+        self.pushChange(playerId, Flag(None,playerId,FlagState.DESTROY_ALL))    #Pour selectionner une unit
 
     def selectUnitEnemy(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
@@ -158,8 +175,12 @@ class Controller():
                                     if j.position[0] >= pos[0]-j.SIZE[j.type][0]/2 and j.position[0] <= pos[0]+j.SIZE[j.type][0]/2 :
                                         if j.position[1] >= pos[1]-j.SIZE[j.type][1]/2  and j.position[1] <= pos[1]+j.SIZE[j.type][1]/2 :
                                             self.setAttackFlag(j)
+    
+    
 
+    
     def select(self, posSelected):
+
         if self.players[self.playerId].currentPlanet == None:
             #Si on selectionne une unit dans l'espace             
             for j in self.players[self.playerId].units:
@@ -343,16 +364,7 @@ class Controller():
         self.players[playerId].currentPlanet = None
         self.view.drawWorld()
         
-    def setTakeOffFlag(self, ship, planet):
-        planetId = 0
-        sunId = 0
-        shipId = self.players[self.playerId].units.index(ship)
-        for i in self.galaxy.solarSystemList:
-            for j in i.planets:
-                if j == planet:
-                    planetId = i.planets.index(j)
-                    sunId = self.galaxy.solarSystemList.index(i)
-        self.pushChange(shipId,(planetId, sunId, 'TAKEOFF'))
+    
     #Envoyer le message pour le chat
     def sendMessage(self, mess):
         if mess == "forcegaz":
@@ -389,6 +401,7 @@ class Controller():
     def action(self, waitTime=50):
         if self.server.isGameStopped() == True and self.view.currentFrame == self.view.gameFrame:
             if self.playerId != 0:
+                waitTime=99999999999999
                 self.view.showGameIsFinished()
                 self.view.root.destroy()
         elif self.view.currentFrame != self.view.pLobby:
@@ -417,6 +430,7 @@ class Controller():
                     if p.motherShip.isAlive:
                         p.motherShip.action()
                         if len(p.motherShip.unitBeingConstruct) > 0:
+                            self.view.ongletSelectedUnit()
                             if(p.motherShip.isUnitFinished()):
                                 self.buildUnit(p)
                         else:
@@ -430,8 +444,9 @@ class Controller():
                 self.view.showMinerals.config(text="Mineraux: "+str(self.players[self.playerId].mineral))
                 self.view.showGaz.config(text="Gaz: "+str(self.players[self.playerId].gaz))
 	            #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
+
                 self.pullChange()
-                self.view.createUnitsConstructionPanel()
+
                 if self.players[self.playerId].currentPlanet == None:
                     self.view.drawWorld()
                 else:
@@ -493,7 +508,7 @@ class Controller():
             
     #Enleve le joueur courant de la partie ainsi que ses units
     def removePlayer(self):
-        if self.view.currentFrame == self.view.gameFrame:
+        if self.view.currentFrame == self.view.gameFrame and self.server.isGameStopped() == False:
             self.sendMessage('a quitté la partie')
             self.eraseUnits()
             self.server.removePlayer(self.playerIp, self.players[self.playerId].name, self.playerId)
@@ -535,6 +550,12 @@ class Controller():
                 actionString = str(self.playerId) + "/" + "0" + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.PATROL:
                 actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
+            elif flag.flagState == FlagState.CHANGE_FORMATION:
+                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget)
+            elif flag.flagState == FlagState.DESTROY_ALL:
+                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget)
+            elif flag.flagState == FlagState.TRADE:
+                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/["+str(flag.initialTarget)+","+str(flag.finalTarget)+"]"
             elif flag.flagState == FlagState.GATHER:
                 if isinstance(flag.finalTarget, w.AstronomicalObject):
                     if flag.finalTarget.type == 'nebula':
@@ -548,12 +569,6 @@ class Controller():
                 else:
                     actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/retouraumothership,sansbriserlaactionstring,2"
             
-        elif isinstance(flag, str):
-            if flag == 'deleteAllUnits':
-                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+flag+"/deleteAllUnits"
-            elif flag == 'changeFormation':
-                actionString = str(self.playerId)+"/"+playerObject+"/"+flag+"/changementDeFormation"
-		#Si c'est un échange
         elif isinstance(flag, tuple):
             if flag[2] == FlagState.LAND:
                 actionString = str(self.playerId)+"/"+playerObject+"/"+str(flag[2])+"/"+str(flag[0])+","+str(flag[1])
@@ -640,27 +655,23 @@ class Controller():
         elif action == str(FlagState.DESTROY):
             self.killUnit((int(unitIndex[0]),actionPlayerId))
         
-        elif action == 'deleteAllUnits':
+        elif action == str(FlagState.DESTROY_ALL):
             self.players[int(unitIndex[0])].units = []
         
-        elif action == 'changeFormation':
-            if unitIndex[0]=='t':
+        elif action == str(FlagState.CHANGE_FORMATION):
+            if target=='t':
                 self.players[actionPlayerId].formation="triangle"
-            elif unitIndex[0]=='c':
+            elif target=='c':
                 self.players[actionPlayerId].formation="carre"
-            unitIndex = []
-            for i in self.players[actionPlayerId].selectedObjects:
-                unitIndex.append(self.players[actionPlayerId].units.index(i))
-            unitIndex.append(987123465)
-            self.makeFormation(actionPlayerId, unitIndex, self.players[actionPlayerId].selectedObjects[0].flag.finalTarget.position, FlagState.MOVE)
+            self.makeFormation(actionPlayerId, unitIndex, self.players[actionPlayerId].units[int(unitIndex[0])].flag.finalTarget.position, FlagState.MOVE)
 
-        elif unitIndex == 'g' or unitIndex == 'm':
-            if unitIndex == 'm':
-                self.players[actionPlayerId].mineral-=quantite
-                self.players[int(action)].mineral+=quantite
-            elif unitIndex == 'g':
-                self.players[actionPlayerId].gaz-=quantite
-                self.players[int(action)].gaz+=quantite
+        elif action == str(FlagState.TRADE):
+            if target[0] == 'm':
+                self.players[actionPlayerId].mineral-=target[2]
+                self.players[int(unitIndex[0])].mineral+=target[2]
+            elif target[1] == 'g':
+                self.players[actionPlayerId].gaz-=target[2]
+                self.players[int(unitIndex[0])].gaz+=target[2]
 
     def makeFormation(self, actionPlayerId, unitIndex, target, action):
         lineTaken=[]
@@ -668,6 +679,14 @@ class Controller():
         targetorig=[0,0]
         targetorig[0]=target[0]
         targetorig[1]=target[1]
+        widths = []
+        heights = []
+        for i in range(0,len(unitIndex)-1):
+            unit = self.players[actionPlayerId].units[int(unitIndex[i])]
+            widths.append(unit.SIZE[unit.type][0])
+            heights.append(unit.SIZE[unit.type][1])
+        width = max(widths)
+        height = max(heights)
         #Formation en carré selon le nombre de unit qui se déplace, OH YEAH
         if self.players[actionPlayerId].formation == "carre":
             thatLine = []
@@ -708,6 +727,46 @@ class Controller():
                                 thatLine.append(False)
                             lineTaken.append(thatLine)
                 self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
+        #Formation en carré selon le nombre de unit qui se déplace, OH YEAH
+        if self.players[actionPlayerId].formation == "carre":
+            thatLine = []
+            lineTaken = []
+            numberOfLines = math.sqrt(len(unitIndex)-1)
+            if str(numberOfLines).split('.')[1] != '0':
+                numberOfLines+=1
+            math.trunc(float(numberOfLines))
+            numberOfLines = int(numberOfLines)
+            for l in range(0,numberOfLines):
+                thatLine = []
+                for k in range(0,numberOfLines):
+                    thatLine.append(False)
+                lineTaken.append(thatLine)
+            for i in range(0,len(unitIndex)-1):
+                goodPlace=False
+                line=0
+                while goodPlace==False:
+                    for p in range(0,len(lineTaken[line])):
+                        if lineTaken[line][p]==False:
+                            lineTaken[line][p]=True
+                            target[0]=targetorig[0]+(p*((width/4)+width))
+                            if target[0] < -1*(self.galaxy.width/2)+9:
+                                target[0] = -1*(self.galaxy.width/2)+18
+                            elif target[0] > (self.galaxy.width/2)-9:
+                                target[0] = (self.galaxy.width/2)-18
+                            target[1]=targetorig[1]-(line*((height/4)+height))
+                            if target[1] < -1*(self.galaxy.height/2)+9:
+                                target[1] = -1*(self.galaxy.height/2)+18
+                            goodPlace=True
+                            break
+                    if goodPlace==False:
+                        line+=1
+                        if (len(lineTaken)-1)<line:
+                            numberOfSpaces=1+line
+                            thatLine=[]
+                            for a in range(0,numberOfSpaces):
+                                thatLine.append(False)
+                            lineTaken.append(thatLine)
+                self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
         #Formation en triangle, FUCK YEAH
         elif self.players[actionPlayerId].formation == "triangle":
             thatLine=[]
@@ -723,19 +782,19 @@ class Controller():
                             lineTaken[line][p]=True
                             if line != 0:
                                 if p==len(lineTaken[line-1]):
-                                    target[0]=targetorig[0]+(p*20)
+                                    target[0]=targetorig[0]+(p*width)
                                     #jerome ajoute ca ici la largeur du vaisseau
                                     if target[0] > (self.galaxy.width/2)-9:
                                         target[0] = target[0]-(target[0]-(self.galaxy.width/2)+18)
                                     xLineBefore[p] = target[0]
                                 else:
-                                    target[0]=xLineBefore[p]-20
+                                    target[0]=xLineBefore[p]-width
                                     if target[0] < -1*(self.galaxy.width/2)+9:
                                         target[0] = xLineBefore[p]
                                     elif target[0] > (self.galaxy.width/2)-9:
                                         target[0] = target[0]-(target[0]-(self.galaxy.width/2)+18)
                                     xLineBefore[p] = target[0]
-                            target[1]=targetorig[1]-(line*20)
+                            target[1]=targetorig[1]-(line*height)
                             if target[1] < -1*(self.galaxy.height/2)+9:
                                 target[1] = targetorig[1]
                             goodPlace=True
