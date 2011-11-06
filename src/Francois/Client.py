@@ -175,8 +175,12 @@ class Controller():
                                     if j.position[0] >= pos[0]-j.SIZE[j.type][0]/2 and j.position[0] <= pos[0]+j.SIZE[j.type][0]/2 :
                                         if j.position[1] >= pos[1]-j.SIZE[j.type][1]/2  and j.position[1] <= pos[1]+j.SIZE[j.type][1]/2 :
                                             self.setAttackFlag(j)
+    
+    
 
+    
     def select(self, posSelected):
+
         if self.players[self.playerId].currentPlanet == None:
             #Si on selectionne une unit dans l'espace             
             for j in self.players[self.playerId].units:
@@ -426,6 +430,7 @@ class Controller():
                     if p.motherShip.isAlive:
                         p.motherShip.action()
                         if len(p.motherShip.unitBeingConstruct) > 0:
+                            self.view.ongletSelectedUnit()
                             if(p.motherShip.isUnitFinished()):
                                 self.buildUnit(p)
                         else:
@@ -439,8 +444,9 @@ class Controller():
                 self.view.showMinerals.config(text="Mineraux: "+str(self.players[self.playerId].mineral))
                 self.view.showGaz.config(text="Gaz: "+str(self.players[self.playerId].gaz))
 	            #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
+
                 self.pullChange()
-                self.view.createUnitsConstructionPanel()
+
                 if self.players[self.playerId].currentPlanet == None:
                     self.view.drawWorld()
                 else:

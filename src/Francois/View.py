@@ -3,7 +3,7 @@ from tkinter import *
 from Unit import *
 import time
 from Constants import *
-from winsound import *
+#from winsound import *
 import tkinter.messagebox as mb
 import subprocess
 
@@ -42,7 +42,6 @@ class View():
         self.createServer = self.fCreateServer()
         self.actionMenuType = self.MAIN_MENU
         self.Actionmenu = None
-        self.unitsConstructionPanel = None
         self.sun=PhotoImage(file='images/Galaxy/sun.gif')
         self.sunFOW = PhotoImage(file='images/Galaxy/sunFOW.gif')
         self.planet=PhotoImage(file='images/Galaxy/planet.gif')
@@ -129,8 +128,7 @@ class View():
         self.changeBackground('GALAXY')
         self.drawWorld()
         self.createActionMenu(self.MAIN_MENU)
-        self.unitsConstructionPanel = Canvas(gameFrame, width = 200, height = self.taille/2, background = 'black', relief = "ridge")
-        self.unitsConstructionPanel.grid(column = 3, row = 1)
+
         self.ongletChat(gameFrame)
         self.assignControls()
         return gameFrame
@@ -149,30 +147,52 @@ class View():
         
     def ongletSelectedUnit(self):
         self.menuModesOnlets()
-        if len(self.parent.players[self.parent.playerId].selectedObjects) > 0:
-            if isinstance(self.parent.players[self.parent.playerId].selectedObjects[0],Unit):
-                unitList = self.parent.players[self.parent.playerId].selectedObjects
+        unitList = self.parent.players[self.parent.playerId].selectedObjects
+
+        if len(unitList) == 1:
+            if isinstance(self.parent.players[self.parent.playerId].selectedObjects[0],u.Mothership):
+                self.createUnitsConstructionMenu()
+            else:        
+                #Ces images seront remplacer par de plus grandes et plus belles ! (aghi on t'attends ! )
+                if isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.SpaceAttackUnit):
+                    self.menuModes.create_image(20, 50, image = self.gifAttackUnit)
+                elif isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.GatherShip):
+                    self.menuModes.create_image(20,50, image = self.gifCargo)
+                elif isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.TransportShip):
+                    self.menuModes.create_image(20,50, image = self.gifTransport)
+                elif isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.Unit):
+                    self.menuModes.create_image(20,50, image = self.gifUnit)
+                    
                 
-                unitToDraw = [[self.scoutShips[self.parent.playerId], Unit.FRENCHNAME[Unit.SCOUT], 0]#Le Unit par défaut
-                              ,[self.motherShips[self.parent.playerId],Unit.FRENCHNAME[Unit.MOTHERSHIP],0]
-                              ,[self.scoutShips[self.parent.playerId], Unit.FRENCHNAME[Unit.SCOUT], 0]
-                              ,[self.attackShips[self.parent.playerId], Unit.FRENCHNAME[Unit.ATTACK_SHIP], 0]
-                              ,[self.transportShips[self.parent.playerId], Unit.FRENCHNAME[Unit.TRANSPORT], 0]
-                              ,[self.gatherShips[self.parent.playerId], Unit.FRENCHNAME[Unit.CARGO], 0] 
-                              ,[self.scoutShips[self.parent.playerId], Unit.FRENCHNAME[Unit.SCOUT], 0]]
-                              
-                y = 30
+                self.menuModes.create_oval((675, 190,500,10) , fill = 'red')
+                self.menuModes.create_arc((675, 190,500,10), start=0, extent= (self.parent.players[self.parent.playerId].selectedObjects[0].maxHP / self.parent.players[self.parent.playerId].selectedObjects[0].hitPoints)*360 , fill='blue', tags = 'arc')
+
+        elif len(unitList) > 0 : 
+            if isinstance(self.parent.players[self.parent.playerId].selectedObjects[0],u.Mothership) == False:
+                x = 20
+                y = 50
                 for i in unitList:
-                    unitToDraw[i.type][2] += 1
-                
-                for u in range(0, len(unitToDraw)):
-                    if unitToDraw[u][2] != 0:
-                        for numberofunit in range(0, unitToDraw[u][2]):
-                            self.menuModes.create_image((numberofunit*30)+ 5, y, image = unitToDraw[u][0], anchor = NW)
-                        y+=35
-                            
-        self.menuModes.chat.grid_forget()
-        self.menuModes.entryMess.grid_forget()
+                    if isinstance(i, u.SpaceAttackUnit):
+                        self.menuModes.create_image(x, y, image = self.gifAttackUnit, tags = ('selected_unit',i.position[0],i.position[1]))
+                    elif isinstance(i, u.GatherShip):
+                        self.menuModes.create_image(x,y, image = self.gifCargo, tag = ('selected_unit',i.position[0],i.position[1]))
+                    elif isinstance(i, u.TransportShip):
+                        self.menuModes.create_image(x,y, image = self.gifTransport, tag =  ('selected_unit',i.position[0],i.position[1]))
+                    elif isinstance(i, u.Unit):
+                        self.menuModes.create_image(x,y, image = self.gifUnit, tag = i.position,tags = ('selected_unit',i.position[0],i.position[1]))
+        
+                    
+                    x += 52
+                    if x > 600:
+                        x = 20
+                        y+= 46                 
+                        
+
+
+        
+            self.menuModes.chat.grid_forget()
+            self.menuModes.entryMess.grid_forget()
+
         
     def ongletChat(self,gameFrame):
         self.menuModesOnlets()
@@ -214,6 +234,7 @@ class View():
             self.Actionmenu.create_image(76,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Build_Attack')
             self.Actionmenu.create_image(140,35,image = self.gifCargo, anchor = NW, tags = 'Button_Build_Gather')
             self.Actionmenu.create_image(13,89,image = self.gifTransport, anchor = NW, tags = 'Button_Build_Transport')
+
         elif(type == self.WAITING_FOR_RALLY_POINT_MENU):
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le point de ralliement du vaisseau mère.",anchor = NW, fill = 'white', width = 200)
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
@@ -228,9 +249,10 @@ class View():
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         
 
-    def createUnitsConstructionPanel(self):
-        self.unitsConstructionPanel.delete(ALL)
-        y = 5;
+    def createUnitsConstructionMenu(self):
+        self.menuModesOnlets()
+        y = 35;
+        
         ok = False;
         l = None;
         r = 1
@@ -243,18 +265,20 @@ class View():
                 else:
                     r = 1
                     ok = False
-                    self.unitsConstructionPanel.create_image(175,5 + y, image = self.iconCancel, anchor = NW, tags = ('cancelUnitButton', list.index(i)))
+                    self.menuModes.create_image(175, y, image = self.iconCancel, anchor = NW, tags = ('cancelUnitButton', list.index(i)))
             else:
                 if (self.wantToCancelUnitBuild == False):
-                    self.unitsConstructionPanel.create_arc((175, 5, 195, 25), start=0, extent= (i.constructionProgress / i.buildTime)*360 , fill='blue', tags = 'arc')
+                    self.menuModes.create_arc((175, y, 195, 55), start=0, extent= (i.constructionProgress / i.buildTime)*360 , fill='blue', tags = 'arc')
                 else:
-                    self.unitsConstructionPanel.create_image(175,5, image = self.iconCancel, anchor = NW, tags = ('cancelUnitButton', list.index(i)))
+                    self.menuModes.create_image(175,y, image = self.iconCancel, anchor = NW, tags = ('cancelUnitButton', list.index(i)))
 
             if (ok == True):
-                self.unitsConstructionPanel.itemconfig(l, text = str(r) + " " + i.name)
+                self.menuModes.itemconfig(l, text = str(r) + " " + i.name)
             else:
-                l = self.unitsConstructionPanel.create_text(5,y,text = str(r) + " " + i.name, anchor = NW, fill = 'white')
+                l = self.menuModes.create_text(5,y,text = str(r) + " " + i.name, anchor = NW, fill = 'white')
                 y+=20
+        self.menuModes.chat.grid_forget()
+        self.menuModes.entryMess.grid_forget()
 
 	#Frame du menu principal    
     def fMainMenu(self):
@@ -906,6 +930,12 @@ class View():
                 self.ongletTeam()
             elif (Button_pressed == "bouton_selectedUnit"):
                 self.ongletSelectedUnit()
+            elif (Button_pressed == "selected_unit"):
+                self.parent.select((float(bp[1]), float(bp[2])))
+                self.ongletSelectedUnit()
+            elif (Button_pressed == 'cancelUnitButton'):
+                self.parent.cancelUnit(bp[1])
+
 
     def takeOff(self, eve):
         planet = self.parent.players[self.parent.playerId].currentPlanet
@@ -953,8 +983,7 @@ class View():
                 self.parent.setChangeFormationFlag('c')
                 
     def progressCircleMouseOver(self,eve):
-        #if(posX >= self.unitsConstructionPanel.find_withtag('current')):
-        tag = self.unitsConstructionPanel.gettags(self.unitsConstructionPanel.find_withtag('current'))
+        tag = self.menuModes.gettags(self.menuModes.find_withtag('current'))
         if tag != ():
             if tag[0] == 'arc':
                 self.wantToCancelUnitBuild = True
@@ -965,12 +994,7 @@ class View():
         self.ongletChat(self.gameFrame)
         self.menuModes.entryMess.focus_set()
             
-    def clicCancelUnit(self,eve):
-        tag = self.unitsConstructionPanel.gettags(self.unitsConstructionPanel.find_withtag('current'))
-        if tag != ():
-            if tag[0] == 'cancelUnitButton':
-                self.parent.cancelUnit(tag[1])
-    
+   
     #Assignation des controles	
     def assignControls(self):
         self.gameArea.focus_set()
@@ -1001,11 +1025,9 @@ class View():
         self.gameArea.bind("<KeyRelease-Control_L>",self.ctrlDepressed)
         self.gameArea.bind("<Tab>",self.enterChat)
         #Bindings des boutons de la souris
-        self.unitsConstructionPanel.bind("<Motion>", self.progressCircleMouseOver)
-        self.unitsConstructionPanel.bind("<Button-1>", self.clicCancelUnit)
-        self.gameArea.bind("<Button-3>", self.rightclic)
-        self.gameArea.bind("<B3-Motion>", self.rightclic)
-        self.minimap.bind("<Button-3>", self.rightclic)
+        self.gameArea.bind("<Button-2>", self.rightclic)
+        self.gameArea.bind("<B2-Motion>", self.rightclic)
+        self.minimap.bind("<Button-2>", self.rightclic)
         self.gameArea.bind("<Button-1>", self.leftclic)
         self.minimap.bind("<B1-Motion>",self.leftclic)
         self.minimap.bind("<Button-1>",self.leftclic)
@@ -1014,5 +1036,6 @@ class View():
         self.gameArea.bind("<Motion>", self.posMouse)
         self.menuModes.entryMess.bind("<Return>",self.enter)
         self.menuModes.bind("<Button-1>",self.clickMenuModes)
+        self.menuModes.bind("<Motion>", self.progressCircleMouseOver)
         self.Actionmenu.bind("<Button-1>", self.clickActionMenu)
 
