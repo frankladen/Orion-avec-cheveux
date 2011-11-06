@@ -358,9 +358,12 @@ class Controller():
         self.view.actionMenuType = self.view.MAIN_MENU
         
     #Deplacement rapide de la camera vers un endroit de la minimap
-    def quickMove(self, x,y, canva):
+    def quickMove(self, x, y):
         if self.players[self.playerId].currentPlanet == None:
             posSelected = self.players[self.playerId].camera.calcPointOnMap(x,y)
+            self.players[self.playerId].camera.position = posSelected
+        else:
+            posSelected = self.players[self.playerId].camera.calcPointOnPlanetMap(x,y)
             self.players[self.playerId].camera.position = posSelected
         
     def takeOff(self, ship, planet, playerId):

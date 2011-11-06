@@ -94,6 +94,19 @@ class Camera():
         elif rY > self.galaxy.height/2-self.screenHeight/2:
             rY = self.galaxy.height/2-self.screenHeight/2
         return [rX, rY]
+		
+    def calcPointOnPlanetMap(self, x, y):
+        rX = x * self.player.currentPlanet.WIDTH / 200
+        rY = y * self.player.currentPlanet.HEIGHT / 200
+        if rX < 0 + self.screenWidth/2:
+            rX = 0 + self.screenWidth/2
+        elif rX > self.player.currentPlanet.WIDTH - self.screenWidth/2:
+            rX = self.player.currentPlanet.WIDTH - self.screenWidth/2
+        if rY < 0 + self.screenHeight/2:
+            rY = 0 + self.screenHeight/2
+        elif rY > self.player.currentPlanet.HEIGHT - self.screenHeight/2:
+            rY = self.player.currentPlanet.HEIGHT - self.screenHeight/2
+        return [rX, rY]
     
     #Pour calculer un point dans la galaxie a partir d'un point dans la minimap
     def calcPointMinimap(self,x ,y ):

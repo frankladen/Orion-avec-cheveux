@@ -881,7 +881,7 @@ class View():
                         self.parent.selectAll(pos)
                         self.ongletSelectedUnit()
         elif canva == self.minimap:
-            self.parent.quickMove(x,y,canva)
+            self.parent.quickMove(x,y)
 
     def selectAll(self, eve):
         self.selectAllUnits = True
