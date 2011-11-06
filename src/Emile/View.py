@@ -638,16 +638,16 @@ class View():
                         if players[self.parent.playerId].inViewRange(j.position):
                             self.drawMiniUnit(j)
         else:
-            self.minimap.create_rectangle(0,0,200,200, fill='white', tag='deletable')
+            self.minimap.create_rectangle(0,0,200,200, fill='#cc6600', tag='deletable')
             planet = self.parent.players[self.parent.playerId].currentPlanet
-            # for i in planet.minerals:
-                # self.drawMiniMinerals(i)
-            # for i in planet.gaz:
-                # self.drawMiniGaz(i)
-            # for i in planet.landingZones:
-                # self.drawMiniLandingZone(i)
-            # for i in planet.units:
-                # self.drawMiniGroundUnit(i)
+            for i in planet.minerals:
+                self.drawMiniMinerals(i, planet)
+            for i in planet.gaz:
+                self.drawMiniGaz(i, planet)
+            for i in planet.landingZones:
+                self.drawMiniLandingZone(i, planet)
+            for i in planet.units:
+                self.drawMiniGroundUnit(i, planet)
         self.drawMiniFOV()
         
     def redrawMinimap(self):
@@ -669,16 +669,16 @@ class View():
                         if players[self.parent.playerId].inViewRange(j.position):
                             self.drawMiniUnit(j)
         else:
-            self.minimap.create_rectangle(0,0,200,200, fill='white', tag='deletable')
+            self.minimap.create_rectangle(0,0,200,200, fill='#cc6600', tag='deletable')
             planet = self.parent.players[self.parent.playerId].currentPlanet
-            # for i in planet.minerals:
-                # self.drawMiniMinerals(i)
-            # for i in planet.gaz:
-                # self.drawMiniGaz(i)
-            # for i in planet.landingZones:
-                # self.drawMiniLandingZone(i)
-            # for i in planet.units:
-                # self.drawMiniGroundUnit(i)
+            for i in planet.minerals:
+                self.drawMiniMinerals(i, planet)
+            for i in planet.gaz:
+                self.drawMiniGaz(i, planet)
+            for i in planet.landingZones:
+                self.drawMiniLandingZone(i, planet)
+            for i in planet.units:
+                self.drawMiniGroundUnit(i, planet)
         self.drawMiniFOV()
 
     #Dessine le carrer de la camera dans la minimap    
@@ -753,15 +753,35 @@ class View():
                 self.minimap.create_polygon((unitX-4, planetY+2, unitX, planetY-2, unitX+4, planetY+2),fill='WHITE', tag='deletable')
             else:
                 self.minimap.create_polygon((unitX-4, planetY+2, unitX, planetY-2, unitX+4, planetY+2),fill='RED', tag='deletable')
-    # def drawMiniMinerals(self, mineral):
-	    # print('mineral')
-    # def drawMiniGaz(self, gaz):
-        # print('gaz')
-    # def drawMiniLandingZone(self, zone):
-        # print('landing')
-    # def drawMiniGroundUnit(self, unit):
-        # print('Ground')
-    #Dessine la boite de selection lors du clic-drag	
+    def drawMiniMinerals(self, mineral, planet):
+        if mineral.nbMinerals > 0:
+            x = int(mineral.position[0] * 200 / planet.WIDTH)
+            y = int(mineral.position[1] * 200 / planet.HEIGHT)
+            self.minimap.create_polygon(x-mineral.WIDTH/8, y, x, y-mineral.HEIGHT/8 ,x+mineral.WIDTH/8, y, x, y+mineral.HEIGHT/8, fill='CYAN', outline='BLACK')
+            #self.minimap.create_oval(x-mineral.WIDTH/8, y-mineral.HEIGHT/8, x+mineral.WIDTH/8, y+mineral.HEIGHT/8,fill='CYAN')
+
+    def drawMiniGaz(self, gaz, planet):
+        if gaz.nbGaz > 0:
+            x = int(gaz.position[0] * 200 / planet.WIDTH)
+            y = int(gaz.position[1] * 200 / planet.HEIGHT)
+            self.minimap.create_oval(x-gaz.WIDTH/8, y-gaz.HEIGHT/8, x+gaz.WIDTH/8, y+gaz.HEIGHT/8,fill='GREEN')
+
+    def drawMiniLandingZone(self, zone, planet):
+        x = int(zone.position[0] * 200 / planet.WIDTH)
+        y = int(zone.position[1] * 200 / planet.HEIGHT)
+        if zone.ownerId == self.parent.playerId:
+            self.minimap.create_rectangle(x-zone.WIDTH/8, y-zone.HEIGHT/8, x+zone.WIDTH/8, y+zone.HEIGHT/8, fill='WHITE')
+        else:
+            self.minimap.create_rectangle(x-zone.WIDTH/8, y-zone.HEIGHT/8, x+zone.WIDTH/8, y+zone.HEIGHT/8, fill='RED')
+
+    def drawMiniGroundUnit(self, unit, planet):
+        x = int(unit.position[0] * 200 / planet.WIDTH)
+        y = int(unit.position[1] * 200 / planet.HEIGHT)
+        if unit.owner == self.parent.playerId:
+            self.minimap.create_oval(x-unit.SIZE[unit.type][0]/8, y-unit.SIZE[unit.type][1]/8, x+unit.SIZE[unit.type][0]/8, y+unit.SIZE[unit.type][1]/8, fill='WHITE', outline='black', tag='deletable')
+        else:
+            self.minimap.create_oval(x-unit.SIZE[unit.type][0]/8, y-unit.SIZE[unit.type][1]/8, x+unit.SIZE[unit.type][0]/8, y+unit.SIZE[unit.type][1]/8, fill='RED', outline='black', tag='deletable')
+	#Dessine la boite de selection lors du clic-drag	
     def drawSelectionBox(self):
         self.gameArea.create_rectangle(self.selectStart[0], self.selectStart[1], self.selectEnd[0], self.selectEnd[1], outline='WHITE', tag='deletable')
 

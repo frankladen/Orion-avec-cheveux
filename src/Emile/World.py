@@ -198,9 +198,9 @@ class Planet(Target):
             while not posFound:
                 posFound = True
                 position = [random.random()*Planet.WIDTH, random.random()*Planet.HEIGHT]
-                if position[0] < 0 or position[0] > Planet.WIDTH-Planet.PADDING-MineralStack.WIDTH/2:
+                if position[0] < Planet.PADDING or position[0] > Planet.WIDTH-Planet.PADDING-MineralStack.WIDTH/2:
                     posFound = False
-                if position[1] < 0 or position[1] > Planet.HEIGHT-Planet.PADDING-MineralStack.HEIGHT/2:
+                if position[1] < Planet.PADDING or position[1] > Planet.HEIGHT-Planet.PADDING-MineralStack.HEIGHT/2:
                     posFound = False
                 for i in self.minerals:
                     if position[0] > i.position[0]-i.WIDTH and position[0] < i.position[0]+i.WIDTH:
@@ -214,9 +214,9 @@ class Planet(Target):
             while not posFound:
                 posFound = True
                 position = [random.random()*Planet.WIDTH, random.random()*Planet.HEIGHT]
-                if position[0] < 0 or position[0] > Planet.WIDTH-Planet.PADDING-GazStack.WIDTH/2:
+                if position[0] < Planet.PADDING or position[0] > Planet.WIDTH-Planet.PADDING-GazStack.WIDTH/2:
                     posFound = False
-                if position[1] < 0 or position[1] > Planet.HEIGHT-Planet.PADDING-GazStack.HEIGHT/2:
+                if position[1] < Planet.PADDING or position[1] > Planet.HEIGHT-Planet.PADDING-GazStack.HEIGHT/2:
                     posFound = False
                 for i in self.minerals:
                     if position[0] > i.position[0]-i.WIDTH and position[0] < i.position[0]+i.WIDTH:

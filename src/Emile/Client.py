@@ -50,6 +50,7 @@ class Controller():
         for i in self.players[self.playerId].selectedObjects:
             units += str(self.players[self.playerId].units.index(i))+ ","
         self.pushChange(units, Flag(t.Target([0,0,0]), t.Target([x,y,0]),FlagState.GROUND_MOVE))
+
     def setDefaultMovingFlag(self,x,y, unit):
         units = ''
         send = False
