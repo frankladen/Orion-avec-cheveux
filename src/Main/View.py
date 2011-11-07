@@ -119,20 +119,48 @@ class View():
         self.showGaz = Label(gameFrame, text="Gaz: "+str(self.parent.players[self.parent.playerId].gaz), bg="black", fg="white", anchor=E)
         self.showGaz.grid(column=3, row=0)
         self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille-200, background='Black', relief='ridge')
-        self.gameArea.grid(column=0,row=1, columnspan=5)#place(relx=0, rely=0,width=taille,height=taille)
+        self.gameArea.grid(column=0,row=1, columnspan=7)#place(relx=0, rely=0,width=taille,height=taille)
         self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
         self.minimap.grid(column=0,row=2, rowspan=4)
         self.menuModes=Canvas(gameFrame, width=self.taille, height=200, background='black', relief='ridge')
-        self.menuModes.grid(row=2,column=2, rowspan=4)
+        self.menuModes.grid(row=2,column=2, rowspan=4, columnspan=5)
+        #OngletChat
         self.menuModes.chat = Label(gameFrame, anchor=W, justify=LEFT, width=75, background='black', fg='white', relief='raised')
         self.menuModes.entryMess = Entry(gameFrame, width=60)
-        self.Actionmenu = Canvas(gameFrame,width=(self.taille/4),height=(self.taille/4),background='black')
-        self.Actionmenu.grid(column=3,row=2, rowspan=4)
+        #Fenetres trade
+        self.menuModes.variableTrade = StringVar(gameFrame)
+        self.menuModes.tradeOPTIONS = []
+        for i in self.parent.players:
+            self.menuModes.tradeOPTIONS.append(i.name)
+        self.menuModes.variableTrade.set(self.menuModes.tradeOPTIONS[0])
+        self.menuModes.tradeChoice = OptionMenu(gameFrame, self.menuModes.variableTrade, *self.menuModes.tradeOPTIONS, command=self.parent.askTrade)
+        self.answerId=0
+        self.answerId2=0
+        self.menuModes.yesButton = Button(gameFrame, text="Oui", command=lambda:self.parent.startTrade(True, self.answerId))
+        self.menuModes.noButton = Button(gameFrame, text="Non", command=lambda:self.parent.startTrade(False, self.answerId))
+        self.menuModes.yesButtonConfirm = Button(gameFrame, text="Oui", command=lambda:self.parent.confirmTrade(True, self.answerId, min1, min2, gaz1, gaz2))
+        self.menuModes.noButtonConfirm = Button(gameFrame, text="Non", command=lambda:self.parent.confirmTrade(False, self.answerId, min1, min2, gaz1, gaz2))
+        self.menuModes.modifyButtonConfirm = Button(gameFrame, text="Contre-offre", command=lambda:self.parent.startTrade(True,self.parent.playerId))
+        self.menuModes.nomJoueur1 = Label(gameFrame, text=self.parent.players[self.answerId].name, bg="black", fg="white")
+        self.menuModes.etiqMenieral1 = Label(gameFrame,text='Minerals ', bg="black", fg="white")
+        self.menuModes.etiqGaz1 = Label(gameFrame,text='Gaz ', bg="black", fg="white")
+        self.menuModes.nomJoueur2 = Label(gameFrame, text=self.parent.players[self.answerId2].name, bg="black", fg="white")
+        self.menuModes.etiqMenieral2 = Label(gameFrame,text='Minerals ', bg="black", fg="white")
+        self.menuModes.bEchange = Button(gameFrame,text="Échange",command=lambda:self.parent.confirmTradeQuestion(self.answerId2))
+        self.menuModes.etiqGaz2 = Label(gameFrame,text='Gaz ', bg="black", fg="white")
+        self.menuModes.spinMinerals1 = Spinbox(gameFrame, from_=0, to=self.parent.players[self.answerId].mineral)
+        self.menuModes.spinGaz1 = Spinbox(gameFrame, from_=0, to=self.parent.players[self.answerId].gaz)
+        self.menuModes.spinMinerals2 = Spinbox(gameFrame, from_=0, to=self.parent.players[self.answerId2].mineral)
+        self.menuModes.spinGaz2 = Spinbox(gameFrame, from_=0, to=self.parent.players[self.answerId2].gaz)
+        
+        #ActionMenu
+        self.Actionmenu = Canvas(gameFrame,width=200,height=200,background='black')
+        self.Actionmenu.grid(column=7,row=2, rowspan=4)
         self.changeBackground('GALAXY')
         self.drawWorld()
         self.createActionMenu(self.MAIN_MENU)
         self.unitsConstructionPanel = Canvas(gameFrame, width = 200, height = self.taille/2, background = 'black', relief = "ridge")
-        self.unitsConstructionPanel.grid(column = 3, row = 1)
+        self.unitsConstructionPanel.grid(column = 7, row = 1)
         self.ongletChat(gameFrame)
         self.assignControls()
         return gameFrame
@@ -140,14 +168,70 @@ class View():
     def ongletTeam(self):
         self.menuModesOnlets() 
         self.menuModes.create_text(150,50,text='voici le menu Team',fill='white')
-        self.menuModes.chat.grid_forget()
-        self.menuModes.entryMess.grid_forget()
         
-    def ongletTrade(self):
+    def ongletTradeChoicePlayer(self):
         self.menuModesOnlets()
-        self.menuModes.create_text(150,50,text='voici le menu Tradeeee',fill='red')
-        self.menuModes.chat.grid_forget()
-        self.menuModes.entryMess.grid_forget()
+        self.menuModes.tradeChoice.grid(row=3, column=2)
+
+    def ongletTradeWaiting(self):
+        self.menuModesOnlets()
+        self.menuModes.create_text(150,50,text='En attente de la réponse de l\'autre joueur.',fill='white')
+
+    def ongletTradeNoAnswer(self):
+        self.menuModesOnlets()
+        self.menuModes.create_text(150,50,text='L\'autre joueur a refusé l\'échange.',fill='white')
+
+    def ongletTradeYesAnswer(self):
+        self.menuModesOnlets()
+        self.menuModes.create_text(150,50,text='L\'échange a été conclue.',fill='white')
+
+    def ongletTradeYesNoQuestion(self, id1):
+        self.menuModesOnlets()
+        self.answerId = id1
+        self.menuModes.create_text(150,50,text='Voulez-vous accepter la demande d\'échange avec '+self.parent.players[id1].name+'?',fill='white')
+        self.menuModes.yesButton.grid(row=3,column=2)
+        self.menuModes.noButton.grid(row=3,column=3)
+
+    def ongletTradeAskConfirm(self, id1, min1, min2, gaz1, gaz2):
+        self.menuModesOnlets()
+        self.answerId = id1
+        self.menuModes.create_text(165,50,text=''+self.parent.players[self.answerId].name+' vous offre '+min1+' unités de ses minéraux et '+gaz1+' unités de son gaz',fill='white')
+        self.menuModes.create_text(160,65,text='contre '+min2+' unités de vos minéraux et '+gaz2+' unités de votre gaz',fill='white')
+        self.menuModes.yesButtonConfirm.config(command=lambda:self.parent.confirmTrade(True, self.answerId, min1, min2, gaz1, gaz2))
+        self.menuModes.noButtonConfirm.config(command=lambda:self.parent.confirmTrade(False, self.answerId, min1, min2, gaz1, gaz2))
+        self.menuModes.yesButtonConfirm.grid(row=4,column=2)
+        self.menuModes.noButtonConfirm.grid(row=4,column=3)
+        self.menuModes.modifyButtonConfirm.grid(row=4,column=4)
+
+    def ongletTrade(self, id1, id2):
+        self.menuModesOnlets()
+        self.answerId = id1
+        self.answerId2 = id2
+        if self.parent.isMasterTrade==True:
+            #Fenetre trade spins
+            self.menuModes.nomJoueur1.config(text=self.parent.players[self.answerId].name)
+            self.menuModes.nomJoueur2.config(text=self.parent.players[self.answerId2].name)
+            self.menuModes.spinGaz2.config(to=self.parent.players[self.answerId2].gaz)
+            self.menuModes.spinGaz1.config(to=self.parent.players[self.answerId].gaz)
+            self.menuModes.spinMinerals1.config(to=self.parent.players[self.answerId].mineral)
+            self.menuModes.spinMinerals2.config(to=self.parent.players[self.answerId2].mineral)
+            self.menuModes.nomJoueur1.grid(row=3,column=3)
+            self.menuModes.etiqMenieral1.grid(row=4,column=2)
+            self.menuModes.spinMinerals1.grid(row=4,column=3)
+            # gaz Joueurs 1
+            self.menuModes.etiqGaz1.grid(row=5,column=2)
+            self.menuModes.spinGaz1.grid(row=5,column=3)
+            # Bouton ECHANGE
+            self.menuModes.bEchange.grid(column=4,row=2)
+            # minerals Joueurs 2
+            self.menuModes.nomJoueur2.grid(row=3,column=5)
+            self.menuModes.etiqMenieral2.grid(row=4,column=5)
+            self.menuModes.spinMinerals2.grid(row=4,column=6)
+            # gaz Joueurs 2
+            self.menuModes.etiqGaz2.grid(row=5,column=5)
+            self.menuModes.spinGaz2.grid(row=5,column=6)
+        else:
+            self.menuModes.create_text(150,50,text='Attente de l\'offre de l\'autre joueur.',fill='white')
         
     def ongletSelectedUnit(self):
         self.menuModesOnlets()
@@ -178,14 +262,33 @@ class View():
         
     def ongletChat(self,gameFrame):
         self.menuModesOnlets()
-        self.menuModes.chat.grid(row=3, column=2)
-        self.menuModes.entryMess.grid(row=4, column=2)
+        self.menuModes.chat.grid(row=3, column=3, columnspan=3)
+        self.menuModes.entryMess.grid(row=4, column=3, columnspan=3)
         self.menuModes.entryMess.bind("<Return>",self.enter)
         self.parent.refreshMessages(self.menuModes.chat)
         
     # delete tout ce qu'il y a dans le canvas menuModes + affiche les 3 menus
     def menuModesOnlets(self):
         self.menuModes.delete(ALL)
+        self.menuModes.chat.grid_forget()
+        self.menuModes.entryMess.grid_forget()
+        self.menuModes.yesButton.grid_forget()
+        self.menuModes.noButton.grid_forget()
+        self.menuModes.yesButtonConfirm.grid_forget()
+        self.menuModes.noButtonConfirm.grid_forget()
+        self.menuModes.tradeChoice.grid_forget()
+        self.menuModes.etiqMenieral1.grid_forget()
+        self.menuModes.etiqMenieral2.grid_forget()
+        self.menuModes.nomJoueur1.grid_forget()
+        self.menuModes.nomJoueur2.grid_forget()
+        self.menuModes.spinMinerals1.grid_forget()
+        self.menuModes.spinMinerals2.grid_forget()
+        self.menuModes.etiqGaz1.grid_forget()
+        self.menuModes.etiqGaz2.grid_forget()
+        self.menuModes.spinGaz1.grid_forget()
+        self.menuModes.spinGaz2.grid_forget()
+        self.menuModes.bEchange.grid_forget()
+        self.menuModes.modifyButtonConfirm.grid_forget()
         self.menuModes.create_image(0,0,image=self.gifChat,anchor = NW,tag='bouton_chat')
         self.menuModes.create_image(77,0,image=self.gifTrade,anchor = NW,tag='bouton_trade')
         self.menuModes.create_image(150,0,image=self.gifTeam,anchor = NW,tag='bouton_team')
@@ -323,6 +426,7 @@ class View():
         #On doit attendre un peu afin de laisser le temps au serveur de partir et de se terminer si une erreur arrive
         #time.sleep(1)
         #On vérifie si le serveur s'est terminé en erreur et si oui, on affiche un message à l'utilisateur
+        time.sleep(1)
         if child.poll():
             if child.returncode != None:
                 self.serverNotCreated()
@@ -1018,7 +1122,19 @@ class View():
             if (Button_pressed == "bouton_chat"):
                 self.ongletChat(self.gameFrame)
             elif (Button_pressed == "bouton_trade"):
-                self.ongletTrade()
+                if self.parent.tradePage==-1:
+                    self.ongletTradeChoicePlayer()
+                elif self.parent.tradePage==1:
+                    self.ongletTradeWaiting()
+                elif self.parent.tradePage==2:
+                    if self.parent.isMasterTrade == True:
+                        self.ongletTrade(self.parent.playerId,self.parent.idTradeWith)
+                    else:
+                        self.ongletTrade(self.parent.idTradeWith,self.parent.playerId)
+                elif self.parent.tradePage==3:
+                    self.ongletTradeYesNoQuestion(self.parent.idTradeWith)
+                elif self.parent.tradePage==4:
+                    self.ongletTradeAskConfirm(self.parent.idTradeWith,self.parent.toTrade[0],self.parent.toTrade[1],self.parent.toTrade[2],self.parent.toTrade[3])
             elif (Button_pressed == "bouton_team"):
                 self.ongletTeam()
             elif (Button_pressed == "bouton_selectedUnit"):
