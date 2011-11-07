@@ -7,12 +7,15 @@ import socket
 class Player():
     def __init__(self, name, id , colorId, civilization=None):
         self.name = name
+        self.id = id #Numero du joueur dans la liste de joueur
         self.civilization = civilization
         self.colorId = colorId
         self.selectedObjects = [] #Liste des unites selectionnes
         self.units = [] #Liste de toute les unites
-        self.diplomacies=['Ally','Enemy','Enemy','Enemy','Enemy','Enemy','Enemy','Enemy']
-        self.id = id #Numero du joueur dans la liste de joueur
+        self.diplomacies=[]
+        for i in range(8):
+            self.diplomacies.append('Enemy')
+        self.diplomacies[self.id] = 'Ally'
         self.startPos = [0,0,0] #Position de depart du joueur (pour le mothership)
         self.motherShip = None
         self.formation="carre"
@@ -43,11 +46,8 @@ class Player():
         if default[1]+self.camera.screenCenter[1] > self.camera.galaxy.height/2:
             self.camera.position[1] = (self.camera.galaxy.height)/2-self.camera.screenCenter[1]
         
-    def changeDiplomacy(self, playerToChange):
-        if self.diplomacies[playerToChange] == 'Enemy':
-            self.diplomacies[playerToChange] = 'Ally'
-        else:
-            self.diplomacies[playerToChange] = 'Enemy'
+    def changeDiplomacy(self, playerToChange, newStatus):
+        self.diplomacies[playerToChange] = newStatus
             
     def inViewRange(self, position):
         x = position[0]

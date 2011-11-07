@@ -15,6 +15,10 @@ class FlagState():
     CHANGE_RALLY_POINT = 1024
     CANCEL_UNIT = 2048
     BUILD_UNIT = 4096
+    CHANGE_FORMATION = 8192
+    TRADE = 16384
+    DESTROY_ALL = 32768
+    DEMAND_ALLIANCE = 65536
 
 #Represente un flag
 class Flag():

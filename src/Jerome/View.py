@@ -28,21 +28,10 @@ class View():
         self.taille=self.root.winfo_screenheight()-125
         if self.taille>800:
             self.taille=800
-        self.root.geometry('+25+5')
+        self.root.geometry('+5+5')
         self.selectStart = [0,0]
         self.selectEnd = [0,0]
         self.positionMouse = [0,0,0]
-        self.mainMenuBG = PhotoImage(file='images/Menus/MainMenuBG.gif')
-        self.mainMenu = self.fMainMenu()
-        self.mainMenu.pack()
-        self.pLobby = None
-        self.currentFrame = self.mainMenu
-        self.gameFrame = None
-        self.joinGame = self.fJoinGame()
-        self.createServer = self.fCreateServer()
-        self.actionMenuType = self.MAIN_MENU
-        self.Actionmenu = None
-        self.unitsConstructionPanel = None
         self.sun=PhotoImage(file='images/Galaxy/sun.gif')
         self.sunFOW = PhotoImage(file='images/Galaxy/sunFOW.gif')
         self.planet=PhotoImage(file='images/Galaxy/planet.gif')
@@ -55,25 +44,39 @@ class View():
         self.mineral = PhotoImage(file='images/Planet/crystal.gif')
         self.planetBackground = PhotoImage(file='images/Planet/background.gif')
         self.galaxyBackground = PhotoImage(file='images/Galaxy/night-sky.gif')
-        self.gifStop = PhotoImage(file='images/icones/stop2.gif')
-        self.gifMove = PhotoImage(file='images/icones/move2.gif')
-        self.gifCancel = PhotoImage(file='images/icones/delete2.gif')
-        self.gifAttack = PhotoImage(file='images/icones/attack2.gif')
-        self.gifAttackUnit = PhotoImage(file='images/icones/attack3.gif')
-        self.gifRallyPoint = PhotoImage(file='images/icones/icone2.gif')
+        self.lobbyBackground = PhotoImage(file='images/Menus/lobby.gif')
+        self.mainMenuBG = PhotoImage(file='images/Menus/MainMenuBG.gif')
+        self.gifStop = PhotoImage(file='images/icones/stop.gif')
+        self.gifMove = PhotoImage(file='images/icones/move.gif')
+        self.gifDelete = PhotoImage(file='images/icones/delete.gif')
+        self.gifAttack = PhotoImage(file='images/icones/attack.gif')
+        self.gifAttackUnit = PhotoImage(file='images/icones/attackUnit.gif')
+        self.gifRallyPoint = PhotoImage(file='images/icones/flag.gif')
         self.gifBuild = PhotoImage(file = 'images/icones/build.gif')
-        self.gifCadreMenuAction = PhotoImage(file = 'images/cadreMenuAction2.gif')
+        self.gifCadreMenuAction = PhotoImage(file = 'images/Menus/cadreMenuAction.gif')
         self.iconCancel = PhotoImage(file = 'images/icones/cancelUnit.gif')
-        self.gifPatrol = PhotoImage(file='images/icones/patrol2.gif')
+        self.gifPatrol = PhotoImage(file='images/icones/patrol.gif')
         self.gifChat = PhotoImage(file='images/icones/boutonChat.gif')
         self.gifTrade = PhotoImage(file='images/icones/boutonTrade.gif')
         self.gifTeam = PhotoImage(file='images/icones/boutonTeam.gif')
         self.gifTransport = PhotoImage(file='images/icones/transport.gif')
         self.gifCargo = PhotoImage(file='images/icones/cargo.gif')
-        self.gifUnit = PhotoImage(file='images/icones/unit.gif')
+        self.gifUnit = PhotoImage(file='images/icones/scout.gif')
         self.gifSelectedUnit = PhotoImage(file='images/icones/boutonSelectedUnit.gif')
         self.gifTriangle = PhotoImage(file='images/icones/iconeFormationTriangle.gif')
         self.gifSquare = PhotoImage(file='images/icones/iconeFormationCarre.gif')
+        self.gifReturn = PhotoImage(file='images/icones/return.gif')
+        #fenetres
+        self.mainMenu = self.fMainMenu()
+        self.mainMenu.pack()
+        self.pLobby = None
+        self.currentFrame = self.mainMenu
+        self.gameFrame = None
+        self.joinGame = self.fJoinGame()
+        self.createServer = self.fCreateServer()
+        self.actionMenuType = self.MAIN_MENU
+        self.Actionmenu = None
+        self.unitsConstructionPanel = None
         #booleens d'actions
         self.firstTime = True
         self.attacking = False
@@ -116,54 +119,69 @@ class View():
         self.showGaz = Label(gameFrame, text="Gaz: "+str(self.parent.players[self.parent.playerId].gaz), bg="black", fg="white", anchor=E)
         self.showGaz.grid(column=3, row=0)
         self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille-200, background='Black', relief='ridge')
-        self.gameArea.grid(column=0,row=1, columnspan=5)#place(relx=0, rely=0,width=taille,height=taille)
+        self.gameArea.grid(column=1,row=1, columnspan=3)
         self.minimap= Canvas(gameFrame, width=self.MINIMAP_WIDTH, height=self.MINIMAP_HEIGHT, background='Black', relief='raised')
-        self.minimap.grid(column=0,row=2, rowspan=4)
+        self.minimap.grid(column=0,row=2, rowspan=5)
         self.menuModes=Canvas(gameFrame, width=self.taille, height=200, background='black', relief='ridge')
-        self.menuModes.grid(row=2,column=2, rowspan=4)
+        self.menuModes.grid(row=2,column=1, rowspan=5, columnspan=3)
         self.menuModes.chat = Label(gameFrame, anchor=W, justify=LEFT, width=75, background='black', fg='white', relief='raised')
         self.menuModes.entryMess = Entry(gameFrame, width=60)
-        self.diplomacies = []
-        self.menuModes.checkAliances=[]
-        for i in range(len(self.parent.players)):
-            self.diplomacies.append('Enemy')
-            self.menuModes.checkAliances.append(Checkbutton(gameFrame, text='Allié', onvalue="Ally", offvalue="Enemy", variable=self.diplomacies[i]))
-            self.menuModes.checkAliances[i].deselect()
-            self.menuModes.checkAliances[i].bind(self.refreshAlliances)
+        self.menuModes.listAllies = Listbox(gameFrame, width=40, height=7, background='black', fg='white', relief='raised', selectmode=BROWSE)
+        self.menuModes.listEnnemies = Listbox(gameFrame, width=40, height=7, background='black', fg='white', relief='raised', selectmode=BROWSE)
+        self.menuModes.labelAlly = Label(gameFrame, background='black', fg='Green', text="Allies", font="Arial 12 bold")
+        self.menuModes.labelEnnemy = Label(gameFrame, background='black', fg='Red', text="Ennemies", font="Arial 12 bold")
+        self.menuModes.toAllyButton = Button(gameFrame, text="<", command=self.changeToAlly)
+        self.menuModes.toEnnemyButton = Button(gameFrame, text=">", command=self.changeToEnnemy)
+        self.menuModes.create_image(0,0,image=self.gifChat,anchor = NW,tag='bouton_chat')
+        self.menuModes.create_image(77,0,image=self.gifTrade,anchor = NW,tag='bouton_trade')
+        self.menuModes.create_image(150,0,image=self.gifTeam,anchor = NW,tag='bouton_team')
+        self.menuModes.create_image(227,0,image=self.gifSelectedUnit,anchor = NW,tag='bouton_selectedUnit')
         self.Actionmenu = Canvas(gameFrame,width=(self.taille/4),height=(self.taille/4),background='black')
-        self.Actionmenu.grid(column=3,row=2, rowspan=4)
+        self.Actionmenu.grid(column=4,row=2, rowspan=5)
         self.changeBackground('GALAXY')
         self.drawWorld()
         self.createActionMenu(self.MAIN_MENU)
         self.unitsConstructionPanel = Canvas(gameFrame, width = 200, height = self.taille/2, background = 'black', relief = "ridge")
-        self.unitsConstructionPanel.grid(column = 3, row = 1)
+        self.unitsConstructionPanel.grid(column = 4, row = 1)
         self.ongletChat(gameFrame)
         self.assignControls()
         return gameFrame
 
     def ongletTeam(self):
-        self.menuModesOnlets() 
-        self.menuModes.create_text(80,40,text='Diplomatie',fill='lightblue', font="Arial 12 bold")
+        self.menuModesOnlets()
+        self.menuModes.labelAlly.grid(row=3, column=1)
+        self.menuModes.labelEnnemy.grid(row=3, column=3)
+        self.menuModes.listAllies.grid(row=4, rowspan=2, column=1)
+        self.menuModes.listEnnemies.grid(row=4, rowspan=2, column=3)
+        self.menuModes.toAllyButton.grid(row=4, column=2)
+        self.menuModes.toEnnemyButton.grid(row=5, column=2)
         for i in range(len(self.parent.players)):
             if i != self.parent.playerId:
-                if i in self.parent.players[self.parent.playerId].allies:
-                    color='green'
+                if self.parent.players[self.parent.playerId].diplomacies[i] == 'Ally':
+                    self.menuModes.listAllies.insert(END,self.parent.players[i].name)
                 else:
-                    color='red'
-                self.menuModes.create_text(100, 40 + 40*i, text=self.parent.players[i].name, fill=color, font="Arial 10")
-                self.menuModes.checkAliances[i].grid(row=4, column = 2+i)
-                
-                
-    def refreshAlliances(self, eve):
-        player = self.menuModes.checkAliances.index(eve.widget)
-        newStatus = self.diplomacies[player]
-        print("Id du player changé: " + str(player))
-        print("Nouveau status: " + str(newStatus))
-        self.parent.changeAlliance(player, newStatus)
+                    self.menuModes.listEnnemies.insert(END,self.parent.players[i].name)
+                    
+    def changeToAlly(self):
+        selected = self.menuModes.listEnnemies.curselection()
+        playerName = self.menuModes.listEnnemies.get(selected)
+        if len(selected) > 0:
+            self.menuModes.listAllies.insert(END, self.menuModes.listEnnemies.get(selected) +  ' ?')
+            self.menuModes.listEnnemies.delete(int(selected[0]))
+        self.parent.changeAlliance(playerName, "Ally")
+        
+    def changeToEnnemy(self):
+        selected = self.menuModes.listAllies.curselection()
+        playerName = self.menuModes.listAllies.get(selected)
+        playerName = playerName.replace(" ?", "")
+        if len(selected) > 0:
+            self.menuModes.listEnnemies.insert(END, playerName)
+            self.menuModes.listAllies.delete(int(selected[0]))
+        self.parent.changeAlliance(playerName, "Ennemy")
         
     def ongletTrade(self):
         self.menuModesOnlets()
-        self.menuModes.create_text(150,50,text='voici le menu Tradeeee',fill='red')
+        self.menuModes.create_text(150,50,text='voici le menu Tradeeee',fill='red', tag='deletable')
         
     def ongletSelectedUnit(self):
         self.menuModesOnlets()
@@ -186,7 +204,7 @@ class View():
                 for u in range(0, len(unitToDraw)):
                     if unitToDraw[u][2] != 0:
                         for numberofunit in range(0, unitToDraw[u][2]):
-                            self.menuModes.create_image((numberofunit*30)+ 5, y, image = unitToDraw[u][0], anchor = NW)
+                            self.menuModes.create_image((numberofunit*30)+ 5, y, image = unitToDraw[u][0], anchor = NW, tag='deletable')
                         y+=35
         
     def ongletChat(self,gameFrame):
@@ -200,11 +218,19 @@ class View():
     def menuModesOnlets(self):
         self.menuModes.chat.grid_forget()
         self.menuModes.entryMess.grid_forget()
-        self.menuModes.delete(ALL)
-        self.menuModes.create_image(0,0,image=self.gifChat,anchor = NW,tag='bouton_chat')
-        self.menuModes.create_image(77,0,image=self.gifTrade,anchor = NW,tag='bouton_trade')
-        self.menuModes.create_image(150,0,image=self.gifTeam,anchor = NW,tag='bouton_team')
-        self.menuModes.create_image(227,0,image=self.gifSelectedUnit,anchor = NW,tag='bouton_selectedUnit')
+        self.menuModes.listAllies.grid_forget()
+        self.menuModes.listAllies.delete(0, END)
+        self.menuModes.listEnnemies.grid_forget()
+        self.menuModes.listEnnemies.delete(0, END)
+        self.menuModes.labelEnnemy.grid_forget()
+        self.menuModes.labelAlly.grid_forget()
+        self.menuModes.toEnnemyButton.grid_forget()
+        self.menuModes.toAllyButton.grid_forget()
+        self.menuModes.delete('deletable')
+        #self.menuModes.create_image(0,0,image=self.gifChat,anchor = NW,tag='bouton_chat')
+        #self.menuModes.create_image(77,0,image=self.gifTrade,anchor = NW,tag='bouton_trade')
+        #self.menuModes.create_image(150,0,image=self.gifTeam,anchor = NW,tag='bouton_team')
+        #self.menuModes.create_image(227,0,image=self.gifSelectedUnit,anchor = NW,tag='bouton_selectedUnit')
 
     def createActionMenu(self, type):
         self.Actionmenu.delete(ALL)
@@ -219,6 +245,7 @@ class View():
                     self.Actionmenu.create_image(13,35,image=self.gifMove,anchor = NW, tags = 'Button_Move')
                     self.Actionmenu.create_image(76,35,image=self.gifStop,anchor = NW, tags = 'Button_Stop')
                     self.Actionmenu.create_image(140,35,image=self.gifPatrol,anchor = NW, tags = 'Button_Patrol')
+                    self.Actionmenu.create_image(13,143,image=self.gifDelete,anchor = NW, tags = 'Button_Delete')
                     if isinstance(units[0], SpaceAttackUnit):
                         self.Actionmenu.create_image(13,89,image=self.gifAttack,anchor = NW, tags = 'Button_Attack')
                 if len(self.parent.players[self.parent.playerId].selectedObjects) > 1:
@@ -228,16 +255,20 @@ class View():
             self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
             self.Actionmenu.create_image(13,35,image = self.gifUnit, anchor = NW, tags = 'Button_Build_Scout')
             self.Actionmenu.create_image(76,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Build_Attack')
-            self.Actionmenu.create_image(139,35,image = self.gifCargo, anchor = NW, tags = 'Button_Build_Gather')
+            self.Actionmenu.create_image(140,35,image = self.gifCargo, anchor = NW, tags = 'Button_Build_Gather')
             self.Actionmenu.create_image(13,89,image = self.gifTransport, anchor = NW, tags = 'Button_Build_Transport')
         elif(type == self.WAITING_FOR_RALLY_POINT_MENU):
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le point de ralliement du vaisseau mère.",anchor = NW, fill = 'white', width = 200)
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.WAITING_FOR_ATTACK_POINT_MENU):
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le unit / building que vous voulez attaquer.",anchor = NW, fill = 'white', width = 200)
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.WAITING_FOR_MOVE_POINT_MENU):
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le mouvement de vos units sélectionnés.",anchor = NW, fill = 'white', width = 200)
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.WAITING_FOR_PATROL_POINT_MENU):
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le mouvement de patrouille de vos units d'attaques sélectionnés",anchor = NW, fill = 'white', width = 200)
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         
 
     def createUnitsConstructionPanel(self):
@@ -280,18 +311,19 @@ class View():
     #Frame permettant de rejoindre une partie
     def fJoinGame(self):
         joinGameFrame = Frame(self.root, bg="black")
-        Label(joinGameFrame, text="Nom de joueur:", fg="white", bg="black").grid(row=0, column=0)
+        Label(joinGameFrame, image=self.lobbyBackground).grid(row=0,column=0,rowspan=10,columnspan=4)
+        Label(joinGameFrame, text="Nom de joueur:", fg="white", bg="black").grid(row=3, column=1)
         self.entryLogin = Entry(joinGameFrame, width=20)
         self.entryLogin.focus_set()
-        self.entryLogin.grid(row=0, column=1)
-        Label(joinGameFrame, text="Adresse du serveur:", fg="white", bg="black").grid(row=1, column=0)
+        self.entryLogin.grid(row=3, column=2)
+        Label(joinGameFrame, text="Adresse du serveur:", fg="white", bg="black").grid(row=4, column=1)
         self.entryServer = Entry(joinGameFrame, width=20)
-        self.entryServer.grid(row=1, column=1)
+        self.entryServer.grid(row=4, column=2)
         widget = Button(joinGameFrame, text='Connecter', command=lambda:self.lobbyEnter(0, self.entryLogin.get(), self.entryServer.get()))
-        widget.grid(row=2, column=1)
+        widget.grid(row=5, column=2)
 		#Crée un bouton de retour au menu principal
         widget = Button(joinGameFrame, text='Retour', command=lambda:self.changeFrame(self.mainMenu), width=10)
-        widget.grid(row=3, column=1, columnspan=2, pady=10)
+        widget.grid(row=6, column=2, pady=10)
         self.entryServer.bind("<Return>",self.lobbyEnter)
         return joinGameFrame
     
@@ -299,28 +331,30 @@ class View():
     def fCreateServer(self):
         #Crée le frame
         createServerFrame = Frame(self.root, bg="black")
+        #Background
+        Label(createServerFrame, image=self.lobbyBackground).grid(row=0,column=0,rowspan=10,columnspan=4)
         #Crée le label de l'IP du serveur
-        Label(createServerFrame, text="Adresse du serveur:", fg="white", bg="black").grid(row=0, column=0)
+        Label(createServerFrame, text="Adresse du serveur:", fg="white", bg="black").grid(row=3, column=1)
         #Crée le champ texte pour l'IP du serveur
         self.entryCreateServer = Entry(createServerFrame, width=20)
         #On met l'adresse de l'hôte comme valeur par défaut
         self.entryCreateServer.insert(0,self.parent.playerIp)
-        self.entryCreateServer.grid(row=0, column=1)
+        self.entryCreateServer.grid(row=3, column=2)
         #Crée le label du nom du joueur
-        Label(createServerFrame, text="Nom de joueur:", fg="white", bg="black").grid(row=1, column=0)
+        Label(createServerFrame, text="Nom de joueur:", fg="white", bg="black").grid(row=4, column=1)
         #Crée le champ texte pour le nom du joueur
         self.entryCreateLogin = Entry(createServerFrame, width=20)
         self.entryCreateLogin.focus_set()
-        self.entryCreateLogin.grid(row=1, column=1)
+        self.entryCreateLogin.grid(row=4, column=2)
         #Crée le bouton de confirmation
         widget = Button(createServerFrame, text='Créer', command=lambda:self.startServer(False))
-        widget.grid(row=2, column=1)
+        widget.grid(row=5, column=2)
         #Crée le bouton de confirmation et se connecte
         widget = Button(createServerFrame, text='Créer et connecter', command=lambda:self.startServer(True))
-        widget.grid(row=3, column=1)
+        widget.grid(row=6, column=2)
 		#Crée un bouton de retour au menu principal
         widget = Button(createServerFrame, text='Retour', command=lambda:self.changeFrame(self.mainMenu), width=10)
-        widget.grid(row=5, column=1, columnspan=2, pady=10)
+        widget.grid(row=7, column=2, pady=10)
         return createServerFrame
 
     def startServer(self, connect):
@@ -346,17 +380,18 @@ class View():
     def fLobby(self):
         self.entryServer.unbind("<Return>")
         lobbyFrame = Frame(self.root, bg="black")
+        Label(lobbyFrame, image=self.lobbyBackground).grid(row=0,column=0,rowspan=15,columnspan=8)
         if self.parent.server != None:
             pNum = len(self.parent.server.getSockets())
             for i in range(0, pNum):
-                Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i,column=0)
-            Label(lobbyFrame, text='Admin : '+self.parent.server.getSockets()[0][1], fg="white", bg="black").grid(row=37, column=1)
+                Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i+3,column=0)
+            Label(lobbyFrame, text='Admin : '+self.parent.server.getSockets()[0][1], fg="white", bg="black").grid(row=12, column=0)
             if self.parent.playerId == 0:
-                Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame, bg="black", fg="white").grid(row=38, column=1)
+                Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame, bg="black", fg="white").grid(row=12, column=1)
         self.chatLobby = Label(lobbyFrame, anchor=W, justify=LEFT, width=45, background='black', fg='white', relief='raised')
-        self.chatLobby.grid(row=39, column=1)
+        self.chatLobby.grid(row=2, column=5, rowspan=5)
         self.entryMessLobby = Entry(lobbyFrame, width=35)
-        self.entryMessLobby.grid(row=40, column=1)
+        self.entryMessLobby.grid(row=6, column=5)
         self.entryMessLobby.bind("<Return>", self.sendMessLobby)
         #Choix de couleur
         self.variableColor = StringVar(lobbyFrame)
@@ -364,7 +399,7 @@ class View():
         self.colorOPTIONS = ["Orange","Rouge","Bleu"]
         self.variableColor.set(self.colorOPTIONS[0]) # default value
         self.colorChoice = OptionMenu(lobbyFrame, self.variableColor, *self.colorOPTIONS, command=self.parent.choiceColor)
-        self.colorChoice.grid(row=(self.parent.playerId), column=1)
+        self.colorChoice.grid(row=(self.parent.playerId)+3, column=1)
         self.colorChoice['menu'].delete(0, END)
         for i in listOfColors:
             if i[1] == False or self.parent.server.getSockets()[self.parent.playerId][3] == listOfColors.index(i):
@@ -381,9 +416,9 @@ class View():
         if self.parent.server != None:
             pNum = len(self.parent.server.getSockets())
             for i in range(0, pNum):
-                Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i,column=0)
+                Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i+3,column=0)
                 if self.parent.server.getSockets()[i][3] != -1 and i != self.parent.playerId:
-                    Label(lobbyFrame, text=self.parent.server.getColorChoices()[self.parent.server.getSockets()[i][3]][0], fg="white", bg="black").grid(row=i, column=1)
+                    Label(lobbyFrame, text=self.parent.server.getColorChoices()[self.parent.server.getSockets()[i][3]][0], fg="white", bg="black").grid(row=i+3, column=1)
                 
     def sendMessLobby(self, eve):
         if self.entryMessLobby.get() != "":
@@ -569,6 +604,9 @@ class View():
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0], distance[1], image = self.motherShips[player.colorId], tag='deletable')
+                    if unit.attackcount <= 5:
+                        d2 = self.parent.players[self.parent.playerId].camera.calcDistance(unit.flag.finalTarget.position)
+                        self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='deletable')
                 elif unit.type == unit.TRANSPORT:
                     if not unit.landed:
                         if unit in player.selectedObjects:
@@ -636,7 +674,9 @@ class View():
         for i in players:
             for j in i.units:
                 if j.isAlive:
-                    if players[self.parent.playerId].inViewRange(j.position):
+                    if players[self.parent.playerId].diplomacies[i.id] == "Ally" or i.id == self.parent.playerId:
+                        self.drawMiniUnit(j)
+                    elif players[self.parent.playerId].inViewRange(j.position):
                         self.drawMiniUnit(j)
         self.drawMiniFOV()
         
@@ -655,7 +695,9 @@ class View():
         for i in players:
             for j in i.units:
                 if j.isAlive:
-                    if players[self.parent.playerId].inViewRange(j.position):
+                    if players[self.parent.playerId].diplomacies[i.id] == "Ally" or i.id == self.parent.playerId:
+                        self.drawMiniUnit(j)
+                    elif players[self.parent.playerId].inViewRange(j.position):
                         self.drawMiniUnit(j)
         self.drawMiniFOV()
 
@@ -706,19 +748,31 @@ class View():
         unitX = (unit.position[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
         unitY = (unit.position[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
         if unit.type != unit.MOTHERSHIP:
-            if unit in self.parent.players[self.parent.playerId].units:
+            if unit.owner == self.parent.playerId:
                 if unit.type == unit.TRANSPORT:
                     if not unit.landed:
                         self.minimap.create_polygon((unitX-2, unitY+2, unitX, unitY-2, unitX+2, unitY+2),fill='GREEN', tag='deletable')
                 else:
                     self.minimap.create_polygon((unitX-2, unitY+2, unitX, unitY-2, unitX+2, unitY+2),fill='GREEN', tag='deletable')
+            elif self.parent.players[self.parent.playerId].diplomacies[unit.owner] == "Ally" :
+                if unit.type == unit.TRANSPORT:
+                    if not unit.landed:
+                        self.minimap.create_polygon((unitX-2, unitY+2, unitX, unitY-2, unitX+2, unitY+2),fill='YELLOW', tag='deletable')
+                else:
+                    self.minimap.create_polygon((unitX-2, unitY+2, unitX, unitY-2, unitX+2, unitY+2),fill='YELLOW', tag='deletable')
             else:
-                self.minimap.create_polygon((unitX-2, unitY+2, unitX, unitY-2, unitX+2, unitY+2),fill='RED', tag='deletable')
+                if unit.type == unit.TRANSPORT:
+                    if not unit.landed:
+                        self.minimap.create_polygon((unitX-2, unitY+2, unitX, unitY-2, unitX+2, unitY+2),fill='RED', tag='deletable')
+                else:
+                    self.minimap.create_polygon((unitX-2, unitY+2, unitX, unitY-2, unitX+2, unitY+2),fill='RED', tag='deletable')
         else:
             width = self.MINIMAP_WIDTH / self.parent.galaxy.width * unit.SIZE[unit.type][0]
             height = self.MINIMAP_HEIGHT / self.parent.galaxy.height * unit.SIZE[unit.type][1]
-            if unit in self.parent.players[self.parent.playerId].units:
+            if unit.owner == self.parent.playerId:
                 self.minimap.create_oval((unitX-width/2, unitY-height/2, unitX+width/2, unitY+height/2),fill='WHITE', tag='deletable')
+            elif self.parent.players[self.parent.playerId].diplomacies[unit.owner] == "Ally" :
+                self.minimap.create_oval((unitX-width/2, unitY-height/2, unitX+width/2, unitY+height/2),fill='YELLOW', tag='deletable')
             else:
                 self.minimap.create_oval((unitX-width/2, unitY-height/2, unitX+width/2, unitY+height/2),fill='RED', tag='deletable')
 
@@ -947,6 +1001,10 @@ class View():
             elif (Button_pressed == "Button_Move"):
                 self.actionMenuType = self.WAITING_FOR_MOVE_POINT_MENU
                 self.isSettingMovePosition = True
+            elif (Button_pressed == "Button_Delete"):
+                self.parent.eraseUnit()
+            elif (Button_pressed == "Button_Return"):
+                self.actionMenuType = self.MAIN_MENU
             elif (Button_pressed == "Button_Build_Scout"):
                 self.parent.addUnit(Unit.SCOUT)
             elif (Button_pressed == "Button_Build_Attack"):
@@ -956,9 +1014,9 @@ class View():
             elif (Button_pressed == "Button_Build_Gather"):
                 self.parent.addUnit(Unit.CARGO)
             elif (Button_pressed == "Button_Triangle"):
-                self.parent.pushChange('t','changeFormation')
+                self.parent.setChangeFormationFlag('t')
             elif (Button_pressed == "Button_Square"):
-                self.parent.pushChange('c','changeFormation')
+                self.parent.setChangeFormationFlag('c')
                 
     def progressCircleMouseOver(self,eve):
         #if(posX >= self.unitsConstructionPanel.find_withtag('current')):
