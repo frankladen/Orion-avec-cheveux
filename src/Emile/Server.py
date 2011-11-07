@@ -11,7 +11,7 @@ class ControleurServeur(object):
         self.gameIsStarted = False
         self.isStopped = True
         self.seed = int(time())
-        self.mess = ['Système de chat de Orion']
+        self.mess = ['Choisissez la couleur de votre battalion','________________________________________________________________','Le but est détruire le vaisseau mère des autres équipes','en bâtissant votre propre civilisation et en dominant.','________________________________________________________________']
         self.changeList = []
         self.readyPlayers = []
         self.choiceColors = [["Orange", False], ["Rouge", False], ["Bleu", False], ["Vert", False], ["Jaune", False], ["Brun", False], ["Blanc", False], ["Rose", False]]
@@ -135,24 +135,15 @@ class ControleurServeur(object):
         return changes
        
     def getNumSocket(self, login, ip):
-        n=0
-        for i in range(0,len(self.sockets)):
-            if self.sockets[i][0] == ip:
-                print('a trouver le meme socket que le precedent')
-                self.sockets[i]=[ip,login,False, -1]
-                return i
-            n=n+1
-        print('ajoute le socket a la fin')
         if len(self.sockets) < 8:
             self.sockets.append([ip,login,False, -1])
-        return n
+            return len(self.sockets)-1
           
 
 if len(sys.argv) > 1:
     adresse = sys.argv[1]
 else:
     adresse=socket.gethostbyname(socket.getfqdn())
-#adresse="5.146.234.35"
 try:
     daemon = Pyro4.core.Daemon(host=adresse,port=54400) 
     # un objet ControleurServeur() dont les methodes peuvent etre invoquees, 
@@ -163,7 +154,6 @@ try:
     #on demarre l'ecoute des requetes
     daemon.requestLoop()
 except socket.error:
-    print("Une erreur est survenue")
     sys.exit(1)
 
 

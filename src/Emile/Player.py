@@ -113,7 +113,7 @@ class Camera():
         rX = x/200 * self.galaxy.width - self.galaxy.width/2
         rY = y/200 * self.galaxy.height - self.galaxy.height/2
         return [rX, rY]
-
+    
     #Retourne Vrai si la position est visible par la camera en ce moment
     def isInFOV(self, position):
         if position[0] > self.position[0]-self.screenWidth/2-20 and position[0] < self.position[0]+self.screenWidth/2+20:
