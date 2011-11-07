@@ -18,6 +18,8 @@ class Controller():
         self.playerId = 0 #Le id du joueur courant
         self.refresh = 0
         self.idTradeWith = self.playerId
+        self.tradePage=-1
+        self.isMasterTrade=False
         self.mess = []
         self.changes = []
         self.playerIp = socket.gethostbyname(socket.getfqdn())
@@ -148,20 +150,24 @@ class Controller():
             self.pushChange(playerId2, Flag(i, quantite[items.index(i)], FlagState.TRADE))
 
     def askTrade(self, eve):
-        if self.players[self.playerId].name != self.view.menuModes.variableTrade.get():
-            self.pushChange(self.view.menuModes.tradeOPTIONS.index(self.view.menuModes.variableTrade.get()), Flag(1, "askTrade", FlagState.TRADE))
-            self.view.ongletTradeWaiting(False)
+        idOtherPlayer = self.view.menuModes.tradeOPTIONS.index(self.view.menuModes.variableTrade.get())
+        if self.players[self.playerId].name != self.view.menuModes.variableTrade.get() and self.players[idOtherPlayer].units != []:
+            self.pushChange(idOtherPlayer, Flag(1, "askTrade", FlagState.TRADE))
+            self.tradePage=1
+            self.idTradeWith=idOtherPlayer
+            self.view.ongletTradeWaiting()
 
-    def startTrade(self, answer, id):
+    def startTrade(self, answer, id1):
         if answer == True:
-            self.pushChange(id, Flag(2, "startTrade", FlagState.TRADE))
+            self.pushChange(id1, Flag(2, "startTrade", FlagState.TRADE))
         else:
-            self.pushChange(id, Flag(3, "deniedTrade", FlagState.TRADE))
+            self.pushChange(id1, Flag(3, "deniedTrade", FlagState.TRADE))
             self.view.ongletTradeChoicePlayer()
 
     def confirmTradeQuestion(self, id2):
         self.pushChange(id2, Flag(4, self.view.menuModes.spinMinerals1.get()+','+self.view.menuModes.spinMinerals2.get()+','+self.view.menuModes.spinGaz1.get()+','+self.view.menuModes.spinGaz2.get(), FlagState.TRADE))
-        self.view.ongletTradeWaiting(True)
+        self.tradePage=1
+        self.view.ongletTradeWaiting()
 
     def confirmTrade(self, answer, id1, min1, min2, gaz1, gaz2):
         if answer == True:
@@ -171,6 +177,8 @@ class Controller():
             self.pushChange(self.playerId, Flag("g", gaz2+','+str(self.idTradeWith), FlagState.TRADE))
         else:
             self.pushChange(id1, Flag(3, "deniedTrade", FlagState.TRADE))
+            self.tradePage=-1
+            self.view.ongletTradeChoicePlayer()
             
 
     #Pour ajouter une unit
@@ -699,20 +707,30 @@ class Controller():
             target = target.split(",")
             if target[0] == '1':
                 if int(unitIndex[0])==self.playerId:
+                    self.tradePage=3
+                    self.idTradeWith=actionPlayerId
                     self.view.ongletTradeYesNoQuestion(actionPlayerId)
             elif target[0] == '2':
                 if int(unitIndex[0])==self.playerId or actionPlayerId == self.playerId:
                     if int(unitIndex[0])==self.playerId:
-                        self.idTradeWith=actionPlayerId
+                        self.isMasterTrade=True
+                        self.view.ongletTrade(self.playerId,self.idTradeWith)
                     else:
-                        self.idTradeWith=int(unitIndex[0])
-                    self.view.ongletTrade(int(unitIndex[0]),actionPlayerId)
+                        self.isMasterTrade=False
+                        self.view.ongletTrade(self.idTradeWith,self.playerId)
+                    self.tradePage=2
+                    
             elif target[0] == '3':
                 if int(unitIndex[0])==self.playerId:
+                    self.isMasterTrade=False
+                    self.tradePage=-1
+                    self.idTradeWith=self.playerId
                     self.view.ongletTradeNoAnswer()
             elif target[0] == '4':
                 if int(unitIndex[0])==self.playerId:
-                    self.view.ongletTradeAskConfirm(actionPlayerId,target[1],target[2],target[3],target[4])
+                    self.tradePage=4
+                    self.toTrade = (target[1],target[2],target[3],target[4])
+                    self.view.ongletTradeAskConfirm(actionPlayerId,self.toTrade[0],self.toTrade[1],self.toTrade[2],self.toTrade[3])
             elif target[0] == 'm':
                 if int(unitIndex[0]) != actionPlayerId:
                     self.players[actionPlayerId].mineral+=int(target[1])
@@ -720,7 +738,9 @@ class Controller():
                 else:
                     self.players[int(target[2])].mineral+=int(target[1])
                     self.players[actionPlayerId].mineral-=int(target[1])
-                self.idTradeWith = self.playerId
+                self.isMasterTrade=False
+                self.tradePage=-1
+                self.idTradeWith=self.playerId
                 self.view.ongletTradeYesAnswer()
             elif target[0] == 'g':
                 if int(unitIndex[0]) != actionPlayerId:
@@ -729,6 +749,9 @@ class Controller():
                 else:
                     self.players[int(target[2])].gaz+=int(target[1])
                     self.players[actionPlayerId].gaz-=int(target[1])
+                self.isMasterTrade=False
+                self.tradePage=-1
+                self.idTradeWith=self.playerId
                 self.view.ongletTradeYesAnswer()
 
     def makeFormation(self, actionPlayerId, unitIndex, target, action):

@@ -140,6 +140,7 @@ class View():
         self.menuModes.noButton = Button(gameFrame, text="Non", command=lambda:self.parent.startTrade(False, self.answerId))
         self.menuModes.yesButtonConfirm = Button(gameFrame, text="Oui", command=lambda:self.parent.confirmTrade(True, self.answerId, min1, min2, gaz1, gaz2))
         self.menuModes.noButtonConfirm = Button(gameFrame, text="Non", command=lambda:self.parent.confirmTrade(False, self.answerId, min1, min2, gaz1, gaz2))
+        self.menuModes.modifyButtonConfirm = Button(gameFrame, text="Contre-offre", command=lambda:self.parent.startTrade(True,self.parent.playerId))
         self.menuModes.nomJoueur1 = Label(gameFrame, text=self.parent.players[self.answerId].name, bg="black", fg="white")
         self.menuModes.etiqMenieral1 = Label(gameFrame,text='Minerals ', bg="black", fg="white")
         self.menuModes.etiqGaz1 = Label(gameFrame,text='Gaz ', bg="black", fg="white")
@@ -172,7 +173,7 @@ class View():
         self.menuModesOnlets()
         self.menuModes.tradeChoice.grid(row=3, column=2)
 
-    def ongletTradeWaiting(self, tradeWait):
+    def ongletTradeWaiting(self):
         self.menuModesOnlets()
         self.menuModes.create_text(150,50,text='En attente de la réponse de l\'autre joueur.',fill='white')
 
@@ -194,18 +195,19 @@ class View():
     def ongletTradeAskConfirm(self, id1, min1, min2, gaz1, gaz2):
         self.menuModesOnlets()
         self.answerId = id1
-        self.menuModes.create_text(160,50,text=''+self.parent.players[self.answerId].name+' vous offre '+min1+' unités de ses minéraux et '+gaz1+' unités de son gaz',fill='white')
+        self.menuModes.create_text(165,50,text=''+self.parent.players[self.answerId].name+' vous offre '+min1+' unités de ses minéraux et '+gaz1+' unités de son gaz',fill='white')
         self.menuModes.create_text(160,65,text='contre '+min2+' unités de vos minéraux et '+gaz2+' unités de votre gaz',fill='white')
         self.menuModes.yesButtonConfirm.config(command=lambda:self.parent.confirmTrade(True, self.answerId, min1, min2, gaz1, gaz2))
         self.menuModes.noButtonConfirm.config(command=lambda:self.parent.confirmTrade(False, self.answerId, min1, min2, gaz1, gaz2))
-        self.menuModes.yesButtonConfirm.grid(row=3,column=2)
-        self.menuModes.noButtonConfirm.grid(row=3,column=3)
+        self.menuModes.yesButtonConfirm.grid(row=4,column=2)
+        self.menuModes.noButtonConfirm.grid(row=4,column=3)
+        self.menuModes.modifyButtonConfirm.grid(row=4,column=4)
 
     def ongletTrade(self, id1, id2):
         self.menuModesOnlets()
         self.answerId = id1
         self.answerId2 = id2
-        if self.parent.playerId == id1:
+        if self.parent.isMasterTrade==True:
             #Fenetre trade spins
             self.menuModes.nomJoueur1.config(text=self.parent.players[self.answerId].name)
             self.menuModes.nomJoueur2.config(text=self.parent.players[self.answerId2].name)
@@ -284,6 +286,7 @@ class View():
         self.menuModes.spinGaz1.grid_forget()
         self.menuModes.spinGaz2.grid_forget()
         self.menuModes.bEchange.grid_forget()
+        self.menuModes.modifyButtonConfirm.grid_forget()
         self.menuModes.create_image(0,0,image=self.gifChat,anchor = NW,tag='bouton_chat')
         self.menuModes.create_image(77,0,image=self.gifTrade,anchor = NW,tag='bouton_trade')
         self.menuModes.create_image(150,0,image=self.gifTeam,anchor = NW,tag='bouton_team')
@@ -421,6 +424,7 @@ class View():
         #On doit attendre un peu afin de laisser le temps au serveur de partir et de se terminer si une erreur arrive
         #time.sleep(1)
         #On vérifie si le serveur s'est terminé en erreur et si oui, on affiche un message à l'utilisateur
+        time.sleep(1)
         if child.poll():
             if child.returncode != None:
                 self.serverNotCreated()
@@ -1008,7 +1012,19 @@ class View():
             if (Button_pressed == "bouton_chat"):
                 self.ongletChat(self.gameFrame)
             elif (Button_pressed == "bouton_trade"):
-                self.ongletTradeChoicePlayer()
+                if self.parent.tradePage==-1:
+                    self.ongletTradeChoicePlayer()
+                elif self.parent.tradePage==1:
+                    self.ongletTradeWaiting()
+                elif self.parent.tradePage==2:
+                    if self.parent.isMasterTrade == True:
+                        self.ongletTrade(self.parent.playerId,self.parent.idTradeWith)
+                    else:
+                        self.ongletTrade(self.parent.idTradeWith,self.parent.playerId)
+                elif self.parent.tradePage==3:
+                    self.ongletTradeYesNoQuestion(self.parent.idTradeWith)
+                elif self.parent.tradePage==4:
+                    self.ongletTradeAskConfirm(self.parent.idTradeWith,self.parent.toTrade[0],self.parent.toTrade[1],self.parent.toTrade[2],self.parent.toTrade[3])
             elif (Button_pressed == "bouton_team"):
                 self.ongletTeam()
             elif (Button_pressed == "bouton_selectedUnit"):
