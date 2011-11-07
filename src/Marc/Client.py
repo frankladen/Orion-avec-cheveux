@@ -146,6 +146,32 @@ class Controller():
         for i in items:
             self.pushChange(playerId2, Flag(i, quantite[items.index(i)], FlagState.TRADE))
 
+    def askTrade(self, eve):
+        if self.players[self.playerId].name != self.view.menuModes.variableTrade.get():
+            self.pushChange(self.view.menuModes.tradeOPTIONS.index(self.view.menuModes.variableTrade.get()), Flag(1, "askTrade", FlagState.TRADE))
+            self.view.ongletTradeWaiting(False)
+
+    def startTrade(self, answer, id):
+        if answer == True:
+            self.pushChange(id, Flag(2, "startTrade", FlagState.TRADE))
+        else:
+            self.pushChange(id, Flag(3, "deniedTrade", FlagState.TRADE))
+            self.view.ongletTradeChoicePlayer()
+
+    def confirmTradeQuestion(self, id2):
+        self.pushChange(id2, Flag(4, self.view.menuModes.spinMinerals1.get()+','+self.view.menuModes.spinMinerals2.get()+','+self.view.menuModes.spinGaz1.get()+','+self.view.menuModes.spinGaz2.get(), FlagState.TRADE))
+        self.view.ongletTradeWaiting(True)
+
+    def confirmTrade(self, answer, id):
+        if answer == True:
+            self.pushChange(id, Flag("m", self.view.menuModes.spinMinerals1.get(), FlagState.TRADE))
+            self.pushChange(self.playerId, Flag("m", self.view.menuModes.spinMinerals2.get()+','+id, FlagState.TRADE))
+            self.pushChange(id, Flag("g", self.view.menuModes.spinGaz1.get(), FlagState.TRADE))
+            self.pushChange(self.playerId, Flag("g", self.view.menuModes.spinGaz2.get()+','+id, FlagState.TRADE))
+        else:
+            self.pushChange(id, Flag(3, "deniedTrade", FlagState.TRADE))
+            
+
     #Pour ajouter une unit
     def addUnit(self, unit):
         mineralCost = u.Unit.BUILD_COST[unit][0]
@@ -667,12 +693,35 @@ class Controller():
             self.makeFormation(actionPlayerId, unitIndex, self.players[actionPlayerId].units[int(unitIndex[0])].flag.finalTarget.position, FlagState.MOVE)
 
         elif action == str(FlagState.TRADE):
-            if target[0] == 'm':
-                self.players[actionPlayerId].mineral-=target[2]
-                self.players[int(unitIndex[0])].mineral+=target[2]
+            target = target.strip("[")
+            target = target.strip("]")
+            target = target.split(",")
+            if target[0] == '1':
+                if int(unitIndex[0])==self.playerId:
+                    self.view.ongletTradeYesNoQuestion(actionPlayerId)
+            elif target[0] == '2':
+                if int(unitIndex[0])==self.playerId or actionPlayerId == self.playerId:
+                    self.view.ongletTrade(int(unitIndex[0]),actionPlayerId)
+            elif target[0] == '3':
+                if int(unitIndex[0])==self.playerId:
+                    self.view.ongletTradeNoAnswer()
+            elif target[0] == '4':
+                if int(unitIndex[0])==self.playerId:
+                    self.view.ongletTradeAskConfirm(actionPlayerId,target[1],target[2],target[3],target[4])
+            elif target[0] == 'm':
+                if int(unitIndex[0]) != actionPlayerId:
+                    self.players[int(unitIndex[0])].mineral+=int(target[1])
+                    self.players[actionPlayerId].mineral-=int(target[1])
+                else:
+                    self.players[int(unitIndex[0])].mineral+=int(target[1])
+                    self.players[int(target[2])].mineral-=int(target[1])
             elif target[1] == 'g':
-                self.players[actionPlayerId].gaz-=target[2]
-                self.players[int(unitIndex[0])].gaz+=target[2]
+                if int(unitIndex[0]) != actionPlayerId:
+                    self.players[int(unitIndex[0])].gaz+=int(target[1])
+                    self.players[actionPlayerId].gaz-=int(target[1])
+                else:
+                    self.players[int(unitIndex[0])].gaz+=int(target[1])
+                    self.players[int(target[2])].gaz-=int(target[1])
 
     def makeFormation(self, actionPlayerId, unitIndex, target, action):
         lineTaken=[]
