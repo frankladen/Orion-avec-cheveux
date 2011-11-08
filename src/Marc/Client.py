@@ -387,8 +387,9 @@ class Controller():
                                         if j.isAlive:
                                             if j.position[0] >= pos[0]-j.SIZE[j.type][0]/2 and j.position[0] <= pos[0]+j.SIZE[j.type][0]/2:
                                                 if j.position[1] >= pos[1]-j.SIZE[j.type][1]/2 and j.position[1] <= pos[1]+j.SIZE[j.type][1]/2:
-                                                    self.setAttackFlag(j)
-                                                    empty = False
+                                                    if unit.type == unit.ATTACK_SHIP:
+                                                        self.setAttackFlag(j)
+                                                        empty = False
                     if empty:
                         self.setMovingFlag(pos[0],pos[1])
                     self.view.drawWorld()

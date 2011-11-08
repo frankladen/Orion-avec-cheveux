@@ -319,6 +319,7 @@ class View():
                         self.menuModes.create_oval((675, 190,500,10), fill='green', tags = 'arc', outline ='green')
     def ongletChat(self,gameFrame):
         self.menuModesOnlets()
+        self.selectedOnglet = self.SELECTED_CHAT
         self.menuModes.chat.grid(row=3, column=3, columnspan=3)
         self.menuModes.entryMess.grid(row=4, column=3, columnspan=3)
         self.menuModes.entryMess.bind("<Return>",self.enter)
@@ -346,6 +347,7 @@ class View():
         self.menuModes.spinGaz2.grid_forget()
         self.menuModes.bEchange.grid_forget()
         self.menuModes.modifyButtonConfirm.grid_forget()
+        self.gameArea.focus_set()
         self.menuModes.create_image(0,0,image=self.gifChat,anchor = NW,tag='bouton_chat')
         self.menuModes.create_image(77,0,image=self.gifTrade,anchor = NW,tag='bouton_trade')
         self.menuModes.create_image(150,0,image=self.gifTeam,anchor = NW,tag='bouton_team')
@@ -1089,13 +1091,11 @@ class View():
                 if not self.selectAllUnits:
                     self.parent.select(pos)
                     self.ongletSelectedUnit()
+                    self.selectedOnglet = self.SELECTED_UNIT_SELECTED
                 else:
-                    if not self.selectAllUnits:
-                        self.parent.select(pos)
-                        self.ongletSelectedUnit()
-                    else:
-                        self.parent.selectAll(pos)
-                        self.ongletSelectedUnit()
+                    self.parent.selectAll(pos)
+                    self.ongletSelectedUnit()
+                    self.selectedOnglet = self.SELECTED_UNIT_SELECTED
         elif canva == self.minimap:
             self.parent.quickMove(x,y)
 
