@@ -148,24 +148,8 @@ class View():
     def ongletSelectedUnit(self):
         self.menuModesOnlets()
         unitList = self.parent.players[self.parent.playerId].selectedObjects
-
         if len(unitList) == 1:
-            if isinstance(self.parent.players[self.parent.playerId].selectedObjects[0],u.Mothership):
-                self.createUnitsConstructionMenu()
-            else:        
-                #Ces images seront remplacer par de plus grandes et plus belles ! (aghi on t'attends ! )
-                if isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.SpaceAttackUnit):
-                    self.menuModes.create_image(20, 50, image = self.gifAttackUnit)
-                elif isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.GatherShip):
-                    self.menuModes.create_image(20,50, image = self.gifCargo)
-                elif isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.TransportShip):
-                    self.menuModes.create_image(20,50, image = self.gifTransport)
-                elif isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.Unit):
-                    self.menuModes.create_image(20,50, image = self.gifUnit)
-                    
-                
-                self.menuModes.create_oval((675, 190,500,10) , fill = 'red')
-                self.menuModes.create_arc((675, 190,500,10), start=0, extent= (self.parent.players[self.parent.playerId].selectedObjects[0].maxHP / self.parent.players[self.parent.playerId].selectedObjects[0].hitPoints)*360 , fill='blue', tags = 'arc')
+            self.showInfo(unitList[0])
 
         elif len(unitList) > 0 : 
             if isinstance(self.parent.players[self.parent.playerId].selectedObjects[0],u.Mothership) == False:
@@ -193,7 +177,36 @@ class View():
             self.menuModes.chat.grid_forget()
             self.menuModes.entryMess.grid_forget()
 
-        
+    
+    def showInfo(self, unit):
+        self.menuModes.create_text(20,80, text = 'Type : ' + Unit.FRENCHNAME[unit.type], anchor = NW, fill = 'white')
+        self.menuModes.create_text(20,100, text = "HP : " + str(unit.hitpoints) + "/" + str(unit.maxHP),anchor = NW, fill = 'white')
+        self.menuModes.create_text(20,120, text = "Vitesse de déplacement : " + str(unit.moveSpeed) + " années lumière à l'heure.", anchor = NW, fill = 'white')
+        self.menuModes.create_text(20,140, text = "Champ de vision " + str(unit.viewRange) + " années lumière", anchor = NW, fill = 'white')
+        #Ces images seront remplacer par de plus grandes et plus belles ! (aghi on t'attends ! )
+
+        if isinstance(unit, u.Mothership) == False :
+            if isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.SpaceAttackUnit):
+                self.menuModes.create_image(20, 50, image = self.gifAttackUnit)
+            elif isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.GatherShip):
+                self.menuModes.create_image(20,50, image = self.gifCargo)
+            elif isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.TransportShip):
+                self.menuModes.create_image(20,50, image = self.gifTransport)
+            elif isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.Unit):
+                self.menuModes.create_image(20,50, image = self.gifUnit)
+            
+            self.menuModes.create_arc((675, 190,500,10), start=0, extent= (self.parent.players[self.parent.playerId].selectedObjects[0].hitpoints / self.parent.players[self.parent.playerId].selectedObjects[0].maxHP)*359 , fill='green', tags = 'arc')   
+
+            
+
+        else:
+            if len(self.parent.players[self.parent.playerId].motherShip.unitBeingConstruct) > 0:
+                self.menuModes.create_text(20,160, text = str(len(self.parent.players[self.parent.playerId].motherShip.unitBeingConstruct)) + " unités actuellement en contruction", anchor = NW, fill = 'white')
+                self.createUnitsConstructionMenu()
+            else:
+                self.menuModes.create_text(20,160, text = "Aucunne unité n'est actuellement en contruction", anchor = NW, fill = 'white')
+                self.menuModes.create_arc((675, 190,500,10), start=0, extent= (self.parent.players[self.parent.playerId].selectedObjects[0].hitpoints / self.parent.players[self.parent.playerId].selectedObjects[0].maxHP)*359 , fill='green', tags = 'arc')   
+
     def ongletChat(self,gameFrame):
         self.menuModesOnlets()
         self.menuModes.chat.grid(row=3, column=2)
@@ -250,7 +263,6 @@ class View():
         
 
     def createUnitsConstructionMenu(self):
-        self.menuModesOnlets()
         y = 35;
         
         ok = False;
@@ -265,17 +277,17 @@ class View():
                 else:
                     r = 1
                     ok = False
-                    self.menuModes.create_image(175, y, image = self.iconCancel, anchor = NW, tags = ('cancelUnitButton', list.index(i)))
+                    self.menuModes.create_image(675, y, image = self.iconCancel, anchor = NW, tags = ('cancelUnitButton', list.index(i)))
             else:
                 if (self.wantToCancelUnitBuild == False):
-                    self.menuModes.create_arc((175, y, 195, 55), start=0, extent= (i.constructionProgress / i.buildTime)*360 , fill='blue', tags = 'arc')
+                    self.menuModes.create_arc((675, y, 695, 55), start=0, extent= (i.constructionProgress / i.buildTime)*360 , fill='blue', tags = 'arc')
                 else:
-                    self.menuModes.create_image(175,y, image = self.iconCancel, anchor = NW, tags = ('cancelUnitButton', list.index(i)))
+                    self.menuModes.create_image(675,y, image = self.iconCancel, anchor = NW, tags = ('cancelUnitButton', list.index(i)))
 
             if (ok == True):
                 self.menuModes.itemconfig(l, text = str(r) + " " + i.name)
             else:
-                l = self.menuModes.create_text(5,y,text = str(r) + " " + i.name, anchor = NW, fill = 'white')
+                l = self.menuModes.create_text(575,y,text = str(r) + " " + i.name, anchor = NW, fill = 'white')
                 y+=20
         self.menuModes.chat.grid_forget()
         self.menuModes.entryMess.grid_forget()
@@ -831,17 +843,17 @@ class View():
                 else:
                     if not self.selectAllUnits:
                         self.parent.select(pos)
-                        self.ongletSelectedUnit()
                     else:
                         if not self.selectAllUnits:
                             self.parent.select(pos)
-                            self.ongletSelectedUnit()
                         else:
                             self.parent.selectAll(pos)
-                            self.ongletSelectedUnit()
+                    self.menuModesOnlets()
+                    self.ongletSelectedUnit()
             else:
                 self.parent.select([x,y])
-                self.ongletSelectedUnit()
+                
+
         elif canva == self.minimap:
             self.parent.quickMove(x,y,canva)
 
@@ -895,7 +907,7 @@ class View():
             login = self.entryLogin.get()
             server = self.entryServer.get()
         self.parent.connectServer(login,server)
-			
+
     def stop(self, eve):
         self.attacking = False
         self.parent.setStandbyFlag()
@@ -1025,9 +1037,9 @@ class View():
         self.gameArea.bind("<KeyRelease-Control_L>",self.ctrlDepressed)
         self.gameArea.bind("<Tab>",self.enterChat)
         #Bindings des boutons de la souris
-        self.gameArea.bind("<Button-2>", self.rightclic)
-        self.gameArea.bind("<B2-Motion>", self.rightclic)
-        self.minimap.bind("<Button-2>", self.rightclic)
+        self.gameArea.bind("<Button-3>", self.rightclic)
+        self.gameArea.bind("<B3-Motion>", self.rightclic)
+        self.minimap.bind("<Button-3>", self.rightclic)
         self.gameArea.bind("<Button-1>", self.leftclic)
         self.minimap.bind("<B1-Motion>",self.leftclic)
         self.minimap.bind("<Button-1>",self.leftclic)
