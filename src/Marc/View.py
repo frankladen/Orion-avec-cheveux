@@ -30,9 +30,9 @@ class View():
         self.root.title("Orion")
         self.root.resizable(0,0)
         #la taille du jeu se resize selon la résolution de l'écran, niceshithum?
-        self.taille=self.root.winfo_screenheight()-125
-        if self.taille>800:
-            self.taille=800
+        #self.taille=self.root.winfo_screenheight()-125
+        #if self.taille>800:
+        self.taille=800
         self.root.geometry('+5+5')
         self.selectStart = [0,0]
         self.selectEnd = [0,0]
@@ -256,7 +256,7 @@ class View():
         if len(unitList) == 1:
             self.showInfo(unitList[0])
 
-        elif len(unitList) > 0 : 
+        elif len(unitList) > 1 : 
             if isinstance(self.parent.players[self.parent.playerId].selectedObjects[0],u.Mothership) == False:
                 x = 20
                 y = 50
@@ -502,7 +502,7 @@ class View():
         if self.parent.server != None:
             pNum = len(self.parent.server.getSockets())
             for i in range(0, pNum):
-                Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i+3,column=0)
+                Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black", width=10).grid(row=i+3,column=0)
             Label(lobbyFrame, text='Admin : '+self.parent.server.getSockets()[0][1], fg="white", bg="black").grid(row=12, column=0)
             if self.parent.playerId == 0:
                 Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame, bg="black", fg="white").grid(row=12, column=1)
@@ -534,7 +534,7 @@ class View():
         if self.parent.server != None:
             pNum = len(self.parent.server.getSockets())
             for i in range(0, pNum):
-                Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i+3,column=0)
+                Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black", width=10).grid(row=i+3,column=0)
                 if self.parent.server.getSockets()[i][3] != -1 and i != self.parent.playerId:
                     Label(lobbyFrame, text=self.parent.server.getColorChoices()[self.parent.server.getSockets()[i][3]][0], fg="white", bg="black").grid(row=i+3, column=1)
                 
@@ -1258,6 +1258,7 @@ class View():
 
     def enterChat(self,eve):
         self.ongletChat(self.gameFrame)
+        self.selectedOnglet = self.SELECTED_CHAT
         self.menuModes.entryMess.focus_set()
 
     

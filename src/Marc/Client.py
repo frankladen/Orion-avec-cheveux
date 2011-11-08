@@ -507,8 +507,6 @@ class Controller():
                             if i.flag.flagState == FlagState.MOVE or i.flag.flagState == FlagState.GROUND_MOVE:
                                 i.move()
                             elif i.flag.flagState == FlagState.ATTACK:
-                                if p == self.players[self.playerId] and self.view.selectedOnglet == self.view.SELECTED_UNIT_SELECTED:
-                                    self.view.ongletSelectedUnit()
                                 if isinstance(i.flag.finalTarget, u.TransportShip):
                                     if i.flag.finalTarget.landed:
                                         self.setAStandByFlag(i)
@@ -526,16 +524,11 @@ class Controller():
                             elif isinstance(i,u.SpaceAttackUnit):
                                 self.checkIfEnemyInRange(i)
                     if p.motherShip.isAlive:
-                        p.motherShip.action(self)
+                        p.motherShip.action()
 
                         if len(p.motherShip.unitBeingConstruct) > 0:
-                            if p == self.players[self.playerId] and self.view.selectedOnglet == self.view.SELECTED_UNIT_SELECTED:
-                                self.view.ongletSelectedUnit()
                             if(p.motherShip.isUnitFinished()):
                                 self.buildUnit(p)
-                                if len(p.motherShip.unitBeingConstruct) == 0:
-                                    if p == self.players[self.playerId] and self.view.selectedOnglet == self.view.SELECTED_UNIT_SELECTED:
-                                        self.view.ongletSelectedUnit()
                         else:
                             if p.motherShip.flag.flagState != FlagState.ATTACK:
                                 p.motherShip.flag.flagState = FlagState.STANDBY 
@@ -544,6 +537,8 @@ class Controller():
                         self.eraseUnits(self.players.index(p))
                 if self.refresh % 10 == 0:
                     self.refreshMessages(self.view.menuModes.chat)
+                if p == self.players[self.playerId] and self.view.selectedOnglet == self.view.SELECTED_UNIT_SELECTED:
+                    self.view.ongletSelectedUnit()
                 self.refresh+=1
                 self.view.showMinerals.config(text="Mineraux: "+str(self.players[self.playerId].mineral))
                 self.view.showGaz.config(text="Gaz: "+str(self.players[self.playerId].gaz))
@@ -607,6 +602,7 @@ class Controller():
             else:
                 #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
                 self.playerId=self.server.getNumSocket(login, self.playerIp)
+                self.server.firstColorNotChosen(self.playerId)
                 #Je vais au lobby, si la connection a fonctionner
                 self.view.pLobby = self.view.fLobby()
                 self.view.changeFrame(self.view.pLobby)
@@ -763,7 +759,7 @@ class Controller():
         
         elif action == str(FlagState.CREATE):
             self.players[actionPlayerId].motherShip.changeFlag(int(target),int(action))
-            self.players[actionPlayerId].motherShip.action(self)
+            self.players[actionPlayerId].motherShip.action()
             self.players[actionPlayerId].gaz -= self.players[actionPlayerId].motherShip.unitBeingConstruct[len(self.players[actionPlayerId].motherShip.unitBeingConstruct)-1].buildCost[1]
             self.players[actionPlayerId].mineral -= self.players[actionPlayerId].motherShip.unitBeingConstruct[len(self.players[actionPlayerId].motherShip.unitBeingConstruct)-1].buildCost[0]
             self.players[actionPlayerId].motherShip.flag.flagState = FlagState.BUILD_UNIT
