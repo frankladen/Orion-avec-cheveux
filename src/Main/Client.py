@@ -110,7 +110,7 @@ class Controller():
                         units += str(self.players[self.playerId].units.index(i)) + ","
             if units != "":
                 self.pushChange(units, Flag(i,attackedUnit,FlagState.ATTACK))
-            if attackedUnit.type == attackedUnit.MOTHERSHIP or attackedUnit.type == attackedUnit.ATTACK_SHIP:
+            if attackedUnit.type == attackedUnit.ATTACK_SHIP:
                     unit = self.players[self.playerId].units[int(units.split(",")[0])]
                     self.pushChange((str(self.players[attackedUnit.owner].units.index(attackedUnit)) + ","), Flag(attackedUnit.owner,unit,FlagState.ATTACK))
 
@@ -237,8 +237,25 @@ class Controller():
                     if un.isAlive:
                         if un.position[0] > unit.position[0]-unit.range and un.position[0] < unit.position[0]+unit.range:
                             if un.position[1] > unit.position[1]-unit.range and un.position[1] < unit.position[1]+unit.range:
-                                self.setAnAttackFlag(un, unit)
-                                break
+                                if isinstance(un, u.TransportShip) == False:
+                                    killedIndex = unit.attack(self.players, un)
+                                    if killedIndex[0] > -1:
+                                        self.killUnit(killedIndex)
+                                    if unit.attackcount <= 5:
+                                        distance = self.players[self.playerId].camera.calcDistance(unit.position)
+                                        d2 = self.players[self.playerId].camera.calcDistance(un.position)
+                                        self.view.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='enemyRange')
+                                    break
+                                else:
+                                    if un.landed == False:
+                                        killedIndex = unit.attack(self.players, un)
+                                        if killedIndex[0] > -1:
+                                            self.killUnit(killedIndex)
+                                        if unit.attackcount <= 5:
+                                            distance = self.players[self.playerId].camera.calcDistance(unit.position)
+                                            d2 = self.players[self.playerId].camera.calcDistance(un.position)
+                                            self.view.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='enemyRange')
+                                        break
 
     def select(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
@@ -387,7 +404,7 @@ class Controller():
                                         if j.isAlive:
                                             if j.position[0] >= pos[0]-j.SIZE[j.type][0]/2 and j.position[0] <= pos[0]+j.SIZE[j.type][0]/2:
                                                 if j.position[1] >= pos[1]-j.SIZE[j.type][1]/2 and j.position[1] <= pos[1]+j.SIZE[j.type][1]/2:
-                                                    if unit.type == unit.ATTACK_SHIP:
+                                                    if j.type == j.ATTACK_SHIP:
                                                         self.setAttackFlag(j)
                                                         empty = False
                     if empty:
@@ -503,6 +520,7 @@ class Controller():
                 self.view.root.destroy()
         elif self.view.currentFrame != self.view.pLobby:
             if self.refresh > 0:
+                self.view.gameArea.delete("enemyRange")
                 self.players[self.playerId].camera.move()
                 for p in self.players:
                     for i in p.units:
@@ -524,7 +542,7 @@ class Controller():
                                 i.land(self, self.players.index(p),self.galaxy)
                             elif i.flag.flagState == FlagState.GATHER:
                                 i.gather(p,self)
-                            elif isinstance(i,u.SpaceAttackUnit):
+                            elif isinstance(i,u.SpaceAttackUnit) or isinstance(i,u.Mothership):
                                 self.checkIfEnemyInRange(i)
                     if p.motherShip.isAlive:
                         p.motherShip.action()
@@ -605,7 +623,6 @@ class Controller():
             else:
                 #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
                 self.playerId=self.server.getNumSocket(login, self.playerIp)
-                self.server.firstColorNotChosen(self.playerId)
                 #Je vais au lobby, si la connection a fonctionner
                 self.view.pLobby = self.view.fLobby()
                 self.view.changeFrame(self.view.pLobby)

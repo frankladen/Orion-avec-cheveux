@@ -244,7 +244,7 @@ class Controller():
                                     if unit.attackcount <= 5:
                                         distance = self.players[self.playerId].camera.calcDistance(unit.position)
                                         d2 = self.players[self.playerId].camera.calcDistance(un.position)
-                                        self.view.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='deletable')
+                                        self.view.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='enemyRange')
                                     break
                                 else:
                                     if un.landed == False:
@@ -254,7 +254,7 @@ class Controller():
                                         if unit.attackcount <= 5:
                                             distance = self.players[self.playerId].camera.calcDistance(unit.position)
                                             d2 = self.players[self.playerId].camera.calcDistance(un.position)
-                                            self.view.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='deletable')
+                                            self.view.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='enemyRange')
                                         break
 
     def select(self, posSelected):
@@ -520,6 +520,7 @@ class Controller():
                 self.view.root.destroy()
         elif self.view.currentFrame != self.view.pLobby:
             if self.refresh > 0:
+                self.view.gameArea.delete("enemyRange")
                 self.players[self.playerId].camera.move()
                 for p in self.players:
                     for i in p.units:
