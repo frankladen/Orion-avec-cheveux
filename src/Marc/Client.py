@@ -108,13 +108,24 @@ class Controller():
                     else:
                         i.attackcount = i.AttackSpeed
                         units += str(self.players[self.playerId].units.index(i)) + ","
-                else:
-                    self.pushChange((str(self.players[self.playerId].units.index(i)) + ","), Flag(i,t.Target([attackedUnit.position[0],attackedUnit.position[1],0]),FlagState.MOVE))
             if units != "":
                 self.pushChange(units, Flag(i,attackedUnit,FlagState.ATTACK))
             if attackedUnit.type == attackedUnit.MOTHERSHIP or attackedUnit.type == attackedUnit.ATTACK_SHIP:
                     unit = self.players[self.playerId].units[int(units.split(",")[0])]
                     self.pushChange((str(self.players[attackedUnit.owner].units.index(attackedUnit)) + ","), Flag(attackedUnit.owner,unit,FlagState.ATTACK))
+
+    def setAnAttackFlag(self, attackedUnit, unit):
+        units = ""
+        if attackedUnit.type == u.Unit.TRANSPORT:
+            if not attackedUnit.landed:
+                unit.attackcount = unit.AttackSpeed
+                units += str(self.players[unit.owner].units.index(unit)) + ","
+        else:
+            unit.attackcount = unit.AttackSpeed
+            units += str(self.players[unit.owner].units.index(unit)) + ","
+        if units != "":
+            self.pushChange(units, Flag(unit.owner,attackedUnit,FlagState.ATTACK))
+
 
     def setGatherFlag(self,ship,ressource):
         units = str(self.players[self.playerId].units.index(ship)) + ","
@@ -219,6 +230,15 @@ class Controller():
                                     if j.position[0] >= pos[0]-j.SIZE[j.type][0]/2 and j.position[0] <= pos[0]+j.SIZE[j.type][0]/2 :
                                         if j.position[1] >= pos[1]-j.SIZE[j.type][1]/2  and j.position[1] <= pos[1]+j.SIZE[j.type][1]/2 :
                                             self.setAttackFlag(j)
+    def checkIfEnemyInRange(self, unit):
+        for pl in self.players:
+            if self.players.index(pl) != unit.owner:
+                for un in pl.units:
+                    if un.isAlive:
+                        if un.position[0] > unit.position[0]-unit.range and un.position[0] < unit.position[0]+unit.range:
+                            if un.position[1] > unit.position[1]-unit.range and un.position[1] < unit.position[1]+unit.range:
+                                self.setAnAttackFlag(un, unit)
+                                break
 
     def select(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
@@ -482,7 +502,7 @@ class Controller():
                 self.players[self.playerId].camera.move()
                 for p in self.players:
                     for i in p.units:
-                        if i.isAlive:
+                        if i.isAlive:                               
                             if i.flag.flagState == FlagState.MOVE or i.flag.flagState == FlagState.GROUND_MOVE:
                                 i.move()
                             elif i.flag.flagState == FlagState.ATTACK:
@@ -495,11 +515,13 @@ class Controller():
                             elif i.flag.flagState == FlagState.PATROL:
                                 unit = i.patrol(self.players)
                                 if unit != None:
-                                    self.setAttackFlag(unit)
+                                    self.setAnAttackFlag(unit, i)
                             elif i.flag.flagState == FlagState.LAND:
                                 i.land(self, self.players.index(p),self.galaxy)
                             elif i.flag.flagState == FlagState.GATHER:
                                 i.gather(p,self)
+                            elif isinstance(i,u.SpaceAttackUnit):
+                                self.checkIfEnemyInRange(i)
                     if p.motherShip.isAlive:
                         p.motherShip.action()
                         if len(p.motherShip.unitBeingConstruct) > 0:

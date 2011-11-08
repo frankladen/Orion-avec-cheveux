@@ -239,13 +239,13 @@ class View():
             if isinstance(self.parent.players[self.parent.playerId].selectedObjects[0],Unit):
                 unitList = self.parent.players[self.parent.playerId].selectedObjects
                 
-                unitToDraw = [[self.scoutShips[self.parent.playerId], Unit.FRENCHNAME[Unit.SCOUT], 0]#Le Unit par défaut
-                              ,[self.motherShips[self.parent.playerId],Unit.FRENCHNAME[Unit.MOTHERSHIP],0]
-                              ,[self.scoutShips[self.parent.playerId], Unit.FRENCHNAME[Unit.SCOUT], 0]
-                              ,[self.attackShips[self.parent.playerId], Unit.FRENCHNAME[Unit.ATTACK_SHIP], 0]
-                              ,[self.transportShips[self.parent.playerId], Unit.FRENCHNAME[Unit.TRANSPORT], 0]
-                              ,[self.gatherShips[self.parent.playerId], Unit.FRENCHNAME[Unit.CARGO], 0] 
-                              ,[self.scoutShips[self.parent.playerId], Unit.FRENCHNAME[Unit.SCOUT], 0]]
+                unitToDraw = [[self.scoutShips[self.parent.colorId], Unit.FRENCHNAME[Unit.SCOUT], 0]#Le Unit par défaut
+                              ,[self.motherShips[self.parent.colorId],Unit.FRENCHNAME[Unit.MOTHERSHIP],0]
+                              ,[self.scoutShips[self.parent.colorId], Unit.FRENCHNAME[Unit.SCOUT], 0]
+                              ,[self.attackShips[self.parent.colorId], Unit.FRENCHNAME[Unit.ATTACK_SHIP], 0]
+                              ,[self.transportShips[self.parent.colorId], Unit.FRENCHNAME[Unit.TRANSPORT], 0]
+                              ,[self.gatherShips[self.parent.colorId], Unit.FRENCHNAME[Unit.CARGO], 0] 
+                              ,[self.scoutShips[self.parent.colorId], Unit.FRENCHNAME[Unit.SCOUT], 0]]
                               
                 y = 30
                 for i in unitList:
