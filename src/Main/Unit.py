@@ -112,7 +112,7 @@ class Mothership(Unit):
         self.attackcount=self.AttackSpeed
         self.killCount = 0
 
-    def action(self, controller):
+    def action(self):
         p = [self.position[0], self.position[1], 0]
 
         if (self.flag.flagState == FlagState.CREATE):
@@ -130,8 +130,6 @@ class Mothership(Unit):
 
         elif self.flag.flagState == FlagState.CANCEL_UNIT:
             self.unitBeingConstruct.pop(int(self.flag.finalTarget))
-            if len(self.unitBeingConstruct) == 0:
-                controller.callOngletSelectedUnit()
             self.flag.flagState = FlagState.BUILD_UNIT
 
         elif self.flag.flagState == FlagState.CHANGE_RALLY_POINT:
