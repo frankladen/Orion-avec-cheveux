@@ -19,8 +19,9 @@ class View():
     MINIMAP_WIDTH=200
     MINIMAP_HEIGHT=200
         
-    def __init__(self, parent):
-        self.parent = parent                  
+    def __init__(self, parent, game):
+        self.parent = parent
+        self.game = game
         self.root=Tk()
         self.root.title("Orion")
         self.root.resizable(0,0)
@@ -183,7 +184,7 @@ class View():
         self.menuModes.entryMess.bind("<Return>",self.enter)
         self.parent.refreshMessages(self.menuModes.chat)
         
-    # delete tout ce qu'il y a dans le canvas menuModes + affiche les 3 menus
+    #delete tout ce qu'il y a dans le canvas menuModes + affiche les 3 menus
     def menuModesOnlets(self):
         self.menuModes.delete(ALL)
         self.menuModes.create_image(0,0,image=self.gifChat,anchor = NW,tag='bouton_chat')
@@ -258,7 +259,7 @@ class View():
                 l = self.unitsConstructionPanel.create_text(5,y,text = str(r) + " " + i.name, anchor = NW, fill = 'white')
                 y+=20
 
-	#Frame du menu principal    
+    #Frame du menu principal    
     def fMainMenu(self):
         mainMenuFrame = Frame(self.root, bg="black")
         panel1 = Label(mainMenuFrame, image=self.mainMenuBG)
@@ -1003,10 +1004,11 @@ class View():
     def shiftRelease(self, eve):
         self.parent.multiSelect = False
 	
-    def checkMotherSip(self, eve):
+    def checkMotherShip(self, eve):
         self.parent.players[self.parent.playerId].currentPlanet = None
         self.changeBackground('GALAXY')
         self.drawWorld()
+        self.redrawMinimap()
         cam = self.parent.players[self.parent.playerId].camera
         cam.position = cam.defaultPos
         self.parent.players[self.parent.playerId].selectedUnit = []
@@ -1113,7 +1115,7 @@ class View():
         self.gameArea.bind("t", self.takeOff)
         self.gameArea.bind("T", self.takeOff)
         self.gameArea.bind("<KeyRelease-c>", self.unSelectAll)
-        self.gameArea.bind("1", self.checkMotherSip)
+        self.gameArea.bind("1", self.checkMotherShip)
         self.gameArea.bind("<Control_L>",self.ctrlPressed)
         self.gameArea.bind("<KeyRelease-Control_L>",self.ctrlDepressed)
         self.gameArea.bind("<Tab>",self.enterChat)

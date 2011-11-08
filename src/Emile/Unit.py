@@ -186,6 +186,10 @@ class SpaceAttackUnit(SpaceUnit):
         self.range=150.0
         self.attackcount=self.AttackSpeed
         self.killCount = 0
+
+    def changeFlag(self, finalTarget, state):
+        self.attackcount=self.AttackSpeed
+        Unit.changeFlag(self, finalTarget, state)
         
     def attack(self, players):
         index = -1
