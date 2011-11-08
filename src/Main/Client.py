@@ -223,13 +223,13 @@ class Controller():
     def selectUnitEnemy(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
             if len(self.players[self.playerId].selectedObjects) > 0:
-                    for i in self.players:
-                        if i != self.players[self.playerId]:
-                            for j in i.units:
-                                if j.isAlive:
-                                    if j.position[0] >= pos[0]-j.SIZE[j.type][0]/2 and j.position[0] <= pos[0]+j.SIZE[j.type][0]/2 :
-                                        if j.position[1] >= pos[1]-j.SIZE[j.type][1]/2  and j.position[1] <= pos[1]+j.SIZE[j.type][1]/2 :
-                                            self.setAttackFlag(j)
+                for i in self.players:
+                    if i != self.players[self.playerId]:
+                        for j in i.units:
+                            if j.isAlive:
+                                if j.position[0] >= posSelected[0]-j.SIZE[j.type][0]/2 and j.position[0] <= posSelected[0]+j.SIZE[j.type][0]/2 :
+                                    if j.position[1] >= posSelected[1]-j.SIZE[j.type][1]/2  and j.position[1] <= posSelected[1]+j.SIZE[j.type][1]/2 :
+                                        self.setAttackFlag(j)
     def checkIfEnemyInRange(self, unit):
         for pl in self.players:
             if self.players.index(pl) != unit.owner:
@@ -316,7 +316,6 @@ class Controller():
                         if i not in self.players[self.playerId].selectedObjects:
                             self.players[self.playerId].selectedObjects = []
                             self.players[self.playerId].selectedObjects.append(i)
-
     def selectAll(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
             self.select(posSelected)
@@ -445,8 +444,8 @@ class Controller():
     def takeOff(self, ship, planet, playerId):
         ship.takeOff(planet)
         self.players[playerId].currentPlanet = None
-        self.view.redrawMinimap()
         self.view.drawWorld()
+        self.view.redrawMinimap()
         
     def setTakeOffFlag(self, ship, planet):
         planetId = 0
@@ -508,6 +507,8 @@ class Controller():
                             if i.flag.flagState == FlagState.MOVE or i.flag.flagState == FlagState.GROUND_MOVE:
                                 i.move()
                             elif i.flag.flagState == FlagState.ATTACK:
+                                if p == self.players[self.playerId] and self.view.selectedOnglet == self.view.SELECTED_UNIT_SELECTED:
+                                    self.view.ongletSelectedUnit()
                                 if isinstance(i.flag.finalTarget, u.TransportShip):
                                     if i.flag.finalTarget.landed:
                                         self.setAStandByFlag(i)
@@ -525,10 +526,16 @@ class Controller():
                             elif isinstance(i,u.SpaceAttackUnit):
                                 self.checkIfEnemyInRange(i)
                     if p.motherShip.isAlive:
-                        p.motherShip.action()
+                        p.motherShip.action(self)
+
                         if len(p.motherShip.unitBeingConstruct) > 0:
+                            if p == self.players[self.playerId] and self.view.selectedOnglet == self.view.SELECTED_UNIT_SELECTED:
+                                self.view.ongletSelectedUnit()
                             if(p.motherShip.isUnitFinished()):
                                 self.buildUnit(p)
+                                if len(p.motherShip.unitBeingConstruct) == 0:
+                                    if p == self.players[self.playerId] and self.view.selectedOnglet == self.view.SELECTED_UNIT_SELECTED:
+                                        self.view.ongletSelectedUnit()
                         else:
                             if p.motherShip.flag.flagState != FlagState.ATTACK:
                                 p.motherShip.flag.flagState = FlagState.STANDBY 
@@ -542,7 +549,6 @@ class Controller():
                 self.view.showGaz.config(text="Gaz: "+str(self.players[self.playerId].gaz))
 	            #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
                 self.pullChange()
-                self.view.createUnitsConstructionPanel()
                 if self.players[self.playerId].currentPlanet == None:
                     self.view.drawWorld()
                 else:
@@ -576,6 +582,9 @@ class Controller():
             if self.players[self.playerId].units[killedIndexes[0]] in self.players[self.playerId].selectedObjects:
                self.players[self.playerId].selectedObjects.remove(self.players[self.playerId].units[killedIndexes[0]])
         self.players[killedIndexes[1]].units[killedIndexes[0]].kill()
+
+    def callOngletSelectedUnit(self):
+        self.view.ongletSelectedUnit()
 
     def buildUnit(self, player):
         unit = player.motherShip.unitBeingConstruct.pop(0)
@@ -754,7 +763,7 @@ class Controller():
         
         elif action == str(FlagState.CREATE):
             self.players[actionPlayerId].motherShip.changeFlag(int(target),int(action))
-            self.players[actionPlayerId].motherShip.action()
+            self.players[actionPlayerId].motherShip.action(self)
             self.players[actionPlayerId].gaz -= self.players[actionPlayerId].motherShip.unitBeingConstruct[len(self.players[actionPlayerId].motherShip.unitBeingConstruct)-1].buildCost[1]
             self.players[actionPlayerId].mineral -= self.players[actionPlayerId].motherShip.unitBeingConstruct[len(self.players[actionPlayerId].motherShip.unitBeingConstruct)-1].buildCost[0]
             self.players[actionPlayerId].motherShip.flag.flagState = FlagState.BUILD_UNIT

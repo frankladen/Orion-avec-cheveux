@@ -16,18 +16,12 @@ class Player():
         self.motherShip = None
         self.formation="carre"
         self.currentPlanet = None
-        self.gaz = 1000
-        self.mineral = 1000
+        self.gaz = 100
+        self.mineral = 100
 
     def addBaseUnits(self, startPos):
         self.units.append(Mothership('Mothership', Unit.MOTHERSHIP,startPos, self.id))
         self.motherShip = self.units[0]
-        self.units.append(Unit('Scout', Unit.SCOUT,[startPos[0] + 20, startPos[1] + 20 ,0], self.id))
-        self.units.append(GatherShip('Gather ship', Unit.CARGO,[startPos[0] + 40, startPos[1]+40], self.id))
-        self.units.append(Unit('Scout', Unit.SCOUT,[startPos[0] + 20, startPos[1] + 20 ,0], self.id))
-        self.units.append(GatherShip('Gather ship', Unit.CARGO,[startPos[0] + 40, startPos[1]+40], self.id))
-        self.units.append(Unit('Scout', Unit.SCOUT,[startPos[0] + 20, startPos[1] + 20 ,0], self.id))
-        self.units.append(GatherShip('Gather ship', Unit.CARGO,[startPos[0] + 40, startPos[1]+40], self.id))
         self.units.append(Unit('Scout', Unit.SCOUT,[startPos[0] + 20, startPos[1] + 20 ,0], self.id))
         self.units.append(GatherShip('Gather ship', Unit.CARGO,[startPos[0] + 40, startPos[1]+40], self.id))
         
@@ -38,7 +32,7 @@ class Player():
             if i.type == i.MOTHERSHIP:
                 pos = i.position
         default = [pos[0],pos[1]]
-        self.camera = Camera(default,galaxy, taille)
+        self.camera = Camera(default, galaxy, self, taille)
         if default[0]-self.camera.screenCenter[0] < (self.camera.galaxy.width*-1)/2:
             self.camera.position[0] = (self.camera.galaxy.width*-1)/2+self.camera.screenCenter[0]
         if default[0]+self.camera.screenCenter[0] > self.camera.galaxy.width/2:
@@ -63,13 +57,14 @@ class Player():
         return False
 #Represente la camera            
 class Camera():
-    def __init__(self, defaultPos, galaxy, taille):
+    def __init__(self, defaultPos, galaxy, player, taille):
         self.defaultPos = defaultPos
         self.position = defaultPos
         self.screenCenter = (taille/2,(taille/2)-100)
         self.screenWidth = taille
         self.screenHeight = taille-200
         self.galaxy = galaxy #reference a la galaxie
+        self.player = player
         self.movingDirection = []
         
     #Pour calculer la distance entre la camera et un point
@@ -99,6 +94,19 @@ class Camera():
         elif rY > self.galaxy.height/2-self.screenHeight/2:
             rY = self.galaxy.height/2-self.screenHeight/2
         return [rX, rY]
+		
+    def calcPointOnPlanetMap(self, x, y):
+        rX = x * self.player.currentPlanet.WIDTH / 200
+        rY = y * self.player.currentPlanet.HEIGHT / 200
+        if rX < 0 + self.screenWidth/2:
+            rX = 0 + self.screenWidth/2
+        elif rX > self.player.currentPlanet.WIDTH - self.screenWidth/2:
+            rX = self.player.currentPlanet.WIDTH - self.screenWidth/2
+        if rY < 0 + self.screenHeight/2:
+            rY = 0 + self.screenHeight/2
+        elif rY > self.player.currentPlanet.HEIGHT - self.screenHeight/2:
+            rY = self.player.currentPlanet.HEIGHT - self.screenHeight/2
+        return [rX, rY]
     
     #Pour calculer un point dans la galaxie a partir d'un point dans la minimap
     def calcPointMinimap(self,x ,y ):
@@ -112,20 +120,64 @@ class Camera():
             if position[1] > self.position[1]-self.screenHeight/2-20 and position[1] < self.position[1]+self.screenHeight/2+20:
                 return True
         return False
-    
+
+    def placeOnLanding(self):
+        planet = self.player.currentPlanet
+        if self.position[0]-self.screenCenter[0] < 0:
+            self.position[0] = 0 + self.screenCenter[0]
+        if self.position[0] + self.screenCenter[0] > planet.WIDTH:
+            self.position[0] = planet.WIDTH-self.screenCenter[0]
+        if self.position[1] - self.screenCenter[1] < 0:
+            self.position[1] = 0+self.screenCenter[1]
+        if self.position[1] + self.screenCenter[1] > planet.HEIGHT:
+            self.position[1] = planet.HEIGHT - self.screenCenter[1]
+
+    def placeOverPlanet(self):
+        if self.position[0]-self.screenCenter[0] < (self.galaxy.width*-1)/2:
+            self.position[0] = (self.galaxy.width*-1)/2+self.screenCenter[0]
+        if self.position[0]+self.screenCenter[0] > self.galaxy.width/2:
+            self.position[0] = (self.galaxy.width)/2-self.screenCenter[0]
+        if self.position[1]-self.screenCenter[1] < (self.galaxy.height*-1)/2:
+            self.position[1] = (self.galaxy.height*-1)/2+self.screenCenter[1]
+        if self.position[1]+self.screenCenter[1] > self.galaxy.height/2:
+            self.position[1] = (self.galaxy.height)/2-self.screenCenter[1]
+
     #Deplace la camera selon le contenu de la liste movingDirection
     def move(self):
-        if 'LEFT' in self.movingDirection:
-            if self.position[0] > (self.galaxy.width*-1)/2+self.screenCenter[0]:
-                self.position[0]-=10
-        elif 'RIGHT' in self.movingDirection:
-            if self.position[0] < self.galaxy.width/2 - self.screenCenter[0]:
-                self.position[0]+=10
-        if 'UP' in self.movingDirection:
-            if self.position[1] > (self.galaxy.height*-1)/2 + self.screenCenter[1]:
-                self.position[1]-=10
-        elif 'DOWN' in self.movingDirection:
-            if self.position[1] < self.galaxy.height/2 - self.screenCenter[1]:
-                self.position[1]+=10
+        if self.player.currentPlanet == None:
+            if 'LEFT' in self.movingDirection:
+                if self.position[0] > (self.galaxy.width*-1)/2+self.screenCenter[0]:
+                    self.position[0]-=10
+            elif 'RIGHT' in self.movingDirection:
+                if self.position[0] < self.galaxy.width/2 - self.screenCenter[0]:
+                    self.position[0]+=10
+            if 'UP' in self.movingDirection:
+                if self.position[1] > (self.galaxy.height*-1)/2 + self.screenCenter[1]:
+                    self.position[1]-=10
+            elif 'DOWN' in self.movingDirection:
+                if self.position[1] < self.galaxy.height/2 - self.screenCenter[1]:
+                    self.position[1]+=10
+        else:
+            planet = self.player.currentPlanet
+            if 'LEFT' in self.movingDirection:
+                if self.position[0] > 0 + self.screenCenter[0]:
+                    self.position[0]-=20
+                else:
+                    self.position[0] = self.screenCenter[0]
+            elif 'RIGHT' in self.movingDirection:
+                if self.position[0] < planet.WIDTH - self.screenCenter[0]:
+                    self.position[0]+=20
+                else:
+                    self.position[0] = planet.WIDTH - self.screenCenter[0]
+            if 'UP' in self.movingDirection:
+                if self.position[1] > 0 + self.screenCenter[1]:
+                    self.position[1]-=20
+                else:
+                    self.position[1] = self.screenCenter[1]
+            elif 'DOWN' in self.movingDirection:
+                if self.position[1] < planet.HEIGHT - self.screenCenter[1]:
+                    self.position[1]+=20
+                else:
+                    self.position[1] = planet.HEIGHT - self.screenCenter[1]
 
 

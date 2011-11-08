@@ -3,7 +3,7 @@ from tkinter import *
 from Unit import *
 import time
 from Constants import *
-#from winsound import *
+from winsound import *
 import tkinter.messagebox as mb
 import subprocess
 
@@ -18,6 +18,11 @@ class View():
     WAITING_FOR_PATROL_POINT_MENU=6
     MINIMAP_WIDTH=200
     MINIMAP_HEIGHT=200
+    SELECTED_TRADE = 20
+    SELECTED_CHAT = 21
+    SELECTED_UNIT_SELECTED = 22
+    SELECTED_TEAM = 23
+    SELECTED_UNIT = 24
         
     def __init__(self, parent):
         self.parent = parent                  
@@ -32,16 +37,6 @@ class View():
         self.selectStart = [0,0]
         self.selectEnd = [0,0]
         self.positionMouse = [0,0,0]
-        self.mainMenuBG = PhotoImage(file='images/Menus/MainMenuBG.gif')
-        self.mainMenu = self.fMainMenu()
-        self.mainMenu.pack()
-        self.pLobby = None
-        self.currentFrame = self.mainMenu
-        self.gameFrame = None
-        self.joinGame = self.fJoinGame()
-        self.createServer = self.fCreateServer()
-        self.actionMenuType = self.MAIN_MENU
-        self.Actionmenu = None
         self.sun=PhotoImage(file='images/Galaxy/sun.gif')
         self.sunFOW = PhotoImage(file='images/Galaxy/sunFOW.gif')
         self.planet=PhotoImage(file='images/Galaxy/planet.gif')
@@ -54,9 +49,10 @@ class View():
         self.mineral = PhotoImage(file='images/Planet/crystal.gif')
         self.planetBackground = PhotoImage(file='images/Planet/background.gif')
         self.galaxyBackground = PhotoImage(file='images/Galaxy/night-sky.gif')
+        self.lobbyBackground = PhotoImage(file='images/Menus/lobby.gif')
+        self.mainMenuBG = PhotoImage(file='images/Menus/MainMenuBG.gif')
         self.gifStop = PhotoImage(file='images/icones/stop.gif')
         self.gifMove = PhotoImage(file='images/icones/move.gif')
-        self.gifDelete = PhotoImage(file='images/icones/delete.gif')
         self.gifAttack = PhotoImage(file='images/icones/attack.gif')
         self.gifAttackUnit = PhotoImage(file='images/icones/attackUnit.gif')
         self.gifRallyPoint = PhotoImage(file='images/icones/flag.gif')
@@ -74,6 +70,17 @@ class View():
         self.gifTriangle = PhotoImage(file='images/icones/iconeFormationTriangle.gif')
         self.gifSquare = PhotoImage(file='images/icones/iconeFormationCarre.gif')
         self.gifReturn = PhotoImage(file='images/icones/return.gif')
+        #fenetres
+        self.mainMenu = self.fMainMenu()
+        self.mainMenu.pack()
+        self.pLobby = None
+        self.currentFrame = self.mainMenu
+        self.gameFrame = None
+        self.joinGame = self.fJoinGame()
+        self.createServer = self.fCreateServer()
+        self.actionMenuType = self.MAIN_MENU
+        self.Actionmenu = None
+        self.unitsConstructionPanel = None
         #booleens d'actions
         self.firstTime = True
         self.attacking = False
@@ -87,6 +94,7 @@ class View():
         self.hpBars=False
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.removePlayer)
+        self.selectedOnglet = self.SELECTED_CHAT
     
     def changeFrame(self, frame):
         self.currentFrame.pack_forget()
@@ -116,37 +124,134 @@ class View():
         self.showGaz = Label(gameFrame, text="Gaz: "+str(self.parent.players[self.parent.playerId].gaz), bg="black", fg="white", anchor=E)
         self.showGaz.grid(column=3, row=0)
         self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille-200, background='Black', relief='ridge')
-        self.gameArea.grid(column=0,row=1, columnspan=5)#place(relx=0, rely=0,width=taille,height=taille)
+        self.gameArea.grid(column=0,row=1, columnspan=7)#place(relx=0, rely=0,width=taille,height=taille)
         self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
         self.minimap.grid(column=0,row=2, rowspan=4)
         self.menuModes=Canvas(gameFrame, width=self.taille, height=200, background='black', relief='ridge')
-        self.menuModes.grid(row=2,column=2, rowspan=4)
+        self.menuModes.grid(row=2,column=2, rowspan=4, columnspan=5)
+        #OngletChat
         self.menuModes.chat = Label(gameFrame, anchor=W, justify=LEFT, width=75, background='black', fg='white', relief='raised')
         self.menuModes.entryMess = Entry(gameFrame, width=60)
-        self.Actionmenu = Canvas(gameFrame,width=(self.taille/4),height=(self.taille/4),background='black')
-        self.Actionmenu.grid(column=3,row=2, rowspan=4)
+        #Fenetres trade
+        self.menuModes.variableTrade = StringVar(gameFrame)
+        self.menuModes.tradeOPTIONS = []
+        for i in self.parent.players:
+            self.menuModes.tradeOPTIONS.append(i.name)
+        self.menuModes.variableTrade.set(self.menuModes.tradeOPTIONS[0])
+        self.menuModes.tradeChoice = OptionMenu(gameFrame, self.menuModes.variableTrade, *self.menuModes.tradeOPTIONS, command=self.parent.askTrade)
+        self.answerId=0
+        self.answerId2=0
+        self.menuModes.yesButton = Button(gameFrame, text="Oui", command=lambda:self.parent.startTrade(True, self.answerId))
+        self.menuModes.noButton = Button(gameFrame, text="Non", command=lambda:self.parent.startTrade(False, self.answerId))
+        self.menuModes.yesButtonConfirm = Button(gameFrame, text="Oui", command=lambda:self.parent.confirmTrade(True, self.answerId, min1, min2, gaz1, gaz2))
+        self.menuModes.noButtonConfirm = Button(gameFrame, text="Non", command=lambda:self.parent.confirmTrade(False, self.answerId, min1, min2, gaz1, gaz2))
+        self.menuModes.modifyButtonConfirm = Button(gameFrame, text="Contre-offre", command=lambda:self.parent.startTrade(True,self.parent.playerId))
+        self.menuModes.nomJoueur1 = Label(gameFrame, text=self.parent.players[self.answerId].name, bg="black", fg="white")
+        self.menuModes.etiqMenieral1 = Label(gameFrame,text='Minerals ', bg="black", fg="white")
+        self.menuModes.etiqGaz1 = Label(gameFrame,text='Gaz ', bg="black", fg="white")
+        self.menuModes.nomJoueur2 = Label(gameFrame, text=self.parent.players[self.answerId2].name, bg="black", fg="white")
+        self.menuModes.etiqMenieral2 = Label(gameFrame,text='Minerals ', bg="black", fg="white")
+        self.menuModes.bEchange = Button(gameFrame,text="Échange",command=lambda:self.parent.confirmTradeQuestion(self.answerId2))
+        self.menuModes.etiqGaz2 = Label(gameFrame,text='Gaz ', bg="black", fg="white")
+        self.menuModes.spinMinerals1 = Spinbox(gameFrame, from_=0, to=self.parent.players[self.answerId].mineral)
+        self.menuModes.spinGaz1 = Spinbox(gameFrame, from_=0, to=self.parent.players[self.answerId].gaz)
+        self.menuModes.spinMinerals2 = Spinbox(gameFrame, from_=0, to=self.parent.players[self.answerId2].mineral)
+        self.menuModes.spinGaz2 = Spinbox(gameFrame, from_=0, to=self.parent.players[self.answerId2].gaz)
+        
+        #ActionMenu
+        self.Actionmenu = Canvas(gameFrame,width=200,height=200,background='black')
+        self.Actionmenu.grid(column=7,row=2, rowspan=4)
         self.changeBackground('GALAXY')
         self.drawWorld()
         self.createActionMenu(self.MAIN_MENU)
-
         self.ongletChat(gameFrame)
         self.assignControls()
         return gameFrame
 
     def ongletTeam(self):
-        self.menuModesOnlets() 
-        self.menuModes.create_text(150,50,text='voici le menu Team',fill='white')
-        self.menuModes.chat.grid_forget()
-        self.menuModes.entryMess.grid_forget()
-        
-    def ongletTrade(self):
         self.menuModesOnlets()
-        self.menuModes.create_text(150,50,text='voici le menu Tradeeee',fill='red')
-        self.menuModes.chat.grid_forget()
-        self.menuModes.entryMess.grid_forget()
+        self.selectedOnglet = self.SELECTED_TEAM
+
+        self.menuModes.create_text(150,50,text='voici le menu Team',fill='white')
+        
+    def ongletTradeChoicePlayer(self):
+        self.menuModesOnlets()
+        self.selectedOnglet = self.SELECTED_TRADE
+
+        self.menuModes.tradeChoice.grid(row=3, column=2)
+
+    def ongletTradeWaiting(self):
+        self.menuModesOnlets()
+        self.selectedOnglet = self.SELECTED_TRADE
+
+        self.menuModes.create_text(150,50,text='En attente de la réponse de l\'autre joueur.',fill='white')
+
+    def ongletTradeNoAnswer(self):
+        self.selectedOnglet = self.SELECTED_TRADE
+        self.menuModesOnlets()
+        self.menuModes.create_text(150,50,text='L\'autre joueur a refusé l\'échange.',fill='white')
+
+    def ongletTradeYesAnswer(self):
+        self.menuModesOnlets()
+        self.menuModes.create_text(150,50,text='L\'échange a été conclue.',fill='white')
+
+    def ongletTradeYesNoQuestion(self, id1):
+        self.menuModesOnlets()
+        self.selectedOnglet = self.SELECTED_TEAM
+
+        self.answerId = id1
+        self.menuModes.create_text(150,50,text='Voulez-vous accepter la demande d\'échange avec '+self.parent.players[id1].name+'?',fill='white')
+        self.menuModes.yesButton.grid(row=3,column=2)
+        self.menuModes.noButton.grid(row=3,column=3)
+
+    def ongletTradeAskConfirm(self, id1, min1, min2, gaz1, gaz2):
+        self.menuModesOnlets()
+        self.selectedOnglet = self.SELECTED_TEAM
+
+        self.answerId = id1
+        self.menuModes.create_text(165,50,text=''+self.parent.players[self.answerId].name+' vous offre '+min1+' unités de ses minéraux et '+gaz1+' unités de son gaz',fill='white')
+        self.menuModes.create_text(160,65,text='contre '+min2+' unités de vos minéraux et '+gaz2+' unités de votre gaz',fill='white')
+        self.menuModes.yesButtonConfirm.config(command=lambda:self.parent.confirmTrade(True, self.answerId, min1, min2, gaz1, gaz2))
+        self.menuModes.noButtonConfirm.config(command=lambda:self.parent.confirmTrade(False, self.answerId, min1, min2, gaz1, gaz2))
+        self.menuModes.yesButtonConfirm.grid(row=4,column=2)
+        self.menuModes.noButtonConfirm.grid(row=4,column=3)
+        self.menuModes.modifyButtonConfirm.grid(row=4,column=4)
+
+    def ongletTrade(self, id1, id2):
+        self.menuModesOnlets()
+        self.selectedOnglet = self.SELECTED_TEAM
+
+        self.answerId = id1
+        self.answerId2 = id2
+        if self.parent.isMasterTrade==True:
+            #Fenetre trade spins
+            self.menuModes.nomJoueur1.config(text=self.parent.players[self.answerId].name)
+            self.menuModes.nomJoueur2.config(text=self.parent.players[self.answerId2].name)
+            self.menuModes.spinGaz2.config(to=self.parent.players[self.answerId2].gaz)
+            self.menuModes.spinGaz1.config(to=self.parent.players[self.answerId].gaz)
+            self.menuModes.spinMinerals1.config(to=self.parent.players[self.answerId].mineral)
+            self.menuModes.spinMinerals2.config(to=self.parent.players[self.answerId2].mineral)
+            self.menuModes.nomJoueur1.grid(row=3,column=3)
+            self.menuModes.etiqMenieral1.grid(row=4,column=2)
+            self.menuModes.spinMinerals1.grid(row=4,column=3)
+            # gaz Joueurs 1
+            self.menuModes.etiqGaz1.grid(row=5,column=2)
+            self.menuModes.spinGaz1.grid(row=5,column=3)
+            # Bouton ECHANGE
+            self.menuModes.bEchange.grid(column=4,row=2)
+            # minerals Joueurs 2
+            self.menuModes.nomJoueur2.grid(row=3,column=5)
+            self.menuModes.etiqMenieral2.grid(row=4,column=5)
+            self.menuModes.spinMinerals2.grid(row=4,column=6)
+            # gaz Joueurs 2
+            self.menuModes.etiqGaz2.grid(row=5,column=5)
+            self.menuModes.spinGaz2.grid(row=5,column=6)
+        else:
+            self.menuModes.create_text(150,50,text='Attente de l\'offre de l\'autre joueur.',fill='white')
         
     def ongletSelectedUnit(self):
         self.menuModesOnlets()
+        self.selectedOnglet = self.SELECTED_UNIT_SELECTED
         unitList = self.parent.players[self.parent.playerId].selectedObjects
         if len(unitList) == 1:
             self.showInfo(unitList[0])
@@ -169,34 +274,35 @@ class View():
                     x += 52
                     if x > 600:
                         x = 20
-                        y+= 46                 
-                        
-
-
-        
-            self.menuModes.chat.grid_forget()
-            self.menuModes.entryMess.grid_forget()
-
+                        y+= 46      
     
     def showInfo(self, unit):
         self.menuModes.create_text(20,80, text = 'Type : ' + Unit.FRENCHNAME[unit.type], anchor = NW, fill = 'white')
-        self.menuModes.create_text(20,100, text = "HP : " + str(unit.hitpoints) + "/" + str(unit.maxHP),anchor = NW, fill = 'white')
+        self.menuModes.create_text(20,100, text = "HP : " + str(math.trunc(unit.hitpoints)) + "/" + str(unit.maxHP),anchor = NW, fill = 'white')
         self.menuModes.create_text(20,120, text = "Vitesse de déplacement : " + str(unit.moveSpeed) + " années lumière à l'heure.", anchor = NW, fill = 'white')
-        self.menuModes.create_text(20,140, text = "Champ de vision " + str(unit.viewRange) + " années lumière", anchor = NW, fill = 'white')
+        self.menuModes.create_text(20,140, text = "Champ de vision : " + str(unit.viewRange) + " années lumière", anchor = NW, fill = 'white')
         #Ces images seront remplacer par de plus grandes et plus belles ! (aghi on t'attends ! )
 
         if isinstance(unit, u.Mothership) == False :
             if isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.SpaceAttackUnit):
                 self.menuModes.create_image(20, 50, image = self.gifAttackUnit)
+                self.menuModes.create_text(20,160, text = "Vitesse d'attaque : " + str(unit.AttackSpeed),anchor = NW, fill = 'white')
+                self.menuModes.create_text(20,180, text = "Force d'attaque : " + str(unit.AttackDamage),anchor = NW, fill = 'white')
             elif isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.GatherShip):
                 self.menuModes.create_image(20,50, image = self.gifCargo)
+                self.menuModes.create_text(20,160, text = "Chargement : gaz = " + str(unit.container[1]) + " mineral = " + str(unit.container[0]), anchor = NW, fill = 'white')
+                self.menuModes.create_text(20,180, text = "Taille du réservoir : " + str(unit.maxGather), anchor = NW, fill = 'white')
+                self.menuModes.create_text(20,200, text = "Vitesse de minage : " + str(unit.gatherSpeed), anchor = NW, fill = 'white')
             elif isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.TransportShip):
                 self.menuModes.create_image(20,50, image = self.gifTransport)
             elif isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.Unit):
                 self.menuModes.create_image(20,50, image = self.gifUnit)
-            
-            self.menuModes.create_arc((675, 190,500,10), start=0, extent= (self.parent.players[self.parent.playerId].selectedObjects[0].hitpoints / self.parent.players[self.parent.playerId].selectedObjects[0].maxHP)*359 , fill='green', tags = 'arc')   
 
+            if self.parent.players[self.parent.playerId].selectedObjects[0].hitpoints != self.parent.players[self.parent.playerId].selectedObjects[0].maxHP:
+                self.menuModes.create_arc((675, 190,500,10), start=0, extent= (self.parent.players[self.parent.playerId].selectedObjects[0].hitpoints / self.parent.players[self.parent.playerId].selectedObjects[0].maxHP)*359.99999999 , fill='green', tags = 'arc', outline ='green')
+            else:
+                self.menuModes.create_oval((675, 190,500,10), fill='green', tags = 'arc', outline ='green')
+    
             
 
         else:
@@ -204,19 +310,40 @@ class View():
                 self.menuModes.create_text(20,160, text = str(len(self.parent.players[self.parent.playerId].motherShip.unitBeingConstruct)) + " unités actuellement en contruction", anchor = NW, fill = 'white')
                 self.createUnitsConstructionMenu()
             else:
-                self.menuModes.create_text(20,160, text = "Aucunne unité n'est actuellement en contruction", anchor = NW, fill = 'white')
-                self.menuModes.create_arc((675, 190,500,10), start=0, extent= (self.parent.players[self.parent.playerId].selectedObjects[0].hitpoints / self.parent.players[self.parent.playerId].selectedObjects[0].maxHP)*359 , fill='green', tags = 'arc')   
-
+                self.menuModes.create_text(20,160, text = "Aucune unité n'est actuellement en contruction", anchor = NW, fill = 'white')
+                if self.parent.players[self.parent.playerId].selectedObjects[0].hitpoints != self.parent.players[self.parent.playerId].selectedObjects[0].maxHP:
+                    self.menuModes.create_arc((675, 190,500,10), start=0, extent= (self.parent.players[self.parent.playerId].selectedObjects[0].hitpoints / self.parent.players[self.parent.playerId].selectedObjects[0].maxHP)*359.99999999 , fill='green', tags = 'arc')
+                else:
+                    self.menuModes.create_oval((675, 190,500,10), fill='green', tags = 'arc', outline ='green')
     def ongletChat(self,gameFrame):
         self.menuModesOnlets()
-        self.menuModes.chat.grid(row=3, column=2)
-        self.menuModes.entryMess.grid(row=4, column=2)
+        self.menuModes.chat.grid(row=3, column=3, columnspan=3)
+        self.menuModes.entryMess.grid(row=4, column=3, columnspan=3)
         self.menuModes.entryMess.bind("<Return>",self.enter)
         self.parent.refreshMessages(self.menuModes.chat)
         
     # delete tout ce qu'il y a dans le canvas menuModes + affiche les 3 menus
     def menuModesOnlets(self):
         self.menuModes.delete(ALL)
+        self.menuModes.chat.grid_forget()
+        self.menuModes.entryMess.grid_forget()
+        self.menuModes.yesButton.grid_forget()
+        self.menuModes.noButton.grid_forget()
+        self.menuModes.yesButtonConfirm.grid_forget()
+        self.menuModes.noButtonConfirm.grid_forget()
+        self.menuModes.tradeChoice.grid_forget()
+        self.menuModes.etiqMenieral1.grid_forget()
+        self.menuModes.etiqMenieral2.grid_forget()
+        self.menuModes.nomJoueur1.grid_forget()
+        self.menuModes.nomJoueur2.grid_forget()
+        self.menuModes.spinMinerals1.grid_forget()
+        self.menuModes.spinMinerals2.grid_forget()
+        self.menuModes.etiqGaz1.grid_forget()
+        self.menuModes.etiqGaz2.grid_forget()
+        self.menuModes.spinGaz1.grid_forget()
+        self.menuModes.spinGaz2.grid_forget()
+        self.menuModes.bEchange.grid_forget()
+        self.menuModes.modifyButtonConfirm.grid_forget()
         self.menuModes.create_image(0,0,image=self.gifChat,anchor = NW,tag='bouton_chat')
         self.menuModes.create_image(77,0,image=self.gifTrade,anchor = NW,tag='bouton_trade')
         self.menuModes.create_image(150,0,image=self.gifTeam,anchor = NW,tag='bouton_team')
@@ -235,7 +362,6 @@ class View():
                     self.Actionmenu.create_image(13,35,image=self.gifMove,anchor = NW, tags = 'Button_Move')
                     self.Actionmenu.create_image(76,35,image=self.gifStop,anchor = NW, tags = 'Button_Stop')
                     self.Actionmenu.create_image(140,35,image=self.gifPatrol,anchor = NW, tags = 'Button_Patrol')
-                    self.Actionmenu.create_image(13,143,image=self.gifDelete,anchor = NW, tags = 'Button_Delete')
                     if isinstance(units[0], SpaceAttackUnit):
                         self.Actionmenu.create_image(13,89,image=self.gifAttack,anchor = NW, tags = 'Button_Attack')
                 if len(self.parent.players[self.parent.playerId].selectedObjects) > 1:
@@ -247,7 +373,6 @@ class View():
             self.Actionmenu.create_image(76,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Build_Attack')
             self.Actionmenu.create_image(140,35,image = self.gifCargo, anchor = NW, tags = 'Button_Build_Gather')
             self.Actionmenu.create_image(13,89,image = self.gifTransport, anchor = NW, tags = 'Button_Build_Transport')
-
         elif(type == self.WAITING_FOR_RALLY_POINT_MENU):
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le point de ralliement du vaisseau mère.",anchor = NW, fill = 'white', width = 200)
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
@@ -279,18 +404,17 @@ class View():
                     ok = False
                     self.menuModes.create_image(675, y, image = self.iconCancel, anchor = NW, tags = ('cancelUnitButton', list.index(i)))
             else:
-                if (self.wantToCancelUnitBuild == False):
-                    self.menuModes.create_arc((675, y, 695, 55), start=0, extent= (i.constructionProgress / i.buildTime)*360 , fill='blue', tags = 'arc')
-                else:
-                    self.menuModes.create_image(675,y, image = self.iconCancel, anchor = NW, tags = ('cancelUnitButton', list.index(i)))
+                    if (self.wantToCancelUnitBuild == False):
+                        self.menuModes.create_arc((675, y, 695, 55), start=0, extent= (i.constructionProgress / i.buildTime)*360 , fill='blue' , tags = 'arc', outline="cyan")
+                    else:
+                        self.menuModes.create_image(675,y, image = self.iconCancel, anchor = NW, tags = ('cancelUnitButton', list.index(i)))
 
             if (ok == True):
                 self.menuModes.itemconfig(l, text = str(r) + " " + i.name)
             else:
                 l = self.menuModes.create_text(575,y,text = str(r) + " " + i.name, anchor = NW, fill = 'white')
                 y+=20
-        self.menuModes.chat.grid_forget()
-        self.menuModes.entryMess.grid_forget()
+
 
 	#Frame du menu principal    
     def fMainMenu(self):
@@ -304,18 +428,19 @@ class View():
     #Frame permettant de rejoindre une partie
     def fJoinGame(self):
         joinGameFrame = Frame(self.root, bg="black")
-        Label(joinGameFrame, text="Nom de joueur:", fg="white", bg="black").grid(row=0, column=0)
+        Label(joinGameFrame, image=self.lobbyBackground).grid(row=0,column=0,rowspan=10,columnspan=4)
+        Label(joinGameFrame, text="Nom de joueur:", fg="white", bg="black").grid(row=3, column=1)
         self.entryLogin = Entry(joinGameFrame, width=20)
         self.entryLogin.focus_set()
-        self.entryLogin.grid(row=0, column=1)
-        Label(joinGameFrame, text="Adresse du serveur:", fg="white", bg="black").grid(row=1, column=0)
+        self.entryLogin.grid(row=3, column=2)
+        Label(joinGameFrame, text="Adresse du serveur:", fg="white", bg="black").grid(row=4, column=1)
         self.entryServer = Entry(joinGameFrame, width=20)
-        self.entryServer.grid(row=1, column=1)
+        self.entryServer.grid(row=4, column=2)
         widget = Button(joinGameFrame, text='Connecter', command=lambda:self.lobbyEnter(0, self.entryLogin.get(), self.entryServer.get()))
-        widget.grid(row=2, column=1)
+        widget.grid(row=5, column=2)
 		#Crée un bouton de retour au menu principal
         widget = Button(joinGameFrame, text='Retour', command=lambda:self.changeFrame(self.mainMenu), width=10)
-        widget.grid(row=3, column=1, columnspan=2, pady=10)
+        widget.grid(row=6, column=2, pady=10)
         self.entryServer.bind("<Return>",self.lobbyEnter)
         return joinGameFrame
     
@@ -323,28 +448,30 @@ class View():
     def fCreateServer(self):
         #Crée le frame
         createServerFrame = Frame(self.root, bg="black")
+        #Background
+        Label(createServerFrame, image=self.lobbyBackground).grid(row=0,column=0,rowspan=10,columnspan=4)
         #Crée le label de l'IP du serveur
-        Label(createServerFrame, text="Adresse du serveur:", fg="white", bg="black").grid(row=0, column=0)
+        Label(createServerFrame, text="Adresse du serveur:", fg="white", bg="black").grid(row=3, column=1)
         #Crée le champ texte pour l'IP du serveur
         self.entryCreateServer = Entry(createServerFrame, width=20)
         #On met l'adresse de l'hôte comme valeur par défaut
         self.entryCreateServer.insert(0,self.parent.playerIp)
-        self.entryCreateServer.grid(row=0, column=1)
+        self.entryCreateServer.grid(row=3, column=2)
         #Crée le label du nom du joueur
-        Label(createServerFrame, text="Nom de joueur:", fg="white", bg="black").grid(row=1, column=0)
+        Label(createServerFrame, text="Nom de joueur:", fg="white", bg="black").grid(row=4, column=1)
         #Crée le champ texte pour le nom du joueur
         self.entryCreateLogin = Entry(createServerFrame, width=20)
         self.entryCreateLogin.focus_set()
-        self.entryCreateLogin.grid(row=1, column=1)
+        self.entryCreateLogin.grid(row=4, column=2)
         #Crée le bouton de confirmation
         widget = Button(createServerFrame, text='Créer', command=lambda:self.startServer(False))
-        widget.grid(row=2, column=1)
+        widget.grid(row=5, column=2)
         #Crée le bouton de confirmation et se connecte
         widget = Button(createServerFrame, text='Créer et connecter', command=lambda:self.startServer(True))
-        widget.grid(row=3, column=1)
+        widget.grid(row=6, column=2)
 		#Crée un bouton de retour au menu principal
         widget = Button(createServerFrame, text='Retour', command=lambda:self.changeFrame(self.mainMenu), width=10)
-        widget.grid(row=5, column=1, columnspan=2, pady=10)
+        widget.grid(row=7, column=2, pady=10)
         return createServerFrame
 
     def startServer(self, connect):
@@ -354,6 +481,7 @@ class View():
         #On doit attendre un peu afin de laisser le temps au serveur de partir et de se terminer si une erreur arrive
         #time.sleep(1)
         #On vérifie si le serveur s'est terminé en erreur et si oui, on affiche un message à l'utilisateur
+        time.sleep(1)
         if child.poll():
             if child.returncode != None:
                 self.serverNotCreated()
@@ -370,17 +498,18 @@ class View():
     def fLobby(self):
         self.entryServer.unbind("<Return>")
         lobbyFrame = Frame(self.root, bg="black")
+        Label(lobbyFrame, image=self.lobbyBackground).grid(row=0,column=0,rowspan=15,columnspan=8)
         if self.parent.server != None:
             pNum = len(self.parent.server.getSockets())
             for i in range(0, pNum):
-                Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i,column=0)
-            Label(lobbyFrame, text='Admin : '+self.parent.server.getSockets()[0][1], fg="white", bg="black").grid(row=37, column=1)
+                Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i+3,column=0)
+            Label(lobbyFrame, text='Admin : '+self.parent.server.getSockets()[0][1], fg="white", bg="black").grid(row=12, column=0)
             if self.parent.playerId == 0:
-                Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame, bg="black", fg="white").grid(row=38, column=1)
+                Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame, bg="black", fg="white").grid(row=12, column=1)
         self.chatLobby = Label(lobbyFrame, anchor=W, justify=LEFT, width=45, background='black', fg='white', relief='raised')
-        self.chatLobby.grid(row=39, column=1)
+        self.chatLobby.grid(row=2, column=5, rowspan=5)
         self.entryMessLobby = Entry(lobbyFrame, width=35)
-        self.entryMessLobby.grid(row=40, column=1)
+        self.entryMessLobby.grid(row=6, column=5)
         self.entryMessLobby.bind("<Return>", self.sendMessLobby)
         #Choix de couleur
         self.variableColor = StringVar(lobbyFrame)
@@ -388,7 +517,7 @@ class View():
         self.colorOPTIONS = ["Orange","Rouge","Bleu"]
         self.variableColor.set(self.colorOPTIONS[0]) # default value
         self.colorChoice = OptionMenu(lobbyFrame, self.variableColor, *self.colorOPTIONS, command=self.parent.choiceColor)
-        self.colorChoice.grid(row=(self.parent.playerId), column=1)
+        self.colorChoice.grid(row=(self.parent.playerId)+3, column=1)
         self.colorChoice['menu'].delete(0, END)
         for i in listOfColors:
             if i[1] == False or self.parent.server.getSockets()[self.parent.playerId][3] == listOfColors.index(i):
@@ -405,9 +534,9 @@ class View():
         if self.parent.server != None:
             pNum = len(self.parent.server.getSockets())
             for i in range(0, pNum):
-                Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i,column=0)
+                Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i+3,column=0)
                 if self.parent.server.getSockets()[i][3] != -1 and i != self.parent.playerId:
-                    Label(lobbyFrame, text=self.parent.server.getColorChoices()[self.parent.server.getSockets()[i][3]][0], fg="white", bg="black").grid(row=i, column=1)
+                    Label(lobbyFrame, text=self.parent.server.getColorChoices()[self.parent.server.getSockets()[i][3]][0], fg="white", bg="black").grid(row=i+3, column=1)
                 
     def sendMessLobby(self, eve):
         if self.entryMessLobby.get() != "":
@@ -436,29 +565,47 @@ class View():
     #Methode pour dessiner la vue d'un planete
     def drawPlanetGround(self, planet):
         self.gameArea.delete('deletable')
+        self.drawPlanetBackground()
+        color = self.parent.players[self.parent.playerId].colorId
         for i in planet.minerals:
+            distance = self.parent.players[self.parent.playerId].camera.calcDistance(i.position)
             if i in self.parent.players[self.parent.playerId].selectedObjects:
-                self.gameArea.create_text(i.position[0], i.position[1]-40, fill="cyan", text="Mineral :" + str(i.nbMinerals), tag='deletable')
-                self.gameArea.create_oval(i.position[0]-(i.WIDTH/2+3), i.position[1]-(i.HEIGHT/2+3), i.position[0]+(i.WIDTH/2+3), i.position[1]+(i.HEIGHT/2+3), outline='yellow', tag='deletable')
-            self.gameArea.create_image(i.position[0], i.position[1], image=self.mineral, tag='deletable')
+                self.gameArea.create_text(distance[0], distance[1]-40, fill="cyan", text="Mineral :" + str(i.nbMinerals), tag='deletable')
+                self.gameArea.create_oval(distance[0]-(i.WIDTH/2+3), distance[1]-(i.HEIGHT/2+3), distance[0]+(i.WIDTH/2+3), distance[1]+(i.HEIGHT/2+3), outline='yellow', tag='deletable')
+            self.gameArea.create_image(distance[0], distance[1], image=self.mineral, tag='deletable')
         for i in planet.gaz:
+            distance = self.parent.players[self.parent.playerId].camera.calcDistance(i.position)
             if i in self.parent.players[self.parent.playerId].selectedObjects:
-                self.gameArea.create_text(i.position[0], i.position[1]-20, fill="green", text="Mineral :" + str(i.nbGaz), tag='deletable')
-                self.gameArea.create_oval(i.position[0]-(i.WIDTH/2+3), i.position[1]-(i.HEIGHT/2+3), i.position[0]+(i.WIDTH/2+3), i.position[1]+(i.HEIGHT/2+3), outline='yellow', tag='deletable')
-            self.gameArea.create_oval(i.position[0]-(i.WIDTH/2+2), i.position[1]-(i.HEIGHT/2+2), i.position[0]+(i.WIDTH/2+2), i.position[1]+(i.HEIGHT/2+2), fill='green', tag='deletable')
+                self.gameArea.create_text(distance[0], distance[1]-20, fill="green", text="Gaz :" + str(i.nbGaz), tag='deletable')
+                self.gameArea.create_oval(distance[0]-(i.WIDTH/2+3), distance[1]-(i.HEIGHT/2+3), distance[0]+(i.WIDTH/2+3), distance[1]+(i.HEIGHT/2+3), outline='yellow', tag='deletable')
+            self.gameArea.create_oval(distance[0]-(i.WIDTH/2+2), distance[1]-(i.HEIGHT/2+2), distance[0]+(i.WIDTH/2+2), distance[1]+(i.HEIGHT/2+2), fill='green', tag='deletable')
         for i in planet.landingZones:
+            distance = self.parent.players[self.parent.playerId].camera.calcDistance(i.position)
             if i in self.parent.players[self.parent.playerId].selectedObjects:
-                self.gameArea.create_oval(i.position[0]-(i.WIDTH/2+3),i.position[1]-(i.HEIGHT/2+3),i.position[0]+(i.WIDTH/2+3),i.position[1]+(i.HEIGHT/2+3), outline='green', tag='deletable')
-            self.gameArea.create_image(i.position[0], i.position[1], image=self.landingZones[i.ownerId], tag='deletable')
+                self.gameArea.create_oval(distance[0]-(i.WIDTH/2+3),distance[1]-(i.HEIGHT/2+3),distance[0]+(i.WIDTH/2+3),distance[1]+(i.HEIGHT/2+3), outline='green', tag='deletable')
+            self.gameArea.create_image(distance[0], distance[1], image=self.landingZones[color], tag='deletable')
             if i.LandedShip != None:
-                self.gameArea.create_image(i.position[0]+1, i.position[1], image=self.landedShips[i.ownerId], tag='deletable')
+                self.gameArea.create_image(distance[0]+1, distance[1], image=self.landedShips[color], tag='deletable')
         for i in planet.units:
-            self.gameArea.create_oval(i.position[0]-12, i.position[1]-12, i.position[0]+12,i.position[1]+12, fill='red', tag='deletable')
+            distance = self.parent.players[self.parent.playerId].camera.calcDistance(i.position)
+            if i in self.parent.players[self.parent.playerId].selectedObjects:
+                self.gameArea.create_oval(distance[0]-(i.SIZE[i.type][0]/2+3), distance[1]-(i.SIZE[i.type][1]/2+3), distance[0]+(i.SIZE[i.type][0]/2+3),distance[1]+(i.SIZE[i.type][1]/2+3),outline='green', tag='deletable')
+            self.gameArea.create_oval(distance[0]-i.SIZE[i.type][0]/2, distance[1]-i.SIZE[i.type][1]/2, distance[0]+i.SIZE[i.type][0]/2,distance[1]+i.SIZE[i.type][1]/2, fill='red', tag='deletable')
+        if self.dragging:
+            self.drawSelectionBox()
+
+    def drawPlanetBackground(self):
+        self.gameArea.delete('background')
+        camera = self.parent.players[self.parent.playerId].camera
+        pos = camera.calcDistance([0,0])
+        self.gameArea.create_image(pos[0],pos[1],image=self.planetBackground, anchor=NW, tag='background')
 
     def changeBackground(self, type):
         self.gameArea.delete('background')
         if type == 'PLANET':
-            self.gameArea.create_image(0,0,image=self.planetBackground, anchor=NW, tag='background')		
+            camera = self.parent.players[self.parent.playerId].camera
+            pos = camera.calcDistance([0,0])
+            self.gameArea.create_image(pos[0],pos[1],image=self.planetBackground, anchor=NW, tag='background')		
         else:
             self.gameArea.create_image(0,0,image=self.galaxyBackground, anchor=NW, tag='background')
 
@@ -593,6 +740,9 @@ class View():
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0], distance[1], image = self.motherShips[player.colorId], tag='deletable')
+                    if unit.attackcount <= 5:
+                        d2 = self.parent.players[self.parent.playerId].camera.calcDistance(unit.flag.finalTarget.position)
+                        self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='deletable')
                 elif unit.type == unit.TRANSPORT:
                     if not unit.landed:
                         if unit in player.selectedObjects:
@@ -645,9 +795,42 @@ class View():
     #Dessine la minimap
     def drawMinimap(self):
         self.minimap.delete('deletable')
-        sunList = self.parent.galaxy.solarSystemList
-        players = self.parent.players
-        if self.firstTime:
+        if self.parent.players[self.parent.playerId].currentPlanet == None:
+            sunList = self.parent.galaxy.solarSystemList
+            players = self.parent.players
+            if self.firstTime:
+                for i in sunList:
+                    self.drawMiniSun(i)
+                    for j in i.planets:
+                        self.drawMiniPlanet(j)
+                    for n in i.nebulas:
+                        self.drawMiniNebula(n)
+                    for q in i.asteroids:
+                        self.drawMiniAsteroid(q)
+                self.firstTime = False
+            for i in players:
+                for j in i.units:
+                    if j.isAlive:
+                        if players[self.parent.playerId].inViewRange(j.position):
+                            self.drawMiniUnit(j)
+        else:
+            self.minimap.create_rectangle(0,0,200,200, fill='#cc6600', tag='deletable')
+            planet = self.parent.players[self.parent.playerId].currentPlanet
+            for i in planet.minerals:
+                self.drawMiniMinerals(i, planet)
+            for i in planet.gaz:
+                self.drawMiniGaz(i, planet)
+            for i in planet.landingZones:
+                self.drawMiniLandingZone(i, planet)
+            for i in planet.units:
+                self.drawMiniGroundUnit(i, planet)
+        self.drawMiniFOV()
+        
+    def redrawMinimap(self):
+        self.minimap.delete(ALL)
+        if self.parent.players[self.parent.playerId].currentPlanet == None:
+            sunList = self.parent.galaxy.solarSystemList
+            players = self.parent.players
             for i in sunList:
                 self.drawMiniSun(i)
                 for j in i.planets:
@@ -656,40 +839,56 @@ class View():
                     self.drawMiniNebula(n)
                 for q in i.asteroids:
                     self.drawMiniAsteroid(q)
-            self.firstTime = False
-        for i in players:
-            for j in i.units:
-                if j.isAlive:
-                    if players[self.parent.playerId].inViewRange(j.position):
-                        self.drawMiniUnit(j)
-        self.drawMiniFOV()
         
     def redrawMinimap(self):
         self.minimap.delete(ALL)
-        sunList = self.parent.galaxy.solarSystemList
-        players = self.parent.players
-        for i in sunList:
-            self.drawMiniSun(i)
-            for j in i.planets:
-                self.drawMiniPlanet(j)
-            for n in i.nebulas:
-                self.drawMiniNebula(n)
-            for q in i.asteroids:
-                self.drawMiniAsteroid(q)
-        for i in players:
-            for j in i.units:
-                if j.isAlive:
-                    if players[self.parent.playerId].inViewRange(j.position):
-                        self.drawMiniUnit(j)
+        if self.parent.players[self.parent.playerId].currentPlanet == None:
+            sunList = self.parent.galaxy.solarSystemList
+            players = self.parent.players
+            for i in sunList:
+                self.drawMiniSun(i)
+                for j in i.planets:
+                    self.drawMiniPlanet(j)
+                for n in i.nebulas:
+                    self.drawMiniNebula(n)
+                for q in i.asteroids:
+                    self.drawMiniAsteroid(q)
+            for i in players:
+                for j in i.units:
+                    if j.isAlive:
+                        if players[self.parent.playerId].inViewRange(j.position):
+                            self.drawMiniUnit(j)
+        else:
+            self.minimap.create_rectangle(0,0,200,200, fill='#cc6600', tag='deletable')
+            planet = self.parent.players[self.parent.playerId].currentPlanet
+            for i in planet.minerals:
+                self.drawMiniMinerals(i, planet)
+            for i in planet.gaz:
+                self.drawMiniGaz(i, planet)
+            for i in planet.landingZones:
+                self.drawMiniLandingZone(i, planet)
+            for i in planet.units:
+                self.drawMiniGroundUnit(i, planet)
         self.drawMiniFOV()
 
-    #Dessine le carrer de la camera dans la minimap    
+    #Dessine le carrer de la camera dans la minimap	
     def drawMiniFOV(self):
-        cameraX = (self.parent.players[self.parent.playerId].camera.position[0]-(self.taille/2) + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
-        cameraY = (self.parent.players[self.parent.playerId].camera.position[1]-((self.taille/2)-self.taille/8) + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
-        width = self.taille / self.parent.galaxy.width * (self.taille/4)
-        height = self.taille / self.parent.galaxy.height * ((self.taille/16)*3)
-        self.minimap.create_rectangle(cameraX, cameraY, cameraX+width, cameraY+height, outline='GREEN', tag='deletable')
+        camera = self.parent.players[self.parent.playerId].camera
+        if self.parent.players[self.parent.playerId].currentPlanet == None:
+            cameraX = (camera.position[0]-(self.taille/2) + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
+            cameraY = (camera.position[1]-((self.taille/2)-self.taille/8) + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
+            width = self.taille / self.parent.galaxy.width * (self.taille/4)
+            height = self.taille / self.parent.galaxy.height * ((self.taille/16)*3)
+            self.minimap.create_rectangle(cameraX, cameraY, cameraX+width, cameraY+height, outline='GREEN', tag='deletable')
+        else:
+            planet = self.parent.players[self.parent.playerId].currentPlanet
+            cameraX = (camera.position[0] * (planet.WIDTH / 8)) / planet.WIDTH
+            cameraY = (camera.position[1] * (planet.HEIGHT / 6)) / planet.HEIGHT
+            width = camera.screenWidth * (camera.screenWidth/4) / planet.WIDTH
+            height = camera.screenHeight * (camera.screenHeight/3) / planet.HEIGHT
+			#width = self.taille / planet.WIDTH * (self.taille/4)
+            #height = self.taille / planet.HEIGHT * ((self.taille/16)*3)
+            self.minimap.create_rectangle(cameraX-width/2, cameraY-height/2, cameraX+width/2, cameraY+height/2, outline='GREEN', tag='deletable')
 
     #Dessine un soleil dans la minimap    
     def drawMiniSun(self, sun):
@@ -745,6 +944,34 @@ class View():
                 self.minimap.create_oval((unitX-width/2, unitY-height/2, unitX+width/2, unitY+height/2),fill='WHITE', tag='deletable')
             else:
                 self.minimap.create_oval((unitX-width/2, unitY-height/2, unitX+width/2, unitY+height/2),fill='RED', tag='deletable')
+    def drawMiniMinerals(self, mineral, planet):
+        if mineral.nbMinerals > 0:
+            x = int(mineral.position[0] * 200 / planet.WIDTH)
+            y = int(mineral.position[1] * 200 / planet.HEIGHT)
+            self.minimap.create_polygon(x-mineral.WIDTH/8, y, x, y-mineral.HEIGHT/8 ,x+mineral.WIDTH/8, y, x, y+mineral.HEIGHT/8, fill='CYAN', outline='BLACK')
+            #self.minimap.create_oval(x-mineral.WIDTH/8, y-mineral.HEIGHT/8, x+mineral.WIDTH/8, y+mineral.HEIGHT/8,fill='CYAN')
+
+    def drawMiniGaz(self, gaz, planet):
+        if gaz.nbGaz > 0:
+            x = int(gaz.position[0] * 200 / planet.WIDTH)
+            y = int(gaz.position[1] * 200 / planet.HEIGHT)
+            self.minimap.create_oval(x-gaz.WIDTH/8, y-gaz.HEIGHT/8, x+gaz.WIDTH/8, y+gaz.HEIGHT/8,fill='GREEN')
+
+    def drawMiniLandingZone(self, zone, planet):
+        x = int(zone.position[0] * 200 / planet.WIDTH)
+        y = int(zone.position[1] * 200 / planet.HEIGHT)
+        if zone.ownerId == self.parent.playerId:
+            self.minimap.create_rectangle(x-zone.WIDTH/8, y-zone.HEIGHT/8, x+zone.WIDTH/8, y+zone.HEIGHT/8, fill='WHITE')
+        else:
+            self.minimap.create_rectangle(x-zone.WIDTH/8, y-zone.HEIGHT/8, x+zone.WIDTH/8, y+zone.HEIGHT/8, fill='RED')
+
+    def drawMiniGroundUnit(self, unit, planet):
+        x = int(unit.position[0] * 200 / planet.WIDTH)
+        y = int(unit.position[1] * 200 / planet.HEIGHT)
+        if unit.owner == self.parent.playerId:
+            self.minimap.create_oval(x-unit.SIZE[unit.type][0]/8, y-unit.SIZE[unit.type][1]/8, x+unit.SIZE[unit.type][0]/8, y+unit.SIZE[unit.type][1]/8, fill='WHITE', outline='black', tag='deletable')
+        else:
+            self.minimap.create_oval(x-unit.SIZE[unit.type][0]/8, y-unit.SIZE[unit.type][1]/8, x+unit.SIZE[unit.type][0]/8, y+unit.SIZE[unit.type][1]/8, fill='RED', outline='black', tag='deletable')
 
     #Dessine la boite de selection lors du clic-drag	
     def drawSelectionBox(self):
@@ -753,48 +980,64 @@ class View():
     #Actions quand on clic sur les fleches du clavier
     def keyPressUP(self, eve):
         if 'UP' not in self.parent.players[self.parent.playerId].camera.movingDirection:
+            self.parent.players[self.parent.playerId].camera.movingDirection.append('UP')
             if self.parent.players[self.parent.playerId].currentPlanet == None:
-                self.parent.players[self.parent.playerId].camera.movingDirection.append('UP')
                 self.drawWorld()
+            else:
+                self.drawPlanetGround(self.parent.players[self.parent.playerId].currentPlanet)
 
     def keyPressDown(self, eve):
         if 'DOWN' not in self.parent.players[self.parent.playerId].camera.movingDirection:
+            self.parent.players[self.parent.playerId].camera.movingDirection.append('DOWN')
             if self.parent.players[self.parent.playerId].currentPlanet == None:
-                self.parent.players[self.parent.playerId].camera.movingDirection.append('DOWN')
                 self.drawWorld()
+            else:
+                self.drawPlanetGround(self.parent.players[self.parent.playerId].currentPlanet)
 
     def keyPressLeft(self, eve):
         if 'LEFT' not in self.parent.players[self.parent.playerId].camera.movingDirection:
+            self.parent.players[self.parent.playerId].camera.movingDirection.append('LEFT')
             if self.parent.players[self.parent.playerId].currentPlanet == None:
-                self.parent.players[self.parent.playerId].camera.movingDirection.append('LEFT')
                 self.drawWorld()
+            else:
+                self.drawPlanetGround(self.parent.players[self.parent.playerId].currentPlanet)
 
     def keyPressRight(self, eve):
         if 'RIGHT' not in self.parent.players[self.parent.playerId].camera.movingDirection:
+            self.parent.players[self.parent.playerId].camera.movingDirection.append('RIGHT')
             if self.parent.players[self.parent.playerId].currentPlanet == None:
-                self.parent.players[self.parent.playerId].camera.movingDirection.append('RIGHT')
                 self.drawWorld()
+            else:
+                self.drawPlanetGround(self.parent.players[self.parent.playerId].currentPlanet)
 
     #Actions quand on lache les touches
     def keyReleaseUP(self, eve):
+        self.parent.players[self.parent.playerId].camera.movingDirection.remove('UP')
         if self.parent.players[self.parent.playerId].currentPlanet == None:
-            self.parent.players[self.parent.playerId].camera.movingDirection.remove('UP')
             self.drawWorld()
+        else:
+            self.drawPlanetGround(self.parent.players[self.parent.playerId].currentPlanet)
 
     def keyReleaseDown(self, eve):
+        self.parent.players[self.parent.playerId].camera.movingDirection.remove('DOWN')
         if self.parent.players[self.parent.playerId].currentPlanet == None:
-            self.parent.players[self.parent.playerId].camera.movingDirection.remove('DOWN')
             self.drawWorld()
+        else:
+            self.drawPlanetGround(self.parent.players[self.parent.playerId].currentPlanet)
 
     def keyReleaseLeft(self, eve):
+        self.parent.players[self.parent.playerId].camera.movingDirection.remove('LEFT')
         if self.parent.players[self.parent.playerId].currentPlanet == None:
-            self.parent.players[self.parent.playerId].camera.movingDirection.remove('LEFT')
             self.drawWorld()
+        else:
+            self.drawPlanetGround(self.parent.players[self.parent.playerId].currentPlanet)
 
     def keyReleaseRight(self, eve):
+        self.parent.players[self.parent.playerId].camera.movingDirection.remove('RIGHT')
         if self.parent.players[self.parent.playerId].currentPlanet == None:
-            self.parent.players[self.parent.playerId].camera.movingDirection.remove('RIGHT')
             self.drawWorld()
+        else:
+            self.drawPlanetGround(self.parent.players[self.parent.playerId].currentPlanet)
 
     #Actions avec la souris    
     def rightclic(self, eve):
@@ -818,44 +1061,41 @@ class View():
         y = eve.y
         canva = eve.widget
         if canva == self.gameArea:
-            if self.parent.players[self.parent.playerId].currentPlanet == None:
-                pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
-                if self.attacking or self.isSettingAttackPosition:
-                    self.parent.selectUnitEnemy(pos)
-                    self.isSettingAttackPosition = False
-                    self.actionMenuType = self.MAIN_MENU
+            
+            pos = self.parent.players[self.parent.playerId].camera.calcPointInWorld(x,y)
+            if self.attacking or self.isSettingAttackPosition:
+                self.parent.selectUnitEnemy(pos)
+                self.isSettingAttackPosition = False
+                self.actionMenuType = self.MAIN_MENU
                     
-                elif self.isSettingRallyPointPosition:
-                    self.parent.setMotherShipRallyPoint(pos)
-                    self.isSettingRallyPointPosition = False
-                    self.actionMenuType = self.MAIN_MENU
+            elif self.isSettingRallyPointPosition:
+                self.parent.setMotherShipRallyPoint(pos)
+                self.isSettingRallyPointPosition = False
+                self.actionMenuType = self.MAIN_MENU
                     
-                elif self.isSettingPatrolPosition:
-                    self.parent.setPatrolFlag(pos)
-                    self.isSettingPatrolPosition = False
-                    self.actionMenuType = self.MAIN_MENU
+            elif self.isSettingPatrolPosition:
+                self.parent.setPatrolFlag(pos)
+                self.isSettingPatrolPosition = False
+                self.actionMenuType = self.MAIN_MENU
                     
-                elif self.isSettingMovePosition:
-                    self.parent.setMovingFlag(pos[0],pos[1])
-                    self.isSettingMovePosition = False
-                    self.actionMenuType = self.MAIN_MENU
+            elif self.isSettingMovePosition:
+                self.parent.setMovingFlag(pos[0],pos[1])
+                self.isSettingMovePosition = False
+                self.actionMenuType = self.MAIN_MENU
                     
+            else:
+                if not self.selectAllUnits:
+                    self.parent.select(pos)
+                    self.ongletSelectedUnit()
                 else:
                     if not self.selectAllUnits:
                         self.parent.select(pos)
+                        self.ongletSelectedUnit()
                     else:
-                        if not self.selectAllUnits:
-                            self.parent.select(pos)
-                        else:
-                            self.parent.selectAll(pos)
-                    self.menuModesOnlets()
-                    self.ongletSelectedUnit()
-            else:
-                self.parent.select([x,y])
-                
-
+                        self.parent.selectAll(pos)
+                        self.ongletSelectedUnit()
         elif canva == self.minimap:
-            self.parent.quickMove(x,y,canva)
+            self.parent.quickMove(x,y)
 
     def selectAll(self, eve):
         self.selectAllUnits = True
@@ -907,7 +1147,7 @@ class View():
             login = self.entryLogin.get()
             server = self.entryServer.get()
         self.parent.connectServer(login,server)
-
+			
     def stop(self, eve):
         self.attacking = False
         self.parent.setStandbyFlag()
@@ -923,12 +1163,14 @@ class View():
     def shiftRelease(self, eve):
         self.parent.multiSelect = False
 	
-    def checkMotherSip(self, eve):
+    def checkMotherShip(self, eve):
         self.parent.players[self.parent.playerId].currentPlanet = None
         self.changeBackground('GALAXY')
         self.drawWorld()
+        self.redrawMinimap()
         cam = self.parent.players[self.parent.playerId].camera
         cam.position = cam.defaultPos
+        self.parent.players[self.parent.playerId].selectedUnit = []
 
     def clickMenuModes(self,eve):
         bp = (eve.widget.gettags(eve.widget.find_withtag('current')))
@@ -937,7 +1179,19 @@ class View():
             if (Button_pressed == "bouton_chat"):
                 self.ongletChat(self.gameFrame)
             elif (Button_pressed == "bouton_trade"):
-                self.ongletTrade()
+                if self.parent.tradePage==-1:
+                    self.ongletTradeChoicePlayer()
+                elif self.parent.tradePage==1:
+                    self.ongletTradeWaiting()
+                elif self.parent.tradePage==2:
+                    if self.parent.isMasterTrade == True:
+                        self.ongletTrade(self.parent.playerId,self.parent.idTradeWith)
+                    else:
+                        self.ongletTrade(self.parent.idTradeWith,self.parent.playerId)
+                elif self.parent.tradePage==3:
+                    self.ongletTradeYesNoQuestion(self.parent.idTradeWith)
+                elif self.parent.tradePage==4:
+                    self.ongletTradeAskConfirm(self.parent.idTradeWith,self.parent.toTrade[0],self.parent.toTrade[1],self.parent.toTrade[2],self.parent.toTrade[3])
             elif (Button_pressed == "bouton_team"):
                 self.ongletTeam()
             elif (Button_pressed == "bouton_selectedUnit"):
@@ -1005,8 +1259,8 @@ class View():
     def enterChat(self,eve):
         self.ongletChat(self.gameFrame)
         self.menuModes.entryMess.focus_set()
-            
-   
+
+    
     #Assignation des controles	
     def assignControls(self):
         self.gameArea.focus_set()
@@ -1032,7 +1286,7 @@ class View():
         self.gameArea.bind("t", self.takeOff)
         self.gameArea.bind("T", self.takeOff)
         self.gameArea.bind("<KeyRelease-c>", self.unSelectAll)
-        self.gameArea.bind("1", self.checkMotherSip)
+        self.gameArea.bind("1", self.checkMotherShip)
         self.gameArea.bind("<Control_L>",self.ctrlPressed)
         self.gameArea.bind("<KeyRelease-Control_L>",self.ctrlDepressed)
         self.gameArea.bind("<Tab>",self.enterChat)
