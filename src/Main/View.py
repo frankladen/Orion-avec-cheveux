@@ -1107,9 +1107,10 @@ class View():
     def shiftRelease(self, eve):
         self.parent.multiSelect = False
 	
-    def checkMotherSip(self, eve):
+    def checkMotherShip(self, eve):
         self.parent.players[self.parent.playerId].currentPlanet = None
         self.changeBackground('GALAXY')
+        self.redrawMinimap()
         self.drawWorld()
         cam = self.parent.players[self.parent.playerId].camera
         cam.position = cam.defaultPos
@@ -1229,7 +1230,7 @@ class View():
         self.gameArea.bind("t", self.takeOff)
         self.gameArea.bind("T", self.takeOff)
         self.gameArea.bind("<KeyRelease-c>", self.unSelectAll)
-        self.gameArea.bind("1", self.checkMotherSip)
+        self.gameArea.bind("1", self.checkMotherShip)
         self.gameArea.bind("<Control_L>",self.ctrlPressed)
         self.gameArea.bind("<KeyRelease-Control_L>",self.ctrlDepressed)
         self.gameArea.bind("<Tab>",self.enterChat)

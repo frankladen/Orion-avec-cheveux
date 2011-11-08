@@ -316,6 +316,7 @@ class Controller():
                         if i not in self.players[self.playerId].selectedObjects:
                             self.players[self.playerId].selectedObjects = []
                             self.players[self.playerId].selectedObjects.append(i)
+
     def selectAll(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
             self.select(posSelected)
@@ -444,6 +445,7 @@ class Controller():
     def takeOff(self, ship, planet, playerId):
         ship.takeOff(planet)
         self.players[playerId].currentPlanet = None
+        self.view.redrawMinimap()
         self.view.drawWorld()
         
     def setTakeOffFlag(self, ship, planet):
