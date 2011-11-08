@@ -336,63 +336,65 @@ class Controller():
 
     def rightClic(self, pos):
         empty = True
-        if self.players[self.playerId].currentPlanet == None:
-            for i in self.galaxy.solarSystemList:
-                for j in i.planets:
-                    if pos[0] > j.position[0]-j.IMAGE_WIDTH/2 and pos[0] < j.position[0]+j.IMAGE_WIDTH/2:
-                        if pos[1] > j.position[1]-j.IMAGE_HEIGHT/2 and pos[1] < j.position[1]+j.IMAGE_HEIGHT/2:
-                            if len(self.players[self.playerId].selectedObjects) > 0:
-                                if isinstance(self.players[self.playerId].selectedObjects[0], w.AstronomicalObject) == False and isinstance(self.players[self.playerId].selectedObjects[0], w.Planet) == False:               
-                                    if self.players[self.playerId].selectedObjects[0].type == u.Unit.TRANSPORT:
-                                        self.setLandingFlag(self.players[self.playerId].selectedObjects[0], j)
-                                        empty = False
-            if empty:
-                if len(self.players[self.playerId].selectedObjects) > 0:
+        if len(self.players[self.playerId].selectedObjects) > 0:
+            if isinstance(self.players[self.playerId].selectedObjects[0],w.Planet) == False and isinstance(self.players[self.playerId].selectedObjects[0],w.AstronomicalObject) == False:
+                if self.players[self.playerId].currentPlanet == None:
                     for i in self.galaxy.solarSystemList:
-                        for j in i.asteroids:
-                            if pos[0] > j.position[0]-j.ASTEROID_WIDTH/2 and pos[0] < j.position[0]+j.ASTEROID_WIDTH/2:
-                                if pos[1] > j.position[1]-j.ASTEROID_HEIGHT/2 and pos[1] < j.position[1]+j.ASTEROID_HEIGHT/2:
-                                        for unit in self.players[self.playerId].selectedObjects:
-                                            if isinstance(unit, w.AstronomicalObject) == False and isinstance(unit, w.Planet) == False:
-                                                if unit.type == unit.CARGO:
-                                                    self.setGatherFlag(unit, j)
+                        for j in i.planets:
+                            if pos[0] > j.position[0]-j.IMAGE_WIDTH/2 and pos[0] < j.position[0]+j.IMAGE_WIDTH/2:
+                                if pos[1] > j.position[1]-j.IMAGE_HEIGHT/2 and pos[1] < j.position[1]+j.IMAGE_HEIGHT/2:
+                                    if len(self.players[self.playerId].selectedObjects) > 0:
+                                        if isinstance(self.players[self.playerId].selectedObjects[0], w.AstronomicalObject) == False and isinstance(self.players[self.playerId].selectedObjects[0], w.Planet) == False:               
+                                            if self.players[self.playerId].selectedObjects[0].type == u.Unit.TRANSPORT:
+                                                self.setLandingFlag(self.players[self.playerId].selectedObjects[0], j)
+                                                empty = False
+                    if empty:
+                        if len(self.players[self.playerId].selectedObjects) > 0:
+                            for i in self.galaxy.solarSystemList:
+                                for j in i.asteroids:
+                                    if pos[0] > j.position[0]-j.ASTEROID_WIDTH/2 and pos[0] < j.position[0]+j.ASTEROID_WIDTH/2:
+                                        if pos[1] > j.position[1]-j.ASTEROID_HEIGHT/2 and pos[1] < j.position[1]+j.ASTEROID_HEIGHT/2:
+                                                for unit in self.players[self.playerId].selectedObjects:
+                                                    if isinstance(unit, w.AstronomicalObject) == False and isinstance(unit, w.Planet) == False:
+                                                        if unit.type == unit.CARGO:
+                                                            self.setGatherFlag(unit, j)
+                                                            empty = False
+                    if empty:
+                        if len(self.players[self.playerId].selectedObjects) > 0:
+                            for i in self.galaxy.solarSystemList:
+                                for j in i.nebulas:
+                                    if pos[0] > j.position[0]-j.NEBULA_WIDTH/2 and pos[0] < j.position[0]+j.NEBULA_WIDTH/2:
+                                        if pos[1] > j.position[1]-j.NEBULA_HEIGHT/2 and pos[1] < j.position[1]+j.NEBULA_HEIGHT/2:
+                                                for unit in self.players[self.playerId].selectedObjects:
+                                                    if isinstance(unit, w.AstronomicalObject) == False and isinstance(unit, w.Planet) == False:
+                                                        if unit.type == unit.CARGO:
+                                                            self.setGatherFlag(unit, j)
+                                                            empty = False
+                    if empty:
+                        if len(self.players[self.playerId].selectedObjects) > 0:
+                            if pos[0] > self.players[self.playerId].motherShip.position[0]-u.Unit.SIZE[u.Unit.MOTHERSHIP][0]/2 and pos[0] < self.players[self.playerId].motherShip.position[0]+u.Unit.SIZE[u.Unit.MOTHERSHIP][0]/2:
+                                        if pos[1] > self.players[self.playerId].motherShip.position[1]-u.Unit.SIZE[u.Unit.MOTHERSHIP][1]/2 and pos[1] < self.players[self.playerId].motherShip.position[1]+u.Unit.SIZE[u.Unit.MOTHERSHIP][1]/2:
+                                                for unit in self.players[self.playerId].selectedObjects:
+                                                    if isinstance(unit, w.AstronomicalObject) == False and isinstance(unit, w.Planet) == False:
+                                                        if unit.type == unit.CARGO:
+                                                            self.setGatherFlag(unit, j)
+                                                            empty = False
+                    if empty:
+                        if len(self.players[self.playerId].selectedObjects) > 0:
+                            for i in self.players:
+                                if i != self.players[self.playerId]:
+                                    for j in i.units:
+                                        if j.isAlive:
+                                            if j.position[0] >= pos[0]-j.SIZE[j.type][0]/2 and j.position[0] <= pos[0]+j.SIZE[j.type][0]/2:
+                                                if j.position[1] >= pos[1]-j.SIZE[j.type][1]/2 and j.position[1] <= pos[1]+j.SIZE[j.type][1]/2:
+                                                    self.setAttackFlag(j)
                                                     empty = False
-            if empty:
-                if len(self.players[self.playerId].selectedObjects) > 0:
-                    for i in self.galaxy.solarSystemList:
-                        for j in i.nebulas:
-                            if pos[0] > j.position[0]-j.NEBULA_WIDTH/2 and pos[0] < j.position[0]+j.NEBULA_WIDTH/2:
-                                if pos[1] > j.position[1]-j.NEBULA_HEIGHT/2 and pos[1] < j.position[1]+j.NEBULA_HEIGHT/2:
-                                        for unit in self.players[self.playerId].selectedObjects:
-                                            if isinstance(unit, w.AstronomicalObject) == False and isinstance(unit, w.Planet) == False:
-                                                if unit.type == unit.CARGO:
-                                                    self.setGatherFlag(unit, j)
-                                                    empty = False
-            if empty:
-                if len(self.players[self.playerId].selectedObjects) > 0:
-                    if pos[0] > self.players[self.playerId].motherShip.position[0]-u.Unit.SIZE[u.Unit.MOTHERSHIP][0]/2 and pos[0] < self.players[self.playerId].motherShip.position[0]+u.Unit.SIZE[u.Unit.MOTHERSHIP][0]/2:
-                                if pos[1] > self.players[self.playerId].motherShip.position[1]-u.Unit.SIZE[u.Unit.MOTHERSHIP][1]/2 and pos[1] < self.players[self.playerId].motherShip.position[1]+u.Unit.SIZE[u.Unit.MOTHERSHIP][1]/2:
-                                        for unit in self.players[self.playerId].selectedObjects:
-                                            if isinstance(unit, w.AstronomicalObject) == False and isinstance(unit, w.Planet) == False:
-                                                if unit.type == unit.CARGO:
-                                                    self.setGatherFlag(unit, j)
-                                                    empty = False
-            if empty:
-                if len(self.players[self.playerId].selectedObjects) > 0:
-                    for i in self.players:
-                        if i != self.players[self.playerId]:
-                            for j in i.units:
-                                if j.isAlive:
-                                    if j.position[0] >= pos[0]-j.SIZE[j.type][0]/2 and j.position[0] <= pos[0]+j.SIZE[j.type][0]/2:
-                                        if j.position[1] >= pos[1]-j.SIZE[j.type][1]/2 and j.position[1] <= pos[1]+j.SIZE[j.type][1]/2:
-                                            self.setAttackFlag(j)
-                                            empty = False
-            if empty:
-                self.setMovingFlag(pos[0],pos[1])
-            self.view.drawWorld()
-        else:
-            if empty:
-                self.setGroundMovingFlag(pos[0], pos[1])
+                    if empty:
+                        self.setMovingFlag(pos[0],pos[1])
+                    self.view.drawWorld()
+                else:
+                    if empty:
+                        self.setGroundMovingFlag(pos[0], pos[1])
     #Selection avec le clic-drag
     def boxSelect(self, selectStart, selectEnd):
         realStart = self.players[self.playerId].camera.calcPointInWorld(selectStart[0], selectStart[1])
@@ -507,8 +509,6 @@ class Controller():
                             if i.flag.flagState == FlagState.MOVE or i.flag.flagState == FlagState.GROUND_MOVE:
                                 i.move()
                             elif i.flag.flagState == FlagState.ATTACK:
-                                if p == self.players[self.playerId] and self.view.selectedOnglet == self.view.SELECTED_UNIT_SELECTED:
-                                    self.view.ongletSelectedUnit()
                                 if isinstance(i.flag.finalTarget, u.TransportShip):
                                     if i.flag.finalTarget.landed:
                                         self.setAStandByFlag(i)
@@ -526,16 +526,11 @@ class Controller():
                             elif isinstance(i,u.SpaceAttackUnit):
                                 self.checkIfEnemyInRange(i)
                     if p.motherShip.isAlive:
-                        p.motherShip.action(self)
+                        p.motherShip.action()
 
                         if len(p.motherShip.unitBeingConstruct) > 0:
-                            if p == self.players[self.playerId] and self.view.selectedOnglet == self.view.SELECTED_UNIT_SELECTED:
-                                self.view.ongletSelectedUnit()
                             if(p.motherShip.isUnitFinished()):
                                 self.buildUnit(p)
-                                if len(p.motherShip.unitBeingConstruct) == 0:
-                                    if p == self.players[self.playerId] and self.view.selectedOnglet == self.view.SELECTED_UNIT_SELECTED:
-                                        self.view.ongletSelectedUnit()
                         else:
                             if p.motherShip.flag.flagState != FlagState.ATTACK:
                                 p.motherShip.flag.flagState = FlagState.STANDBY 
@@ -544,6 +539,8 @@ class Controller():
                         self.eraseUnits(self.players.index(p))
                 if self.refresh % 10 == 0:
                     self.refreshMessages(self.view.menuModes.chat)
+                if self.view.selectedOnglet == self.view.SELECTED_UNIT_SELECTED:
+                    self.view.ongletSelectedUnit()
                 self.refresh+=1
                 self.view.showMinerals.config(text="Mineraux: "+str(self.players[self.playerId].mineral))
                 self.view.showGaz.config(text="Gaz: "+str(self.players[self.playerId].gaz))
@@ -607,6 +604,7 @@ class Controller():
             else:
                 #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
                 self.playerId=self.server.getNumSocket(login, self.playerIp)
+                self.server.firstColorNotChosen(self.playerId)
                 #Je vais au lobby, si la connection a fonctionner
                 self.view.pLobby = self.view.fLobby()
                 self.view.changeFrame(self.view.pLobby)
@@ -763,7 +761,7 @@ class Controller():
         
         elif action == str(FlagState.CREATE):
             self.players[actionPlayerId].motherShip.changeFlag(int(target),int(action))
-            self.players[actionPlayerId].motherShip.action(self)
+            self.players[actionPlayerId].motherShip.action()
             self.players[actionPlayerId].gaz -= self.players[actionPlayerId].motherShip.unitBeingConstruct[len(self.players[actionPlayerId].motherShip.unitBeingConstruct)-1].buildCost[1]
             self.players[actionPlayerId].mineral -= self.players[actionPlayerId].motherShip.unitBeingConstruct[len(self.players[actionPlayerId].motherShip.unitBeingConstruct)-1].buildCost[0]
             self.players[actionPlayerId].motherShip.flag.flagState = FlagState.BUILD_UNIT

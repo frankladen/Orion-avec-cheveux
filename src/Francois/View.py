@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 from tkinter import *
 from Unit import *
+from World import *
 import time
 from Constants import *
 from winsound import *
@@ -30,9 +31,9 @@ class View():
         self.root.title("Orion")
         self.root.resizable(0,0)
         #la taille du jeu se resize selon la résolution de l'écran, niceshithum?
-        self.taille=self.root.winfo_screenheight()-125
-        if self.taille>800:
-            self.taille=800
+        #self.taille=self.root.winfo_screenheight()-125
+        #if self.taille>800:
+        self.taille=800
         self.root.geometry('+5+5')
         self.selectStart = [0,0]
         self.selectEnd = [0,0]
@@ -256,7 +257,7 @@ class View():
         if len(unitList) == 1:
             self.showInfo(unitList[0])
 
-        elif len(unitList) > 0 : 
+        elif len(unitList) > 1 : 
             if isinstance(self.parent.players[self.parent.playerId].selectedObjects[0],u.Mothership) == False:
                 x = 20
                 y = 50
@@ -277,44 +278,45 @@ class View():
                         y+= 46      
     
     def showInfo(self, unit):
-        self.menuModes.create_text(20,80, text = 'Type : ' + Unit.FRENCHNAME[unit.type], anchor = NW, fill = 'white')
-        self.menuModes.create_text(20,100, text = "HP : " + str(math.trunc(unit.hitpoints)) + "/" + str(unit.maxHP),anchor = NW, fill = 'white')
-        self.menuModes.create_text(20,120, text = "Vitesse de déplacement : " + str(unit.moveSpeed) + " années lumière à l'heure.", anchor = NW, fill = 'white')
-        self.menuModes.create_text(20,140, text = "Champ de vision : " + str(unit.viewRange) + " années lumière", anchor = NW, fill = 'white')
-        #Ces images seront remplacer par de plus grandes et plus belles ! (aghi on t'attends ! )
+        if isinstance(unit, Planet) == False and isinstance(unit, AstronomicalObject) == False:
+            self.menuModes.create_text(20,80, text = 'Type : ' + Unit.FRENCHNAME[unit.type], anchor = NW, fill = 'white')
+            self.menuModes.create_text(20,100, text = "HP : " + str(math.trunc(unit.hitpoints)) + "/" + str(unit.maxHP),anchor = NW, fill = 'white')
+            self.menuModes.create_text(20,120, text = "Vitesse de déplacement : " + str(unit.moveSpeed) + " années lumière à l'heure.", anchor = NW, fill = 'white')
+            self.menuModes.create_text(20,140, text = "Champ de vision : " + str(unit.viewRange) + " années lumière", anchor = NW, fill = 'white')
+            #Ces images seront remplacer par de plus grandes et plus belles ! (aghi on t'attends ! )
 
-        if isinstance(unit, u.Mothership) == False :
-            if isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.SpaceAttackUnit):
-                self.menuModes.create_image(20, 50, image = self.gifAttackUnit)
-                self.menuModes.create_text(20,160, text = "Vitesse d'attaque : " + str(unit.AttackSpeed),anchor = NW, fill = 'white')
-                self.menuModes.create_text(20,180, text = "Force d'attaque : " + str(unit.AttackDamage),anchor = NW, fill = 'white')
-            elif isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.GatherShip):
-                self.menuModes.create_image(20,50, image = self.gifCargo)
-                self.menuModes.create_text(20,160, text = "Chargement : gaz = " + str(unit.container[1]) + " mineral = " + str(unit.container[0]), anchor = NW, fill = 'white')
-                self.menuModes.create_text(20,180, text = "Taille du réservoir : " + str(unit.maxGather), anchor = NW, fill = 'white')
-                self.menuModes.create_text(20,200, text = "Vitesse de minage : " + str(unit.gatherSpeed), anchor = NW, fill = 'white')
-            elif isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.TransportShip):
-                self.menuModes.create_image(20,50, image = self.gifTransport)
-            elif isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.Unit):
-                self.menuModes.create_image(20,50, image = self.gifUnit)
+            if isinstance(unit, u.Mothership) == False :
+                if isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.SpaceAttackUnit):
+                    self.menuModes.create_image(20, 50, image = self.gifAttackUnit)
+                    self.menuModes.create_text(20,160, text = "Vitesse d'attaque : " + str(unit.AttackSpeed),anchor = NW, fill = 'white')
+                    self.menuModes.create_text(20,180, text = "Force d'attaque : " + str(unit.AttackDamage),anchor = NW, fill = 'white')
+                elif isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.GatherShip):
+                    self.menuModes.create_image(20,50, image = self.gifCargo)
+                    self.menuModes.create_text(20,160, text = "Chargement : gaz = " + str(unit.container[1]) + " mineral = " + str(unit.container[0]), anchor = NW, fill = 'white')
+                    self.menuModes.create_text(20,180, text = "Taille du réservoir : " + str(unit.maxGather), anchor = NW, fill = 'white')
+                    self.menuModes.create_text(20,200, text = "Vitesse de minage : " + str(unit.gatherSpeed), anchor = NW, fill = 'white')
+                elif isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.TransportShip):
+                    self.menuModes.create_image(20,50, image = self.gifTransport)
+                elif isinstance(self.parent.players[self.parent.playerId].selectedObjects[0], u.Unit):
+                    self.menuModes.create_image(20,50, image = self.gifUnit)
 
-            if self.parent.players[self.parent.playerId].selectedObjects[0].hitpoints != self.parent.players[self.parent.playerId].selectedObjects[0].maxHP:
-                self.menuModes.create_arc((675, 190,500,10), start=0, extent= (self.parent.players[self.parent.playerId].selectedObjects[0].hitpoints / self.parent.players[self.parent.playerId].selectedObjects[0].maxHP)*359.99999999 , fill='green', tags = 'arc', outline ='green')
-            else:
-                self.menuModes.create_oval((675, 190,500,10), fill='green', tags = 'arc', outline ='green')
-    
-            
-
-        else:
-            if len(self.parent.players[self.parent.playerId].motherShip.unitBeingConstruct) > 0:
-                self.menuModes.create_text(20,160, text = str(len(self.parent.players[self.parent.playerId].motherShip.unitBeingConstruct)) + " unités actuellement en contruction", anchor = NW, fill = 'white')
-                self.createUnitsConstructionMenu()
-            else:
-                self.menuModes.create_text(20,160, text = "Aucune unité n'est actuellement en contruction", anchor = NW, fill = 'white')
                 if self.parent.players[self.parent.playerId].selectedObjects[0].hitpoints != self.parent.players[self.parent.playerId].selectedObjects[0].maxHP:
-                    self.menuModes.create_arc((675, 190,500,10), start=0, extent= (self.parent.players[self.parent.playerId].selectedObjects[0].hitpoints / self.parent.players[self.parent.playerId].selectedObjects[0].maxHP)*359.99999999 , fill='green', tags = 'arc')
+                    self.menuModes.create_arc((675, 190,500,10), start=0, extent= (self.parent.players[self.parent.playerId].selectedObjects[0].hitpoints / self.parent.players[self.parent.playerId].selectedObjects[0].maxHP)*359.99999999 , fill='green', tags = 'arc', outline ='green')
                 else:
                     self.menuModes.create_oval((675, 190,500,10), fill='green', tags = 'arc', outline ='green')
+        
+                
+
+            else:
+                if len(self.parent.players[self.parent.playerId].motherShip.unitBeingConstruct) > 0:
+                    self.menuModes.create_text(20,160, text = str(len(self.parent.players[self.parent.playerId].motherShip.unitBeingConstruct)) + " unités actuellement en contruction", anchor = NW, fill = 'white')
+                    self.createUnitsConstructionMenu()
+                else:
+                    self.menuModes.create_text(20,160, text = "Aucune unité n'est actuellement en contruction", anchor = NW, fill = 'white')
+                    if self.parent.players[self.parent.playerId].selectedObjects[0].hitpoints != self.parent.players[self.parent.playerId].selectedObjects[0].maxHP:
+                        self.menuModes.create_arc((675, 190,500,10), start=0, extent= (self.parent.players[self.parent.playerId].selectedObjects[0].hitpoints / self.parent.players[self.parent.playerId].selectedObjects[0].maxHP)*359.99999999 , fill='green', tags = 'arc')
+                    else:
+                        self.menuModes.create_oval((675, 190,500,10), fill='green', tags = 'arc', outline ='green')
     def ongletChat(self,gameFrame):
         self.menuModesOnlets()
         self.menuModes.chat.grid(row=3, column=3, columnspan=3)
@@ -502,7 +504,7 @@ class View():
         if self.parent.server != None:
             pNum = len(self.parent.server.getSockets())
             for i in range(0, pNum):
-                Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i+3,column=0)
+                Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black", width=10).grid(row=i+3,column=0)
             Label(lobbyFrame, text='Admin : '+self.parent.server.getSockets()[0][1], fg="white", bg="black").grid(row=12, column=0)
             if self.parent.playerId == 0:
                 Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame, bg="black", fg="white").grid(row=12, column=1)
@@ -534,7 +536,7 @@ class View():
         if self.parent.server != None:
             pNum = len(self.parent.server.getSockets())
             for i in range(0, pNum):
-                Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black").grid(row=i+3,column=0)
+                Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black", width=10).grid(row=i+3,column=0)
                 if self.parent.server.getSockets()[i][3] != -1 and i != self.parent.playerId:
                     Label(lobbyFrame, text=self.parent.server.getColorChoices()[self.parent.server.getSockets()[i][3]][0], fg="white", bg="black").grid(row=i+3, column=1)
                 
@@ -1258,6 +1260,7 @@ class View():
 
     def enterChat(self,eve):
         self.ongletChat(self.gameFrame)
+        self.selectedOnglet = self.SELECTED_CHAT
         self.menuModes.entryMess.focus_set()
 
     

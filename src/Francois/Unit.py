@@ -24,10 +24,10 @@ class Unit(PlayerObject):
     BUILD_COST=((50,50,1), (0,0,0), (50,0,1), (150,100,1), (75,20,1), (50,10,1), (50,10,1))
     VIEW_RANGE=(150, 400, 200, 150, 175, 175,200)
     
-    def __init__(self, name, type, position, owner):
-        PlayerObject.__init__(self, name, type, position, owner)
-        if type <= self.GROUND_UNIT:
-            self.moveSpeed=self.MOVE_SPEED[type]
+    def __init__(self, name, typeUnit, position, owner):
+        PlayerObject.__init__(self, name, typeUnit, position, owner)
+        if typeUnit <= self.GROUND_UNIT:
+            self.moveSpeed=self.MOVE_SPEED[typeUnit]
         else:
             self.moveSpeed=self.MOVE_SPEED[self.DEFAULT]
         
@@ -112,7 +112,7 @@ class Mothership(Unit):
         self.attackcount=self.AttackSpeed
         self.killCount = 0
 
-    def action(self, controller):
+    def action(self):
         p = [self.position[0], self.position[1], 0]
 
         if (self.flag.flagState == FlagState.CREATE):
@@ -130,8 +130,6 @@ class Mothership(Unit):
 
         elif self.flag.flagState == FlagState.CANCEL_UNIT:
             self.unitBeingConstruct.pop(int(self.flag.finalTarget))
-            if len(self.unitBeingConstruct) == 0:
-                controller.callOngletSelectedUnit()
             self.flag.flagState = FlagState.BUILD_UNIT
 
         elif self.flag.flagState == FlagState.CHANGE_RALLY_POINT:
