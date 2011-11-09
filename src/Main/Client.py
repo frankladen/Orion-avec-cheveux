@@ -219,12 +219,29 @@ class Controller():
         if playerId == None:
             playerId = self.playerId
         self.pushChange(playerId, Flag(None,playerId,FlagState.DESTROY_ALL))    #Pour selectionner une unit
+        
+    def changeAlliance(self, player, newStatus):
+        #self.players[self.playerId].diplomacies[player] = newStatus
+        self.pushChange(player, Flag(finalTarget = newStatus, flagState = FlagState.DEMAND_ALLIANCE))
+
+    def getPlayerId(self, player):
+        for i in self.players:
+            if i.name == player:
+                player = i.id
+                break
+        return player
+    
+    def isAllied(self, player1Id, player2Id):
+        if self.players[player1Id].diplomacies[player2Id] == "Ally":
+            return True
+        else:
+            return False
 
     def selectUnitEnemy(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
             if len(self.players[self.playerId].selectedObjects) > 0:
                 for i in self.players:
-                    if i != self.players[self.playerId]:
+                    if self.players.index(i) != self.playerId and (self.players[self.playerId].isAllyMarc(self.players.index(i)) == False or i.isAllyMarc(self.playerId) == False):
                         for j in i.units:
                             if j.isAlive:
                                 if j.position[0] >= posSelected[0]-j.SIZE[j.type][0]/2 and j.position[0] <= posSelected[0]+j.SIZE[j.type][0]/2 :
@@ -232,7 +249,7 @@ class Controller():
                                         self.setAttackFlag(j)
     def checkIfEnemyInRange(self, unit):
         for pl in self.players:
-            if self.players.index(pl) != unit.owner:
+            if self.players.index(pl) != unit.owner and (self.players[unit.owner].isAllyMarc(self.players.index(pl)) == False or pl.isAllyMarc(unit.owner) == False):
                 for un in pl.units:
                     if un.isAlive:
                         if un.position[0] > unit.position[0]-unit.range and un.position[0] < unit.position[0]+unit.range:
@@ -399,7 +416,7 @@ class Controller():
                     if empty:
                         if len(self.players[self.playerId].selectedObjects) > 0:
                             for i in self.players:
-                                if i != self.players[self.playerId]:
+                                if i != self.players[self.playerId] and (self.players[self.playerId].isAllyMarc(self.players.index(i)) == False or i.isAllyMarc(self.playerId) == False):
                                     for j in i.units:
                                         if j.isAlive:
                                             if j.position[0] >= pos[0]-j.SIZE[j.type][0]/2 and j.position[0] <= pos[0]+j.SIZE[j.type][0]/2:
@@ -485,9 +502,13 @@ class Controller():
             self.players[self.playerId].gaz += 500
         elif mess == "forcemine":
             self.players[self.playerId].mineral += 500
+        elif mess.find("\\t ") == 0:
+            mess = mess.split("\\t ")
+            mess = "(Alliés) "+mess[1]
+            self.server.addMessage(mess, self.players[self.playerId].name, self.playerId, True)                                     
         elif len(mess)>0:
             mess = mess.replace('\\','/')
-            self.server.addMessage(mess, self.players[self.playerId].name)
+            self.server.addMessage(mess, self.players[self.playerId].name, self.playerId, False)
 
     def sendMessageLobby(self, mess, nom):
         mess = mess.replace('\\','/')
@@ -496,8 +517,13 @@ class Controller():
     #Pour aller chercher les nouveaux messages
     def refreshMessages(self, chat):
         textChat=''
+        self.mess = []
         for i in range(len(self.mess), len(self.server.getMessage())):
-            self.mess.append(self.server.getMessage()[i])
+            if self.server.getMessage()[i][2] == True:
+                if self.players[self.playerId].isAllyMarc(self.server.getMessage()[i][0]) and self.players[self.server.getMessage()[i][0]].isAllyMarc(self.playerId):
+                    self.mess.append(self.server.getMessage()[i][1])
+            else:
+                self.mess.append(self.server.getMessage()[i][1])
         if len(self.mess) > 5:
             for i in range(len(self.mess)-5, len(self.mess)):
                 textChat+=self.mess[i]+'\r'
@@ -646,7 +672,7 @@ class Controller():
         for i in range(0, len(self.server.getSockets())):
             if self.server.getSockets()[i][3] == -1:
                 self.server.firstColorNotChosen(i)
-            self.players.append(p.Player(self.server.getSockets()[i][1], i, self.server.getSockets()[i][3]))
+            self.players.append(p.Player(self.server.getSockets()[i][1], i, self.server.getSockets()[i][3], self))
         self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
         for i in range(0, len(self.server.getSockets())):
             startPos = self.galaxy.getSpawnPoint()
@@ -686,6 +712,8 @@ class Controller():
                 actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget)
             elif flag.flagState == FlagState.TRADE:
                 actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/["+str(flag.initialTarget)+","+str(flag.finalTarget)+"]"
+            elif flag.flagState == FlagState.DEMAND_ALLIANCE:
+                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget)
             elif flag.flagState == FlagState.GATHER:
                 if isinstance(flag.finalTarget, w.AstronomicalObject):
                     if flag.finalTarget.type == 'nebula':
@@ -857,6 +885,16 @@ class Controller():
                 self.tradePage=-1
                 self.idTradeWith=self.playerId
                 self.view.ongletTradeYesAnswer()
+        elif action == str(FlagState.DEMAND_ALLIANCE):
+            if int(unitIndex[0])==self.playerId:
+                #Dire au joueur que quelqu'un a changé de diplomacie avec toi (système de notifications)
+                if target == "Ally":
+                    print("Il veut être mon ami")
+                else:
+                    print("Ile ne veut plus être mon ami")
+            print(str(actionPlayerId) + " veut " + target + " " + unitIndex[0])
+            self.players[actionPlayerId].changeDiplomacy(int(unitIndex[0]), target)
+            self.view.refreshAlliances()
 
     def makeFormation(self, actionPlayerId, unitIndex, target, action):
         lineTaken=[]

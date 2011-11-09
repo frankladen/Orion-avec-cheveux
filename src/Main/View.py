@@ -127,9 +127,9 @@ class View():
         self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille-200, background='Black', relief='ridge')
         self.gameArea.grid(column=0,row=1, columnspan=7)#place(relx=0, rely=0,width=taille,height=taille)
         self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
-        self.minimap.grid(column=0,row=2, rowspan=4)
+        self.minimap.grid(column=0,row=2, rowspan=5)
         self.menuModes=Canvas(gameFrame, width=self.taille, height=200, background='black', relief='ridge')
-        self.menuModes.grid(row=2,column=2, rowspan=4, columnspan=5)
+        self.menuModes.grid(row=2,column=2, rowspan=5, columnspan=5)
         #OngletChat
         self.menuModes.chat = Label(gameFrame, anchor=W, justify=LEFT, width=75, background='black', fg='white', relief='raised')
         self.menuModes.entryMess = Entry(gameFrame, width=60)
@@ -158,10 +158,20 @@ class View():
         self.menuModes.spinGaz1 = Spinbox(gameFrame, from_=0, to=self.parent.players[self.answerId].gaz)
         self.menuModes.spinMinerals2 = Spinbox(gameFrame, from_=0, to=self.parent.players[self.answerId2].mineral)
         self.menuModes.spinGaz2 = Spinbox(gameFrame, from_=0, to=self.parent.players[self.answerId2].gaz)
-        
+        #Fenetre Team
+        self.menuModes.listAllies = Listbox(gameFrame, width=40, height=7, background='black', fg='white', relief='raised', selectmode=BROWSE)
+        self.menuModes.listEnnemies = Listbox(gameFrame, width=40, height=7, background='black', fg='white', relief='raised', selectmode=BROWSE)
+        self.menuModes.labelAlly = Label(gameFrame, background='black', fg='Green', text="Alliés", font="Arial 12 bold")
+        self.menuModes.labelEnnemy = Label(gameFrame, background='black', fg='Red', text="Ennemis", font="Arial 12 bold")
+        self.menuModes.toAllyButton = Button(gameFrame, text="<", command=self.changeToAlly)
+        self.menuModes.toEnnemyButton = Button(gameFrame, text=">", command=self.changeToEnnemy)
+        self.menuModes.create_image(0,0,image=self.gifChat,anchor = NW,tag='bouton_chat')
+        self.menuModes.create_image(77,0,image=self.gifTrade,anchor = NW,tag='bouton_trade')
+        self.menuModes.create_image(150,0,image=self.gifTeam,anchor = NW,tag='bouton_team')
+        self.menuModes.create_image(227,0,image=self.gifSelectedUnit,anchor = NW,tag='bouton_selectedUnit')
         #ActionMenu
         self.Actionmenu = Canvas(gameFrame,width=200,height=200,background='black')
-        self.Actionmenu.grid(column=7,row=2, rowspan=4)
+        self.Actionmenu.grid(column=7,row=2, rowspan=5)
         self.changeBackground('GALAXY')
         self.drawWorld()
         self.createActionMenu(self.MAIN_MENU)
@@ -172,9 +182,56 @@ class View():
     def ongletTeam(self):
         self.menuModesOnlets()
         self.selectedOnglet = self.SELECTED_TEAM
-
-        self.menuModes.create_text(150,50,text='voici le menu Team',fill='white')
+        self.menuModes.labelAlly.grid(row=3, column=3)
+        self.menuModes.labelEnnemy.grid(row=3, column=5)
+        self.menuModes.listAllies.grid(row=4, rowspan=2, column=3)
+        self.menuModes.listEnnemies.grid(row=4, rowspan=2, column=5)
+        self.menuModes.toAllyButton.grid(row=4, column=4)
+        self.menuModes.toEnnemyButton.grid(row=5, column=4)
+        self.fillListsAllies()
+                    
+    def fillListsAllies(self):
+        for i in range(len(self.parent.players)):
+            if i != self.parent.playerId:
+                if self.parent.isAllied(self.parent.playerId, i):
+                    if self.parent.isAllied(i, self.parent.playerId):
+                        self.menuModes.listAllies.insert(END,self.parent.players[i].name)
+                    else:
+                        self.menuModes.listAllies.insert(END,self.parent.players[i].name + ' ?')
+                else:
+                    self.menuModes.listEnnemies.insert(END,self.parent.players[i].name)
+                    
+    def changeToAlly(self):
+        self.gameArea.focus_set()
+        selected = self.menuModes.listEnnemies.curselection()
+        if len(selected) > 0:
+            playerName = self.menuModes.listEnnemies.get(selected)
+            playerId = self.parent.getPlayerId(playerName)
+            if self.parent.isAllied(playerId, self.parent.playerId):
+                self.menuModes.listAllies.insert(END, self.menuModes.listEnnemies.get(selected))
+            else:
+                self.menuModes.listAllies.insert(END, self.menuModes.listEnnemies.get(selected) +  ' ?')
+            self.menuModes.listEnnemies.delete(int(selected[0]))
+            self.parent.changeAlliance(playerId, "Ally")
         
+    def changeToEnnemy(self):
+        self.gameArea.focus_set()
+        selected = self.menuModes.listAllies.curselection()
+        if len(selected) > 0:
+            playerName = self.menuModes.listAllies.get(selected)
+            playerName = playerName.replace(" ?", "")
+            playerId = self.parent.getPlayerId(playerName)
+            self.menuModes.listEnnemies.insert(END, playerName)
+            self.menuModes.listAllies.delete(int(selected[0]))
+            self.parent.changeAlliance(playerId, "Ennemy")
+            
+    def refreshAlliances(self):
+        print("rafraichi les alliances")
+        if self.selectedOnglet == self.SELECTED_TEAM:
+            self.menuModes.listAllies.delete(0, END)
+            self.menuModes.listEnnemies.delete(0, END)
+            self.fillListsAllies()
+    
     def ongletTradeChoicePlayer(self):
         self.menuModesOnlets()
         self.selectedOnglet = self.SELECTED_TRADE
@@ -347,6 +404,14 @@ class View():
         self.menuModes.spinGaz2.grid_forget()
         self.menuModes.bEchange.grid_forget()
         self.menuModes.modifyButtonConfirm.grid_forget()
+        self.menuModes.listAllies.grid_forget()
+        self.menuModes.listAllies.delete(0, END)
+        self.menuModes.listEnnemies.grid_forget()
+        self.menuModes.listEnnemies.delete(0, END)
+        self.menuModes.labelEnnemy.grid_forget()
+        self.menuModes.labelAlly.grid_forget()
+        self.menuModes.toEnnemyButton.grid_forget()
+        self.menuModes.toAllyButton.grid_forget()
         self.gameArea.focus_set()
         self.menuModes.create_image(0,0,image=self.gifChat,anchor = NW,tag='bouton_chat')
         self.menuModes.create_image(77,0,image=self.gifTrade,anchor = NW,tag='bouton_trade')
@@ -377,6 +442,7 @@ class View():
             self.Actionmenu.create_image(76,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Build_Attack')
             self.Actionmenu.create_image(140,35,image = self.gifCargo, anchor = NW, tags = 'Button_Build_Gather')
             self.Actionmenu.create_image(13,89,image = self.gifTransport, anchor = NW, tags = 'Button_Build_Transport')
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.WAITING_FOR_RALLY_POINT_MENU):
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le point de ralliement du vaisseau mère.",anchor = NW, fill = 'white', width = 200)
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
@@ -483,9 +549,8 @@ class View():
         #Démarre le serveur dans un autre processus avec l'adresse spécifiée
         child = subprocess.Popen("C:\python32\python.exe server.py " + serverAddress, shell=True)
         #On doit attendre un peu afin de laisser le temps au serveur de partir et de se terminer si une erreur arrive
-        #time.sleep(1)
-        #On vérifie si le serveur s'est terminé en erreur et si oui, on affiche un message à l'utilisateur
         time.sleep(1)
+        #On vérifie si le serveur s'est terminé en erreur et si oui, on affiche un message à l'utilisateur
         if child.poll():
             if child.returncode != None:
                 self.serverNotCreated()
@@ -564,7 +629,7 @@ class View():
         mb.showinfo('Serveur créé', 'Le serveur a été créé à l\'adresse ' + serverIP + '.')
         
     def serverNotCreated(self):
-        mb.showinfo('Serveur non créé', 'Une erreur est survenue lors de la création du serveur.\nVeuillez vérifier que les informations entrées sont exactes.')
+        mb.showinfo('Serveur non créé', 'Une erreur est survenue lors de la création du serveur.\nVeuillez vérifier que les informations entrées sont exactes,\nou qu\'un autre serveur n\'est pas en cours d\'exécution.')
     
     #Methode pour dessiner la vue d'un planete
     def drawPlanetGround(self, planet):
@@ -656,12 +721,19 @@ class View():
                     if j.discovered:
                         self.drawAsteroid(j, players[id], False)
         for i in players:
-            for j in i.units:
-                if j.isAlive:
-                    if self.parent.players[self.parent.playerId].inViewRange(j.position):
+            if self.parent.players[self.parent.playerId].isAlly(i.id):
+                for j in i.units:
+                    if j.isAlive:
                         if j.type == j.MOTHERSHIP:
                             j.discovered = True
                         self.drawUnit(j, i, False)
+            else:
+                for j in i.units:
+                    if j.isAlive:
+                        if self.parent.players[self.parent.playerId].inViewRange(j.position):
+                            if j.type == j.MOTHERSHIP:
+                                j.discovered = True
+                            self.drawUnit(j, i, False)
         if self.dragging:
             self.drawSelectionBox()
         self.drawMinimap()
@@ -810,10 +882,16 @@ class View():
                         self.drawMiniAsteroid(q)
                 self.firstTime = False
             for i in players:
-                for j in i.units:
-                    if j.isAlive:
-                        if players[self.parent.playerId].inViewRange(j.position):
-                            self.drawMiniUnit(j)
+                if self.parent.players[self.parent.playerId].isAlly(i.id):
+                    for j in i.units:
+                        if j.isAlive:
+                                self.drawMiniUnit(j)
+                else:
+                    for j in i.units:
+                        if j.isAlive:
+                            if players[self.parent.playerId].inViewRange(j.position):
+                                self.drawMiniUnit(j)
+
         else:
             self.minimap.create_rectangle(0,0,200,200, fill='#cc6600', tag='deletable')
             planet = self.parent.players[self.parent.playerId].currentPlanet
@@ -840,25 +918,16 @@ class View():
                     self.drawMiniNebula(n)
                 for q in i.asteroids:
                     self.drawMiniAsteroid(q)
-        
-    def redrawMinimap(self):
-        self.minimap.delete(ALL)
-        if self.parent.players[self.parent.playerId].currentPlanet == None:
-            sunList = self.parent.galaxy.solarSystemList
-            players = self.parent.players
-            for i in sunList:
-                self.drawMiniSun(i)
-                for j in i.planets:
-                    self.drawMiniPlanet(j)
-                for n in i.nebulas:
-                    self.drawMiniNebula(n)
-                for q in i.asteroids:
-                    self.drawMiniAsteroid(q)
             for i in players:
-                for j in i.units:
-                    if j.isAlive:
-                        if players[self.parent.playerId].inViewRange(j.position):
-                            self.drawMiniUnit(j)
+                if self.parent.players[self.parent.playerId].isAlly(i.id):
+                    for j in i.units:
+                        if j.isAlive:
+                                self.drawMiniUnit(j)
+                else:
+                    for j in i.units:
+                        if j.isAlive:
+                            if players[self.parent.playerId].inViewRange(j.position):
+                                self.drawMiniUnit(j)
         else:
             self.minimap.create_rectangle(0,0,200,200, fill='#cc6600', tag='deletable')
             planet = self.parent.players[self.parent.playerId].currentPlanet
@@ -929,22 +998,23 @@ class View():
     def drawMiniUnit(self, unit):
         unitX = (unit.position[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
         unitY = (unit.position[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
+        if unit.owner == self.parent.playerId:
+            color = 'GREEN'
+        elif self.parent.players[self.parent.playerId].diplomacies[unit.owner] == "Ally" :
+            color = 'YELLOW'
+        else:
+            color ='RED'
         if unit.type != unit.MOTHERSHIP:
-            if unit in self.parent.players[self.parent.playerId].units:
-                if unit.type == unit.TRANSPORT:
-                    if not unit.landed:
-                        self.minimap.create_polygon((unitX-2, unitY+2, unitX, unitY-2, unitX+2, unitY+2),fill='GREEN', tag='deletable')
-                else:
-                    self.minimap.create_polygon((unitX-2, unitY+2, unitX, unitY-2, unitX+2, unitY+2),fill='GREEN', tag='deletable')
+            if unit.type == unit.TRANSPORT:
+                if not unit.landed:
+                    self.minimap.create_polygon((unitX-2, unitY+2, unitX, unitY-2, unitX+2, unitY+2),fill=color, tag='deletable')
             else:
-                self.minimap.create_polygon((unitX-2, unitY+2, unitX, unitY-2, unitX+2, unitY+2),fill='RED', tag='deletable')
+                self.minimap.create_polygon((unitX-2, unitY+2, unitX, unitY-2, unitX+2, unitY+2),fill=color, tag='deletable')
         else:
             width = self.MINIMAP_WIDTH / self.parent.galaxy.width * unit.SIZE[unit.type][0]
             height = self.MINIMAP_HEIGHT / self.parent.galaxy.height * unit.SIZE[unit.type][1]
-            if unit in self.parent.players[self.parent.playerId].units:
-                self.minimap.create_oval((unitX-width/2, unitY-height/2, unitX+width/2, unitY+height/2),fill='WHITE', tag='deletable')
-            else:
-                self.minimap.create_oval((unitX-width/2, unitY-height/2, unitX+width/2, unitY+height/2),fill='RED', tag='deletable')
+            self.minimap.create_oval((unitX-width/2, unitY-height/2, unitX+width/2, unitY+height/2),fill=color, tag='deletable')
+
     def drawMiniMinerals(self, mineral, planet):
         if mineral.nbMinerals > 0:
             x = int(mineral.position[0] * 200 / planet.WIDTH)

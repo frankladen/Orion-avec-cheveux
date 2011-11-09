@@ -5,13 +5,17 @@ import socket
 
 #Represente un joueur
 class Player():
-    def __init__(self, name, id , colorId, civilization=None):
+    def __init__(self, name, id , colorId, parent):
         self.name = name
-        self.civilization = civilization
+        self.id = id #Numero du joueur dans la liste de joueur
+        self.parent = parent
         self.colorId = colorId
         self.selectedObjects = [] #Liste des unites selectionnes
         self.units = [] #Liste de toute les unites
-        self.id = id #Numero du joueur dans la liste de joueur
+        self.diplomacies=[]
+        for i in range(8):
+            self.diplomacies.append('Enemy')
+        self.diplomacies[self.id] = 'Ally'
         self.startPos = [0,0,0] #Position de depart du joueur (pour le mothership)
         self.motherShip = None
         self.formation="carre"
@@ -42,6 +46,9 @@ class Player():
         if default[1]+self.camera.screenCenter[1] > self.camera.galaxy.height/2:
             self.camera.position[1] = (self.camera.galaxy.height)/2-self.camera.screenCenter[1]
         
+    def changeDiplomacy(self, playerToChange, newStatus):
+        self.diplomacies[playerToChange] = newStatus
+            
     def inViewRange(self, position):
         x = position[0]
         y = position[1]
@@ -54,7 +61,29 @@ class Player():
                                 return True
                         else:
                             return True
+        for i in range(len(self.diplomacies)):
+            if self.isAlly(i) and i != self.id:
+                for i in self.parent.players[i].units:
+                    if i.isAlive:
+                        if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
+                            if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
+                                if i.name == 'Transport':
+                                    if not i.landed:
+                                        return True
+                                else:
+                                    return True
         return False
+    
+    def isAlly(self, playerId):
+        if self.diplomacies[playerId] == "Ally":
+            return self.parent.isAllied(playerId, self.id)
+        return False
+
+    def isAllyMarc(self, playerId):
+        if self.diplomacies[playerId] == "Ally":
+            return True
+        return False
+
 #Represente la camera            
 class Camera():
     def __init__(self, defaultPos, galaxy, player, taille):

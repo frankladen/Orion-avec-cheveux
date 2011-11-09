@@ -18,7 +18,8 @@ class FlagState():
     CHANGE_FORMATION = 8192
     TRADE = 16384
     DESTROY_ALL = 32768
-    GROUND_MOVE = 65536
+    DEMAND_ALLIANCE = 65536
+    GROUND_MOVE = 131072
 
 #Represente un flag
 class Flag():
