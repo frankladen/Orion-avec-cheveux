@@ -170,7 +170,11 @@ class Mothership(Unit):
                     if unitToAttack.hitpoints <= 0:
                         index = players[unitToAttack.owner].units.index(unitToAttack)
                         killedOwner = unitToAttack.owner
-                        self.flag = Flag(self.position, self.position, FlagState.BUILD_UNIT)
+                        for i in players[self.owner].units:
+                            if i.isAlive:
+                                if i.flag.finalTarget == unitToAttack:
+                                    i.flag = Flag(t.Target(i.position), t.Target(i.position), FlagState.BUILD_UNIT)
+                                    i.attackcount=i.AttackSpeed
                         self.killCount +=1
                     self.attackcount=self.AttackSpeed
             return (index, killedOwner)
@@ -204,12 +208,16 @@ class SpaceAttackUnit(SpaceUnit):
                     if unitToAttack.hitpoints <= 0:
                         index = players[unitToAttack.owner].units.index(unitToAttack)
                         killedOwner = unitToAttack.owner
-                        self.flag = Flag(self.position, self.position, FlagState.BUILD_UNIT)
+                        for i in players[self.owner].units:
+                            if i.isAlive:
+                                if i.flag.finalTarget == unitToAttack:
+                                    i.flag = Flag(t.Target(i.position), t.Target(i.position), FlagState.STANDBY)
+                                    i.attackcount=i.AttackSpeed
                         self.killCount +=1
                     self.attackcount=self.AttackSpeed
             return (index, killedOwner)
         except ValueError:
-            self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.BUILD_UNIT)
+            self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.STANDBY)
             return (-1, -1)
 
     def patrol(self, players):

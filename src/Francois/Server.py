@@ -11,7 +11,7 @@ class ControleurServeur(object):
         self.gameIsStarted = False
         self.isStopped = True
         self.seed = int(time())
-        self.mess = ['Choisissez la couleur de votre battalion','________________________________________________________________','Le but est détruire le vaisseau mère des autres équipes','en bâtissant votre propre civilisation et en dominant.','________________________________________________________________']
+        self.mess = [[-1, 'Choisissez la couleur de votre battalion',False],[-1, '________________________________________________________________',False],[-1, 'Le but est détruire le vaisseau mère des autres équipes',False],[-1, 'en bâtissant votre propre battalion et en dominant.',False],[-1, '________________________________________________________________',False]]
         self.changeList = []
         self.readyPlayers = []
         self.choiceColors = [["Orange", False], ["Rouge", False], ["Bleu", False], ["Vert", False], ["Jaune", False], ["Brun", False], ["Blanc", False], ["Rose", False]]
@@ -53,8 +53,8 @@ class ControleurServeur(object):
             self.choiceColors = [["Orange", False], ["Rouge", False], ["Bleu", False], ["Vert", False], ["Jaune", False], ["Brun", False], ["Blanc", False], ["Rose", False]]
             self.mess = ['Système de chat de Orion']
     
-    def addMessage(self, text, name):
-        self.mess.append(name+': '+text)
+    def addMessage(self, text, name, idPlayer, allies):
+        self.mess.append([idPlayer ,name+" : "+text,allies])
     
     def getMessage(self):
         return self.mess

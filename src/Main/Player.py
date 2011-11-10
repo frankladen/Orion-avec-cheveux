@@ -79,11 +79,6 @@ class Player():
             return self.parent.isAllied(playerId, self.id)
         return False
 
-    def isAllyMarc(self, playerId):
-        if self.diplomacies[playerId] == "Ally":
-            return True
-        return False
-
 #Represente la camera            
 class Camera():
     def __init__(self, defaultPos, galaxy, player, taille):

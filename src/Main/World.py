@@ -12,9 +12,14 @@ class Galaxy():
     SUN_BORDER_SPACING=BORDER_SPACING + 125
     
     def __init__(self,nbPlayer, seed):
-        self.width=(nbPlayer)*self.SIZE_MULTIPLIER
-        self.height=(nbPlayer)*self.SIZE_MULTIPLIER
-        self.depth=(nbPlayer)*self.SIZE_MULTIPLIER
+        if nbPlayer>2:
+            self.width=(nbPlayer)*self.SIZE_MULTIPLIER
+            self.height=(nbPlayer)*self.SIZE_MULTIPLIER
+            self.depth=(nbPlayer)*self.SIZE_MULTIPLIER
+        else:
+            self.width=3000
+            self.height=3000
+            self.depth=3000
         self.seed  = random.seed(seed)
         self.spawnPoints = []
         self.solarSystemList = []

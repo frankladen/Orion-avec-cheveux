@@ -108,6 +108,8 @@ class Controller():
                     else:
                         i.attackcount = i.AttackSpeed
                         units += str(self.players[self.playerId].units.index(i)) + ","
+                else:
+                    self.setDefaultMovingFlag(attackedUnit.position[0],attackedUnit.position[1],i)
             if units != "":
                 self.pushChange(units, Flag(i,attackedUnit,FlagState.ATTACK))
             if attackedUnit.type == attackedUnit.ATTACK_SHIP:
@@ -241,7 +243,7 @@ class Controller():
         if self.players[self.playerId].currentPlanet == None:
             if len(self.players[self.playerId].selectedObjects) > 0:
                 for i in self.players:
-                    if self.players.index(i) != self.playerId and (self.players[self.playerId].isAllyMarc(self.players.index(i)) == False or i.isAllyMarc(self.playerId) == False):
+                    if self.players.index(i) != self.playerId and self.players[self.playerId].isAlly(self.players.index(i)) == False:
                         for j in i.units:
                             if j.isAlive:
                                 if j.position[0] >= posSelected[0]-j.SIZE[j.type][0]/2 and j.position[0] <= posSelected[0]+j.SIZE[j.type][0]/2 :
@@ -249,7 +251,7 @@ class Controller():
                                         self.setAttackFlag(j)
     def checkIfEnemyInRange(self, unit):
         for pl in self.players:
-            if self.players.index(pl) != unit.owner and (self.players[unit.owner].isAllyMarc(self.players.index(pl)) == False or pl.isAllyMarc(unit.owner) == False):
+            if self.players.index(pl) != unit.owner and self.players[unit.owner].isAlly(self.players.index(pl)) == False:
                 for un in pl.units:
                     if un.isAlive:
                         if un.position[0] > unit.position[0]-unit.range and un.position[0] < unit.position[0]+unit.range:
@@ -416,14 +418,13 @@ class Controller():
                     if empty:
                         if len(self.players[self.playerId].selectedObjects) > 0:
                             for i in self.players:
-                                if i != self.players[self.playerId] and (self.players[self.playerId].isAllyMarc(self.players.index(i)) == False or i.isAllyMarc(self.playerId) == False):
+                                if i != self.players[self.playerId] and self.players[self.playerId].isAlly(self.players.index(i)) == False:
                                     for j in i.units:
                                         if j.isAlive:
                                             if j.position[0] >= pos[0]-j.SIZE[j.type][0]/2 and j.position[0] <= pos[0]+j.SIZE[j.type][0]/2:
                                                 if j.position[1] >= pos[1]-j.SIZE[j.type][1]/2 and j.position[1] <= pos[1]+j.SIZE[j.type][1]/2:
-                                                    if j.type == j.ATTACK_SHIP:
-                                                        self.setAttackFlag(j)
-                                                        empty = False
+                                                    self.setAttackFlag(j)
+                                                    empty = False
                     if empty:
                         self.setMovingFlag(pos[0],pos[1])
                     self.view.drawWorld()
@@ -520,7 +521,7 @@ class Controller():
         self.mess = []
         for i in range(len(self.mess), len(self.server.getMessage())):
             if self.server.getMessage()[i][2] == True:
-                if self.players[self.playerId].isAllyMarc(self.server.getMessage()[i][0]) and self.players[self.server.getMessage()[i][0]].isAllyMarc(self.playerId):
+                if self.players[self.playerId].isAlly(self.server.getMessage()[i][0]):
                     self.mess.append(self.server.getMessage()[i][1])
             else:
                 self.mess.append(self.server.getMessage()[i][1])
