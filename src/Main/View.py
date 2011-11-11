@@ -328,14 +328,14 @@ class View():
                     elif isinstance(i, u.Unit):
                         self.menuModes.create_image(x,y, image = self.gifUnit, tag = i.position,tags = ('selected_unit',i.position[0],i.position[1]))
         
-                    
+                    #Commentaire svp...
                     x += 52
                     if x > 600:
                         x = 20
                         y+= 46      
     
     def showInfo(self, unit):
-        if isinstance(unit, Planet) == False and isinstance(unit, AstronomicalObject) == False:
+        if isinstance(unit, Planet) == False and isinstance(unit, AstronomicalObject) == False and isinstance(unit, Unit):
             self.menuModes.create_text(20,80, text = 'Type : ' + Unit.FRENCHNAME[unit.type], anchor = NW, fill = 'white')
             self.menuModes.create_text(20,100, text = "HP : " + str(math.trunc(unit.hitpoints)) + "/" + str(unit.maxHP),anchor = NW, fill = 'white')
             self.menuModes.create_text(20,120, text = "Vitesse de déplacement : " + str(unit.moveSpeed) + " années lumière à l'heure.", anchor = NW, fill = 'white')
@@ -893,7 +893,7 @@ class View():
                                 self.drawMiniUnit(j)
 
         else:
-            self.minimap.create_rectangle(0,0,200,200, fill='#cc6600', tag='deletable')
+            self.minimap.create_rectangle(0,0,200,200, fill='#009900', tag='deletable')
             planet = self.parent.players[self.parent.playerId].currentPlanet
             for i in planet.minerals:
                 self.drawMiniMinerals(i, planet)
@@ -929,7 +929,7 @@ class View():
                             if players[self.parent.playerId].inViewRange(j.position):
                                 self.drawMiniUnit(j)
         else:
-            self.minimap.create_rectangle(0,0,200,200, fill='#cc6600', tag='deletable')
+            self.minimap.create_rectangle(0,0,200,200, fill='#009900', tag='deletable')
             planet = self.parent.players[self.parent.playerId].currentPlanet
             for i in planet.minerals:
                 self.drawMiniMinerals(i, planet)
@@ -1019,8 +1019,7 @@ class View():
         if mineral.nbMinerals > 0:
             x = int(mineral.position[0] * 200 / planet.WIDTH)
             y = int(mineral.position[1] * 200 / planet.HEIGHT)
-            self.minimap.create_polygon(x-mineral.WIDTH/8, y, x, y-mineral.HEIGHT/8 ,x+mineral.WIDTH/8, y, x, y+mineral.HEIGHT/8, fill='CYAN', outline='BLACK')
-            #self.minimap.create_oval(x-mineral.WIDTH/8, y-mineral.HEIGHT/8, x+mineral.WIDTH/8, y+mineral.HEIGHT/8,fill='CYAN')
+            self.minimap.create_polygon(x-mineral.WIDTH/8, y, x, y-mineral.HEIGHT/8 ,x+mineral.WIDTH/8, y, x, y+mineral.HEIGHT/8, outline="black", fill='CYAN', width=2)
 
     def drawMiniGaz(self, gaz, planet):
         if gaz.nbGaz > 0:
