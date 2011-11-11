@@ -513,7 +513,7 @@ class Controller():
 
     def sendMessageLobby(self, mess, nom):
         mess = mess.replace('\\','/')
-        self.server.addMessage(mess, self.server.getSockets()[self.playerId][1])
+        self.server.addMessage(mess, self.server.getSockets()[self.playerId][1], self.playerId, False)
 
     #Pour aller chercher les nouveaux messages
     def refreshMessages(self, chat):
@@ -950,7 +950,7 @@ class Controller():
                             for a in range(0,numberOfSpaces):
                                 thatLine.append(False)
                             lineTaken.append(thatLine)
-                self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
+                self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
         #Formation en carré selon le nombre de unit qui se déplace, OH YEAH
         if self.players[actionPlayerId].formation == "carre":
             thatLine = []
@@ -1033,7 +1033,7 @@ class Controller():
                             lineTaken.append(thatLine)
                     if line == 0:
                         xLineBefore[0] = target[0]
-                self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
+                self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
 
 
 if __name__ == '__main__':
