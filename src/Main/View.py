@@ -833,37 +833,39 @@ class View():
                     self.drawHPHoverUnit(unit, distance)
      
     def drawHPHoverUnit(self, unit, distance):
-        posSelected=self.parent.players[self.parent.playerId].camera.calcPointInWorld(self.positionMouse[0],self.positionMouse[1])
-        if unit.position[0] >= posSelected[0]-(unit.SIZE[unit.type][0]/2) and unit.position[0] <= posSelected[0]+(unit.SIZE[unit.type][0]/2):
-            if unit.position[1] >= posSelected[1]-(unit.SIZE[unit.type][1]/2) and unit.position[1] <= posSelected[1]+(unit.SIZE[unit.type][1]/2):
-                if unit.type == unit.TRANSPORT:
-                    if not unit.landed:
+        if self.parent.players[self.parent.playerId].currentPlanet == None and not isinstance(unit, GroundUnit):
+            posSelected=self.parent.players[self.parent.playerId].camera.calcPointInWorld(self.positionMouse[0],self.positionMouse[1])
+            if unit.position[0] >= posSelected[0]-(unit.SIZE[unit.type][0]/2) and unit.position[0] <= posSelected[0]+(unit.SIZE[unit.type][0]/2):
+                if unit.position[1] >= posSelected[1]-(unit.SIZE[unit.type][1]/2) and unit.position[1] <= posSelected[1]+(unit.SIZE[unit.type][1]/2):
+                    if unit.type == unit.TRANSPORT:
+                        if not unit.landed:
+                            hpLeft=((unit.hitpoints/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
+                            hpLost=(hpLeft+(((unit.MAX_HP[unit.type]-unit.hitpoints)/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0])))
+                            self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="green", tag='deletable')
+                            if int(unit.hitpoints) != int(unit.MAX_HP[unit.type]):
+                                self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLost,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="red", tag='deletable')
+                    else:
                         hpLeft=((unit.hitpoints/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
                         hpLost=(hpLeft+(((unit.MAX_HP[unit.type]-unit.hitpoints)/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0])))
                         self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="green", tag='deletable')
                         if int(unit.hitpoints) != int(unit.MAX_HP[unit.type]):
                             self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLost,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="red", tag='deletable')
-                else:
+    
+    def drawHPBars(self, distance, unit):
+        if self.parent.players[self.parent.playerId].currentPlanet == None and not isinstance(unit, GroundUnit):
+            if unit.type == unit.TRANSPORT:
+                if not unit.landed:
                     hpLeft=((unit.hitpoints/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
                     hpLost=(hpLeft+(((unit.MAX_HP[unit.type]-unit.hitpoints)/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0])))
                     self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="green", tag='deletable')
                     if int(unit.hitpoints) != int(unit.MAX_HP[unit.type]):
                         self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLost,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="red", tag='deletable')
-    
-    def drawHPBars(self, distance, unit):
-        if unit.type == unit.TRANSPORT:
-            if not unit.landed:
+            else:
                 hpLeft=((unit.hitpoints/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
                 hpLost=(hpLeft+(((unit.MAX_HP[unit.type]-unit.hitpoints)/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0])))
                 self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="green", tag='deletable')
                 if int(unit.hitpoints) != int(unit.MAX_HP[unit.type]):
                     self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLost,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="red", tag='deletable')
-        else:
-            hpLeft=((unit.hitpoints/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
-            hpLost=(hpLeft+(((unit.MAX_HP[unit.type]-unit.hitpoints)/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0])))
-            self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="green", tag='deletable')
-            if int(unit.hitpoints) != int(unit.MAX_HP[unit.type]):
-                self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLost,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="red", tag='deletable')
           
     #Dessine la minimap
     def drawMinimap(self):
@@ -1004,16 +1006,17 @@ class View():
             color = 'YELLOW'
         else:
             color ='RED'
-        if unit.type != unit.MOTHERSHIP:
-            if unit.type == unit.TRANSPORT:
-                if not unit.landed:
+        if unit.type != unit.GROUND_UNIT:
+            if unit.type != unit.MOTHERSHIP:
+                if unit.type == unit.TRANSPORT:
+                    if not unit.landed:
+                        self.minimap.create_polygon((unitX-2, unitY+2, unitX, unitY-2, unitX+2, unitY+2),fill=color, tag='deletable')
+                else:
                     self.minimap.create_polygon((unitX-2, unitY+2, unitX, unitY-2, unitX+2, unitY+2),fill=color, tag='deletable')
             else:
-                self.minimap.create_polygon((unitX-2, unitY+2, unitX, unitY-2, unitX+2, unitY+2),fill=color, tag='deletable')
-        else:
-            width = self.MINIMAP_WIDTH / self.parent.galaxy.width * unit.SIZE[unit.type][0]
-            height = self.MINIMAP_HEIGHT / self.parent.galaxy.height * unit.SIZE[unit.type][1]
-            self.minimap.create_oval((unitX-width/2, unitY-height/2, unitX+width/2, unitY+height/2),fill=color, tag='deletable')
+                width = self.MINIMAP_WIDTH / self.parent.galaxy.width * unit.SIZE[unit.type][0]
+                height = self.MINIMAP_HEIGHT / self.parent.galaxy.height * unit.SIZE[unit.type][1]
+                self.minimap.create_oval((unitX-width/2, unitY-height/2, unitX+width/2, unitY+height/2),fill=color, tag='deletable')
 
     def drawMiniMinerals(self, mineral, planet):
         if mineral.nbMinerals > 0:
@@ -1238,7 +1241,7 @@ class View():
         self.redrawMinimap()
         cam = self.parent.players[self.parent.playerId].camera
         cam.position = cam.defaultPos
-        self.parent.players[self.parent.playerId].selectedUnit = []
+        self.parent.players[self.parent.playerId].selectedObjects = []
 
     def clickMenuModes(self,eve):
         bp = (eve.widget.gettags(eve.widget.find_withtag('current')))

@@ -53,7 +53,7 @@ class Player():
         x = position[0]
         y = position[1]
         for i in self.units:
-            if i.isAlive:
+            if i.isAlive and not isinstance(i, GroundUnit):
                 if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
                     if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
                         if i.name == 'Transport':
@@ -64,7 +64,7 @@ class Player():
         for i in range(len(self.diplomacies)):
             if self.isAlly(i) and i != self.id:
                 for i in self.parent.players[i].units:
-                    if i.isAlive:
+                    if i.isAlive and not isinstance(i, GroundUnit):
                         if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
                             if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
                                 if i.name == 'Transport':
