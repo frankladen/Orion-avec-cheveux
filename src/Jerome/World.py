@@ -10,15 +10,20 @@ class Galaxy():
     MIN_SPAWN_POINT_SPACING = 200
     BORDER_SPACING=25
     SUN_BORDER_SPACING=BORDER_SPACING + 125
-    
+    MAX_SOLARSYSTEM = 10
     def __init__(self,nbPlayer, seed):
-        self.width=(nbPlayer)*self.SIZE_MULTIPLIER
-        self.height=(nbPlayer)*self.SIZE_MULTIPLIER
-        self.depth=(nbPlayer)*self.SIZE_MULTIPLIER
+        if nbPlayer>2:
+            self.width=(nbPlayer)*self.SIZE_MULTIPLIER
+            self.height=(nbPlayer)*self.SIZE_MULTIPLIER
+            self.depth=(nbPlayer)*self.SIZE_MULTIPLIER
+        else:
+            self.width=3000
+            self.height=3000
+            self.depth=3000
         self.seed  = random.seed(seed)
         self.spawnPoints = []
         self.solarSystemList = []
-        for i in range(1,nbPlayer*(6+(nbPlayer-2))):
+        for i in range(1,nbPlayer*(self.MAX_SOLARSYSTEM+(nbPlayer-2))):
             tempX=""
             tempY=""
             placeFound = False
@@ -65,12 +70,14 @@ class Galaxy():
 
 #Classe qui represente 1 seul systeme solaire
 class SolarSystem():
-    HEIGHT=500
-    WIDTH=500
+    HEIGHT=800
+    WIDTH=800
     SUN_WIDTH=20
     SUN_HEIGHT=20
     MAX_PLANETS=6
-    MAX_ATRO_OBJS=4
+    MAX_ATRO_OBJS=8
+    NEBULA = 0
+    ASTEROID = 1
     
     def __init__(self,position,sunId):
         self.sunId = sunId
@@ -177,8 +184,8 @@ class AstronomicalObject(Target):
 class Planet(Target):
     IMAGE_WIDTH=15
     IMAGE_HEIGHT=15
-    WIDTH=800
-    HEIGHT=600
+    WIDTH=1600
+    HEIGHT=1200
     PADDING=25
     MAX_DIST_FROM_SUN=125
     def __init__(self, planetPosition, nMineralStack, nGazStack):
@@ -198,14 +205,15 @@ class Planet(Target):
             while not posFound:
                 posFound = True
                 position = [random.random()*Planet.WIDTH, random.random()*Planet.HEIGHT]
-                if position[0] < 0 or position[0] > Planet.WIDTH-Planet.PADDING-MineralStack.WIDTH/2:
+                if position[0] < Planet.PADDING or position[0] > Planet.WIDTH-Planet.PADDING-MineralStack.WIDTH/2:
                     posFound = False
-                if position[1] < 0 or position[1] > Planet.HEIGHT-Planet.PADDING-MineralStack.HEIGHT/2:
+                if position[1] < Planet.PADDING or position[1] > Planet.HEIGHT-Planet.PADDING-MineralStack.HEIGHT/2:
                     posFound = False
                 for i in self.minerals:
                     if position[0] > i.position[0]-i.WIDTH and position[0] < i.position[0]+i.WIDTH:
-                        if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
-                            posFound = False
+                        posFound = False
+                    if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
+                        posFound = False
             self.minerals.append(MineralStack(nMinerals,position))
         for i in range(0, self.nGazStack):
             nGaz = int(random.random()*GazStack.MAX_QTY/2+GazStack.MAX_QTY/2)
@@ -213,18 +221,20 @@ class Planet(Target):
             while not posFound:
                 posFound = True
                 position = [random.random()*Planet.WIDTH, random.random()*Planet.HEIGHT]
-                if position[0] < 0 or position[0] > Planet.WIDTH-Planet.PADDING-GazStack.WIDTH/2:
+                if position[0] < Planet.PADDING or position[0] > Planet.WIDTH-Planet.PADDING-GazStack.WIDTH/2:
                     posFound = False
-                if position[1] < 0 or position[1] > Planet.HEIGHT-Planet.PADDING-GazStack.HEIGHT/2:
+                if position[1] < Planet.PADDING or position[1] > Planet.HEIGHT-Planet.PADDING-GazStack.HEIGHT/2:
                     posFound = False
                 for i in self.minerals:
                     if position[0] > i.position[0]-i.WIDTH and position[0] < i.position[0]+i.WIDTH:
-                        if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
-                            posFound = False
+                        posFound = False
+                    if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
+                        posFound = False
                 for i in self.gaz:
                     if position[0] > i.position[0]-i.WIDTH and position[0] < i.position[0]+i.WIDTH:
-                        if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
-                            posFound = False
+                        posFound = False
+                    if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
+                        posFound = False
             self.gaz.append(GazStack(nGaz, position))
         for i in self.minerals:
             self.mineralQte += i.nbMinerals
@@ -242,12 +252,14 @@ class Planet(Target):
                 placeFound = False
             for i in self.minerals:
                 if position[0] > i.position[0]-i.WIDTH and position[0] < i.position[0]+i.WIDTH:
-                    if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
-                        posFound = False
+                    posFound = False
+                if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
+                    posFound = False
             for i in self.gaz:
                 if position[0] > i.position[0]-i.WIDTH and position[0] < i.position[0]+i.WIDTH:
-                    if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
-                        posFound = False 
+                    posFound = False
+                if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
+                    posFound = False 
         newSpot = LandingZone(position, playerid, landingShip)
         self.landingZones.append(newSpot)
         return newSpot
@@ -258,7 +270,11 @@ class Planet(Target):
             if i.ownerId == playerId:
                 alreadyLanded = True
         return alreadyLanded
-
+    def getLandingSpot(self, playerId):
+        for i in self.landingZones:
+            if i.ownerId == playerId:
+                return i
+        return None
 class MineralStack(Target):
     WIDTH = 48
     HEIGHT = 64
@@ -275,10 +291,10 @@ class GazStack(Target):
         Target.__init__(self, position)
         self.nbGaz= nbGaz
         
-class LandingZone(Target):
+class LandingZone(PlayerObject):
     WIDTH = 75
     HEIGHT = 75
     def __init__(self, position, ownerId, landingShip):
-        Target.__init__(self, position)
+        PlayerObject.__init__(self, 'Zone d\'atterissage', 0, position, ownerId)
         self.ownerId = ownerId
         self.LandedShip = landingShip
