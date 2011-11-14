@@ -280,7 +280,7 @@ class Controller():
         if self.players[self.playerId].currentPlanet == None:
             #Si on selectionne une unit dans l'espace             
             for j in self.players[self.playerId].units:
-                if j.isAlive:
+                if j.isAlive and j.type != u.Unit.GROUND_UNIT:
                     if j.position[0] >= posSelected[0]-(j.SIZE[j.type][0]/2) and j.position[0] <= posSelected[0]+(j.SIZE[j.type][0]/2):
                         if j.position[1] >= posSelected[1]-(j.SIZE[j.type][1]/2) and j.position[1] <= posSelected[1]+(j.SIZE[j.type][1]/2): 
                             if self.multiSelect == False:
@@ -447,7 +447,7 @@ class Controller():
         first = True
         if self.players[self.playerId].currentPlanet == None:
             for i in self.players[self.playerId].units:
-                if i.isAlive:
+                if i.isAlive and i.type != u.Unit.GROUND_UNIT:
                     if i.position[0] >= realStart[0]-i.SIZE[i.type][0]/2 and i.position[0] <= realEnd[0]+i.SIZE[i.type][0]/2:
                         if i.position[1] >= realStart[1]-i.SIZE[i.type][1]/2 and i.position[1] <= realEnd[1]+i.SIZE[i.type][1]/2:
                             if first:
@@ -513,7 +513,7 @@ class Controller():
 
     def sendMessageLobby(self, mess, nom):
         mess = mess.replace('\\','/')
-        self.server.addMessage(mess, self.server.getSockets()[self.playerId][1])
+        self.server.addMessage(mess, self.server.getSockets()[self.playerId][1], self.playerId, False)
 
     #Pour aller chercher les nouveaux messages
     def refreshMessages(self, chat):
@@ -582,6 +582,9 @@ class Controller():
                                 p.motherShip.flag.flagState = FlagState.STANDBY 
                     else:
                         p.motherShip.unitBeingConstruct = []
+                        if self.players.index(p)==self.playerId:
+                            p.selectedObjects = []
+                            self.view.selectedOnglet = self.view.SELECTED_CHAT
                         self.eraseUnits(self.players.index(p))
                 if self.refresh % 10 == 0:
                     self.refreshMessages(self.view.menuModes.chat)
@@ -950,7 +953,7 @@ class Controller():
                             for a in range(0,numberOfSpaces):
                                 thatLine.append(False)
                             lineTaken.append(thatLine)
-                self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
+                self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
         #Formation en carré selon le nombre de unit qui se déplace, OH YEAH
         if self.players[actionPlayerId].formation == "carre":
             thatLine = []
@@ -1033,7 +1036,7 @@ class Controller():
                             lineTaken.append(thatLine)
                     if line == 0:
                         xLineBefore[0] = target[0]
-                self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
+                self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
 
 
 if __name__ == '__main__':

@@ -53,7 +53,7 @@ class Player():
         x = position[0]
         y = position[1]
         for i in self.units:
-            if i.isAlive:
+            if i.isAlive and not isinstance(i, GroundUnit):
                 if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
                     if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
                         if i.name == 'Transport':
@@ -64,7 +64,7 @@ class Player():
         for i in range(len(self.diplomacies)):
             if self.isAlly(i) and i != self.id:
                 for i in self.parent.players[i].units:
-                    if i.isAlive:
+                    if i.isAlive and not isinstance(i, GroundUnit):
                         if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
                             if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
                                 if i.name == 'Transport':
@@ -84,9 +84,9 @@ class Camera():
     def __init__(self, defaultPos, galaxy, player, taille):
         self.defaultPos = defaultPos
         self.position = defaultPos
-        self.screenCenter = (taille/2,(taille/2)-100)
+        self.screenCenter = (taille/2,(taille/2)-300)
         self.screenWidth = taille
-        self.screenHeight = taille-200
+        self.screenHeight = taille/2
         self.galaxy = galaxy #reference a la galaxie
         self.player = player
         self.movingDirection = []

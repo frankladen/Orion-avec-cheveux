@@ -33,7 +33,7 @@ class View():
         #la taille du jeu se resize selon la résolution de l'écran, niceshithum?
         #self.taille=self.root.winfo_screenheight()-125
         #if self.taille>800:
-        self.taille=800
+        self.taille=1200
         self.root.geometry('+5+5')
         self.selectStart = [0,0]
         self.selectEnd = [0,0]
@@ -124,11 +124,11 @@ class View():
         self.showMinerals.grid(column=2, row=0)
         self.showGaz = Label(gameFrame, text="Gaz: "+str(self.parent.players[self.parent.playerId].gaz), bg="black", fg="white", anchor=E)
         self.showGaz.grid(column=3, row=0)
-        self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille-200, background='Black', relief='ridge')
-        self.gameArea.grid(column=0,row=1, columnspan=7)#place(relx=0, rely=0,width=taille,height=taille)
+        self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille/2, background='Black', relief='ridge')
+        self.gameArea.grid(column=0,row=1, columnspan=24)#place(relx=0, rely=0,width=taille,height=taille)
         self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
         self.minimap.grid(column=0,row=2, rowspan=5)
-        self.menuModes=Canvas(gameFrame, width=self.taille, height=200, background='black', relief='ridge')
+        self.menuModes=Canvas(gameFrame, width=800, height=200, background='black', relief='ridge')
         self.menuModes.grid(row=2,column=2, rowspan=5, columnspan=5)
         #OngletChat
         self.menuModes.chat = Label(gameFrame, anchor=W, justify=LEFT, width=75, background='black', fg='white', relief='raised')
@@ -947,10 +947,10 @@ class View():
     def drawMiniFOV(self):
         camera = self.parent.players[self.parent.playerId].camera
         if self.parent.players[self.parent.playerId].currentPlanet == None:
-            cameraX = (camera.position[0]-(self.taille/2) + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
-            cameraY = (camera.position[1]-((self.taille/2)-self.taille/8) + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
-            width = self.taille / self.parent.galaxy.width * (self.taille/4)
-            height = self.taille / self.parent.galaxy.height * ((self.taille/16)*3)
+            cameraX = (camera.position[0]-(self.taille/2) + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/6)
+            cameraY = (camera.position[1]-((self.taille/2)-(self.taille/4)) + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/6)
+            width = self.taille / self.parent.galaxy.width * (self.taille/6)
+            height = self.taille / self.parent.galaxy.height * ((self.taille/12))
             self.minimap.create_rectangle(cameraX, cameraY, cameraX+width, cameraY+height, outline='GREEN', tag='deletable')
         else:
             planet = self.parent.players[self.parent.playerId].currentPlanet
@@ -965,16 +965,16 @@ class View():
     #Dessine un soleil dans la minimap    
     def drawMiniSun(self, sun):
         sunPosition = sun.sunPosition
-        sunX = (sunPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
-        sunY = (sunPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
+        sunX = (sunPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/6)
+        sunY = (sunPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/6)
         if sun.discovered:
             self.minimap.create_oval(sunX-3, sunY-3, sunX+3, sunY+3, fill='ORANGE')
 
     #Dessine une planete dans la minimap        
     def drawMiniPlanet(self, planet):
         planetPosition = planet.position
-        planetX = (planetPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
-        planetY = (planetPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
+        planetX = (planetPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/6)
+        planetY = (planetPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/6)
         if planet.discovered:
             self.minimap.create_oval(planetX-1, planetY-1, planetX+1, planetY+1, fill='LIGHT BLUE')
             
@@ -982,8 +982,8 @@ class View():
     def drawMiniNebula(self, nebula):
         if nebula.gazQte > 0:
             nebulaPosition = nebula.position
-            nebulaX = (nebulaPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
-            nebulaY = (nebulaPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
+            nebulaX = (nebulaPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/6)
+            nebulaY = (nebulaPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/6)
             if nebula.discovered:
                 self.minimap.create_oval(nebulaX-1, nebulaY-1, nebulaX+1, nebulaY+1, fill='PURPLE')
         
@@ -991,15 +991,15 @@ class View():
     def drawMiniAsteroid(self, asteroid):
         if asteroid.mineralQte > 0:
             asteroidPosition = asteroid.position
-            asteroidX = (asteroidPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
-            asteroidY = (asteroidPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
+            asteroidX = (asteroidPosition[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/6)
+            asteroidY = (asteroidPosition[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/6)
             if asteroid.discovered:
                 self.minimap.create_oval(asteroidX-1, asteroidY-1, asteroidX+1, asteroidY+1, fill='CYAN')
         
     #Dessine une unite dans la minimap        
     def drawMiniUnit(self, unit):
-        unitX = (unit.position[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/4)
-        unitY = (unit.position[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/4)
+        unitX = (unit.position[0] + self.parent.galaxy.width/2) / self.parent.galaxy.width * (self.taille/6)
+        unitY = (unit.position[1] + self.parent.galaxy.height/2) / self.parent.galaxy.height * (self.taille/6)
         if unit.owner == self.parent.playerId:
             color = 'GREEN'
         elif self.parent.players[self.parent.playerId].diplomacies[unit.owner] == "Ally" :

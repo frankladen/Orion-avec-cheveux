@@ -84,9 +84,9 @@ class Camera():
     def __init__(self, defaultPos, galaxy, player, taille):
         self.defaultPos = defaultPos
         self.position = defaultPos
-        self.screenCenter = (taille/2,(taille/2)-100)
+        self.screenCenter = (taille/2,(taille/2)-300)
         self.screenWidth = taille
-        self.screenHeight = taille-200
+        self.screenHeight = taille/2
         self.galaxy = galaxy #reference a la galaxie
         self.player = player
         self.movingDirection = []

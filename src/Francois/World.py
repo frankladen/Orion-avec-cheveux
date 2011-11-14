@@ -10,7 +10,7 @@ class Galaxy():
     MIN_SPAWN_POINT_SPACING = 200
     BORDER_SPACING=25
     SUN_BORDER_SPACING=BORDER_SPACING + 125
-    
+    MAX_SOLARSYSTEM = 10
     def __init__(self,nbPlayer, seed):
         if nbPlayer>2:
             self.width=(nbPlayer)*self.SIZE_MULTIPLIER
@@ -23,7 +23,7 @@ class Galaxy():
         self.seed  = random.seed(seed)
         self.spawnPoints = []
         self.solarSystemList = []
-        for i in range(1,nbPlayer*(6+(nbPlayer-2))):
+        for i in range(1,nbPlayer*(self.MAX_SOLARSYSTEM+(nbPlayer-2))):
             tempX=""
             tempY=""
             placeFound = False
@@ -70,12 +70,12 @@ class Galaxy():
 
 #Classe qui represente 1 seul systeme solaire
 class SolarSystem():
-    HEIGHT=500
-    WIDTH=500
+    HEIGHT=800
+    WIDTH=800
     SUN_WIDTH=20
     SUN_HEIGHT=20
     MAX_PLANETS=6
-    MAX_ATRO_OBJS=4
+    MAX_ATRO_OBJS=8
     
     def __init__(self,position,sunId):
         self.sunId = sunId
@@ -289,10 +289,10 @@ class GazStack(Target):
         Target.__init__(self, position)
         self.nbGaz= nbGaz
         
-class LandingZone(Target):
+class LandingZone(PlayerObject):
     WIDTH = 75
     HEIGHT = 75
     def __init__(self, position, ownerId, landingShip):
-        Target.__init__(self, position)
+        PlayerObject.__init__(self, 'Zone d\'atterissage', 0, position, ownerId)
         self.ownerId = ownerId
         self.LandedShip = landingShip
