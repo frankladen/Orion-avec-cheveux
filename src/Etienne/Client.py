@@ -38,7 +38,7 @@ class Controller():
     def resumeBuildingFlag(self,building):
         units = ''
         for i in self.players[self.playerId].selectedObjects:
-            if i.type == i.WAYPOINT:
+            if i.type == i.SCOUT:
                 units+= str(self.players[self.playerId].units.index(i))+","
         if not building.finished:
             self.pushChange(units, Flag(i,building,FlagState.FINISH_BUILD))                          
@@ -106,8 +106,12 @@ class Controller():
             units = ""
             for i in self.players[self.playerId].selectedObjects:
                 if isinstance(i, u.SpaceAttackUnit):
-                    if attackedUnit.type == u.Unit.TRANSPORT:
-                        if not attackedUnit.landed:
+                    if isinstance(attackedUnit, u.Unit):
+                        if attackedUnit.type == u.Unit.TRANSPORT:
+                            if not attackedUnit.landed:
+                                i.attackcount = i.AttackSpeed
+                                units += str(self.players[self.playerId].units.index(i)) + ","
+                        else:
                             i.attackcount = i.AttackSpeed
                             units += str(self.players[self.playerId].units.index(i)) + ","
                     else:
@@ -117,6 +121,7 @@ class Controller():
                     self.pushChange((str(self.players[self.playerId].units.index(i)) + ","), Flag(i,t.Target([attackedUnit.position[0],attackedUnit.position[1],0]),FlagState.MOVE))
             if units != "":
                 self.pushChange(units, Flag(i,attackedUnit,FlagState.ATTACK))
+                
 
     def setGatherFlag(self,ship,ressource):
         units = str(self.players[self.playerId].units.index(ship)) + ","
@@ -176,11 +181,13 @@ class Controller():
     def select(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
             #Si on selectionne une unit dans l'espace  
-            for j in self.players[self.playerId].buildings:
-                if j.buildingTimer == j.TIME:
-                    if j.position[0] >= posSelected[0]-(j.SIZE[0]/2) and j.position[0] <= posSelected[0]+(j.SIZE[0]/2):
-                        if j.position[1] >= posSelected[1]-(j.SIZE[1]/2) and j.position[1] <= posSelected[1]+(j.SIZE[1]/2):
-                            self.players[self.playerId].selectedObjects.append(j)             
+            for b in self.players[self.playerId].buildings:
+                if b.buildingTimer == b.TIME[b.type]:
+                    if b.position[0] >= posSelected[0]-(b.SIZE[b.type][0]/2) and b.position[0] <= posSelected[0]+(b.SIZE[b.type][0]/2):
+                        if b.position[1] >= posSelected[1]-(b.SIZE[b.type][1]/2) and b.position[1] <= posSelected[1]+(b.SIZE[b.type][1]/2):
+                            self.players[self.playerId].selectedObjects = []
+                            self.players[self.playerId].selectedObjects.append(b)             
+
             for j in self.players[self.playerId].units:
                 if j.isAlive:
                     if j.position[0] >= posSelected[0]-(j.SIZE[j.type][0]/2) and j.position[0] <= posSelected[0]+(j.SIZE[j.type][0]/2):
@@ -305,7 +312,7 @@ class Controller():
                                         for unit in self.players[self.playerId].selectedObjects:
                                             if isinstance(unit, w.AstronomicalObject) == False and isinstance(unit, w.Planet) == False:
                                                 if unit.type == unit.CARGO:
-                                                    self.setGatherFlag(unit, j)
+                                                    self.setGatherFlag(unit, self.players[self.playerId].motherShip)
                                                     empty = False
             if empty:
                 if len(self.players[self.playerId].selectedObjects) > 0:
@@ -319,9 +326,17 @@ class Controller():
                                             empty = False
             if empty:
                 if len(self.players[self.playerId].selectedObjects) > 0:
-                    for i in self.players[self.playerId].buildings:
-                        if not i.finished:
-                            self.resumeBuildingFlag(i)
+                    for i in self.players:
+                        for b in self.players[self.playerId].buildings:
+                            if b.position[0] >= pos[0]-b.SIZE[b.type][0]/2 and b.position[0] <= pos[0]+b.SIZE[b.type][0]/2:
+                                if b.position[1] >= pos[1]-b.SIZE[b.type][1]/2 and b.position[1] <= pos[1]+b.SIZE[b.type][1]/2:
+                                    if i == self.players[self.playerId]:
+                                        if not b.finished:
+                                            self.resumeBuildingFlag(b)
+                                            empty = False
+                                    else:
+                                        self.setAttackFlag(b)
+                                        empty = False
             if empty:
                 self.setMovingFlag(pos[0],pos[1])
             self.view.drawWorld()
@@ -423,9 +438,6 @@ class Controller():
                         if i.isAlive:
                             if i.flag.flagState == FlagState.MOVE:
                                 i.move()
-                            elif i.flag.flagState == FlagState.FINISH_BUILD:
-                                print(i.flag.flagState)
-                                i.build(i.flag.finalTarget)
                             elif i.flag.flagState == FlagState.BUILD:
                                 i.build(i.flag.finalTarget)
                             elif i.flag.flagState == FlagState.ATTACK:
@@ -555,7 +567,8 @@ class Controller():
                 targetId = self.players[flag.finalTarget.owner].units.index(flag.finalTarget)
                 actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/U"+str(targetId)+"P"+str(flag.finalTarget.owner)
             elif flag.flagState == FlagState.FINISH_BUILD:
-                 actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)   
+                buildingId = self.players[flag.finalTarget.owner].buildings.index(flag.finalTarget)
+                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(buildingId)   
             elif flag.flagState == FlagState.BUILD:
                 actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             elif flag.flagState == FlagState.CREATE:
@@ -630,14 +643,9 @@ class Controller():
                 if i != '':
                     self.players[actionPlayerId].units[int(i)].changeFlag(self.players[int(target[1])].units[int(target[0])], int(action))
         elif action == str(FlagState.FINISH_BUILD):
-            target = target.strip("[")
-            target = target.strip("]")
-            target = target.split(",")
-            for i in range(0, len(target)):
-                target[i]=math.trunc(float(target[i])) #nécessaire afin de s'assurer que les positions sont des entiers
             for i in unitIndex:
                 if i != '':
-                    self.players[actionPlayerId].units[int(i)].changeFlag(i,int(action))            
+                    self.players[actionPlayerId].units[int(i)].changeFlag(self.players[actionPlayerId].buildings[int(target)],FlagState.BUILD)            
         elif action == str(FlagState.BUILD):
             target = target.strip("[")
             target = target.strip("]")

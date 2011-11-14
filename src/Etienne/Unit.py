@@ -67,8 +67,7 @@ class Unit(PlayerObject):
             endPos = [self.flag.finalTarget.position[0],self.flag.finalTarget.position[1]]
             self.position = endPos
             
-            if building.buildingTimer < b.Waypoint.TIME:
-                    print(building.buildingTimer)
+            if building.buildingTimer < building.TIME[building.type]:
                     building.buildingTimer += 1
             else:
                 building.finished = True
@@ -292,7 +291,7 @@ class GatherShip(SpaceUnit):
                             self.gatherSpeed = 20
                         else:
                             self.flag.intialTarget = self.flag.finalTarget
-                            self.flag.finalTarget = player.motherShip
+                            self.flag.finalTarget = player.getNearestReturnRessourceCenter(self.position)
                     else:
                         if self.container[1]<self.maxGather:
                             if ressource.gazQte >= 5:
@@ -307,7 +306,7 @@ class GatherShip(SpaceUnit):
                             self.gatherSpeed = 20
                         else:
                             self.flag.intialTarget = self.flag.finalTarget
-                            self.flag.finalTarget = player.motherShip
+                            self.flag.finalTarget = player.getNearestReturnRessourceCenter(self.position)
                 else:
                     self.gatherSpeed-=1
         else:
@@ -320,11 +319,15 @@ class GatherShip(SpaceUnit):
                 player.gaz += self.container[1]
                 self.container[0] = 0
                 self.container[1] = 0
-                self.flag.finalTarget = self.flag.intialTarget
-                if self.flag.finalTarget.type == 'asteroid':
-                    if self.flag.finalTarget.mineralQte == 0:
-                        self.flag.flagState = FlagState.STANDBY
+                if isinstance(self.flag.initialTarget, w.AstronomicalObject):
+                    self.flag.finalTarget = self.flag.initialTarget
+                    if self.flag.finalTarget.type == 'asteroid':
+                        if self.flag.finalTarget.mineralQte == 0:
+                            self.flag.flagState = FlagState.STANDBY
+                    else:
+                        if self.flag.finalTarget.gazQte == 0:
+                            self.flag.flagState = FlagState.STANDBY
                 else:
-                    if self.flag.finalTarget.gazQte == 0:
-                        self.flag.flagState = FlagState.STANDBY
+                    self.flag.finalTarget = self.position
+                    self.flag.flagState = FlagState.STANDBY
  

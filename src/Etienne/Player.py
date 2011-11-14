@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 from Unit import u
 from Flag import *
+from Helper import *
 import socket
 
 #Represente un joueur
@@ -56,6 +57,21 @@ class Player():
                         else:
                             return True
         return False
+
+    def getNearestReturnRessourceCenter(self, position):
+        motherShipPosition = self.units[0].flag.initialTarget.position
+        nearestDistance = Helper.calcDistance(position[0],position[1],motherShipPosition[0],motherShipPosition[1])
+        nearestBuilding = self.units[0]
+        for b in self.buildings:
+            if b.type == b.WAYPOINT:
+                if b.finished:
+                    buildingPosition = b.position
+                    distance = Helper.calcDistance(position[0],position[1],buildingPosition[0],buildingPosition[1])
+                    if distance < nearestDistance:
+                        nearestDistance = distance
+                        nearestBuilding = b
+        return nearestBuilding
+    
 #Represente la camera            
 class Camera():
     def __init__(self, defaultPos, galaxy, taille):
