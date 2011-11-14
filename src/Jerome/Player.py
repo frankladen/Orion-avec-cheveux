@@ -28,7 +28,8 @@ class Player():
 
     def action(self):
         for i in self.units:
-            i.action(self)
+            if i.isAlive:
+                i.action(self)
         
     def addBaseUnits(self, startPos):
         self.units.append(Mothership('Mothership', Unit.MOTHERSHIP,startPos, self.id))
@@ -90,11 +91,10 @@ class Player():
         return False
 
     def killUnit(self, killedIndexes):
-        #Désélection de l'unité qui va mourir afin d'éviter le renvoie d'une action avec cette unité
-        if killedIndexes[1] == self.playerId:
-            if self.players[self.playerId].units[killedIndexes[0]] in self.players[self.playerId].selectedObjects:
-               self.players[self.playerId].selectedObjects.remove(self.players[self.playerId].units[killedIndexes[0]])
-        self.players[killedIndexes[1]].units[killedIndexes[0]].kill()
+        if killedIndexes[1] == self.id:
+            if self.units[killedIndexes[0]] in self.selectedObjects:
+               self.selectedObjects.remove(self.units[killedIndexes[0]])
+        self.game.killUnit(killedIndexes)
 
     def buildUnit(self):
         unit = self.motherShip.unitBeingConstruct.pop(0)
@@ -116,11 +116,11 @@ class Player():
     def adjustRessources(self, ressourceType, amount):
         self.ressources[ressourceType] += amount
 
-    def cancelUnit(self, unit):
-        unit = self.motherShip.getUnitBeingConstructAt(int(target))
+    def cancelUnit(self, unitId):
+        unit = self.motherShip.getUnitBeingConstructAt(unitId)
         self.adjustRessources(self.MINERAL, unit.buildCost[0])
         self.adjustRessources(self.GAS, unit.buildCost[1])
-        self.motherShip.changeFlag(unit, FlagState.CANCEL_UNIT)
+        self.motherShip.changeFlag(unitId, FlagState.CANCEL_UNIT)
 
     def canAfford(self, minerals, gas, food=0):
         return self.ressources[0] >= minerals and self.ressources[0] >= gas# and self.ressources[0] >= food
@@ -132,7 +132,7 @@ class Player():
         self.motherShip.flag.flagState = FlagState.BUILD_UNIT
 
     def makeUnitsAttack(self, units, targetPlayer, targetUnit):
-        for i in unitIndex:
+        for i in units:
             if i != '':
                 self.units[int(i)].changeFlag(targetPlayer.units[targetUnit], FlagState.ATTACK)
 
@@ -144,8 +144,9 @@ class Player():
             if i != '':
                 self.units[int(i)].changeFlag(astroObject, FlagState.GATHER)
 
-    def makeFormation(self, units, action):
-        target = self.units[int(units[0])].flag.finalTarget.position
+    def makeFormation(self, units, target = None, action = FlagState.MOVE):
+        if target == None:
+            target = self.units[int(units[0])].flag.finalTarget.position
         lineTaken=[]
         line=0
         targetorig=[0,0]
@@ -248,9 +249,9 @@ class Camera():
     def __init__(self, defaultPos, galaxy, player, taille):
         self.defaultPos = defaultPos
         self.position = defaultPos
-        self.screenCenter = (taille/2,(taille/2)-100)
+        self.screenCenter = (taille/2,(taille/2)-300)
         self.screenWidth = taille
-        self.screenHeight = taille-200
+        self.screenHeight = taille/2
         self.galaxy = galaxy #reference a la galaxie
         self.player = player
         self.movingDirection = []

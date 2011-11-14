@@ -32,24 +32,25 @@ class Unit(PlayerObject):
             self.moveSpeed=self.MOVE_SPEED[self.DEFAULT]
 
     def action(self, parent):
-        if self.isAlive:
-            if self.flag.flagState == FlagState.MOVE or self.flag.flagState == FlagState.GROUND_MOVE:
-                self.move()
-            elif self.flag.flagState == FlagState.ATTACK:
-                if isinstance(self.flag.finalTarget, u.TransportShip):
-                    if self.flag.finalTarget.landed:
-                        self.parent.game.setAStandByFlag(self)
-                killedIndex = self.attack(self.players)
-                if killedIndex[0] > -1:
-                    self.killUnit(killedIndex)
-            elif self.flag.flagState == FlagState.PATROL:
-                unit = self.patrol()
-                if unit != None:
-                    self.setAttackFlag(unit)
-            elif self.flag.flagState == FlagState.LAND:
-                self.land(self, self.players.index(p),self.galaxy)
-            elif self.flag.flagState == FlagState.GATHER:
-                self.gather(p,self)
+        if self.flag.flagState == FlagState.MOVE or self.flag.flagState == FlagState.GROUND_MOVE:
+            self.move()
+        elif self.flag.flagState == FlagState.ATTACK:
+            if isinstance(self.flag.finalTarget, TransportShip):
+                if self.flag.finalTarget.landed:
+                    parent.game.setAStandByFlag(self)
+            killedIndex = self.attack(parent.game.players)
+            if killedIndex[0] > -1:
+                parent.killUnit(killedIndex)
+        elif self.flag.flagState == FlagState.PATROL:
+            unit = self.patrol()
+            if unit != None:
+                parent.setAnAttackFlag(unit, self)
+        elif self.flag.flagState == FlagState.LAND:
+            self.land(parent.game)
+        elif self.flag.flagState == FlagState.GATHER:
+            self.gather(parent, parent.game)
+        elif isinstance(self, SpaceAttackUnit):
+            parent.game.checkIfEnemyInRange(self)
     
     #La deplace d'un pas vers son flag et si elle est rendu, elle change arrete de bouger    
     def move(self):
@@ -143,7 +144,7 @@ class Mothership(Unit):
                 self.progressUnitsConstruction()
 
             elif self.flag.flagState == FlagState.CANCEL_UNIT:
-                self.unitBeingConstruct.pop(int(self.flag.finalTarget))
+                self.unitBeingConstruct.pop(self.flag.finalTarget)
                 self.flag.flagState = FlagState.BUILD_UNIT
 
             elif self.flag.flagState == FlagState.CHANGE_RALLY_POINT:
@@ -155,6 +156,8 @@ class Mothership(Unit):
                     target[i]=math.trunc(float(target[i])) 
                 self.rallyPoint = target
                 self.flag.flagState = FlagState.BUILD_UNIT
+
+            parent.game.checkIfEnemyInRange(self)
 
             if len(self.unitBeingConstruct) > 0:
                     if(self.isUnitFinished()):
@@ -288,7 +291,9 @@ class TransportShip(SpaceUnit):
         self.units = []
         #self.units.append(GroundUnit('Builder', self.GROUND_UNIT, [0,0,0], self.owner,-1,-1))
 
-    def land(self, game, playerId, galaxy):
+    def land(self, game):
+        playerId = game.playerId
+        galaxy = game.galaxy
         planet = self.flag.finalTarget
         planetId = 0
         sunId = 0
@@ -363,7 +368,7 @@ class GatherShip(SpaceUnit):
         self.container = [0,0]
         self.returning = False
 
-    def gather(self, player, controller):
+    def gather(self, player, game):
         ressource = self.flag.finalTarget
         arrived = True
         if isinstance(self.flag.finalTarget, w.AstronomicalObject):
@@ -383,7 +388,7 @@ class GatherShip(SpaceUnit):
                                 ressource.mineralQte = 0
                                 self.flag.intialTarget = self.flag.finalTarget
                                 self.flag.finalTarget = player.motherShip
-                                controller.view.redrawMinimap()
+                                game.parent.redrawMinimap()
                             self.gatherSpeed = 20
                         else:
                             self.flag.intialTarget = self.flag.finalTarget
@@ -398,7 +403,7 @@ class GatherShip(SpaceUnit):
                                 ressource.gazQte = 0
                                 self.flag.intialTarget = self.flag.finalTarget
                                 self.flag.finalTarget = player.motherShip
-                                controller.view.redrawMinimap()
+                                game.parent.redrawMinimap()
                             self.gatherSpeed = 20
                         else:
                             self.flag.intialTarget = self.flag.finalTarget
@@ -411,8 +416,8 @@ class GatherShip(SpaceUnit):
                     arrived = False
                     self.move()
             if arrived:
-                player.mineral += self.container[0]
-                player.gaz += self.container[1]
+                player.ressources[player.MINERAL] += self.container[0]
+                player.ressources[player.GAS] += self.container[1]
                 self.container[0] = 0
                 self.container[1] = 0
                 self.flag.finalTarget = self.flag.intialTarget

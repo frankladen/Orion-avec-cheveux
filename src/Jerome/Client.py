@@ -7,7 +7,6 @@ import Unit as u
 import Game as g
 from Helper import *
 from Flag import *
-from Constants import *
 import Pyro4
 import socket
 import math
@@ -16,15 +15,11 @@ import time
 
 class Controller():
     def __init__(self):
-        #self.players = [] #La liste des joueurs
-        #self.playerId = 0 #Le id du joueur courant
         self.refresh = 0 #Compteur principal
         self.mess = []
-        #self.changes = []
         self.playerIp = socket.gethostbyname(socket.getfqdn())
         self.server = None
         self.isStarted=False
-        #self.multiSelect = False
         self.currentFrame = None 
         self.attenteEcrit = False
         self.game = g.Game(self)
@@ -44,6 +39,7 @@ class Controller():
             if self.refresh > 0:
                 #À chaque itération je demande les nouvelles infos au serveur
                 self.pullChange()
+                #self.view.delete('enemyRange')
                 self.game.action()
                 self.view.refreshGame(self.game.isOnPlanet())
                 self.refresh+=1
@@ -76,13 +72,17 @@ class Controller():
             self.game.players[self.game.playerId].ressources[p.Player.GAS] += 500
         elif mess == "forcemine":
             self.game.players[self.game.playerId].ressources[p.Player.MINERAL] += 500
+        elif mess.find("\\t ") == 0:
+            mess = mess.split("\\t ")
+            mess = "(Alliés) "+mess[1]
+            self.server.addMessage(mess, self.game.players[self.game.playerId].name, self.game.playerId, True)                                     
         elif len(mess)>0:
             mess = mess.replace('\\','/')
-            self.server.addMessage(mess, self.game.players[self.game.playerId].name)
+            self.server.addMessage(mess, self.game.players[self.game.playerId].name, self.game.playerId, False)
 
     def sendMessageLobby(self, mess, nom):
         mess = mess.replace('\\','/')
-        self.server.addMessage(mess, self.server.getSockets()[self.game.playerId][1])
+        self.server.addMessage(mess, self.server.getSockets()[self.game.playerId][1], self.game.playerId, False)
 
     #Pour aller chercher les nouveaux messages
     def refreshMessages(self, chat):
@@ -176,6 +176,7 @@ class Controller():
     def changeActionMenuType(self, newMenuType):
         self.view.actionMenuType = newMenuType
 
+    #Trade entre joueurs
     def setTradeFlag(self, item, playerId2, quantite):
         for i in items:
             self.pushChange(playerId2, Flag(i, quantite[items.index(i)], FlagState.TRADE))
@@ -202,10 +203,10 @@ class Controller():
 
     def confirmTrade(self, answer, id1, min1, min2, gaz1, gaz2):
         if answer == True:
-            self.pushChange(sel.gamef.idTradeWith, Flag("m", min1, FlagState.TRADE))
-            self.pushChange(self.playerId, Flag("m", min2+','+str(self.game.idTradeWith), FlagState.TRADE))
+            self.pushChange(self.game.idTradeWith, Flag("m", min1, FlagState.TRADE))
+            self.pushChange(self.game.playerId, Flag("m", min2+','+str(self.game.idTradeWith), FlagState.TRADE))
             self.pushChange(self.game.idTradeWith, Flag("g", gaz1, FlagState.TRADE))
-            self.pushChange(self.playerId, Flag("g", gaz2+','+str(self.game.idTradeWith), FlagState.TRADE))
+            self.pushChange(self.game.playerId, Flag("g", gaz2+','+str(self.game.idTradeWith), FlagState.TRADE))
         else:
             self.pushChange(id1, Flag(3, "deniedTrade", FlagState.TRADE))
             self.game.tradePage=-1
@@ -223,7 +224,7 @@ class Controller():
             elif flag.flagState == FlagState.GROUND_MOVE:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             elif flag.flagState == FlagState.ATTACK:
-                targetId = self.players[flag.finalTarget.owner].units.index(flag.finalTarget)
+                targetId = self.game.players[flag.finalTarget.owner].units.index(flag.finalTarget)
                 if isinstance(flag.initialTarget, int):
                     actionString = str(flag.initialTarget)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/U"+str(targetId)+"P"+str(flag.finalTarget.owner)
                 else:
@@ -294,7 +295,7 @@ class Controller():
             target = target.split(",")
             for i in range(0, len(target)):
                 target[i]=math.trunc(float(target[i])) #nécessaire afin de s'assurer que les positions sont des entiers
-            self.game.makeFormation(actionPlayerId, unitIndex, action)
+            self.game.makeFormation(actionPlayerId, unitIndex, target, action)
             
         elif action == str(FlagState.GROUND_MOVE):
             target = target.strip("[")
@@ -304,7 +305,7 @@ class Controller():
                 target[i]=math.trunc(float(target[i])) #nécessaire afin de s'assurer que les positions sont des entiers
             for i in unitIndex:
                 if i != '':
-                    self.players[actionPlayerId].units[int(i)].changeFlag(t.Target([int(target[0]),int(target[1]),int(target[2])]),int(action))
+                    self.game.players[actionPlayerId].units[int(i)].changeFlag(t.Target([int(target[0]),int(target[1]),int(target[2])]),int(action))
                     
         elif action == str(FlagState.ATTACK):
             target = target.split("P")
@@ -317,9 +318,9 @@ class Controller():
             
         elif action == 'TAKEOFF':
             target = target.split(',')
-            unit = self.players[actionPlayerId].units[int(unitIndex[0])]
-            planet = self.galaxy.solarSystemList[int(target[1])].planets[int(target[0])]
-            self.takeOff(unit, planet, actionPlayerId)
+            unit = self.game.players[actionPlayerId].units[int(unitIndex[0])]
+            planet = self.game.galaxy.solarSystemList[int(target[1])].planets[int(target[0])]
+            self.game.takeOff(unit, planet, actionPlayerId)
             if actionPlayerId == self.game.playerId:
                 cam = self.game.getCurrentCamera()
                 cam.position = [unit.position[0], unit.position[1]]
@@ -415,7 +416,6 @@ class Controller():
         if self.view.currentFrame == self.view.gameFrame and self.server.isGameStopped() == False:
             self.sendMessage('a quitté la partie')
             self.server.removePlayer(self.playerIp, self.game.players[self.game.playerId].name, self.game.playerId)
-
 
 if __name__ == '__main__':
     c = Controller()

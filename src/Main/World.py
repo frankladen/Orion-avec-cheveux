@@ -7,7 +7,7 @@ import math
 #Classe qui represente la galaxie en entier.
 class Galaxy():
     SIZE_MULTIPLIER=1000
-    MIN_SPAWN_POINT_SPACING = 200
+    MIN_SPAWN_POINT_SPACING = 1000
     BORDER_SPACING=25
     SUN_BORDER_SPACING=BORDER_SPACING + 125
     MAX_SOLARSYSTEM = 10

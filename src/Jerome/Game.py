@@ -6,7 +6,6 @@ import Unit as u
 from View import*
 from Helper import *
 from Flag import *
-from Constants import *
 import math
 from time import time
 
@@ -105,12 +104,25 @@ class Game():
                     self.parent.pushChange((str(self.players[self.playerId].units.index(i)) + ","), Flag(i,t.Target([attackedUnit.position[0],attackedUnit.position[1],0]),FlagState.MOVE))
             if units != "":
                 self.parent.pushChange(units, Flag(i,attackedUnit,FlagState.ATTACK))
-            if attackedUnit.type == attackedUnit.MOTHERSHIP or attackedUnit.type == attackedUnit.ATTACK_SHIP:
-                    unit = self.players[self.playerId].units[int(units.split(",")[0])]
-                    self.parent.pushChange((str(self.players[attackedUnit.owner].units.index(attackedUnit)) + ","), Flag(attackedUnit.owner,unit,FlagState.ATTACK))
+
+    def setAnAttackFlag(self, attackedUnit, unit):
+        units = ""
+        if attackedUnit.type == u.Unit.TRANSPORT:
+            if not attackedUnit.landed:
+                unit.attackcount = unit.AttackSpeed
+                units += str(self.players[unit.owner].units.index(unit)) + ","
+        else:
+            unit.attackcount = unit.AttackSpeed
+            units += str(self.players[unit.owner].units.index(unit)) + ","
+        if units != "":
+            self.pushChange(units, Flag(unit.owner,attackedUnit,FlagState.ATTACK))
 
     def makeUnitsAttack(self, playerId, units, targetPlayer, targetUnit):
         self.players[playerId].makeUnitsAttack(units, self.players[targetPlayer], targetUnit)
+
+    def killUnit(self, killedIndexes):
+        #Désélection de l'unité qui va mourir afin d'éviter le renvoie d'une action avec cette unité
+        self.players[killedIndexes[1]].units[killedIndexes[0]].kill()
     
     def setGatherFlag(self,ship,ressource):
         units = str(self.players[self.playerId].units.index(ship)) + ","
@@ -137,7 +149,7 @@ class Game():
 
     def makeUnitLand(self, playerId, unitId, solarSystemId, planetId):
         planet = self.galaxy.solarSystemList[solarSystemId].planets[planetId]
-        self.players[actionPlayerId].makeUnitLand(unitId, planet)
+        self.players[playerId].makeUnitLand(unitId, planet)
 
     def setMotherShipRallyPoint(self, pos):
         self.parent.pushChange(0, Flag(finalTarget = pos, flagState = FlagState.CHANGE_RALLY_POINT))
@@ -236,13 +248,42 @@ class Game():
         if self.players[self.playerId].currentPlanet == None:
             if len(self.players[self.playerId].selectedObjects) > 0:
                     for i in self.players:
-                        if i != self.players[self.playerId]:
-                            for j in i.units:
-                                if j.isAlive:
-                                    if j.position[0] >= pos[0]-j.SIZE[j.type][0]/2 and j.position[0] <= pos[0]+j.SIZE[j.type][0]/2 :
-                                        if j.position[1] >= pos[1]-j.SIZE[j.type][1]/2  and j.position[1] <= pos[1]+j.SIZE[j.type][1]/2 :
-                                            self.setAttackFlag(j)
+                        if i.isAlive:
+                            if i != self.players[self.playerId] and self.players[self.playerId].isAlly(self.players.index(i)) == False:
+                                for j in i.units:
+                                    if j.isAlive:
+                                        if j.position[0] >= posSelected[0]-j.SIZE[j.type][0]/2 and j.position[0] <= posSelected[0]+j.SIZE[j.type][0]/2 :
+                                            if j.position[1] >= posSelected[1]-j.SIZE[j.type][1]/2  and j.position[1] <= posSelected[1]+j.SIZE[j.type][1]/2 :
+                                                self.setAttackFlag(j)
 
+    def checkIfEnemyInRange(self, unit):
+        for pl in self.players:
+            if pl.isAlive:
+                if self.players.index(pl) != unit.owner and self.players[unit.owner].isAlly(self.players.index(pl)) == False:
+                    for un in pl.units:
+                        if un.isAlive:
+                            if un.position[0] > unit.position[0]-unit.range and un.position[0] < unit.position[0]+unit.range:
+                                if un.position[1] > unit.position[1]-unit.range and un.position[1] < unit.position[1]+unit.range:
+                                    if isinstance(un, u.TransportShip) == False:
+                                        killedIndex = unit.attack(self.players, un)
+                                        if killedIndex[0] > -1:
+                                            self.killUnit(killedIndex)
+                                        if unit.attackcount <= 5:
+                                            distance = self.players[self.playerId].camera.calcDistance(unit.position)
+                                            d2 = self.players[self.playerId].camera.calcDistance(un.position)
+                                            self.parent.view.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='enemyRange')
+                                        break
+                                    else:
+                                        if un.landed == False:
+                                            killedIndex = unit.attack(self.players, un)
+                                            if killedIndex[0] > -1:
+                                                self.killUnit(killedIndex)
+                                            if unit.attackcount <= 5:
+                                                distance = self.players[self.playerId].camera.calcDistance(unit.position)
+                                                d2 = self.players[self.playerId].camera.calcDistance(un.position)
+                                                self.parent.view.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='enemyRange')
+                                            break
+    
     def select(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
             #Si on selectionne une unit dans l'espace             
@@ -340,7 +381,7 @@ class Game():
 
     def rightClic(self, pos):
         empty = True
-        if self.players[self.playerId].currentPlanet == None:
+        if self.getCurrentPlanet() == None:
             for i in self.galaxy.solarSystemList:
                 for j in i.planets:
                     if pos[0] > j.position[0]-j.IMAGE_WIDTH/2 and pos[0] < j.position[0]+j.IMAGE_WIDTH/2:
@@ -375,22 +416,23 @@ class Game():
             if empty:
                 if len(self.players[self.playerId].selectedObjects) > 0:
                     if pos[0] > self.players[self.playerId].motherShip.position[0]-u.Unit.SIZE[u.Unit.MOTHERSHIP][0]/2 and pos[0] < self.players[self.playerId].motherShip.position[0]+u.Unit.SIZE[u.Unit.MOTHERSHIP][0]/2:
-                                if pos[1] > self.players[self.playerId].motherShip.position[1]-u.Unit.SIZE[u.Unit.MOTHERSHIP][1]/2 and pos[1] < self.players[self.playerId].motherShip.position[1]+u.Unit.SIZE[u.Unit.MOTHERSHIP][1]/2:
-                                        for unit in self.players[self.playerId].selectedObjects:
-                                            if isinstance(unit, w.AstronomicalObject) == False and isinstance(unit, w.Planet) == False:
-                                                if unit.type == unit.CARGO:
-                                                    self.setGatherFlag(unit, j)
-                                                    empty = False
+                        if pos[1] > self.players[self.playerId].motherShip.position[1]-u.Unit.SIZE[u.Unit.MOTHERSHIP][1]/2 and pos[1] < self.players[self.playerId].motherShip.position[1]+u.Unit.SIZE[u.Unit.MOTHERSHIP][1]/2:
+                            for unit in self.players[self.playerId].selectedObjects:
+                                if isinstance(unit, w.AstronomicalObject) == False and isinstance(unit, w.Planet) == False:
+                                    if unit.type == unit.CARGO:
+                                        self.setGatherFlag(unit, j)
+                                        empty = False
             if empty:
                 if len(self.players[self.playerId].selectedObjects) > 0:
                     for i in self.players:
-                        if i != self.players[self.playerId]:
-                            for j in i.units:
-                                if j.isAlive:
-                                    if j.position[0] >= pos[0]-j.SIZE[j.type][0]/2 and j.position[0] <= pos[0]+j.SIZE[j.type][0]/2:
-                                        if j.position[1] >= pos[1]-j.SIZE[j.type][1]/2 and j.position[1] <= pos[1]+j.SIZE[j.type][1]/2:
-                                            self.setAttackFlag(j)
-                                            empty = False
+                        if i.isAlive:
+                            if i != self.players[self.playerId] and self.players[self.playerId].isAlly(self.players.index(i)) == False:
+                                for j in i.units:
+                                    if j.isAlive:
+                                        if j.position[0] >= pos[0]-j.SIZE[j.type][0]/2 and j.position[0] <= pos[0]+j.SIZE[j.type][0]/2:
+                                            if j.position[1] >= pos[1]-j.SIZE[j.type][1]/2 and j.position[1] <= pos[1]+j.SIZE[j.type][1]/2:
+                                                self.setAttackFlag(j)
+                                                empty = False
             if empty:
                 self.setMovingFlag(pos[0],pos[1])
             self.parent.drawWorld()
@@ -481,7 +523,7 @@ class Game():
             self.players[playerId].formation = "carre"
         elif target =='t':
             self.players[playerId].formation = "triangle"
-        self.players[playerId].makeFormation(units, action)
+        self.players[playerId].makeFormation(units, action = action)
 
-    def makeFormation(self, playerId, units, action):
-        self.players[playerId].makeFormation(units, action)
+    def makeFormation(self, playerId, units, target, action):
+        self.players[playerId].makeFormation(units, target, action)
