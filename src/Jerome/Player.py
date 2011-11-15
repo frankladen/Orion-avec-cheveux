@@ -126,7 +126,7 @@ class Player():
     def kill(self):
         self.isAlive = False
         for i in self.units:
-            i.kill
+            i.kill()
             
     def adjustRessources(self, ressourceType, amount):
         self.ressources[ressourceType] += amount
@@ -159,7 +159,8 @@ class Player():
             if i != '':
                 self.units[int(i)].changeFlag(astroObject, FlagState.GATHER)
 
-    def makeFormation(self, units, target = None, action = FlagState.MOVE):
+
+    def makeFormation(self, units, galaxy, target = None, action = FlagState.MOVE):
         #S'il n'y a pas de target de spécifiée comme lors du changement de formation
         if target == None:
             target = self.units[int(units[0])].flag.finalTarget.position
@@ -206,14 +207,14 @@ class Player():
                         #Si la place n'est pas prise
                         if lineTaken[line][p]==False:
                             lineTaken[line][p]=True
-                            target[0]=targetorig[0]+(p*width)
-                            if target[0] < -1*(self.game.galaxy.width/2)+(width/2):
-                                target[0] = -1*(self.game.galaxy.width/2)+width
-                            elif target[0] > (self.game.galaxy.width/2)-(width/2):
-                                target[0] = (self.game.galaxy.width/2)-width
-                            target[1]=targetorig[1]-(line*height)
-                            if target[1] < -1*(self.game.galaxy.height/2)+(height/2):
-                                target[1] = -1*(self.game.galaxy.height/2)+height
+                            target[0]=targetorig[0]+(p*width*1.2)
+                            if target[0] < -1*(galaxy.width/2)+(width):
+                                target[0] = -1*(galaxy.width/2)+width
+                            elif target[0] > (galaxy.width/2)-(width):
+                                target[0] = (galaxy.width/2)-width
+                            target[1]=targetorig[1]-(line*height*1.2)
+                            if target[1] < -1*(galaxy.height/2)+(height):
+                                target[1] = -1*(galaxy.height/2)+height
                             goodPlace=True
                             break
                     #Si le Unit n'a pas trouvé sa place, on avance d'une ligne
@@ -251,18 +252,18 @@ class Player():
                                 if p==len(lineTaken[line-1]):
                                     target[0]=targetorig[0]+(p*width)
                                     #jerome ajoute ca ici la largeur du vaisseau
-                                    if target[0] > (self.game.galaxy.width/2)-9:
-                                        target[0] = target[0]-(target[0]-(self.game.galaxy.width/2)+18)
+                                    if target[0] > (galaxy.width/2)-width:
+                                        target[0] = target[0]-(target[0]-(galaxy.width/2)+width)
                                     xLineBefore[p] = target[0]
                                 else:
                                     target[0]=xLineBefore[p]-width
-                                    if target[0] < -1*(self.game.galaxy.width/2)+9:
+                                    if target[0] < -1*(galaxy.width/2)+(width/2):
                                         target[0] = xLineBefore[p]
-                                    elif target[0] > (self.game.galaxy.width/2)-9:
-                                        target[0] = target[0]-(target[0]-(self.game.galaxy.width/2)+18)
+                                    elif target[0] > (galaxy.width/2)-(width/2):
+                                        target[0] = target[0]-(target[0]-(galaxy.width/2)+width)
                                     xLineBefore[p] = target[0]
                             target[1]=targetorig[1]-(line*height)
-                            if target[1] < -1*(self.galaxy.height/2)+9:
+                            if target[1] < -1*(galaxy.height/2)+(height/2):
                                 target[1] = targetorig[1]
                             goodPlace=True
                             break

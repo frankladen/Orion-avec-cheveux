@@ -27,6 +27,7 @@ class Game():
         for p in self.players:
             if p.isAlive:
                  p.action()
+        return self.players[self.playerId].isAlive
 
     def start(self, players, seed, taille):
         self.galaxy=w.Galaxy(len(players), seed)
@@ -243,6 +244,9 @@ class Game():
     def killPlayer(self, playerId):
         self.players[playerId].kill()
         if playerId == self.playerId:
+            self.parent.removePlayer()
+            self.players[self.playerId].selectedObjects = []
+        if playerId == 0:
             self.parent.endGame()
     
     def trade(self, player1, player2, ressourceType, amount):
@@ -577,9 +581,9 @@ class Game():
     def changeFormation(self, playerId, newType, units, action):
         if newType == 'c':
             self.players[playerId].formation = "carre"
-        elif target =='t':
+        elif newType =='t':
             self.players[playerId].formation = "triangle"
-        self.players[playerId].makeFormation(units, action = action)
+        self.players[playerId].makeFormation(units, self.galaxy, action = action)
 
     def makeFormation(self, playerId, units, target, action):
-        self.players[playerId].makeFormation(units, target, action)
+        self.players[playerId].makeFormation(units, self.galaxy, target, action)

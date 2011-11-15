@@ -182,7 +182,7 @@ class Mothership(Unit):
                     self.flag.flagState = FlagState.STANDBY
         else:
             self.unitBeingConstruct = []
-            parent.sendKill()
+            self.isAlive = False
 
     def progressUnitsConstruction(self):
         if len(self.unitBeingConstruct) > 0:

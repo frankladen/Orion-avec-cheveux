@@ -28,22 +28,18 @@ class Controller():
 
     #TIMER D'ACTION DU JOUEUR COURANT
     def action(self, waitTime=50):
-        #Si l'administrateur a quitté la partie, on l'indique au jouer et on quitte la partie
-        if self.server.isGameStopped() == True and self.view.currentFrame == self.view.gameFrame:
-            if self.game.playerId != 0:
-                waitTime=99999999999999
-                self.view.showAdminLeft()
-                self.view.root.destroy()
-        elif self.view.currentFrame != self.view.pLobby:
+        if self.view.currentFrame != self.view.pLobby and self.server.isGameStopped() == False:
             self.refreshMessages(self.view.menuModes.chat)
             if self.refresh > 0:
                 #À chaque itération je demande les nouvelles infos au serveur
                 self.pullChange()
                 #self.view.delete('enemyRange')
-                self.game.action()
-                self.view.refreshGame(self.game.isOnPlanet())
-                self.refresh+=1
-                waitTime = self.server.amITooHigh(self.game.playerId)
+                if self.game.action():
+                    self.view.refreshGame(self.game.isOnPlanet())
+                    self.refresh+=1
+                    waitTime = self.server.amITooHigh(self.game.playerId)
+                elif self.game.playerId != 0:
+                    self.view.deleteAll()
             else:
                 self.checkIfGameStarting()
         else:
@@ -112,7 +108,7 @@ class Controller():
         #Démarre le serveur dans un autre processus avec l'adresse spécifiée
         child = subprocess.Popen("C:\python32\python.exe server.py " + serverAddress, shell=True)
         #On doit attendre un peu afin de laisser le temps au serveur de partir et de se terminer si une erreur arrive
-        time.sleep(3)
+        time.sleep(1)
         #On vérifie si le serveur s'est terminé en erreur et si oui, on affiche un message à l'utilisateur
         if child.poll():
             if child.returncode != None:
@@ -423,15 +419,15 @@ class Controller():
 
     def sendKillPlayer(self, playerId=None):
         if playerId == None:
-            self.removePlayer()
             playerId = self.game.playerId
         self.pushChange(playerId, Flag(None,playerId,FlagState.DESTROY_ALL))
 
     #Enleve le joueur courant de la partie ainsi que ses units
     def removePlayer(self):
-        if self.view.currentFrame == self.view.gameFrame and self.server.isGameStopped() == False:
+        if self.view.currentFrame == self.view.gameFrame:
+            self.view.selectedOnglet = self.view.SELECTED_CHAT
             self.sendMessage('a quitté la partie')
-            self.server.removePlayer(self.playerIp, self.game.players[self.game.playerId].name, self.game.playerId)
+            self.server.removePlayer(self.game.players[self.game.playerId].name, self.game.playerId)
 
 if __name__ == '__main__':
     c = Controller()
