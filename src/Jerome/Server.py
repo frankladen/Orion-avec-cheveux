@@ -41,7 +41,7 @@ class ControleurServeur(object):
             self.refreshes.append(0)
             self.readyPlayers.append(False)
     
-    def removePlayer(self, ip, login, playerId):
+    def removePlayer(self, login, playerId):
         self.sockets[playerId][2] = True
         if playerId == 0:
             self.isStopped = True
@@ -95,8 +95,8 @@ class ControleurServeur(object):
 
     def frameDifference(self):
         frameList = []
-        for player in self.sockets :
-            frameList.append(player.getRefresh)
+        for refresh in self.refreshes :
+            frameList.append(refresh)
         #Je détermine le frame maximum et le frame minimum de tout les clients
         frameMax = max(frameList)
         frameMin = min(frameList)

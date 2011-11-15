@@ -1329,6 +1329,8 @@ class View():
         self.selectedOnglet = self.SELECTED_CHAT
         self.menuModes.entryMess.focus_set()
 
+    def deleteAll(self):
+        self.gameArea.delete(ALL)
     
     #Assignation des controles	
     def assignControls(self):
