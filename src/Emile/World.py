@@ -10,15 +10,20 @@ class Galaxy():
     MIN_SPAWN_POINT_SPACING = 200
     BORDER_SPACING=25
     SUN_BORDER_SPACING=BORDER_SPACING + 125
-    
+    MAX_SOLARSYSTEM = 10
     def __init__(self,nbPlayer, seed):
-        self.width=(nbPlayer)*self.SIZE_MULTIPLIER
-        self.height=(nbPlayer)*self.SIZE_MULTIPLIER
-        self.depth=(nbPlayer)*self.SIZE_MULTIPLIER
+        if nbPlayer>2:
+            self.width=(nbPlayer)*self.SIZE_MULTIPLIER
+            self.height=(nbPlayer)*self.SIZE_MULTIPLIER
+            self.depth=(nbPlayer)*self.SIZE_MULTIPLIER
+        else:
+            self.width=3000
+            self.height=3000
+            self.depth=3000
         self.seed  = random.seed(seed)
         self.spawnPoints = []
         self.solarSystemList = []
-        for i in range(1,nbPlayer*(6+(nbPlayer-2))):
+        for i in range(1,nbPlayer*(self.MAX_SOLARSYSTEM+(nbPlayer-2))):
             tempX=""
             tempY=""
             placeFound = False
@@ -61,16 +66,25 @@ class Galaxy():
                         break
         self.spawnPoints.append((x,y,0))
         return [x,y,0]
-
+    
+    def select(self, position):
+        clickedObj = None
+        for i in self.solarSystemList:
+            spaceObj = i.select(position)
+            if spaceObj != None and clickedObj == None:
+                clickedObj = spaceObj
+        return clickedObj
 
 #Classe qui represente 1 seul systeme solaire
 class SolarSystem():
-    HEIGHT=500
-    WIDTH=500
+    HEIGHT=800
+    WIDTH=800
     SUN_WIDTH=20
     SUN_HEIGHT=20
     MAX_PLANETS=6
-    MAX_ATRO_OBJS=4
+    MAX_ATRO_OBJS=8
+    NEBULA = 0
+    ASTEROID = 1
     
     def __init__(self,position,sunId):
         self.sunId = sunId
@@ -151,7 +165,23 @@ class SolarSystem():
                         if self.sunPosition[1]+tempY > q.position[1]-(q.ASTEROID_HEIGHT+5) and self.sunPosition[1]+tempY < q.position[1]+(q.ASTEROID_HEIGHT+5):
                             placeFound = False
             self.asteroids.append(AstronomicalObject('asteroid', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY),i,self))
-        
+
+    def select(self, position):
+        clickedObj = None
+        for i in self.planets:
+            planet = i.select(position)
+            if planet != None and clickedObj == None:
+                clickedObj = planet
+        for i in self.nebulas:
+            nebula = i.selectNebula(position)
+            if nebula != None and clickedObj == None:
+                clickedObj = nebula
+        for i in self.asteroids:
+            asteroid = i.selectAsteroid(position)
+            if asteroid != None and clickedObj == None:
+                clickedObj = asteroid
+        return clickedObj
+
 #Represente un objet spacial (Planete, Meteorite, Nebuleuse)
 #Le type represente quel objet parmi les 3
 class AstronomicalObject(Target):
@@ -172,8 +202,20 @@ class AstronomicalObject(Target):
             self.mineralQte = 0
         elif type == 'asteroid':
             self.mineralQte = math.trunc((random.random()*self.MAX_MINERALS/2)+self.MAX_MINERALS/2)
-            self.gazQte = 0 
+            self.gazQte = 0
             
+    def selectNebula(self, position):
+        if position[0] >= self.position[0]-self.NEBULA_WIDTH/2 and position[0] <= self.position[0]+self.NEBULA_WIDTH/2:
+            if position[1] >= self.position[1]-self.NEBULA_HEIGHT/2 and position[1] <= self.position[1]+self.NEBULA_HEIGHT/2:
+                return self
+        return None
+    
+    def selectAsteroid(self, position):
+        if position[0] >= self.position[0]-self.ASTEROID_WIDTH/2 and position[0] <= self.position[0]+self.ASTEROID_WIDTH/2:
+            if position[1] >= self.position[1]-self.ASTEROID_HEIGHT/2 and position[1] <= self.position[1]+self.ASTEROID_HEIGHT/2:
+                return self
+        return None
+    
 class Planet(Target):
     IMAGE_WIDTH=15
     IMAGE_HEIGHT=15
@@ -263,11 +305,39 @@ class Planet(Target):
             if i.ownerId == playerId:
                 alreadyLanded = True
         return alreadyLanded
+
     def getLandingSpot(self, playerId):
         for i in self.landingZones:
             if i.ownerId == playerId:
                 return i
         return None
+
+    def select(self, position):
+        if position[0] > self.position[0]-self.IMAGE_WIDTH/2 and position[0] < self.position[0]+self.IMAGE_WIDTH/2:
+            if position[1] > self.position[1]-self.IMAGE_HEIGHT/2 and position[1] < self.position[1]+self.IMAGE_HEIGHT/2:
+                return self
+        return None
+    
+    def groundSelect(self, position):
+        clickedObj = None
+        for i in self.landingZones:
+            landing = i.select(position)
+            if landing != None and clickedObj == None:
+                clickedObj = landing
+        for i in self.minerals:
+            mineral = i.select(position)
+            if mineral != None and clickedObj == None:
+                clickedObj = mineral
+        for i in self.gaz:
+            gaz = i.select(position)
+            if gaz != None and clickedObj == None:
+                clickedObj = gaz
+        for i in self.units:
+            unit = i.select(position)
+            if unit != None and clickedObj == None:
+                clickedObj = unit
+        return clickedObj
+
 class MineralStack(Target):
     WIDTH = 48
     HEIGHT = 64
@@ -276,6 +346,12 @@ class MineralStack(Target):
         Target.__init__(self, position)
         self.nbMinerals = nbMinerals
         
+    def select(self, position):
+        if position[0] > self.position[0]-self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:
+            if position[1] > self.position[1]-self.HEIGHT/2 and position[1]+self.HEIGHT/2:
+                return self
+        return None
+    
 class GazStack(Target):
     WIDTH = 24
     HEIGHT = 24
@@ -284,10 +360,20 @@ class GazStack(Target):
         Target.__init__(self, position)
         self.nbGaz= nbGaz
         
-class LandingZone(Target):
+    def select(self, position):
+        if position[0] > self.position[0]-self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:
+            if position[1] > self.position[1]-self.HEIGHT/2 and position[1]+self.HEIGHT/2:
+                return self
+        return None
+class LandingZone(PlayerObject):
     WIDTH = 75
     HEIGHT = 75
     def __init__(self, position, ownerId, landingShip):
-        Target.__init__(self, position)
+        PlayerObject.__init__(self, 'Zone d\'atterissage', 0, position, ownerId)
         self.ownerId = ownerId
         self.LandedShip = landingShip
+
+    def select(self, position):
+        if position[0] > self.position[0]-self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:
+            if position[1] > self.position[1]-self.HEIGHT/2 and position[1] < self.position[1]+self.HEIGHT/2:
+                return self
