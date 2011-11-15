@@ -47,12 +47,6 @@ class Unit(PlayerObject):
                 parent.setAnAttackFlag(unit, self)
         elif self.flag.flagState == FlagState.BUILD:
             self.build(self.flag.finalTarget)
-        elif self.flag.flagState == FlagState.LAND:
-            self.land(parent.game)
-        elif self.flag.flagState == FlagState.GATHER:
-            self.gather(parent, parent.game)
-        elif isinstance(self, SpaceAttackUnit):
-            parent.game.checkIfEnemyInRange(self)
     
     #La deplace d'un pas vers son flag et si elle est rendu, elle change arrete de bouger    
     def move(self):
@@ -164,12 +158,7 @@ class Mothership(Unit):
 
             elif self.flag.flagState == FlagState.CHANGE_RALLY_POINT:
                 target = self.flag.finalTarget
-                target = target.strip("[")
-                target = target.strip("]")
-                target = target.split(",")
-                for i in range(0, len(target)):
-                    target[i]=math.trunc(float(target[i])) 
-                self.rallyPoint = target
+                self.rallyPoint = [target[0], target[1], 0]
                 self.flag.flagState = FlagState.BUILD_UNIT
 
             parent.game.checkIfEnemyInRange(self)
@@ -246,6 +235,19 @@ class SpaceAttackUnit(SpaceUnit):
         self.attackcount=self.AttackSpeed
         self.killCount = 0
 
+    def action(self, parent):
+        if self.flag.flagState == FlagState.ATTACK:
+            if isinstance(self.flag.finalTarget, TransportShip):
+                if self.flag.finalTarget.landed:
+                    parent.game.setAStandByFlag(self)
+            killedIndex = self.attack(parent.game.players)
+            if killedIndex[0] > -1:
+                parent.killUnit(killedIndex)
+        elif self.flag.flagState == FlagState.STANDBY:
+            parent.game.checkIfEnemyInRange(self)
+        else:
+            Unit.action(self, parent)
+
     def changeFlag(self, finalTarget, state):
         self.attackcount=self.AttackSpeed
         Unit.changeFlag(self, finalTarget, state)
@@ -305,6 +307,12 @@ class TransportShip(SpaceUnit):
         self.capacity = 10
         self.units = []
         #self.units.append(GroundUnit('Builder', self.GROUND_UNIT, [0,0,0], self.owner,-1,-1))
+
+    def action(self, parent):
+        if self.flag.flagState == FlagState.LAND:
+            self.land(parent.game)
+        else:
+            Unit.action(self, parent)
 
     def land(self, game):
         playerId = game.playerId
@@ -383,6 +391,12 @@ class GatherShip(SpaceUnit):
         self.container = [0,0]
         self.returning = False
 
+    def action(self, parent):
+        if self.flag.flagState == FlagState.GATHER:
+            self.gather(parent, parent.game)
+        else:
+            Unit.action(self, parent)
+
     def gather(self, player, game):
         ressource = self.flag.finalTarget
         arrived = True
@@ -402,12 +416,12 @@ class GatherShip(SpaceUnit):
                                 self.container[0]+=ressource.mineralQte
                                 ressource.mineralQte = 0
                                 self.flag.initialTarget = self.flag.finalTarget
-                                self.flag.finalTarget = player.motherShip
+                                self.flag.finalTarget = player.getNearestReturnRessourceCenter(self.position)
                                 game.parent.redrawMinimap()
                             self.gatherSpeed = 20
                         else:
                             self.flag.initialTarget = self.flag.finalTarget
-                            self.flag.finalTarget = player.motherShip
+                            self.flag.finalTarget = player.getNearestReturnRessourceCenter(self.position)
                     else:
                         if self.container[1]<self.maxGather:
                             if ressource.gazQte >= 5:
@@ -417,7 +431,7 @@ class GatherShip(SpaceUnit):
                                 self.container[1]+=ressource.gazQte
                                 ressource.gazQte = 0
                                 self.flag.initialTarget = self.flag.finalTarget
-                                self.flag.finalTarget = player.motherShip
+                                self.flag.finalTarget = player.getNearestReturnRessourceCenter(self.position)
                                 game.parent.redrawMinimap()
                             self.gatherSpeed = 20
                         else:

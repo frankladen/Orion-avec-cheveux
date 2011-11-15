@@ -33,7 +33,7 @@ class Controller():
             if self.refresh > 0:
                 #À chaque itération je demande les nouvelles infos au serveur
                 self.pullChange()
-                #self.view.delete('enemyRange')
+                self.view.gameArea.delete('enemyRange')
                 if self.game.action():
                     self.view.refreshGame(self.game.isOnPlanet())
                     self.refresh+=1
@@ -280,6 +280,17 @@ class Controller():
                 toRemove.append(changeString)
         for tR in toRemove:
             self.game.changes.remove(tR)
+
+    def stripAndSplit(self, toStripAndSplit):
+        toStripAndSplit = toStripAndSplit.strip("[")
+        toStripAndSplit = toStripAndSplit.strip("]")
+        toStripAndSplit = toStripAndSplit.split(",")
+        return toStripAndSplit
+
+    def changeToInt(self, toChange):
+        for i in range(0, len(toChange)):
+            toChange[i]=math.trunc(float(toChange[i])) #nécessaire afin de s'assurer que les positions sont des entiers
+        return toChange
     
     def doAction(self, changeString):
         changeInfo = changeString.split("/")
@@ -291,19 +302,11 @@ class Controller():
         refresh = int(changeInfo[4])
         #si l'action est Move, la target sera sous forme de tableau de positions [x,y,z]
         if action == str(FlagState.MOVE) or action == str(FlagState.STANDBY) or action == str(FlagState.PATROL):
-            target = target.strip("[")
-            target = target.strip("]")
-            target = target.split(",")
-            for i in range(0, len(target)):
-                target[i]=math.trunc(float(target[i])) #nécessaire afin de s'assurer que les positions sont des entiers
+            target = self.changeToInt(self.stripAndSplit(target))
             self.game.makeFormation(actionPlayerId, unitIndex, target, action)
             
         elif action == str(FlagState.GROUND_MOVE):
-            target = target.strip("[")
-            target = target.strip("]")
-            target = target.split(",")
-            for i in range(0, len(target)):
-                target[i]=math.trunc(float(target[i])) #nécessaire afin de s'assurer que les positions sont des entiers
+            target = self.changeToInt(self.stripAndSplit(target))
             for i in unitIndex:
                 if i != '':
                     self.game.players[actionPlayerId].units[int(i)].changeFlag(t.Target([int(target[0]),int(target[1]),int(target[2])]),int(action))
@@ -312,11 +315,7 @@ class Controller():
             self.game.resumeBuilding(actionPlayerId, int(target), unitIndex)
             
         elif action == str(FlagState.BUILD):
-            target = target.strip("[")
-            target = target.strip("]")
-            target = target.split(",")
-            for i in range(0, len(target)):
-                target[i]=math.trunc(float(target[i])) #nécessaire afin de s'assurer que les positions sont des entiers
+            target = self.changeToInt(self.stripAndSplit(target))
             self.game.buildBuilding(actionPlayerId, target, int(action), unitIndex)
                         
         elif action == str(FlagState.ATTACK):
@@ -347,6 +346,8 @@ class Controller():
             self.game.createUnit( actionPlayerId, int(target))
         
         elif action == str(FlagState.CHANGE_RALLY_POINT):
+            target = self.changeToInt(self.stripAndSplit(target))
+            print(target)
             self.game.players[actionPlayerId].motherShip.changeFlag(target,int(action))
         
         elif action == str(FlagState.CANCEL_UNIT):
@@ -362,9 +363,7 @@ class Controller():
             self.game.changeFormation(actionPlayerId, target, unitIndex, FlagState.MOVE)
 
         elif action == str(FlagState.TRADE):
-            target = target.strip("[")
-            target = target.strip("]")
-            target = target.split(",")
+            target = self.stripAndSplit(target)
             if target[0] == '1':
                 if int(unitIndex[0])==self.game.playerId:
                     self.game.tradePage=3
