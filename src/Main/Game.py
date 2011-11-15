@@ -85,7 +85,8 @@ class Game():
         units = ''
         #Si plusieurs unités sont sélectionnées, on les ajoute toutes dans le changement à envoyer
         for i in self.players[self.playerId].selectedObjects:
-            units += str(self.players[self.playerId].units.index(i))+ ","
+            if isinstance(i, u.Unit):
+                units += str(self.players[self.playerId].units.index(i))+ ","
         self.parent.pushChange(units, Flag(t.Target([0,0,0]), t.Target([x,y,0]),FlagState.GROUND_MOVE))
 
     def setDefaultMovingFlag(self,x,y, unit):
@@ -161,9 +162,9 @@ class Game():
         self.parent.pushChange(units, Flag(t.Target([0,0,0]),ressource, FlagState.GATHER))
 
     def makeUnitsGather(self, playerId, unitsId, solarSystemId, astroObjectId, astroObjectType):
-        if astroObjectType == w.SolarSystem.NEBULA:
+        if astroObjectType == w.AstronomicalObject.NEBULA:
             astroObject = self.galaxy.solarSystemList[solarSystemId].nebulas[astroObjectId]
-        elif astroObjectType == w.SolarSystem.ASTEROID:
+        elif astroObjectType == w.AstronomicalObject.ASTEROID:
             astroObject = self.galaxy.solarSystemList[solarSystemId].asteroids[astroObjectId]
         else:
             astroObject = self.players[playerId].motherShip
@@ -377,7 +378,6 @@ class Game():
                             if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
                                 self.players[self.playerId].selectedObjects = []
                                 self.players[self.playerId].selectedObjects.append(j)
-
             self.parent.changeActionMenuType(View.MAIN_MENU)
         else:
             planet = self.players[self.playerId].currentPlanet
@@ -465,7 +465,7 @@ class Game():
                             for unit in self.players[self.playerId].selectedObjects:
                                 if isinstance(unit, w.AstronomicalObject) == False and isinstance(unit, w.Planet) == False:
                                     if unit.type == unit.CARGO:
-                                        self.setGatherFlag(unit, self.players[self.playerId].units[0])
+                                        self.setGatherFlag(unit, self.players[self.playerId].motherShip)
                                         empty = False
             if empty:
                 if len(self.players[self.playerId].selectedObjects) > 0:
@@ -482,16 +482,18 @@ class Game():
             if empty:
                 if len(self.players[self.playerId].selectedObjects) > 0:
                     for i in self.players:
-                        for b in self.players[self.playerId].buildings:
-                            if b.position[0] >= pos[0]-b.SIZE[b.type][0]/2 and b.position[0] <= pos[0]+b.SIZE[b.type][0]/2:
-                                if b.position[1] >= pos[1]-b.SIZE[b.type][1]/2 and b.position[1] <= pos[1]+b.SIZE[b.type][1]/2:
-                                    if i == self.players[self.playerId]:
-                                        if not b.finished:
-                                            self.resumeBuildingFlag(b)
-                                            empty = False
-                                    else:
-                                        self.setAttackFlag(b)
-                                        empty = False
+                        if i.isAlive:
+                            for b in self.players[self.playerId].buildings:
+                                if b.isAlive:
+                                    if b.position[0] >= pos[0]-b.SIZE[b.type][0]/2 and b.position[0] <= pos[0]+b.SIZE[b.type][0]/2:
+                                        if b.position[1] >= pos[1]-b.SIZE[b.type][1]/2 and b.position[1] <= pos[1]+b.SIZE[b.type][1]/2:
+                                            if i == self.players[self.playerId]:
+                                                if not b.finished:
+                                                    self.resumeBuildingFlag(b)
+                                                    empty = False
+                                            else:
+                                                self.setAttackFlag(b)
+                                                empty = False
                                         
             if empty:
                 self.setMovingFlag(pos[0],pos[1])
