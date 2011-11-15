@@ -7,128 +7,41 @@ import Unit as u
 import Game as g
 from Helper import *
 from Flag import *
-from Constants import *
 import Pyro4
 import socket
 import math
-from time import time
+import subprocess
+import time
 
 class Controller():
     def __init__(self):
-        #self.players = [] #La liste des joueurs
-        #self.playerId = 0 #Le id du joueur courant
         self.refresh = 0 #Compteur principal
-        #self.mess = []
-        #self.changes = []
+        self.mess = []
         self.playerIp = socket.gethostbyname(socket.getfqdn())
         self.server = None
         self.isStarted=False
-        self.game = g.Game(self)
-        self.view = v.View(self, self.game)
-        #self.multiSelect = False
         self.currentFrame = None 
         self.attenteEcrit = False
+        self.game = g.Game(self)
+        self.view = v.View(self, self.game)
         self.view.root.mainloop()
-    
-    #Envoyer le message pour le chat
-    def sendMessage(self, mess):
-        if mess == "forcegaz":
-            self.players[self.playerId].gaz += 500
-        elif mess == "forcemine":
-            self.players[self.playerId].mineral += 500
-        elif len(mess)>0:
-            mess = mess.replace('\\','/')
-            self.server.addMessage(mess, self.players[self.playerId].name)
 
-    def sendMessageLobby(self, mess, nom):
-        mess = mess.replace('\\','/')
-        self.server.addMessage(mess, self.server.getSockets()[self.playerId][1])
-
-    #Pour aller chercher les nouveaux messages
-    def refreshMessages(self, chat):
-        textChat=''
-        for i in range(len(self.mess), len(self.server.getMessage())):
-            self.mess.append(self.server.getMessage()[i])
-        if len(self.mess) > 5:
-            for i in range(len(self.mess)-5, len(self.mess)):
-                textChat+=self.mess[i]+'\r'
-        else:
-            for i in range(0, len(self.mess)):
-                textChat+=self.mess[i]+'\r'
-        chat.config(text=textChat)
-
-    def choiceColor(self, name ,index, mode):
-        response = self.server.isThisColorChosen(self.view.variableColor.get(),self.playerId)
-        if response == True:
-            self.view.colorAlreadyChosen()
-            
     #TIMER D'ACTION DU JOUEUR COURANT
     def action(self, waitTime=50):
-        if self.server.isGameStopped() == True and self.view.currentFrame == self.view.gameFrame:
-            if self.playerId != 0:
-                waitTime=99999999999999
-                self.view.showGameIsFinished()
-                self.view.root.destroy()
-        elif self.view.currentFrame != self.view.pLobby:
+        if self.view.currentFrame != self.view.pLobby and self.server.isGameStopped() == False:
+            self.refreshMessages(self.view.menuModes.chat)
             if self.refresh > 0:
-                self.players[self.playerId].camera.move()
-                for p in self.players:
-                    for i in p.units:
-                        if i.isAlive:
-                            if i.flag.flagState == FlagState.MOVE or i.flag.flagState == FlagState.GROUND_MOVE:
-                                i.move()
-                            elif i.flag.flagState == FlagState.ATTACK:
-                                if isinstance(i.flag.finalTarget, u.TransportShip):
-                                    if i.flag.finalTarget.landed:
-                                        self.setAStandByFlag(i)
-                                killedIndex = i.attack(self.players)
-                                if killedIndex[0] > -1:
-                                    self.killUnit(killedIndex)
-                            elif i.flag.flagState == FlagState.PATROL:
-                                unit = i.patrol(self.players)
-                                if unit != None:
-                                    self.setAttackFlag(unit)
-                            elif i.flag.flagState == FlagState.LAND:
-                                i.land(self, self.players.index(p),self.galaxy)
-                            elif i.flag.flagState == FlagState.GATHER:
-                                i.gather(p,self)
-                    if p.motherShip.isAlive:
-                        p.motherShip.action()
-                        if len(p.motherShip.unitBeingConstruct) > 0:
-                            if(p.motherShip.isUnitFinished()):
-                                self.buildUnit(p)
-                        else:
-                            if p.motherShip.flag.flagState != FlagState.ATTACK:
-                                p.motherShip.flag.flagState = FlagState.STANDBY 
-                    else:
-                        p.motherShip.unitBeingConstruct = []
-                        self.eraseUnits(self.players.index(p))
-                if self.refresh % 10 == 0:
-                    self.refreshMessages(self.view.menuModes.chat)
-                self.refresh+=1
-                self.view.showMinerals.config(text="Mineraux: "+str(self.players[self.playerId].mineral))
-                self.view.showGaz.config(text="Gaz: "+str(self.players[self.playerId].gaz))
-	            #À chaque itération je pousse les nouveaux changements au serveur et je demande des nouvelles infos.
+                #À chaque itération je demande les nouvelles infos au serveur
                 self.pullChange()
-                self.view.createUnitsConstructionPanel()
-                if self.players[self.playerId].currentPlanet == None:
-                    self.view.drawWorld()
-                else:
-                    self.view.drawPlanetGround(self.players[self.playerId].currentPlanet)
-                    self.view.redrawMinimap()
-                waitTime = self.server.amITooHigh(self.playerId)
-
-            else:
-                self.refreshMessages(self.view.menuModes.chat)
-                response = self.server.isEveryoneReady(self.playerId)
-                if response:
+                #self.view.delete('enemyRange')
+                if self.game.action():
+                    self.view.refreshGame(self.game.isOnPlanet())
                     self.refresh+=1
-                    if self.playerId == 0:
-                        self.sendMessage("La partie va maintenant débuter.")
-                else:
-                    if self.playerId == 0 and self.attenteEcrit == False:
-                        self.attenteEcrit=True
-                        self.sendMessage("Attente des autres joueurs.")
+                    waitTime = self.server.amITooHigh(self.game.playerId)
+                elif self.game.playerId != 0:
+                    self.view.deleteAll()
+            else:
+                self.checkIfGameStarting()
         else:
             if self.server.isGameStarted() == True:
                 self.startGame()
@@ -137,130 +50,231 @@ class Controller():
                 self.refreshMessages(self.view.chatLobby)
                 self.view.redrawLobby(self.view.pLobby)
         self.view.root.after(waitTime, self.action)
-        
-    def killUnit(self, killedIndexes):
-        #Désélection de l'unité qui va mourir afin d'éviter le renvoie d'une actio avec cette unité
-        if killedIndexes[1] == self.playerId:
-            if self.players[self.playerId].units[killedIndexes[0]] in self.players[self.playerId].selectedObjects:
-               self.players[self.playerId].selectedObjects.remove(self.players[self.playerId].units[killedIndexes[0]])
-        self.players[killedIndexes[1]].units[killedIndexes[0]].kill()
 
-    def buildUnit(self, player):
-        unit = player.motherShip.unitBeingConstruct.pop(0)
-        if unit.type == u.Unit.TRANSPORT:
-            pilot = u.GroundUnit('Builder', u.Unit.GROUND_UNIT, [-10000,-10000,-10000], player.id,-1,-1)
-            unit.units.append(pilot)
-            player.units.append(pilot)
-        unit.changeFlag(t.Target(player.motherShip.rallyPoint), FlagState.MOVE)
-        player.units.append(unit)
-              
+    def checkIfGameStarting(self):
+        response = self.server.isEveryoneReady(self.game.playerId)
+        if response:
+            self.refresh+=1
+            if self.game.playerId == 0:
+                self.sendMessage("La partie va maintenant débuter.")
+        else:
+            if self.game.playerId == 0 and self.attenteEcrit == False:
+                self.attenteEcrit=True
+                self.sendMessage("Attente des autres joueurs.")
+    
+    #Envoyer le message pour le chat
+    def sendMessage(self, mess):
+        if mess == "forcegaz":
+            self.game.players[self.game.playerId].ressources[p.Player.GAS] += 500
+        elif mess == "forcemine":
+            self.game.players[self.game.playerId].ressources[p.Player.MINERAL] += 500
+        elif mess.find("\\t ") == 0:
+            mess = mess.split("\\t ")
+            mess = "(Alliés) "+mess[1]
+            self.server.addMessage(mess, self.game.players[self.game.playerId].name, self.game.playerId, True)                                     
+        elif len(mess)>0:
+            mess = mess.replace('\\','/')
+            self.server.addMessage(mess, self.game.players[self.game.playerId].name, self.game.playerId, False)
+
+    def sendMessageLobby(self, mess, nom):
+        mess = mess.replace('\\','/')
+        self.server.addMessage(mess, self.server.getSockets()[self.game.playerId][1], self.game.playerId, False)
+
+    #Pour aller chercher les nouveaux messages
+    def refreshMessages(self, chat):
+        if self.refresh % 10 == 0:
+            textChat=''
+            self.mess = []
+            for i in range(len(self.mess), len(self.server.getMessage())):
+                if self.server.getMessage()[i][2] == True:
+                    if self.game.players[self.game.playerId].isAlly(self.server.getMessage()[i][0]):
+                        self.mess.append(self.server.getMessage()[i][1])
+                else:
+                    self.mess.append(self.server.getMessage()[i][1])
+            if len(self.mess) > 5:
+                for i in range(len(self.mess)-5, len(self.mess)):
+                    textChat+=self.mess[i]+'\r'
+            else:
+                for i in range(0, len(self.mess)):
+                    textChat+=self.mess[i]+'\r'
+            chat.config(text=textChat)
+
+    def choiceColor(self, name ,index, mode):
+        response = self.server.isThisColorChosen(self.view.variableColor.get(),self.game.playerId)
+        if response == True:
+            self.view.colorAlreadyChosen()
+
+    def startServer(self, serverAddress, connect, userName):
+        #Démarre le serveur dans un autre processus avec l'adresse spécifiée
+        child = subprocess.Popen("C:\python32\python.exe server.py " + serverAddress, shell=True)
+        #On doit attendre un peu afin de laisser le temps au serveur de partir et de se terminer si une erreur arrive
+        time.sleep(1)
+        #On vérifie si le serveur s'est terminé en erreur et si oui, on affiche un message à l'utilisateur
+        if child.poll():
+            if child.returncode != None:
+                self.view.serverNotCreated()
+            else:
+                print("Shnitzel pas managé lors de la création du serveur")
+        else:
+            #self.serverCreated(serverAddress)
+            #Si l'usager veut se connecter en créant le serveur, on le fait
+            if connect:
+                self.connectServer(userName, serverAddress)
+            else:
+                self.view.changeFrame(self.view.mainMenu)
+       
 	#Connection au serveur			
     def connectServer(self, login, serverIP):
         self.server=Pyro4.core.Proxy("PYRO:ServeurOrion@"+serverIP+":54400")
-        try:
+        #try:
             #Je demande au serveur si la partie est démarrée, si oui on le refuse de la partie, cela permet de vérifier
             #en même temps si le serveur existe réellement à cette adresse.
-            if self.server.isGameStarted() == True:
-                self.view.gameHasBeenStarted()
-                self.view.changeFrame(self.view.mainMenu)
-            else:
-                #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
-                self.playerId=self.server.getNumSocket(login, self.playerIp)
-                #Je vais au lobby, si la connection a fonctionner
-                self.view.pLobby = self.view.fLobby()
-                self.view.changeFrame(self.view.pLobby)
-                self.action()
-        except:
-            self.view.loginFailed()
+        if self.server.isGameStarted() == True:
+            self.view.gameHasBeenStarted()
             self.view.changeFrame(self.view.mainMenu)
-            
-    #Enleve le joueur courant de la partie ainsi que ses units
-    def removePlayer(self):
-        if self.view.currentFrame == self.view.gameFrame and self.server.isGameStopped() == False:
-            self.sendMessage('a quitté la partie')
-            self.eraseUnits()
-            self.server.removePlayer(self.playerIp, self.players[self.playerId].name, self.playerId)
-        self.view.root.destroy()
+        else:
+            #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
+            self.game.playerId=self.server.getNumSocket(login, self.playerIp)
+            #Je vais au lobby, si la connection a fonctionner
+            self.view.pLobby = self.view.fLobby()
+            self.view.changeFrame(self.view.pLobby)
+            self.action()
+##        except:
+##            self.view.loginFailed()
+##            self.view.changeFrame(self.view.mainMenu)
         
     #Demmare la partie et genere la galaxie (Quand l'admin appui sur start game dans le lobby)    
     def startGame(self):
-        if self.playerId==0:
+        if self.game.playerId==0:
             self.server.startGame()
+        players = []
         for i in range(0, len(self.server.getSockets())):
             if self.server.getSockets()[i][3] == -1:
                 self.server.firstColorNotChosen(i)
-            self.players.append(p.Player(self.server.getSockets()[i][1], i, self.server.getSockets()[i][3]))
-        self.galaxy=w.Galaxy(self.server.getNumberOfPlayers(), self.server.getSeed())
-        for i in range(0, len(self.server.getSockets())):
-            startPos = self.galaxy.getSpawnPoint()
-            self.players[i].addBaseUnits(startPos)  
-        self.players[self.playerId].addCamera(self.galaxy, self.view.taille)
+            players.append(p.Player(self.server.getSockets()[i][1], self.game, i, self.server.getSockets()[i][3]))
+        self.game.start(players, self.server.getSeed(), self.view.taille)
         self.view.gameFrame = self.view.fGame()
         self.view.changeFrame(self.view.gameFrame)
         self.view.root.after(50, self.action)
+
+    def drawWorld(self):
+        self.view.drawWorld()
+
+    def redrawMinimap(self):
+        self.view.redrawMinimap()
+
+    def changeBackground(self, newBg):
+        self.view.changeBackground(newBg)
+    
+    def drawPlanetGround(self, planet):
+        self.view.drawPlanetGround(planet)
+
+    def changeActionMenuType(self, newMenuType):
+        self.view.actionMenuType = newMenuType
+
+    #Trade entre joueurs
+    def setTradeFlag(self, item, playerId2, quantite):
+        for i in items:
+            self.pushChange(playerId2, Flag(i, quantite[items.index(i)], FlagState.TRADE))
+
+    def askTrade(self, eve):
+        idOtherPlayer = self.view.menuModes.tradeOPTIONS.index(self.view.menuModes.variableTrade.get())
+        if self.game.players[self.game.playerId].name != self.view.menuModes.variableTrade.get() and self.game.players[idOtherPlayer].units != []:
+            self.pushChange(idOtherPlayer, Flag(1, "askTrade", FlagState.TRADE))
+            self.game.tradePage=1
+            self.game.idTradeWith=idOtherPlayer
+            self.view.ongletTradeWaiting()
+
+    def startTrade(self, answer, id1):
+        if answer == True:
+            self.pushChange(id1, Flag(2, "startTrade", FlagState.TRADE))
+        else:
+            self.pushChange(id1, Flag(3, "deniedTrade", FlagState.TRADE))
+            self.view.ongletTradeChoicePlayer()
+
+    def confirmTradeQuestion(self, id2):
+        self.pushChange(id2, Flag(4, self.view.menuModes.spinMinerals1.get()+','+self.view.menuModes.spinMinerals2.get()+','+self.view.menuModes.spinGaz1.get()+','+self.view.menuModes.spinGaz2.get(), FlagState.TRADE))
+        self.game.tradePage=1
+        self.view.ongletTradeWaiting()
+
+    def confirmTrade(self, answer, id1, min1, min2, gaz1, gaz2):
+        if answer == True:
+            self.pushChange(self.game.idTradeWith, Flag("m", min1, FlagState.TRADE))
+            self.pushChange(self.game.playerId, Flag("m", min2+','+str(self.game.idTradeWith), FlagState.TRADE))
+            self.pushChange(self.game.idTradeWith, Flag("g", gaz1, FlagState.TRADE))
+            self.pushChange(self.game.playerId, Flag("g", gaz2+','+str(self.game.idTradeWith), FlagState.TRADE))
+        else:
+            self.pushChange(id1, Flag(3, "deniedTrade", FlagState.TRADE))
+            self.game.tradePage=-1
+            self.view.ongletTradeChoicePlayer()
+
+    def changeAlliance(self, player, newStatus):
+        self.pushChange(player, Flag(finalTarget = newStatus, flagState = FlagState.DEMAND_ALLIANCE))
     
     #Méthode de mise à jour auprès du serveur, actionnée à chaque
     def pushChange(self, playerObject, flag):
         actionString = ""
         if isinstance(flag, Flag):
             if flag.flagState == FlagState.MOVE or flag.flagState == FlagState.STANDBY:
-                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
+                actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             elif flag.flagState == FlagState.GROUND_MOVE:
-                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
+                actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             elif flag.flagState == FlagState.ATTACK:
-                targetId = self.players[flag.finalTarget.owner].units.index(flag.finalTarget)
+                targetId = self.game.players[flag.finalTarget.owner].units.index(flag.finalTarget)
                 if isinstance(flag.initialTarget, int):
                     actionString = str(flag.initialTarget)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/U"+str(targetId)+"P"+str(flag.finalTarget.owner)
                 else:
-                    actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/U"+str(targetId)+"P"+str(flag.finalTarget.owner)
+                    actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/U"+str(targetId)+"P"+str(flag.finalTarget.owner)
             elif flag.flagState == FlagState.CREATE:
-                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState) + "/" + str(flag.finalTarget)
+                actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.CHANGE_RALLY_POINT:
-                actionString = str(self.playerId) + "/" + "0" + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
+                actionString = str(self.game.playerId) + "/" + "0" + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.DESTROY:
-                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/0"
+                actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/0"
             elif flag.flagState == FlagState.CANCEL_UNIT:
-                actionString = str(self.playerId) + "/" + "0" + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
+                actionString = str(self.game.playerId) + "/" + "0" + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.PATROL:
-                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
+                actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             elif flag.flagState == FlagState.CHANGE_FORMATION:
-                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget)
+                actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget)
             elif flag.flagState == FlagState.DESTROY_ALL:
-                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget)
+                actionString = str(playerObject)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget)
             elif flag.flagState == FlagState.TRADE:
-                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/["+str(flag.initialTarget)+","+str(flag.finalTarget)+"]"
+                actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/["+str(flag.initialTarget)+","+str(flag.finalTarget)+"]"
+            elif flag.flagState == FlagState.DEMAND_ALLIANCE:
+                actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget)
             elif flag.flagState == FlagState.GATHER:
                 if isinstance(flag.finalTarget, w.AstronomicalObject):
                     if flag.finalTarget.type == 'nebula':
                         nebulaId = flag.finalTarget.id
                         solarId = flag.finalTarget.solarSystem.sunId
-                        actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(nebulaId)+","+str(solarId)+",0"
+                        actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(nebulaId)+","+str(solarId)+",0"
                     elif flag.finalTarget.type == 'asteroid':
                         mineralId = flag.finalTarget.id
                         solarId = flag.finalTarget.solarSystem.sunId
-                        actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(mineralId)+","+str(solarId)+",1"
+                        actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(mineralId)+","+str(solarId)+",1"
                 else:
-                    actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/retouraumothership,sansbriserlaactionstring,2"
+                    actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/retouraumothership,sansbriserlaactionstring,2"
             
         elif isinstance(flag, tuple):
             if flag[2] == FlagState.LAND:
-                actionString = str(self.playerId)+"/"+playerObject+"/"+str(flag[2])+"/"+str(flag[0])+","+str(flag[1])
+                actionString = str(self.game.playerId)+"/"+playerObject+"/"+str(flag[2])+"/"+str(flag[0])+","+str(flag[1])
             elif flag[2] == 'TAKEOFF':
-                actionString = str(self.playerId)+"/"+str(playerObject)+"/"+str(flag[2])+"/"+str(flag[0])+","+str(flag[1])
+                actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag[2])+"/"+str(flag[0])+","+str(flag[1])
             else:
-                actionString = str(self.playerId)+"/"+playerObject+"/"+flag[0]+"/"+flag[1]
+                actionString = str(self.game.playerId)+"/"+playerObject+"/"+flag[0]+"/"+flag[1]
         self.server.addChange(actionString)
     
     def pullChange(self):
         toRemove = []
-        for i in self.server.getChange(self.playerId, self.refresh):
-            self.changes.append(i)
-        for changeString in self.changes:
+        for i in self.server.getChange(self.game.playerId, self.refresh):
+            self.game.changes.append(i)
+        for changeString in self.game.changes:
             if int(changeString.split("/")[4]) == self.refresh:
                 self.doAction(changeString)
                 toRemove.append(changeString)
         for tR in toRemove:
-            self.changes.remove(tR)
+            self.game.changes.remove(tR)
     
     def doAction(self, changeString):
         changeInfo = changeString.split("/")
@@ -277,7 +291,8 @@ class Controller():
             target = target.split(",")
             for i in range(0, len(target)):
                 target[i]=math.trunc(float(target[i])) #nécessaire afin de s'assurer que les positions sont des entiers
-            self.makeFormation(actionPlayerId, unitIndex, target, action)
+            self.game.makeFormation(actionPlayerId, unitIndex, target, action)
+            
         elif action == str(FlagState.GROUND_MOVE):
             target = target.strip("[")
             target = target.strip("]")
@@ -286,214 +301,117 @@ class Controller():
                 target[i]=math.trunc(float(target[i])) #nécessaire afin de s'assurer que les positions sont des entiers
             for i in unitIndex:
                 if i != '':
-                    self.players[actionPlayerId].units[int(i)].changeFlag(t.Target([int(target[0]),int(target[1]),int(target[2])]),int(action))
+                    self.game.players[actionPlayerId].units[int(i)].changeFlag(t.Target([int(target[0]),int(target[1]),int(target[2])]),int(action))
+                    
         elif action == str(FlagState.ATTACK):
             target = target.split("P")
             target[0] = target[0].strip("U")
-            for i in unitIndex:
-                if i != '':
-                    self.players[actionPlayerId].units[int(i)].changeFlag(self.players[int(target[1])].units[int(target[0])], int(action))
+            self.game.makeUnitsAttack(actionPlayerId, unitIndex, int(target[1]), int(target[0]))
+                    
         elif action == str(FlagState.LAND):
             target = target.split(',')
-            self.players[actionPlayerId].units[int(unitIndex[0])].changeFlag(self.galaxy.solarSystemList[int(target[0])].planets[int(target[1])],int(action))
+            self.game.makeUnitLand(actionPlayerId, int(unitIndex[0]), int(target[0]), int(target[1]))
+            
         elif action == 'TAKEOFF':
             target = target.split(',')
-            unit = self.players[actionPlayerId].units[int(unitIndex[0])]
-            planet = self.galaxy.solarSystemList[int(target[1])].planets[int(target[0])]
-            self.takeOff(unit, planet, actionPlayerId)
-            if actionPlayerId == self.playerId:
-                cam = self.players[self.playerId].camera
+            unit = self.game.players[actionPlayerId].units[int(unitIndex[0])]
+            planet = self.game.galaxy.solarSystemList[int(target[1])].planets[int(target[0])]
+            self.game.takeOff(unit, planet, actionPlayerId)
+            if actionPlayerId == self.game.playerId:
+                cam = self.game.getCurrentCamera()
                 cam.position = [unit.position[0], unit.position[1]]
                 cam.placeOverPlanet()
                 self.view.changeBackground('GALAXY')
+                
         elif action == str(FlagState.GATHER):
             target = target.split(',')
-            for i in unitIndex:
-                if i != '':
-                    i = int(i)
-                    if target[2] == '0':
-                        self.players[actionPlayerId].units[i].changeFlag(self.galaxy.solarSystemList[int(target[1])].nebulas[int(target[0])],int(action))
-                    elif target[2] == '1':
-                        self.players[actionPlayerId].units[i].changeFlag(self.galaxy.solarSystemList[int(target[1])].asteroids[int(target[0])],int(action))
-                    else:
-                        self.players[actionPlayerId].units[i].changeFlag(self.players[actionPlayerId].motherShip,int(action))
-        
-        #ici, le target sera l'index de l'unit� dans le tableau de unit du player cibl�
+            self.game.makeUnitsGather(actionPlayerId, unitIndex, int(target[1]), int(target[0]), int(target[2]))
         
         elif action == str(FlagState.CREATE):
-            self.players[actionPlayerId].motherShip.changeFlag(int(target),int(action))
-            self.players[actionPlayerId].motherShip.action()
-            self.players[actionPlayerId].gaz -= self.players[actionPlayerId].motherShip.unitBeingConstruct[len(self.players[actionPlayerId].motherShip.unitBeingConstruct)-1].buildCost[1]
-            self.players[actionPlayerId].mineral -= self.players[actionPlayerId].motherShip.unitBeingConstruct[len(self.players[actionPlayerId].motherShip.unitBeingConstruct)-1].buildCost[0]
-            self.players[actionPlayerId].motherShip.flag.flagState = FlagState.BUILD_UNIT
+            self.game.createUnit( actionPlayerId, int(target))
         
         elif action == str(FlagState.CHANGE_RALLY_POINT):
-            self.players[actionPlayerId].motherShip.changeFlag(target,int(action))
+            self.game.players[actionPlayerId].motherShip.changeFlag(target,int(action))
         
         elif action == str(FlagState.CANCEL_UNIT):
-            self.players[actionPlayerId].gaz += self.players[actionPlayerId].motherShip.unitBeingConstruct[int(target)].buildCost[1]
-            self.players[actionPlayerId].mineral += self.players[actionPlayerId].motherShip.unitBeingConstruct[int(target)].buildCost[0]
-            self.players[actionPlayerId].motherShip.changeFlag(target, int(action))
+            self.game.cancelUnit(actionPlayerId, int(target))
 
         elif action == str(FlagState.DESTROY):
-            self.killUnit((int(unitIndex[0]),actionPlayerId))
+            self.game.killUnit((int(unitIndex[0]),actionPlayerId))
         
         elif action == str(FlagState.DESTROY_ALL):
-            self.players[int(unitIndex[0])].units = []
+            self.game.killPlayer(int(unitIndex[0]))
         
         elif action == str(FlagState.CHANGE_FORMATION):
-            if target=='t':
-                self.players[actionPlayerId].formation="triangle"
-            elif target=='c':
-                self.players[actionPlayerId].formation="carre"
-            self.makeFormation(actionPlayerId, unitIndex, self.players[actionPlayerId].units[int(unitIndex[0])].flag.finalTarget.position, FlagState.MOVE)
+            self.game.changeFormation(actionPlayerId, target, unitIndex, FlagState.MOVE)
 
         elif action == str(FlagState.TRADE):
-            if target[0] == 'm':
-                self.players[actionPlayerId].mineral-=target[2]
-                self.players[int(unitIndex[0])].mineral+=target[2]
-            elif target[1] == 'g':
-                self.players[actionPlayerId].gaz-=target[2]
-                self.players[int(unitIndex[0])].gaz+=target[2]
+            target = target.strip("[")
+            target = target.strip("]")
+            target = target.split(",")
+            if target[0] == '1':
+                if int(unitIndex[0])==self.game.playerId:
+                    self.game.tradePage=3
+                    self.game.idTradeWith=actionPlayerId
+                    self.view.ongletTradeYesNoQuestion(actionPlayerId)
+            elif target[0] == '2':
+                if int(unitIndex[0])==self.game.playerId or actionPlayerId == self.game.playerId:
+                    if int(unitIndex[0])==self.game.playerId:
+                        self.game.isMasterTrade=True
+                        self.view.ongletTrade(self.game.playerId,self.game.idTradeWith)
+                    else:
+                        self.game.isMasterTrade=False
+                        self.view.ongletTrade(self.game.idTradeWith,self.game.playerId)
+                    self.game.tradePage=2
+                    
+            elif target[0] == '3':
+                if int(unitIndex[0])==self.game.playerId:
+                    self.game.isMasterTrade=False
+                    self.game.tradePage=-1
+                    self.game.idTradeWith=self.game.playerId
+                    self.view.ongletTradeNoAnswer()
+            elif target[0] == '4':
+                if int(unitIndex[0])==self.game.playerId:
+                    self.game.tradePage=4
+                    self.game.toTrade = (target[1],target[2],target[3],target[4])
+                    self.view.ongletTradeAskConfirm(actionPlayerId,self.game.toTrade[0],self.game.toTrade[1],self.game.toTrade[2],self.game.toTrade[3])
+            elif target[0] == 'm' or target[0] == 'g':
+                if target[0] == 'm':
+                    ressourceType = p.Player.MINERAL
+                elif target[0] == 'g':
+                    ressourceType = p.Player.GAS
+                if int(unitIndex[0]) != actionPlayerId:
+                    self.game.trade(actionPlayerId, int(unitIndex[0]), ressourceType, int(target[1]))
+                else:
+                    self.game.trade(int(target[2]), actionPlayerId, ressourceType, int(target[1]))
+                self.game.isMasterTrade=False
+                self.game.tradePage=-1
+                self.game.idTradeWith=self.game.playerId
+                self.view.ongletTradeYesAnswer()
+                
+        elif action == str(FlagState.DEMAND_ALLIANCE):
+            #actionPlayerId = le joueur qui change le status
+            #unitIndex[0] = le joueur concerné par le changement
+            #target = le nouveau status de l'alliance entre les deux
+            self.game.demandAlliance(actionPlayerId, int(unitIndex[0]), target)
+            self.view.refreshAlliances()
 
-    def makeFormation(self, actionPlayerId, unitIndex, target, action):
-        lineTaken=[]
-        line=0
-        targetorig=[0,0]
-        targetorig[0]=target[0]
-        targetorig[1]=target[1]
-        widths = []
-        heights = []
-        for i in range(0,len(unitIndex)-1):
-            unit = self.players[actionPlayerId].units[int(unitIndex[i])]
-            widths.append(unit.SIZE[unit.type][0])
-            heights.append(unit.SIZE[unit.type][1])
-        width = max(widths)
-        height = max(heights)
-        #Formation en carré selon le nombre de unit qui se déplace, OH YEAH
-        if self.players[actionPlayerId].formation == "carre":
-            thatLine = []
-            lineTaken = []
-            numberOfLines = math.sqrt(len(unitIndex)-1)
-            if str(numberOfLines).split('.')[1] != '0':
-                numberOfLines+=1
-            math.trunc(float(numberOfLines))
-            numberOfLines = int(numberOfLines)
-            for l in range(0,numberOfLines):
-                thatLine = []
-                for k in range(0,numberOfLines):
-                    thatLine.append(False)
-                lineTaken.append(thatLine)
-            for i in range(0,len(unitIndex)-1):
-                goodPlace=False
-                line=0
-                while goodPlace==False:
-                    for p in range(0,len(lineTaken[line])):
-                        if lineTaken[line][p]==False:
-                            lineTaken[line][p]=True
-                            target[0]=targetorig[0]+(p*20)
-                            if target[0] < -1*(self.galaxy.width/2)+9:
-                                target[0] = -1*(self.galaxy.width/2)+18
-                            elif target[0] > (self.galaxy.width/2)-9:
-                                target[0] = (self.galaxy.width/2)-18
-                            target[1]=targetorig[1]-(line*20)
-                            if target[1] < -1*(self.galaxy.height/2)+9:
-                                target[1] = -1*(self.galaxy.height/2)+18
-                            goodPlace=True
-                            break
-                    if goodPlace==False:
-                        line+=1
-                        if (len(lineTaken)-1)<line:
-                            numberOfSpaces=1+line
-                            thatLine=[]
-                            for a in range(0,numberOfSpaces):
-                                thatLine.append(False)
-                            lineTaken.append(thatLine)
-                self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
-        #Formation en carré selon le nombre de unit qui se déplace, OH YEAH
-        if self.players[actionPlayerId].formation == "carre":
-            thatLine = []
-            lineTaken = []
-            numberOfLines = math.sqrt(len(unitIndex)-1)
-            if str(numberOfLines).split('.')[1] != '0':
-                numberOfLines+=1
-            math.trunc(float(numberOfLines))
-            numberOfLines = int(numberOfLines)
-            for l in range(0,numberOfLines):
-                thatLine = []
-                for k in range(0,numberOfLines):
-                    thatLine.append(False)
-                lineTaken.append(thatLine)
-            for i in range(0,len(unitIndex)-1):
-                goodPlace=False
-                line=0
-                while goodPlace==False:
-                    for p in range(0,len(lineTaken[line])):
-                        if lineTaken[line][p]==False:
-                            lineTaken[line][p]=True
-                            target[0]=targetorig[0]+(p*((width/4)+width))
-                            if target[0] < -1*(self.galaxy.width/2)+9:
-                                target[0] = -1*(self.galaxy.width/2)+18
-                            elif target[0] > (self.galaxy.width/2)-9:
-                                target[0] = (self.galaxy.width/2)-18
-                            target[1]=targetorig[1]-(line*((height/4)+height))
-                            if target[1] < -1*(self.galaxy.height/2)+9:
-                                target[1] = -1*(self.galaxy.height/2)+18
-                            goodPlace=True
-                            break
-                    if goodPlace==False:
-                        line+=1
-                        if (len(lineTaken)-1)<line:
-                            numberOfSpaces=1+line
-                            thatLine=[]
-                            for a in range(0,numberOfSpaces):
-                                thatLine.append(False)
-                            lineTaken.append(thatLine)
-                self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
-        #Formation en triangle, FUCK YEAH
-        elif self.players[actionPlayerId].formation == "triangle":
-            thatLine=[]
-            xLineBefore=[0,0,0,0,0,0,0,0,0,0,0,0]
-            thatLine.append([False])
-            lineTaken.append(thatLine[False])
-            for i in range(0,len(unitIndex)-1):
-                goodPlace=False
-                line=0
-                while goodPlace==False:
-                    for p in range(0,len(lineTaken[line])):
-                        if lineTaken[line][p]==False:
-                            lineTaken[line][p]=True
-                            if line != 0:
-                                if p==len(lineTaken[line-1]):
-                                    target[0]=targetorig[0]+(p*width)
-                                    #jerome ajoute ca ici la largeur du vaisseau
-                                    if target[0] > (self.galaxy.width/2)-9:
-                                        target[0] = target[0]-(target[0]-(self.galaxy.width/2)+18)
-                                    xLineBefore[p] = target[0]
-                                else:
-                                    target[0]=xLineBefore[p]-width
-                                    if target[0] < -1*(self.galaxy.width/2)+9:
-                                        target[0] = xLineBefore[p]
-                                    elif target[0] > (self.galaxy.width/2)-9:
-                                        target[0] = target[0]-(target[0]-(self.galaxy.width/2)+18)
-                                    xLineBefore[p] = target[0]
-                            target[1]=targetorig[1]-(line*height)
-                            if target[1] < -1*(self.galaxy.height/2)+9:
-                                target[1] = targetorig[1]
-                            goodPlace=True
-                            break
-                    if goodPlace==False:
-                        line+=1
-                        if (len(lineTaken)-1)<line:
-                            numberOfSpaces=1+line
-                            thatLine=[]
-                            for a in range(0,numberOfSpaces):
-                                thatLine.append(False)
-                            lineTaken.append(thatLine)
-                    if line == 0:
-                        xLineBefore[0] = target[0]
-                self.players[actionPlayerId].units[int(unitIndex[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
 
+    def endGame(self):
+        self.view.showGameIsFinished()
+        self.view.root.destroy()
+
+    def sendKillPlayer(self, playerId=None):
+        if playerId == None:
+            playerId = self.game.playerId
+        self.pushChange(playerId, Flag(None,playerId,FlagState.DESTROY_ALL))
+
+    #Enleve le joueur courant de la partie ainsi que ses units
+    def removePlayer(self):
+        if self.view.currentFrame == self.view.gameFrame:
+            self.view.selectedOnglet = self.view.SELECTED_CHAT
+            self.sendMessage('a quitté la partie')
+            self.server.removePlayer(self.game.players[self.game.playerId].name, self.game.playerId)
 
 if __name__ == '__main__':
     c = Controller()
