@@ -76,6 +76,8 @@ class SolarSystem():
     SUN_HEIGHT=20
     MAX_PLANETS=6
     MAX_ATRO_OBJS=8
+    NEBULA = 0
+    ASTEROID = 1
     
     def __init__(self,position,sunId):
         self.sunId = sunId

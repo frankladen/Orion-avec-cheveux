@@ -1,0 +1,65 @@
+<xml>
+	<Units>
+		<Tech>
+			<Name>+1 Damage</Name>
+			<Effect>D</Effect>
+			<Add>1</Add>
+			<CostMine>200</CostMine>
+			<CostGaz>300</CostGaz>
+		</Tech>
+		<Tech>
+			<Name>+2 Damage</Name>
+			<Effect>D</Effect>
+			<Add>2</Add>
+			<CostMine>450</CostMine>
+			<CostGaz>500</CostGaz>
+		</Tech>
+		<Tech>
+			<Name>+1 Annee lumiere/l'heure</Name>
+			<Effect>S</Effect>
+			<Add>1</Add>
+			<CostMine>200</CostMine>
+			<CostGaz>300</CostGaz>
+		</Tech>
+		<Tech>
+			<Name>+2 Annee lumiere/l'heure</Name>
+			<Effect>S</Effect>
+			<Add>2</Add>
+			<CostMine>450</CostMine>
+			<CostGaz>500</CostGaz>
+		</Tech>
+	</Units>
+	<Buildings>
+		<Tech>
+			<Name>Bouclier</Name>
+			<Effect>B</Effect>
+			<Add>300</Add>
+			<CostMine>1200</CostMine>
+			<CostGaz>1200</CostGaz>
+		</Tech>
+	</Buildings>
+	<Mothership>
+		<Tech>
+			<Name>+1 Damage</Name>
+			<Effect>D</Effect>
+			<Add>1</Add>
+			<CostMine>200</CostMine>
+			<CostGaz>300</CostGaz>
+		</Tech>
+		<Tech>
+			<Name>+2 Damage</Name>
+			<Effect>D</Effect>
+			<Add>2</Add>
+			<CostMine>450</CostMine>
+			<CostGaz>500</CostGaz>
+		</Tech>
+		<Tech>
+			<Name>Bouclier</Name>
+			<Effect>B</Effect>
+			<Add>300</Add>
+			<CostMine>1200</CostMine>
+			<CostGaz>1200</CostGaz>
+		</Tech>
+	</Mothership>
+	
+</xml>
