@@ -14,6 +14,7 @@ class Player():
         self.colorId = colorId
         self.selectedObjects = [] #Liste des unites selectionnes
         self.units = [] #Liste de toute les unites
+        self.buildings = [] #Liste de tous les buildings
         self.id = id #Numero du joueur dans la liste de joueur
         self.diplomacies=[]
         for i in range(8):
@@ -90,6 +91,20 @@ class Player():
             return self.game.isAllied(playerId, self.id)
         return False
 
+    def getNearestReturnRessourceCenter(self, position):
+        motherShipPosition = self.units[0].flag.initialTarget.position
+        nearestDistance = Helper.calcDistance(position[0],position[1],motherShipPosition[0],motherShipPosition[1])
+        nearestBuilding = self.units[0]
+        for b in self.buildings:
+            if b.type == b.WAYPOINT:
+                if b.finished:
+                    buildingPosition = b.position
+                    distance = Helper.calcDistance(position[0],position[1],buildingPosition[0],buildingPosition[1])
+                    if distance < nearestDistance:
+                        nearestDistance = distance
+                        nearestBuilding = b
+        return nearestBuilding
+
     def killUnit(self, killedIndexes):
         if killedIndexes[1] == self.id:
             if self.units[killedIndexes[0]] in self.selectedObjects:
@@ -145,13 +160,18 @@ class Player():
                 self.units[int(i)].changeFlag(astroObject, FlagState.GATHER)
 
     def makeFormation(self, units, target = None, action = FlagState.MOVE):
+        #S'il n'y a pas de target de spécifiée comme lors du changement de formation
         if target == None:
             target = self.units[int(units[0])].flag.finalTarget.position
+        #tuple qui contient les lignes qui peut contenir par ligne
         lineTaken=[]
         line=0
+        #Coordonnées avant modification
         targetorig=[0,0]
         targetorig[0]=target[0]
         targetorig[1]=target[1]
+        #Permet de savoir combien en x et en y je dois les séparer selon la grosseur
+        #du plus gros unit dans les selectedObjects
         widths = []
         heights = []
         for i in range(0,len(units)-1):
@@ -162,35 +182,41 @@ class Player():
         height = max(heights)
         #Formation en carré selon le nombre de unit qui se déplace, OH YEAH
         if self.formation == "carre":
+            #tuple qui contient les units qui peut contenir par ligne
             thatLine = []
             lineTaken = []
+            #Nombre de ligne nécessaires pour faire la formation carré
             numberOfLines = math.sqrt(len(units)-1)
             if str(numberOfLines).split('.')[1] != '0':
                 numberOfLines+=1
             math.trunc(float(numberOfLines))
             numberOfLines = int(numberOfLines)
+            #Remplissage du tuple de chaque ligne pour créer la formation par des False
             for l in range(0,numberOfLines):
                 thatLine = []
                 for k in range(0,numberOfLines):
                     thatLine.append(False)
                 lineTaken.append(thatLine)
+            #Maintenant on fait la vérification de chaque Unit pour les placer dans le carré
             for i in range(0,len(units)-1):
                 goodPlace=False
                 line=0
                 while goodPlace==False:
                     for p in range(0,len(lineTaken[line])):
+                        #Si la place n'est pas prise
                         if lineTaken[line][p]==False:
                             lineTaken[line][p]=True
-                            target[0]=targetorig[0]+(p*20)
-                            if target[0] < -1*(self.game.galaxy.width/2)+9:
-                                target[0] = -1*(self.game.galaxy.width/2)+18
-                            elif target[0] > (self.game.galaxy.width/2)-9:
-                                target[0] = (self.game.galaxy.width/2)-18
-                            target[1]=targetorig[1]-(line*20)
-                            if target[1] < -1*(self.game.galaxy.height/2)+9:
-                                target[1] = -1*(self.game.galaxy.height/2)+18
+                            target[0]=targetorig[0]+(p*width)
+                            if target[0] < -1*(self.game.galaxy.width/2)+(width/2):
+                                target[0] = -1*(self.game.galaxy.width/2)+width
+                            elif target[0] > (self.game.galaxy.width/2)-(width/2):
+                                target[0] = (self.game.galaxy.width/2)-width
+                            target[1]=targetorig[1]-(line*height)
+                            if target[1] < -1*(self.game.galaxy.height/2)+(height/2):
+                                target[1] = -1*(self.game.galaxy.height/2)+height
                             goodPlace=True
                             break
+                    #Si le Unit n'a pas trouvé sa place, on avance d'une ligne
                     if goodPlace==False:
                         line+=1
                         if (len(lineTaken)-1)<line:
@@ -199,18 +225,26 @@ class Player():
                             for a in range(0,numberOfSpaces):
                                 thatLine.append(False)
                             lineTaken.append(thatLine)
-                self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
+                #Lorsqu'il a trouvé sa place, on le fait bouger vers sa nouvelle target
+                self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
         #Formation en triangle, FUCK YEAH
         elif self.formation == "triangle":
+            #tuple qui contient le nombre de Unit par ligne
             thatLine=[]
+            #tuple qui contient les X de la ligne précédente
             xLineBefore=[0,0,0,0,0,0,0,0,0,0,0,0]
+            #On initialise directement la première ligne et on l'ajoute dans le tableau des lignes par
+            #la suite
             thatLine.append([False])
             lineTaken.append(thatLine[False])
+            xLineBefore[0] = target[0]
+            #Après, on fait chercher un endroit dans la formation pour chaque Unit
             for i in range(0,len(units)-1):
                 goodPlace=False
                 line=0
                 while goodPlace==False:
                     for p in range(0,len(lineTaken[line])):
+                        #S'il a trouvé une place vide
                         if lineTaken[line][p]==False:
                             lineTaken[line][p]=True
                             if line != 0:
@@ -232,17 +266,18 @@ class Player():
                                 target[1] = targetorig[1]
                             goodPlace=True
                             break
+                    #S'il n'a pas trouvé de place dans cette ligne
                     if goodPlace==False:
                         line+=1
+                        #Si la prochaine ligne n'existe pas, on la crée
                         if (len(lineTaken)-1)<line:
                             numberOfSpaces=1+line
                             thatLine=[]
                             for a in range(0,numberOfSpaces):
                                 thatLine.append(False)
                             lineTaken.append(thatLine)
-                    if line == 0:
-                        xLineBefore[0] = target[0]
-                self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],target[2]]),int(action))
+                #Lorsqu'il a trouvé sa place, on le fait bouger à sa nouvelle Target  
+                self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
         
 #Represente la camera            
 class Camera():

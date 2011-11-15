@@ -229,6 +229,11 @@ class Controller():
                     actionString = str(flag.initialTarget)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/U"+str(targetId)+"P"+str(flag.finalTarget.owner)
                 else:
                     actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/U"+str(targetId)+"P"+str(flag.finalTarget.owner)
+            elif flag.flagState == FlagState.FINISH_BUILD:
+                buildingId = self.game.players[flag.finalTarget.owner].buildings.index(flag.finalTarget)
+                actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(buildingId)   
+            elif flag.flagState == FlagState.BUILD:
+                actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             elif flag.flagState == FlagState.CREATE:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.CHANGE_RALLY_POINT:
@@ -258,7 +263,7 @@ class Controller():
                         solarId = flag.finalTarget.solarSystem.sunId
                         actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(mineralId)+","+str(solarId)+",1"
                 else:
-                    actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/retouraumothership,sansbriserlaactionstring,2"
+                    actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/0,0,2"
             
         elif isinstance(flag, tuple):
             if flag[2] == FlagState.LAND:
@@ -306,7 +311,18 @@ class Controller():
             for i in unitIndex:
                 if i != '':
                     self.game.players[actionPlayerId].units[int(i)].changeFlag(t.Target([int(target[0]),int(target[1]),int(target[2])]),int(action))
-                    
+        
+        elif action == str(FlagState.FINISH_BUILD):
+            self.game.resumeBuilding(actionPlayerId, int(target), unitIndex)
+            
+        elif action == str(FlagState.BUILD):
+            target = target.strip("[")
+            target = target.strip("]")
+            target = target.split(",")
+            for i in range(0, len(target)):
+                target[i]=math.trunc(float(target[i])) #nécessaire afin de s'assurer que les positions sont des entiers
+            self.game.buildBuilding(actionPlayerId, target, int(action), unitIndex)
+                        
         elif action == str(FlagState.ATTACK):
             target = target.split("P")
             target[0] = target[0].strip("U")

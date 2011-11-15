@@ -3,6 +3,7 @@ from tkinter import *
 from Unit import *
 from World import *
 import time
+import Building as b
 from winsound import *
 import tkinter.messagebox as mb
 
@@ -17,6 +18,8 @@ class View():
     WAITING_FOR_MOVE_POINT_MENU=4
     WAITING_FOR_ATTACK_POINT_MENU=5
     WAITING_FOR_PATROL_POINT_MENU=6
+    WAITING_FOR_BUILDING_POINT_MENU=7
+    UNIT_BUILD_MENU=8
     MINIMAP_WIDTH=200
     MINIMAP_HEIGHT=200
     SELECTED_TRADE = 20
@@ -59,6 +62,7 @@ class View():
         self.gifAttackUnit = PhotoImage(file='images/icones/attackUnit.gif')
         self.gifRallyPoint = PhotoImage(file='images/icones/flag.gif')
         self.gifBuild = PhotoImage(file = 'images/icones/build.gif')
+        self.gifConstruction = PhotoImage(file='images/Building/construction.gif')        
         self.gifCadreMenuAction = PhotoImage(file = 'images/Menus/cadreMenuAction.gif')
         self.iconCancel = PhotoImage(file = 'images/icones/cancelUnit.gif')
         self.gifPatrol = PhotoImage(file='images/icones/patrol.gif')
@@ -86,12 +90,14 @@ class View():
         #booleens d'actions
         self.firstTime = True
         self.attacking = False
+        self.building = False
         self.selectAllUnits = False
         self.wantToCancelUnitBuild = False
         self.isSettingPatrolPosition = False
         self.isSettingRallyPointPosition = False
         self.isSettingMovePosition = False
         self.isSettingAttackPosition = False
+        self.isSettingBuildingPosition = False
         self.dragging = False
         self.hpBars=False
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
@@ -112,6 +118,7 @@ class View():
         self.transportShips = []
         self.landedShips = []
         self.gatherShips = []
+        self.waypoints = []
         self.landingZones = []
         for i in range(0,8):
             self.scoutShips.append(PhotoImage(file='images/Ships/Scoutships/Scoutship'+str(i)+'.gif'))
@@ -121,6 +128,8 @@ class View():
             self.landedShips.append(PhotoImage(file='images/Planet/LandedShips/landed'+str(i)+'.gif'))
             self.gatherShips.append(PhotoImage(file='images/Ships/Cargo/Cargo'+str(i)+'.gif'))
             self.landingZones.append(PhotoImage(file='images/Planet/LandingZones/landing'+str(i)+'.gif'))
+            self.waypoints.append(PhotoImage(file='images/Building/waypoint'+str(i)+'.gif'))
+                
         self.showMinerals = Label(gameFrame, text="Mineraux: "+str(self.game.players[self.game.playerId].ressources[0]), bg="black", fg="white", anchor=E)
         self.showMinerals.grid(column=2, row=0)
         self.showGaz = Label(gameFrame, text="Gaz: "+str(self.game.players[self.game.playerId].ressources[1]), bg="black", fg="white", anchor=E)
@@ -440,7 +449,9 @@ class View():
                     self.Actionmenu.create_image(13,35,image=self.gifMove,anchor = NW, tags = 'Button_Move')
                     self.Actionmenu.create_image(76,35,image=self.gifStop,anchor = NW, tags = 'Button_Stop')
                     self.Actionmenu.create_image(140,35,image=self.gifPatrol,anchor = NW, tags = 'Button_Patrol')
-                    if isinstance(units[0], SpaceAttackUnit):
+                    if units[0].type == units[0].SCOUT:
+                        self.Actionmenu.create_image(13,89,image=self.gifBuild,anchor = NW, tags = 'Button_Build_Waypoint')
+                    elif isinstance(units[0], SpaceAttackUnit):
                         self.Actionmenu.create_image(13,89,image=self.gifAttack,anchor = NW, tags = 'Button_Attack')
                 if len(self.game.players[self.game.playerId].selectedObjects) > 1:
                     self.Actionmenu.create_image(76,143,image=self.gifTriangle,anchor = NW, tags = 'Button_Triangle')
@@ -464,7 +475,8 @@ class View():
         elif(type == self.WAITING_FOR_PATROL_POINT_MENU):
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le mouvement de patrouille de vos units d'attaques sélectionnés",anchor = NW, fill = 'white', width = 200)
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
-        
+        elif(type == self.WAITING_FOR_BUILDING_POINT_MENU):
+            self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le lieu où la construction du bâtiment va s'effectuer",anchor = NW, fill = 'white', width = 200)
 
     def createUnitsConstructionMenu(self):
         y = 35;
@@ -720,12 +732,20 @@ class View():
                         self.drawAsteroid(j, players[id], False)
         for i in players:
             if self.game.players[self.game.playerId].isAlly(i.id):
+                for j in i.buildings:
+                    if self.game.players[self.game.playerId].inViewRange(j.position):
+                        j.discovered = True
+                        self.drawBuilding(j,i,False)
                 for j in i.units:
                     if j.isAlive:
                         if j.type == j.MOTHERSHIP:
                             j.discovered = True
                         self.drawUnit(j, i, False)
             else:
+                for j in i.buildings:
+                    if self.game.players[self.game.playerId].inViewRange(j.position):
+                        j.discovered = True
+                        self.drawBuilding(j,i,False)
                 for j in i.units:
                     if j.isAlive:
                         if self.game.players[self.game.playerId].inViewRange(j.position):
@@ -792,6 +812,27 @@ class View():
                     self.gameArea.create_image(distance[0],distance[1],image=self.asteroid, tag='deletable')
                 else:
                     self.gameArea.create_image(distance[0],distance[1],image=self.asteroidFOW, tag='deletable')
+                    
+    def drawBuilding(self, building,  player, isInFOW):
+        buildingPosition = building.position
+        if self.game.players[self.game.playerId].camera.isInFOV(buildingPosition):
+            distance = self.game.players[self.game.playerId].camera.calcDistance(buildingPosition)
+            if not isInFOW:
+                if building.type == b.Building.WAYPOINT:
+                    if building.buildingTimer < building.TIME[building.type]:
+                        if building in player.selectedObjects:
+                            self.gameArea.create_oval(distance[0]-(building.SIZE[building.type][0]/2+15),distance[1]-(building.SIZE[building.type][1]/2+15),distance[0]+(building.SIZE[building.type][0]/2+15),distance[1]+(building.SIZE[building.type][1]/2+15), outline="purple", tag='deletable')
+                        self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifConstruction,tag='deletable')  
+                    else:
+                        if building in player.selectedObjects:
+                            self.gameArea.create_oval(distance[0]-(building.SIZE[building.type][0]/2),distance[1]-(building.SIZE[building.type][1]/2),distance[0]+(building.SIZE[building.type][0]/2),distance[1]+(building.SIZE[building.type][1]/2), outline="purple", tag='deletable')    
+                        self.gameArea.create_image(distance[0]+1, distance[1], image=self.waypoints[player.colorId],tag='deletable')
+                if building.hitpoints <= 5:
+                    self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
+                if self.hpBars:
+                    self.drawHPBars(distance, building)
+                else:
+                    self.drawHPHoverUnit(building, distance)
     
     #pour dessiner un vaisseau        
     def drawUnit(self, unit, player, isInFOW):
@@ -831,39 +872,35 @@ class View():
                     self.drawHPHoverUnit(unit, distance)
      
     def drawHPHoverUnit(self, unit, distance):
-        if self.game.players[self.game.playerId].currentPlanet == None and not isinstance(unit, GroundUnit):
-            posSelected=self.game.players[self.game.playerId].camera.calcPointInWorld(self.positionMouse[0],self.positionMouse[1])
-            if unit.position[0] >= posSelected[0]-(unit.SIZE[unit.type][0]/2) and unit.position[0] <= posSelected[0]+(unit.SIZE[unit.type][0]/2):
-                if unit.position[1] >= posSelected[1]-(unit.SIZE[unit.type][1]/2) and unit.position[1] <= posSelected[1]+(unit.SIZE[unit.type][1]/2):
-                    if unit.type == unit.TRANSPORT:
-                        if not unit.landed:
-                            hpLeft=((unit.hitpoints/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
-                            hpLost=(hpLeft+(((unit.MAX_HP[unit.type]-unit.hitpoints)/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0])))
-                            self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="green", tag='deletable')
-                            if int(unit.hitpoints) != int(unit.MAX_HP[unit.type]):
-                                self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLost,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="red", tag='deletable')
-                    else:
+        posSelected=self.game.players[self.game.playerId].camera.calcPointInWorld(self.positionMouse[0],self.positionMouse[1])
+        if unit.position[0] >= posSelected[0]-(unit.SIZE[unit.type][0]/2) and unit.position[0] <= posSelected[0]+(unit.SIZE[unit.type][0]/2):
+            if unit.position[1] >= posSelected[1]-(unit.SIZE[unit.type][1]/2) and unit.position[1] <= posSelected[1]+(unit.SIZE[unit.type][1]/2):
+                self.drawHPBars(distance,unit)
+                            
+    
+    def drawHPBars(self, distance, unit):
+        if isinstance(unit, Unit):
+            if self.game.players[self.game.playerId].currentPlanet == None and not isinstance(unit, GroundUnit):
+                if unit.type == unit.TRANSPORT:
+                    if not unit.landed:
                         hpLeft=((unit.hitpoints/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
                         hpLost=(hpLeft+(((unit.MAX_HP[unit.type]-unit.hitpoints)/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0])))
                         self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="green", tag='deletable')
                         if int(unit.hitpoints) != int(unit.MAX_HP[unit.type]):
                             self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLost,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="red", tag='deletable')
-    
-    def drawHPBars(self, distance, unit):
-        if self.game.players[self.game.playerId].currentPlanet == None and not isinstance(unit, GroundUnit):
-            if unit.type == unit.TRANSPORT:
-                if not unit.landed:
+                else:
                     hpLeft=((unit.hitpoints/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
                     hpLost=(hpLeft+(((unit.MAX_HP[unit.type]-unit.hitpoints)/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0])))
                     self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="green", tag='deletable')
                     if int(unit.hitpoints) != int(unit.MAX_HP[unit.type]):
                         self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLost,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="red", tag='deletable')
-            else:
+        else:
                 hpLeft=((unit.hitpoints/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
                 hpLost=(hpLeft+(((unit.MAX_HP[unit.type]-unit.hitpoints)/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0])))
                 self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="green", tag='deletable')
                 if int(unit.hitpoints) != int(unit.MAX_HP[unit.type]):
                     self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLost,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="red", tag='deletable')
+
           
     #Dessine la minimap
     def drawMinimap(self):
@@ -1152,6 +1189,11 @@ class View():
                 self.game.setMovingFlag(pos[0],pos[1])
                 self.isSettingMovePosition = False
                 self.actionMenuType = self.MAIN_MENU
+                
+            elif self.isSettingBuildingPosition or self.building:
+                self.game.setBuildingFlag(pos[0],pos[1])
+                self.isSettingBuildingPosition = False
+                self.actionMenuType = self.MAIN_MENU
                     
             else:
                 if not self.selectAllUnits:
@@ -1296,6 +1338,9 @@ class View():
             elif (Button_pressed == "Button_Attack"):
                 self.actionMenuType = self.WAITING_FOR_ATTACK_POINT_MENU
                 self.isSettingAttackPosition = True
+            elif (Button_pressed == "Button_Build_Waypoint"):
+                self.actionMenuType = self.WAITING_FOR_BUILDING_POINT_MENU
+                self.isSettingBuildingPosition = True;
             elif (Button_pressed == "Button_Move"):
                 self.actionMenuType = self.WAITING_FOR_MOVE_POINT_MENU
                 self.isSettingMovePosition = True

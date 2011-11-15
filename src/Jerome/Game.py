@@ -3,6 +3,7 @@ import World as w
 import Player as p
 import Target as t
 import Unit as u
+from Building import *
 from View import*
 from Helper import *
 from Flag import *
@@ -34,7 +35,37 @@ class Game():
             startPos = self.galaxy.getSpawnPoint()
             i.addBaseUnits(startPos) 
         self.players[self.playerId].addCamera(self.galaxy, taille)
-    
+
+    # Pour changer le flag des unités selectionne pour la construction        
+    def setBuildingFlag(self,x,y):
+        units = ''
+        #Si plusieurs unit�s sont s�lectionn�es, on les ajoute toutes dans le changement � envoyer
+        for i in self.players[self.playerId].selectedObjects:
+            if i.type == i.SCOUT:
+                units+= str(self.players[self.playerId].units.index(i))+","
+        self.parent.pushChange(units, Flag(i,t.Target([x,y,0]),FlagState.BUILD))
+
+    def buildBuilding(self, playerId, target, flag, unitIndex):
+        #Condition de construction
+        wp = Waypoint('Waypoint', Building.WAYPOINT, [target[0],target[1]], playerId)
+        self.players[playerId].buildings.append(wp)
+        for i in unitIndex:
+            if i != '':
+                self.players[playerId].units[int(i)].changeFlag(wp,flag)
+
+    def resumeBuildingFlag(self,building):
+        units = ''
+        for i in self.players[self.playerId].selectedObjects:
+            if i.type == i.SCOUT:
+                units+= str(self.players[self.playerId].units.index(i))+","
+        if not building.finished:
+            self.parent.pushChange(units, Flag(i,building,FlagState.FINISH_BUILD))                          
+
+    def resumeBuilding(self, playerId, building, unitIndex):
+        for i in unitIndex:
+            if i != '':
+                self.players[playerId].units[int(i)].changeFlag(self.players[playerId].buildings[building],FlagState.BUILD)
+
     #Pour changer le flag des unites selectionne pour le deplacement    
     def setMovingFlag(self,x,y):
         units = ''
@@ -303,6 +334,15 @@ class Game():
                                         self.players[self.playerId].selectedObjects.append(j)
                                 else:
                                     self.players[self.playerId].selectedObjects.append(j)
+
+            for b in self.players[self.playerId].buildings:
+                if b.buildingTimer == b.TIME[b.type]:
+                    if b.position[0] >= posSelected[0]-(b.SIZE[b.type][0]/2) and b.position[0] <= posSelected[0]+(b.SIZE[b.type][0]/2):
+                        if b.position[1] >= posSelected[1]-(b.SIZE[b.type][1]/2) and b.position[1] <= posSelected[1]+(b.SIZE[b.type][1]/2):
+                            self.players[self.playerId].selectedObjects = []
+                            self.players[self.playerId].selectedObjects.append(b)             
+
+
             #Si on selectionne une planete
             for i in self.galaxy.solarSystemList:
                 for j in i.planets:
@@ -333,6 +373,7 @@ class Game():
                             if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
                                 self.players[self.playerId].selectedObjects = []
                                 self.players[self.playerId].selectedObjects.append(j)
+
             self.parent.changeActionMenuType(View.MAIN_MENU)
         else:
             planet = self.players[self.playerId].currentPlanet
@@ -420,7 +461,7 @@ class Game():
                             for unit in self.players[self.playerId].selectedObjects:
                                 if isinstance(unit, w.AstronomicalObject) == False and isinstance(unit, w.Planet) == False:
                                     if unit.type == unit.CARGO:
-                                        self.setGatherFlag(unit, j)
+                                        self.setGatherFlag(unit, self.players[self.playerId].units[0])
                                         empty = False
             if empty:
                 if len(self.players[self.playerId].selectedObjects) > 0:
@@ -433,6 +474,21 @@ class Game():
                                             if j.position[1] >= pos[1]-j.SIZE[j.type][1]/2 and j.position[1] <= pos[1]+j.SIZE[j.type][1]/2:
                                                 self.setAttackFlag(j)
                                                 empty = False
+                
+            if empty:
+                if len(self.players[self.playerId].selectedObjects) > 0:
+                    for i in self.players:
+                        for b in self.players[self.playerId].buildings:
+                            if b.position[0] >= pos[0]-b.SIZE[b.type][0]/2 and b.position[0] <= pos[0]+b.SIZE[b.type][0]/2:
+                                if b.position[1] >= pos[1]-b.SIZE[b.type][1]/2 and b.position[1] <= pos[1]+b.SIZE[b.type][1]/2:
+                                    if i == self.players[self.playerId]:
+                                        if not b.finished:
+                                            self.resumeBuildingFlag(b)
+                                            empty = False
+                                    else:
+                                        self.setAttackFlag(b)
+                                        empty = False
+                                        
             if empty:
                 self.setMovingFlag(pos[0],pos[1])
             self.parent.drawWorld()

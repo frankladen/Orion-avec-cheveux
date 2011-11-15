@@ -45,6 +45,8 @@ class Unit(PlayerObject):
             unit = self.patrol()
             if unit != None:
                 parent.setAnAttackFlag(unit, self)
+        elif self.flag.flagState == FlagState.BUILD:
+            self.build(self.flag.finalTarget)
         elif self.flag.flagState == FlagState.LAND:
             self.land(parent.game)
         elif self.flag.flagState == FlagState.GATHER:
@@ -79,6 +81,19 @@ class Unit(PlayerObject):
             self.flag.finalTarget = self.before
             self.move()
         return None
+
+    def build(self, building):
+        if Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1]) >= self.moveSpeed:
+            self.move()
+        else:
+            endPos = [self.flag.finalTarget.position[0],self.flag.finalTarget.position[1]]
+            self.position = endPos
+            
+            if building.buildingTimer < building.TIME[building.type]:
+                building.buildingTimer += 1
+            else:
+                building.finished = True
+                self.flag.flagState = FlagState.STANDBY
             
     #Efface la unit
     def eraseUnit(self):
@@ -386,12 +401,12 @@ class GatherShip(SpaceUnit):
                             else:
                                 self.container[0]+=ressource.mineralQte
                                 ressource.mineralQte = 0
-                                self.flag.intialTarget = self.flag.finalTarget
+                                self.flag.initialTarget = self.flag.finalTarget
                                 self.flag.finalTarget = player.motherShip
                                 game.parent.redrawMinimap()
                             self.gatherSpeed = 20
                         else:
-                            self.flag.intialTarget = self.flag.finalTarget
+                            self.flag.initialTarget = self.flag.finalTarget
                             self.flag.finalTarget = player.motherShip
                     else:
                         if self.container[1]<self.maxGather:
@@ -401,13 +416,13 @@ class GatherShip(SpaceUnit):
                             else:
                                 self.container[1]+=ressource.gazQte
                                 ressource.gazQte = 0
-                                self.flag.intialTarget = self.flag.finalTarget
+                                self.flag.initialTarget = self.flag.finalTarget
                                 self.flag.finalTarget = player.motherShip
                                 game.parent.redrawMinimap()
                             self.gatherSpeed = 20
                         else:
-                            self.flag.intialTarget = self.flag.finalTarget
-                            self.flag.finalTarget = player.motherShip
+                            self.flag.initialTarget = self.flag.finalTarget
+                            self.flag.finalTarget = player.getNearestReturnRessourceCenter(self.position)
                 else:
                     self.gatherSpeed-=1
         else:
@@ -416,15 +431,19 @@ class GatherShip(SpaceUnit):
                     arrived = False
                     self.move()
             if arrived:
-                player.ressources[player.MINERAL] += self.container[0]
-                player.ressources[player.GAS] += self.container[1]
+                player.ressources[0] += self.container[0]
+                player.ressources[1] += self.container[1]
                 self.container[0] = 0
                 self.container[1] = 0
-                self.flag.finalTarget = self.flag.intialTarget
-                if self.flag.finalTarget.type == 'asteroid':
-                    if self.flag.finalTarget.mineralQte == 0:
-                        self.flag.flagState = FlagState.STANDBY
+                if isinstance(self.flag.initialTarget, w.AstronomicalObject):
+                    self.flag.finalTarget = self.flag.initialTarget
+                    if self.flag.finalTarget.type == 'asteroid':
+                        if self.flag.finalTarget.mineralQte == 0:
+                            self.flag.flagState = FlagState.STANDBY
+                    else:
+                        if self.flag.finalTarget.gazQte == 0:
+                            self.flag.flagState = FlagState.STANDBY
                 else:
-                    if self.flag.finalTarget.gazQte == 0:
-                        self.flag.flagState = FlagState.STANDBY
+                    self.flag.finalTarget = self.position
+                    self.flag.flagState = FlagState.STANDBY
  
