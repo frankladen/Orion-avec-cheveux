@@ -7,9 +7,9 @@ import math
 #Classe qui represente la galaxie en entier.
 class Galaxy():
     SIZE_MULTIPLIER=1000
-    MIN_SPAWN_POINT_SPACING = 1000
+    MIN_SPAWN_POINT_SPACING = 200
     BORDER_SPACING=25
-    SUN_BORDER_SPACING=BORDER_SPACING + 125
+    SUN_BORDER_SPACING=BORDER_SPACING + 175
     MAX_SOLARSYSTEM = 10
     def __init__(self,nbPlayer, seed):
         if nbPlayer>2:
@@ -76,6 +76,8 @@ class SolarSystem():
     SUN_HEIGHT=20
     MAX_PLANETS=6
     MAX_ATRO_OBJS=8
+    NEBULA = 0
+    ASTEROID = 1
     
     def __init__(self,position,sunId):
         self.sunId = sunId
@@ -103,12 +105,14 @@ class SolarSystem():
                 tempY = (random.random()*SolarSystem.HEIGHT/2)-Planet.MAX_DIST_FROM_SUN
                 #Condition de placement des planetes
                 if tempX > -40 and tempX < 40:
-                    if tempY > -40 and tempY < 40:
-                        placeFound = False
+                    placeFound = False
+                if tempY > -40 and tempY < 40:
+                    placeFound = False
                 for j in self.planets:
                     if self.sunPosition[0]+tempX > j.position[0]-(j.IMAGE_WIDTH+5) and self.sunPosition[0]+tempX < j.position[0]+(j.IMAGE_WIDTH+5):
-                        if self.sunPosition[1]+tempY > j.position[1]-(j.IMAGE_HEIGHT+5) and self.sunPosition[1]+tempY < j.position[1]+j.IMAGE_HEIGHT+5:
-                            placeFound = False
+                        placeFound = False
+                    if self.sunPosition[1]+tempY > j.position[1]-(j.IMAGE_HEIGHT+5) and self.sunPosition[1]+tempY < j.position[1]+j.IMAGE_HEIGHT+5:
+                        placeFound = False
             self.planets.append(Planet([self.sunPosition[0]+tempX,self.sunPosition[1]+tempY],int(random.random()*3),int(random.random()*3)))
         for i in range(0,nNebu):
             tempX=""
@@ -120,16 +124,19 @@ class SolarSystem():
                 tempY = (random.random()*SolarSystem.HEIGHT/2)-Planet.MAX_DIST_FROM_SUN
                 #Condition de placement des nebuleuses
                 if tempX > -40 and tempX < 40:
-                    if tempY > -40 and tempY < 40:
-                        placeFound = False
+                    placeFound = False
+                if tempY > -40 and tempY < 40:
+                    placeFound = False
                 for j in self.planets:
                     if self.sunPosition[0]+tempX > j.position[0]-(j.IMAGE_WIDTH+5) and self.sunPosition[0]+tempX < j.position[0]+(j.IMAGE_WIDTH+5):
-                        if self.sunPosition[1]+tempY > j.position[1]-(j.IMAGE_HEIGHT+5) and self.sunPosition[1]+tempY < j.position[1]+(j.IMAGE_HEIGHT+5):
-                            placeFound = False
+                        placeFound = False
+                    if self.sunPosition[1]+tempY > j.position[1]-(j.IMAGE_HEIGHT+5) and self.sunPosition[1]+tempY < j.position[1]+(j.IMAGE_HEIGHT+5):
+                        placeFound = False
                 for k in self.nebulas:
                     if self.sunPosition[0]+tempX > k.position[0]-(k.NEBULA_WIDTH+5) and self.sunPosition[0]+tempX < k.position[0]+(k.NEBULA_WIDTH+5):
-                        if self.sunPosition[1]+tempY > k.position[1]-(k.NEBULA_HEIGHT+5) and self.sunPosition[1]+tempY < k.position[1]+(k.NEBULA_HEIGHT+5):
-                            placeFound = False
+                        placeFound = False
+                    if self.sunPosition[1]+tempY > k.position[1]-(k.NEBULA_HEIGHT+5) and self.sunPosition[1]+tempY < k.position[1]+(k.NEBULA_HEIGHT+5):
+                        placeFound = False
             self.nebulas.append(AstronomicalObject('nebula', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY),i,self))
         for i in range(0,nAstero):
             tempX=""
@@ -141,20 +148,24 @@ class SolarSystem():
                 tempY = (random.random()*SolarSystem.HEIGHT/2)-Planet.MAX_DIST_FROM_SUN
                 #Condition de placement des asteroïdes
                 if tempX > -40 and tempX < 40:
-                    if tempY > -40 and tempY < 40:
-                        placeFound = False
+                    placeFound = False
+                if tempY > -40 and tempY < 40:
+                    placeFound = False
                 for j in self.planets:
                     if self.sunPosition[0]+tempX > j.position[0]-(j.IMAGE_WIDTH+5) and self.sunPosition[0]+tempX < j.position[0]+(j.IMAGE_WIDTH+5):
-                        if self.sunPosition[1]+tempY > j.position[1]-(j.IMAGE_HEIGHT+5) and self.sunPosition[1]+tempY < j.position[1]+(j.IMAGE_HEIGHT+5):
-                            placeFound = False
+                        placeFound = False
+                    if self.sunPosition[1]+tempY > j.position[1]-(j.IMAGE_HEIGHT+5) and self.sunPosition[1]+tempY < j.position[1]+(j.IMAGE_HEIGHT+5):
+                        placeFound = False
                 for k in self.nebulas:
                     if self.sunPosition[0]+tempX > k.position[0]-(k.NEBULA_WIDTH+5) and self.sunPosition[0]+tempX < k.position[0]+(k.NEBULA_WIDTH+5):
-                        if self.sunPosition[1]+tempY > k.position[1]-(k.NEBULA_HEIGHT+5) and self.sunPosition[1]+tempY < k.position[1]+(k.NEBULA_HEIGHT+5):
-                            placeFound = False
+                        placeFound = False
+                    if self.sunPosition[1]+tempY > k.position[1]-(k.NEBULA_HEIGHT+5) and self.sunPosition[1]+tempY < k.position[1]+(k.NEBULA_HEIGHT+5):
+                        placeFound = False
                 for q in self.asteroids:
                     if self.sunPosition[0]+tempX > q.position[0]-(q.ASTEROID_WIDTH+5) and self.sunPosition[0]+tempX < q.position[0]+(q.ASTEROID_WIDTH+5):
-                        if self.sunPosition[1]+tempY > q.position[1]-(q.ASTEROID_HEIGHT+5) and self.sunPosition[1]+tempY < q.position[1]+(q.ASTEROID_HEIGHT+5):
-                            placeFound = False
+                        placeFound = False
+                    if self.sunPosition[1]+tempY > q.position[1]-(q.ASTEROID_HEIGHT+5) and self.sunPosition[1]+tempY < q.position[1]+(q.ASTEROID_HEIGHT+5):
+                        placeFound = False
             self.asteroids.append(AstronomicalObject('asteroid', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY),i,self))
         
 #Represente un objet spacial (Planete, Meteorite, Nebuleuse)
@@ -166,6 +177,9 @@ class AstronomicalObject(Target):
     ASTEROID_WIDTH=16
     ASTEROID_HEIGHT=16
     MAX_MINERALS=300
+    NEBULA = 90
+    ASTEROID = 91
+    
     def __init__(self, type, position, id,solarSystem):
         Target.__init__(self, position)
         self.solarSystem = solarSystem
@@ -185,7 +199,7 @@ class Planet(Target):
     WIDTH=1600
     HEIGHT=1200
     PADDING=25
-    MAX_DIST_FROM_SUN=125
+    MAX_DIST_FROM_SUN = SolarSystem.WIDTH/4
     def __init__(self, planetPosition, nMineralStack, nGazStack):
         Target.__init__(self, planetPosition)
         self.discovered = False
