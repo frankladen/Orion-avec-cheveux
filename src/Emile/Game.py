@@ -395,29 +395,7 @@ class Game():
             realStart[1] = realEnd[1]
             realEnd[1] = temp[1]
         first = True
-        if self.players[self.playerId].currentPlanet == None:
-            for i in self.players[self.playerId].units:
-                if i.isAlive:
-                    if i.position[0] >= realStart[0]-i.SIZE[i.type][0]/2 and i.position[0] <= realEnd[0]+i.SIZE[i.type][0]/2:
-                        if i.position[1] >= realStart[1]-i.SIZE[i.type][1]/2 and i.position[1] <= realEnd[1]+i.SIZE[i.type][1]/2:
-                            if first:
-                                self.players[self.playerId].selectedObjects = []
-                                first = False
-                            if isinstance(i, u.Mothership) == False:
-                                if i.type == i.TRANSPORT:
-                                    if not i.landed:
-                                        self.players[self.playerId].selectedObjects.append(i)
-                                else:
-                                    self.players[self.playerId].selectedObjects.append(i)
-        else:
-            for i in self.players[self.playerId].currentPlanet.units:
-                if i.isAlive:
-                    if i.position[0] >= realStart[0]-i.SIZE[i.type][0]/2 and i.position[0] <= realEnd[0]+i.SIZE[i.type][0]/2:
-                        if i.position[1] >= realStart[1]-i.SIZE[i.type][1]/2 and i.position[1] <= realEnd[1]+i.SIZE[i.type][1]/2:
-                            if first:
-                                self.players[self.playerId].selectedObjects = []
-                                first = False
-                            self.players[self.playerId].selectedObjects.append(i)
+        self.players[self.playerId].boxSelect(startPos, endPos)
         self.parent.view.actionMenuType = self.parent.view.MAIN_MENU
         
     #Deplacement rapide de la camera vers un endroit de la minimap
