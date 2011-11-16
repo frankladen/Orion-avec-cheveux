@@ -2,6 +2,7 @@
 from Target import *
 from Flag import *
 import World as w
+import Player as p
 from Helper import *
 import math
 
@@ -18,8 +19,11 @@ class Unit(PlayerObject):
     GAS=1
     FOOD=2
     SIZE=((0,0), (125,125), (18,15), (28,32), (32,29), (20,30),(24,24))
-    MAX_HP = (50,500,50,100,125,75,100)
+    MAX_HP = (50,1500,50,100,125,75,100)
     MOVE_SPEED=(1.0, 0.0, 4.0, 2.0, 3.0, 3.0, 5.0)
+    ATTACK_SPEED=(0,8,10,0,0,0,0)
+    ATTACK_DAMAGE=(0,5,5,0,0,0,0)
+    ATTACK_RANGE=(0,250,150,0,0,0,0)
     BUILD_TIME=(300, 0, 200, 400, 300, 250, 200)
     BUILD_COST=((50,50,1), (0,0,0), (50,0,1), (150,100,1), (75,20,1), (50,10,1), (50,10,1))
     VIEW_RANGE=(150, 400, 200, 150, 175, 175,200)
@@ -93,6 +97,11 @@ class Unit(PlayerObject):
     def eraseUnit(self):
         self.flag.flagState = 0
         self.position = [-1500,-1500,0]
+
+    #Applique les bonus du Unit selon les upgrades
+    def applyBonuses(self, bonuses):
+        self.moveSpeed = self.MOVE_SPEED[self.type]+bonuses[p.Player.MOVE_SPEED_BONUS]
+        self.viewRange = self.VIEW_RANGE[self.type]+bonuses[p.Player.VIEW_RANGE_BONUS]
         
     #Change le flag pour une nouvelle destination et un nouvel etat
     def changeFlag(self, finalTarget, state):
@@ -136,9 +145,9 @@ class Mothership(Unit):
         self.unitBeingConstruct = []
         self.rallyPoint = [position[0],position[1]+(self.SIZE[type][1]/2)+5,0]
         self.owner = owner
-        self.range=250.0
-        self.AttackSpeed=10.0
-        self.AttackDamage=3.0
+        self.range=self.ATTACK_RANGE[self.type]
+        self.AttackSpeed=self.ATTACK_SPEED[self.type]
+        self.AttackDamage=self.ATTACK_DAMAGE[self.type]
         self.attackcount=self.AttackSpeed
         self.killCount = 0
 
@@ -195,6 +204,13 @@ class Mothership(Unit):
         if len(self.unitBeingConstruct) > 0:
             return self.unitBeingConstruct[0].constructionProgress >= self.unitBeingConstruct[0].buildTime
 
+    #Applique les bonus du Unit selon les upgrades
+    def applyBonuses(self, bonuses):
+        self.viewRange = self.VIEW_RANGE[self.type]+bonuses[p.Player.VIEW_RANGE_BONUS]
+        self.AttackSpeed = self.ATTACK_SPEED[self.type]+bonuses[p.Player.ATTACK_SPEED_BONUS]
+        self.AttackDamage = self.ATTACK_DAMAGE[self.type]+bonuses[p.Player.ATTACK_DAMAGE_BONUS]
+        self.range = self.ATTACK_RANGE[self.type]+bonuses[p.Player.ATTACK_RANGE_BONUS]
+
     def attack(self, players, unitToAttack=None):
         if unitToAttack == None:
             unitToAttack = self.flag.finalTarget
@@ -229,9 +245,9 @@ class Mothership(Unit):
 class SpaceAttackUnit(SpaceUnit):
     def __init__(self, name, type, position, owner):
         SpaceUnit.__init__(self, name, type, position, owner)
-        self.AttackSpeed=10.0
-        self.AttackDamage=5.0
-        self.range=150.0
+        self.range=self.ATTACK_RANGE[self.type]
+        self.AttackSpeed=self.ATTACK_SPEED[self.type]
+        self.AttackDamage=self.ATTACK_DAMAGE[self.type]
         self.attackcount=self.AttackSpeed
         self.killCount = 0
 
@@ -299,6 +315,13 @@ class SpaceAttackUnit(SpaceUnit):
             self.flag.finalTarget = self.before
 
         return None
+
+    #Applique les bonus du Unit selon les upgrades
+    def applyBonuses(self, bonuses):
+        Unit.applyBonuses(self, bonuses)
+        self.AttackSpeed = self.ATTACK_SPEED[self.type]+bonuses[p.Player.ATTACK_SPEED_BONUS]
+        self.AttackDamage = self.ATTACK_DAMAGE[self.type]+bonuses[p.Player.ATTACK_DAMAGE_BONUS]
+        self.range = self.ATTACK_RANGE[self.type]+bonuses[p.Player.ATTACK_RANGE_BONUS]
 
 class TransportShip(SpaceUnit):
     def __init__(self, name, type, position, owner):

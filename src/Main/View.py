@@ -20,6 +20,10 @@ class View():
     WAITING_FOR_PATROL_POINT_MENU=6
     WAITING_FOR_BUILDING_POINT_MENU=7
     UNIT_BUILD_MENU=8
+    TECHNOLOGY_TREE_MENU = 9
+    TECHTREE_UNIT_MENU = 10
+    TECHTREE_BUILDING_MENU = 11
+    TECHTREE_MOTHERSHIP_MENU = 12
     MINIMAP_WIDTH=200
     MINIMAP_HEIGHT=200
     SELECTED_TRADE = 20
@@ -62,6 +66,7 @@ class View():
         self.gifAttackUnit = PhotoImage(file='images/icones/attackUnit.gif')
         self.gifRallyPoint = PhotoImage(file='images/icones/flag.gif')
         self.gifBuild = PhotoImage(file = 'images/icones/build.gif')
+        self.gifTechTree = PhotoImage(file = 'images/icones/delete.gif')
         self.gifConstruction = PhotoImage(file='images/Building/construction.gif')        
         self.gifCadreMenuAction = PhotoImage(file = 'images/Menus/cadreMenuAction.gif')
         self.iconCancel = PhotoImage(file = 'images/icones/cancelUnit.gif')
@@ -465,6 +470,7 @@ class View():
                 if isinstance(units[0], Mothership):
                         self.Actionmenu.create_image(13,35,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
                         self.Actionmenu.create_image(76,35,image = self.gifBuild, anchor = NW, tags = 'Button_Build')
+                        self.Actionmenu.create_image(140,35,image = self.gifTechTree, anchor = NW, tags = 'Button_Tech')
                 elif isinstance(units[0], Unit):
                     self.Actionmenu.create_image(13,35,image=self.gifMove,anchor = NW, tags = 'Button_Move')
                     self.Actionmenu.create_image(76,35,image=self.gifStop,anchor = NW, tags = 'Button_Stop')
@@ -497,6 +503,39 @@ class View():
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.WAITING_FOR_BUILDING_POINT_MENU):
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le lieu où la construction du bâtiment va s'effectuer",anchor = NW, fill = 'white', width = 200)
+        elif(type == self.TECHNOLOGY_TREE_MENU):
+            self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
+            self.Actionmenu.create_image(13,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Tech_Units')
+            self.Actionmenu.create_image(76,35,image = self.gifUnit, anchor = NW, tags = 'Button_Tech_Buildings')
+            self.Actionmenu.create_image(140,35,image = self.gifTransport, anchor = NW, tags = 'Button_Tech_Mothership')
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
+        elif(type == self.TECHTREE_UNIT_MENU):
+            techTree = self.game.players[self.game.playerId].techTree
+            techs = techTree.getTechs(techTree.UNITS)
+            y=5
+            for i in techs:
+                self.Actionmenu.create_text(5,y,text = i.name,anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
+                self.Actionmenu.create_text(5,y+13,text = "Minéraux: "+str(i.costMine)+"   Gaz: "+str(i.costGaz),anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
+                y+=28
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
+        elif(type == self.TECHTREE_BUILDING_MENU):
+            techTree = self.game.players[self.game.playerId].techTree
+            techs = techTree.getTechs(techTree.BUILDINGS)
+            y=5
+            for i in techs:
+                self.Actionmenu.create_text(5,y,text = i.name,anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Building_Tech/'+str(techs.index(i)))
+                self.Actionmenu.create_text(5,y+13,text = "Minéraux: "+str(i.costMine)+"   Gaz: "+str(i.costGaz),anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Building_Tech/'+str(techs.index(i)))
+                y+=28
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
+        elif(type == self.TECHTREE_MOTHERSHIP_MENU):
+            techTree = self.game.players[self.game.playerId].techTree
+            techs = techTree.getTechs(techTree.MOTHERSHIP)
+            y=5
+            for i in techs:
+                self.Actionmenu.create_text(5,y,text = i.name,anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Mothership_Tech/'+str(techs.index(i)))
+                self.Actionmenu.create_text(5,y+13,text = "Minéraux: "+str(i.costMine)+"   Gaz: "+str(i.costGaz),anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Mothership_Tech/'+str(techs.index(i)))
+                y+=28
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
 
     def createUnitsConstructionMenu(self):
         y = 35;
@@ -1368,8 +1407,14 @@ class View():
             elif (Button_pressed == "Button_Move"):
                 self.actionMenuType = self.WAITING_FOR_MOVE_POINT_MENU
                 self.isSettingMovePosition = True
-            elif (Button_pressed == "Button_Delete"):
-                self.game.eraseUnit()
+            elif (Button_pressed == "Button_Tech"):
+                self.actionMenuType = self.TECHNOLOGY_TREE_MENU
+            elif (Button_pressed == "Button_Tech_Units"):
+                self.actionMenuType = self.TECHTREE_UNIT_MENU
+            elif (Button_pressed == "Button_Tech_Buildings"):
+                self.actionMenuType = self.TECHTREE_BUILDING_MENU
+            elif (Button_pressed == "Button_Tech_Mothership"):
+                self.actionMenuType = self.TECHTREE_MOTHERSHIP_MENU
             elif (Button_pressed == "Button_Return"):
                 self.actionMenuType = self.MAIN_MENU
             elif (Button_pressed == "Button_Build_Scout"):
@@ -1384,6 +1429,10 @@ class View():
                 self.game.setChangeFormationFlag('t')
             elif (Button_pressed == "Button_Square"):
                 self.game.setChangeFormationFlag('c')
+            else:
+                #Si on achète une nouvelle technologie
+                Button_pressed = Button_pressed.split("/")
+                self.game.setBuyTech(Button_pressed[0], Button_pressed[1])
                 
     def progressCircleMouseOver(self,eve):
         tag = self.menuModes.gettags(self.menuModes.find_withtag('current'))
