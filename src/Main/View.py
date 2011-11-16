@@ -319,6 +319,7 @@ class View():
         self.menuModesOnlets()
         self.selectedOnglet = self.SELECTED_UNIT_SELECTED
         unitList = self.game.players[self.game.playerId].selectedObjects
+        countList = [0,0,0,0,0,0,0]
         if len(unitList) == 1:
             self.showInfo(unitList[0])
 
@@ -330,17 +331,37 @@ class View():
                     if isinstance(i, u.SpaceAttackUnit):
                         self.menuModes.create_image(x, y, image = self.gifAttackUnit, tags = ('selected_unit',i.position[0],i.position[1]))
                     elif isinstance(i, u.GatherShip):
-                        self.menuModes.create_image(x,y, image = self.gifCargo, tag = ('selected_unit',i.position[0],i.position[1]))
+                        self.menuModes.create_image(x,y, image = self.gifCargo, tags = ('selected_unit',i.position[0],i.position[1]))
                     elif isinstance(i, u.TransportShip):
-                        self.menuModes.create_image(x,y, image = self.gifTransport, tag =  ('selected_unit',i.position[0],i.position[1]))
+                        self.menuModes.create_image(x,y, image = self.gifTransport, tags =  ('selected_unit',i.position[0],i.position[1]))
                     elif isinstance(i, u.Unit):
-                        self.menuModes.create_image(x,y, image = self.gifUnit, tag = i.position,tags = ('selected_unit',i.position[0],i.position[1]))
-        
-                    #Commentaire svp...
+                        self.menuModes.create_image(x,y, image = self.gifUnit, tags = ('selected_unit',i.position[0],i.position[1]))      
+                    countList[i.type] += 1
+                               
+                    #Ca sert à créer une nouvelle ligne lorsque le nombre de units selectionné le requiert
                     x += 52
                     if x > 600:
                         x = 20
                         y+= 46
+                
+                y = 0
+                print(countList)     
+                for i in range(0,len(countList)):
+                    if countList[i] > 0:
+
+                        self.menuModes.create_text(700,y + 20,text= str(countList[i]) +'X' ,fill='white')
+
+                        if i == Unit.SCOUT:
+                            self.menuModes.create_image(800,y, anchor = NE, image = self.gifUnit,tags = ('selected_all_units',i))
+                            
+                        elif i == Unit.CARGO: 
+                            self.menuModes.create_image(800,y,anchor = NE, image = self.gifCargo,tags = ('selected_all_units',i))
+                        elif i == Unit.TRANSPORT: 
+                            self.menuModes.create_image(800,y,anchor = NE, image = self.gifTransport,tags = ('selected_all_units',i))                                
+                        elif i == Unit.ATTACK_SHIP: 
+                            self.menuModes.create_image(800,y, anchor = NE,image = self.gifAttackUnit,tags = ('selected_all_units',i))    
+                        
+                        y+=46
 
     def showInfo(self, unit):
         if isinstance(unit, Planet) == False and isinstance(unit, AstronomicalObject) == False and isinstance(unit, Unit):
