@@ -31,7 +31,13 @@ class Player():
         for i in self.units:
             if i.isAlive:
                 i.action(self)
-        
+    def selectUnitsByType(self, unitType):
+        units = []
+        for i in self.selectedObjects:
+            if i.type == unitType:
+                units.append(i)
+        self.selectedObjects = units
+            
     def addBaseUnits(self, startPos):
         self.units.append(Mothership('Mothership', Unit.MOTHERSHIP,startPos, self.id))
         self.motherShip = self.units[0]
@@ -365,7 +371,9 @@ class Camera():
             self.position[1] = (self.galaxy.height*-1)/2+self.screenCenter[1]
         if self.position[1]+self.screenCenter[1] > self.galaxy.height/2:
             self.position[1] = (self.galaxy.height)/2-self.screenCenter[1]
-
+    
+    
+    
     #Deplace la camera selon le contenu de la liste movingDirection
     def move(self):
         if self.player.currentPlanet == None:

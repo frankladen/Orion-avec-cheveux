@@ -320,6 +320,9 @@ class Game():
                                                 self.parent.view.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='enemyRange')
                                             break
     
+    def selectUnitByType(self, typeId):
+        self.players[self.playerId].selectUnitsByType(typeId)
+    
     def select(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
             #Si on selectionne une unit dans l'espace             

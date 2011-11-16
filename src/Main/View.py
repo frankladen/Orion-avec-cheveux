@@ -345,7 +345,6 @@ class View():
                         y+= 46
                 
                 y = 0
-                print(countList)     
                 for i in range(0,len(countList)):
                     if countList[i] > 0:
 
@@ -1334,6 +1333,8 @@ class View():
                 self.ongletSelectedUnit()
             elif (Button_pressed == 'cancelUnitButton'):
                 self.game.sendCancelUnit(bp[1])
+            elif (Button_pressed == 'selected_all_units'):
+                self.game.selectUnitByType(int(bp[1]))
 
 
     def takeOff(self, eve):
