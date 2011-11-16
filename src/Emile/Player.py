@@ -75,7 +75,25 @@ class Player():
     def selectObject(self, playerObj):
         if playerObj != None and playerObj not in self.selectedObjects:
             self.selectedObjects = [playerObj]
-            
+
+    def spaceBoxSelect(self, selectStart, selectEnd):
+        if self.currentPlanet == None:
+            first = True
+            for i in self.units:
+                unit = i.boxSelect(selectStart, selectEnd)
+                if unit != None:
+                    if first:
+                        self.selectedObjects = []
+                        first = False
+                    self.selectedObjects.append(unit)
+        else:
+            for i in self.currentPlanet.units:
+                unit = i.boxSelect(selectStart, selectEnd)
+				if unit != None:
+                    if first:
+                        self.selectedObjects = []
+                        first = False
+                    self.selectedObjects.append(unit)
     def inViewRange(self, position):
         x = position[0]
         y = position[1]
