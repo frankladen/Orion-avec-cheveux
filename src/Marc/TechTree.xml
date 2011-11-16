@@ -6,13 +6,13 @@
 			<Add>1</Add>
 			<CostMine>200</CostMine>
 			<CostGaz>300</CostGaz>
-		</Tech>
-		<Tech>
-			<Name>+2 Damage</Name>
-			<Effect>D</Effect>
-			<Add>2</Add>
-			<CostMine>450</CostMine>
-			<CostGaz>500</CostGaz>
+			<Upgrade>
+				<Name>+2 Damage</Name>
+				<Effect>D</Effect>
+				<Add>2</Add>
+				<CostMine>450</CostMine>
+				<CostGaz>500</CostGaz>
+			</Upgrade>
 		</Tech>
 		<Tech>
 			<Name>+1 Annee lumiere/l'heure</Name>
@@ -20,13 +20,41 @@
 			<Add>1</Add>
 			<CostMine>200</CostMine>
 			<CostGaz>300</CostGaz>
+			<Upgrade>
+				<Name>+2 Annee lumiere/l'heure</Name>
+				<Effect>S</Effect>
+				<Add>2</Add>
+				<CostMine>450</CostMine>
+				<CostGaz>500</CostGaz>
+				<Upgrade>
+					<Name>+3 Annee lumiere/l'heure</Name>
+					<Effect>S</Effect>
+					<Add>3</Add>
+					<CostMine>750</CostMine>
+					<CostGaz>600</CostGaz>
+				</Upgrade>
+			</Upgrade>
 		</Tech>
 		<Tech>
-			<Name>+2 Annee lumiere/l'heure</Name>
-			<Effect>S</Effect>
+			<Name>+2 Vitesse d'attaque</Name>
+			<Effect>AS</Effect>
 			<Add>2</Add>
-			<CostMine>450</CostMine>
-			<CostGaz>500</CostGaz>
+			<CostMine>400</CostMine>
+			<CostGaz>350</CostGaz>
+		</Tech>
+		<Tech>
+			<Name>+25 Vision d'attaque</Name>
+			<Effect>AR</Effect>
+			<Add>25</Add>
+			<CostMine>375</CostMine>
+			<CostGaz>390</CostGaz>
+			<Upgrade>
+				<Name>+50 Vision d'attaque</Name>
+				<Effect>AR</Effect>
+				<Add>50</Add>
+				<CostMine>750</CostMine>
+				<CostGaz>600</CostGaz>
+			</Upgrade>
 		</Tech>
 	</Units>
 	<Buildings>
@@ -45,13 +73,13 @@
 			<Add>1</Add>
 			<CostMine>200</CostMine>
 			<CostGaz>300</CostGaz>
-		</Tech>
-		<Tech>
-			<Name>+2 Damage</Name>
-			<Effect>D</Effect>
-			<Add>2</Add>
-			<CostMine>450</CostMine>
-			<CostGaz>500</CostGaz>
+			<Upgrade>
+				<Name>+2 Damage</Name>
+				<Effect>D</Effect>
+				<Add>2</Add>
+				<CostMine>450</CostMine>
+				<CostGaz>500</CostGaz>
+			</Upgrade>
 		</Tech>
 		<Tech>
 			<Name>Bouclier</Name>

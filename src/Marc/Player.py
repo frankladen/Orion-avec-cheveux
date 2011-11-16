@@ -8,6 +8,7 @@ class Player():
     MINERAL = 0
     GAS = 1
     FOOD = 2
+    
     def __init__(self, name, game, id , colorId):
         self.name = name
         self.game = game

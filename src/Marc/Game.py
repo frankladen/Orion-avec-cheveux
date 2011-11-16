@@ -11,6 +11,9 @@ import math
 from time import time
 
 class Game():
+    #[AttaqueDamage,AttaqueSpeed,MoveSpeed,AttackRange]
+    BONUS = [0,0,0,0]
+    
     def __init__(self, controller):
         self.parent = controller
         self.players = []
