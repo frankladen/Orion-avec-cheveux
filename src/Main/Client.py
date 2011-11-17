@@ -66,9 +66,9 @@ class Controller():
     def sendMessage(self, mess):
         if len(self.game.players) == 1:
             if mess == "forcegaz":
-                self.game.players[self.game.playerId].ressources[p.Player.GAS] += 500
+                self.game.players[self.game.playerId].ressources[p.Player.GAS] += 5000
             elif mess == "forcemine":
-                self.game.players[self.game.playerId].ressources[p.Player.MINERAL] += 500
+                self.game.players[self.game.playerId].ressources[p.Player.MINERAL] += 5000
         elif mess.find("\\t ") == 0:
             mess = mess.split("\\t ")
             mess = "(Alliés) "+mess[1]

@@ -165,18 +165,18 @@ class Game():
         player = self.players[playerId]
         techTree = player.techTree
         if techType == "Button_Buy_Unit_Tech":
-            tech = techTree.getUpgrade(techTree.getTechs(techTree.UNITS)[index].name,techTree.UNITS)
+            tech = techTree.getTechs(techTree.UNITS)[index]
         elif techType == "Button_Buy_Building_Tech":
-            tech = techTree.getUpgrade(techTree.getTechs(techTree.BUILDINGS)[index].name,techTree.BUILDINGS)
+            tech = techTree.getTechs(techTree.BUILDINGS)[index]
         elif techType == "Button_Buy_Mothership_Tech":
-            tech = techTree.getUpgrade(techTree.getTechs(techTree.MOTHERSHIP)[index].name,techTree.MOTHERSHIP)
+            tech = techTree.getTechs(techTree.MOTHERSHIP)[index]
         if self.players[playerId].ressources[0] >= tech.costMine and self.players[playerId].ressources[1] >= tech.costGaz:
             if techType == "Button_Buy_Unit_Tech":
-                tech = techTree.buyUpgrade(techTree.getTechs(techTree.UNITS)[index].name,techTree.UNITS)
+                tech = techTree.buyUpgrade(techTree.getTechs(techTree.UNITS)[index].name,techTree.UNITS, tech)
             elif techType == "Button_Buy_Building_Tech":
-                tech = techTree.buyUpgrade(techTree.getTechs(techTree.BUILDINGS)[index].name,techTree.BUILDINGS)
+                tech = techTree.buyUpgrade(techTree.getTechs(techTree.BUILDINGS)[index].name,techTree.BUILDINGS, tech)
             elif techType == "Button_Buy_Mothership_Tech":
-                tech = techTree.buyUpgrade(techTree.getTechs(techTree.MOTHERSHIP)[index].name,techTree.MOTHERSHIP)
+                tech = techTree.buyUpgrade(techTree.getTechs(techTree.MOTHERSHIP)[index].name,techTree.MOTHERSHIP, tech)
             self.players[playerId].ressources[0] -= tech.costMine
             self.players[playerId].ressources[1] -= tech.costGaz
             if tech.effect == 'D':
