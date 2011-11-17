@@ -1429,7 +1429,7 @@ class View():
                 self.game.setChangeFormationFlag('t')
             elif (Button_pressed == "Button_Square"):
                 self.game.setChangeFormationFlag('c')
-            else:
+            elif len(Button_pressed.split("/")) == 2:
                 #Si on achète une nouvelle technologie
                 Button_pressed = Button_pressed.split("/")
                 self.game.setBuyTech(Button_pressed[0], Button_pressed[1])
