@@ -289,18 +289,22 @@ class Game():
                                             break
     
     def select(self, posSelected):
-        if self.players[self.playerId].currentPlanet == None:
+        player = self.players[self.playerId]
+        if player.currentPlanet == None:
             if not self.multiSelect:
-                self.players[self.playerId].selectUnit(posSelected)
+                player.selectUnit(posSelected)
             else:
-                self.players[self.playerId].multiSelectUnit(posSelected)
+                self.player.multiSelectUnit(posSelected)
             spaceObj = self.galaxy.select(posSelected)
-            self.players[self.playerId].selectObject(spaceObj, False)
+            if isinstance(spaceObj, w.Planet):
+                player.selectPlanet(spaceObj)
+            else:
+                player.selectObject(spaceObj, False)
             self.parent.changeActionMenuType(View.MAIN_MENU)
         else:
-            planet = self.players[self.playerId].currentPlanet
+            planet = player.currentPlanet
             groundObj = planet.groundSelect(posSelected)
-            self.players[self.playerId].selectObject(groundObj, False)                   
+            player.selectObject(groundObj, False)                   
 
     def selectAll(self, posSelected):
         self.players[self.playerId].selectAll(posSelected)
@@ -330,7 +334,6 @@ class Game():
                     self.setMovingFlag(pos[0], pos[1])
         else:
             self.setGroundMovingFlag(pos[0], pos[1])
-        self.parent.drawWorld()
                 
     #Selection avec le clic-drag
     def boxSelect(self, selectStart, selectEnd):

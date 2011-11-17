@@ -106,7 +106,7 @@ class Player():
                         unit = i.select(position)
                         if unit.type == firstUnit.type:
                             self.selectObject(unit, True)
-
+                            
     def getFirstUnit(self):
         if len(self.selectedObjects) > 0:
             if isinstance(self.selectedObjects[0], Unit):
@@ -122,6 +122,20 @@ class Player():
                     return unit
         return None
 
+    def selectPlanet(self, planet):
+        if len(self.selectedObjects) > 0:
+            if self.selectedObjects[0] == planet:
+                self.lookPlanet(planet)
+            else:
+                self.selectedObjects = [planet]
+        else:
+            self.selectedObjects = [planet]
+            
+    def lookPlanet(self, planet):
+        if planet == self.currentPlanet:
+            self.currentPlanet = planet
+            self.camera.placeOnLanding()
+        
     def inViewRange(self, position):
         x = position[0]
         y = position[1]
