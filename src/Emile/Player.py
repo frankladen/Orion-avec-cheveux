@@ -72,28 +72,56 @@ class Player():
             if unit != None and unit not in self.selectedObjects:
                 self.selectedObjects.append(unit)
 
-    def selectObject(self, playerObj):
+    def selectObject(self, playerObj, multi):
         if playerObj != None and playerObj not in self.selectedObjects:
-            self.selectedObjects = [playerObj]
+            if not multi:
+                self.selectedObjects = [playerObj]
+            else:
+                self.selectedObjects.append(playerObj)
 
-    def spaceBoxSelect(self, selectStart, selectEnd):
+    def boxSelect(self, selectStart, selectEnd):
+        first = True
         if self.currentPlanet == None:
-            first = True
             for i in self.units:
                 unit = i.boxSelect(selectStart, selectEnd)
-                if unit != None:
-                    if first:
-                        self.selectedObjects = []
-                        first = False
-                    self.selectedObjects.append(unit)
+                if first:
+                    self.selectedObjects = []
+                    first = False
+                self.selectObject(unit, True)
         else:
             for i in self.currentPlanet.units:
                 unit = i.boxSelect(selectStart, selectEnd)
-				if unit != None:
-                    if first:
-                        self.selectedObjects = []
-                        first = False
-                    self.selectedObjects.append(unit)
+                if first:
+                    self.selectedObjects = []
+                    first = False
+                self.selectObject(unit, True)
+    
+    def selectAll(self, position):
+        if self.currentPlanet == None:
+            self.selectUnit(position)
+            firstUnit = self.selectedObjects[0]
+            if len(self.selectedObjects) > 0:
+                for i in self.units:
+                    if self.camera.inGameArea(i.position):
+                        unit = i.select(position)
+                        if unit.type == firstUnit.type:
+                            self.selectObject(unit, True)
+
+    def getFirstUnit(self):
+        if len(self.selectedObjects) > 0:
+            if isinstance(self.selectedObjects[0], Unit):
+                return self.selectedObjects[0]
+        return None
+    
+    def rightClic(self, pos, playerId):
+        if self.isAlive:
+            if playerId != self.id:
+                for i in self.units:
+                    unit = i.select(pos)
+                    print(unit)
+                    return unit
+        return None
+
     def inViewRange(self, position):
         x = position[0]
         y = position[1]
@@ -309,7 +337,13 @@ class Camera():
         self.galaxy = galaxy #reference a la galaxie
         self.player = player
         self.movingDirection = []
-        
+    
+    #Pour savoir si la position est dans le gameArea
+    def inGameArea(self, position):
+        if position[0] > self.position[0] - self.screenWidth/2 and position[0] < self.position + self.screenWidth/2:
+            if position[1] > self.position[1] - self.screenHeight/2 and position[1] < self.position[1] + self.screenHeight/2:
+                return True
+        return False
     #Pour calculer la distance entre la camera et un point
     def calcDistance(self, position):
         distX = position[0] - self.position[0]

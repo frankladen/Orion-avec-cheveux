@@ -81,15 +81,15 @@ class Unit(PlayerObject):
         return None
 
     def select(self, position):
-        if self.isAlive and not isinstance(self, Mothership):
+        if self.isAlive:
             if self.position[0] >= position[0] - self.SIZE[self.type][0]/2 and self.position[0] <= position[0] + self.SIZE[self.type][0]/2:
                 if self.position[1] >= position[1] - self.SIZE[self.type][1]/2 and self.position[1] <= position[1] + self.SIZE[self.type][1]/2:
                     return self
         return None
     def boxSelect(self, startPos, endPos):
         if self.isAlive:
-            if self.position[0] >= startPos[0] - self.SIZE[self.type][0]/2 and self.position[0] <= endPos[0] + self.SIZE[self.type][0]/2:
-                if self.position[1] >= startPos[1] - self.SIZE[self.type][1]/2 and self.position[1] <= endPos[1] + self.SIZE[self.type][1]/2:
+            if self.position[0] > startPos[0] - self.SIZE[self.type][0]/2 and self.position[0] < endPos[0] + self.SIZE[self.type][0]/2:
+                if self.position[1] > startPos[1] - self.SIZE[self.type][1]/2 and  self.position[1] < endPos[1] + self.SIZE[self.type][1]/2:
                     return self
         return None
     #Efface la unit
@@ -309,6 +309,7 @@ class TransportShip(SpaceUnit):
                 if self.position[1] >= position[1] - self.SIZE[self.type][1]/2 and self.position[1] <= position[1] + self.SIZE[self.type][1]/2:
                     return self
         return None
+
     def boxSelect(self, startPos, endPos):
         if self.isAlive and not self.landed:
             if self.position[0] >= startPos[0] - self.SIZE[self.type][0]/2 and self.position[0] <= endPos[0] + self.SIZE[self.type][0]/2:
