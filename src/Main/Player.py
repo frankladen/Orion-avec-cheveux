@@ -1,6 +1,9 @@
 # -*- coding: UTF-8 -*-
-from Unit import *
+import Unit as u
 from Flag import *
+from Helper import *
+from TechTree import *
+import math
 import socket
 
 #Represente un joueur
@@ -8,10 +11,19 @@ class Player():
     MINERAL = 0
     GAS = 1
     FOOD = 2
+    #[AttaqueDamage,AttaqueSpeed,MoveSpeed,AttackRange]
+    ATTACK_DAMAGE_BONUS = 0
+    ATTACK_SPEED_BONUS = 1
+    MOVE_SPEED_BONUS = 2
+    ATTACK_RANGE_BONUS = 3
+    VIEW_RANGE_BONUS = 4
+    BONUS = [0,0,0,0,0]
+    
     def __init__(self, name, game, id , colorId):
         self.name = name
         self.game = game
         self.colorId = colorId
+        self.techTree = TechTree()
         self.selectedObjects = [] #Liste des unites selectionnes
         self.units = [] #Liste de toute les unites
         self.buildings = [] #Liste de tous les buildings
@@ -39,10 +51,10 @@ class Player():
         self.selectedObjects = units
             
     def addBaseUnits(self, startPos):
-        self.units.append(Mothership('Mothership', Unit.MOTHERSHIP,startPos, self.id))
+        self.units.append(u.Mothership('Mothership', u.Unit.MOTHERSHIP,startPos, self.id))
         self.motherShip = self.units[0]
-        self.units.append(Unit('Scout', Unit.SCOUT,[startPos[0] + 20, startPos[1] + 20 ,0], self.id))
-        self.units.append(GatherShip('Gather ship', Unit.CARGO,[startPos[0] + 40, startPos[1]+40], self.id))
+        self.units.append(u.Unit('Scout', u.Unit.SCOUT,[startPos[0] + 20, startPos[1] + 20 ,0], self.id))
+        self.units.append(u.GatherShip('Gather ship', u.Unit.CARGO,[startPos[0] + 40, startPos[1]+40], self.id))
         
     #Ajoute une camera au joueur seulement quand la partie commence    
     def addCamera(self, galaxy, taille):
@@ -71,7 +83,7 @@ class Player():
         x = position[0]
         y = position[1]
         for i in self.units:
-            if i.isAlive and not isinstance(i, GroundUnit):
+            if i.isAlive and not isinstance(i, u.GroundUnit):
                 if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
                     if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
                         if i.name == 'Transport':
@@ -82,7 +94,7 @@ class Player():
         for i in range(len(self.diplomacies)):
             if self.isAlly(i) and i != self.id:
                 for i in self.game.players[i].units:
-                    if i.isAlive and not isinstance(i, GroundUnit):
+                    if i.isAlive and not isinstance(i, u.GroundUnit):
                         if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
                             if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
                                 if i.name == 'Transport':
@@ -119,6 +131,7 @@ class Player():
 
     def buildUnit(self):
         unit = self.motherShip.unitBeingConstruct.pop(0)
+        unit.applyBonuses(self.BONUS)
         if unit.type == u.Unit.TRANSPORT:
             pilot = u.GroundUnit('Builder', u.Unit.GROUND_UNIT, [-10000,-10000,-10000], self.id,-1,-1)
             unit.units.append(pilot)
@@ -133,6 +146,10 @@ class Player():
         self.isAlive = False
         for i in self.units:
             i.kill()
+
+    def changeBonuses(self):
+        for unit in self.units:
+            unit.applyBonuses(self.BONUS)
             
     def adjustRessources(self, ressourceType, amount):
         self.ressources[ressourceType] += amount
@@ -148,8 +165,8 @@ class Player():
 
     def createUnit(self, unitType):
         self.motherShip.addUnitToQueue(unitType)
-        self.ressources[self.MINERAL] -= Unit.BUILD_COST[unitType][Unit.MINERAL]
-        self.ressources[self.GAS] -= Unit.BUILD_COST[unitType][Unit.GAS]
+        self.ressources[self.MINERAL] -= u.Unit.BUILD_COST[unitType][u.Unit.MINERAL]
+        self.ressources[self.GAS] -= u.Unit.BUILD_COST[unitType][u.Unit.GAS]
         self.motherShip.flag.flagState = FlagState.BUILD_UNIT
 
     def makeUnitsAttack(self, units, targetPlayer, targetUnit):

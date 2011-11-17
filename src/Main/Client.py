@@ -64,10 +64,11 @@ class Controller():
     
     #Envoyer le message pour le chat
     def sendMessage(self, mess):
-        if mess == "forcegaz":
-            self.game.players[self.game.playerId].ressources[p.Player.GAS] += 500
-        elif mess == "forcemine":
-            self.game.players[self.game.playerId].ressources[p.Player.MINERAL] += 500
+        if len(self.game.players) == 1:
+            if mess == "forcegaz":
+                self.game.players[self.game.playerId].ressources[p.Player.GAS] += 500
+            elif mess == "forcemine":
+                self.game.players[self.game.playerId].ressources[p.Player.MINERAL] += 500
         elif mess.find("\\t ") == 0:
             mess = mess.split("\\t ")
             mess = "(Alliés) "+mess[1]
@@ -248,6 +249,8 @@ class Controller():
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/["+str(flag.initialTarget)+","+str(flag.finalTarget)+"]"
             elif flag.flagState == FlagState.DEMAND_ALLIANCE:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget)
+            elif flag.flagState == FlagState.BUY_TECH:
+                actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.initialTarget)
             elif flag.flagState == FlagState.GATHER:
                 if isinstance(flag.finalTarget, w.AstronomicalObject):
                     if flag.finalTarget.type == 'nebula':
@@ -361,6 +364,9 @@ class Controller():
         
         elif action == str(FlagState.CHANGE_FORMATION):
             self.game.changeFormation(actionPlayerId, target, unitIndex, FlagState.MOVE)
+
+        elif action == str(FlagState.BUY_TECH):
+            self.game.buyTech(actionPlayerId, target, int(unitIndex[0]))
 
         elif action == str(FlagState.TRADE):
             target = self.stripAndSplit(target)

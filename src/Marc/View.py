@@ -20,6 +20,10 @@ class View():
     WAITING_FOR_PATROL_POINT_MENU=6
     WAITING_FOR_BUILDING_POINT_MENU=7
     UNIT_BUILD_MENU=8
+    TECHNOLOGY_TREE_MENU = 9
+    TECHTREE_UNIT_MENU = 10
+    TECHTREE_BUILDING_MENU = 11
+    TECHTREE_MOTHERSHIP_MENU = 12
     MINIMAP_WIDTH=200
     MINIMAP_HEIGHT=200
     SELECTED_TRADE = 20
@@ -62,6 +66,7 @@ class View():
         self.gifAttackUnit = PhotoImage(file='images/icones/attackUnit.gif')
         self.gifRallyPoint = PhotoImage(file='images/icones/flag.gif')
         self.gifBuild = PhotoImage(file = 'images/icones/build.gif')
+        self.gifTechTree = PhotoImage(file = 'images/icones/delete.gif')
         self.gifConstruction = PhotoImage(file='images/Building/construction.gif')        
         self.gifCadreMenuAction = PhotoImage(file = 'images/Menus/cadreMenuAction.gif')
         self.iconCancel = PhotoImage(file = 'images/icones/cancelUnit.gif')
@@ -319,6 +324,7 @@ class View():
         self.menuModesOnlets()
         self.selectedOnglet = self.SELECTED_UNIT_SELECTED
         unitList = self.game.players[self.game.playerId].selectedObjects
+        countList = [0,0,0,0,0,0,0]
         if len(unitList) == 1:
             self.showInfo(unitList[0])
 
@@ -330,17 +336,36 @@ class View():
                     if isinstance(i, u.SpaceAttackUnit):
                         self.menuModes.create_image(x, y, image = self.gifAttackUnit, tags = ('selected_unit',i.position[0],i.position[1]))
                     elif isinstance(i, u.GatherShip):
-                        self.menuModes.create_image(x,y, image = self.gifCargo, tag = ('selected_unit',i.position[0],i.position[1]))
+                        self.menuModes.create_image(x,y, image = self.gifCargo, tags = ('selected_unit',i.position[0],i.position[1]))
                     elif isinstance(i, u.TransportShip):
-                        self.menuModes.create_image(x,y, image = self.gifTransport, tag =  ('selected_unit',i.position[0],i.position[1]))
+                        self.menuModes.create_image(x,y, image = self.gifTransport, tags =  ('selected_unit',i.position[0],i.position[1]))
                     elif isinstance(i, u.Unit):
-                        self.menuModes.create_image(x,y, image = self.gifUnit, tag = i.position,tags = ('selected_unit',i.position[0],i.position[1]))
-        
-                    #Commentaire svp...
+                        self.menuModes.create_image(x,y, image = self.gifUnit, tags = ('selected_unit',i.position[0],i.position[1]))      
+                    countList[i.type] += 1
+                               
+                    #Ca sert à créer une nouvelle ligne lorsque le nombre de units selectionné le requiert
                     x += 52
                     if x > 600:
                         x = 20
                         y+= 46
+                
+                y = 0
+                for i in range(0,len(countList)):
+                    if countList[i] > 0:
+
+                        self.menuModes.create_text(700,y + 20,text= str(countList[i]) +'X' ,fill='white')
+
+                        if i == Unit.SCOUT:
+                            self.menuModes.create_image(800,y, anchor = NE, image = self.gifUnit,tags = ('selected_all_units',i))
+                            
+                        elif i == Unit.CARGO: 
+                            self.menuModes.create_image(800,y,anchor = NE, image = self.gifCargo,tags = ('selected_all_units',i))
+                        elif i == Unit.TRANSPORT: 
+                            self.menuModes.create_image(800,y,anchor = NE, image = self.gifTransport,tags = ('selected_all_units',i))                                
+                        elif i == Unit.ATTACK_SHIP: 
+                            self.menuModes.create_image(800,y, anchor = NE,image = self.gifAttackUnit,tags = ('selected_all_units',i))    
+                        
+                        y+=46
 
     def showInfo(self, unit):
         if isinstance(unit, Planet) == False and isinstance(unit, AstronomicalObject) == False and isinstance(unit, Unit):
@@ -445,6 +470,7 @@ class View():
                 if isinstance(units[0], Mothership):
                         self.Actionmenu.create_image(13,35,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
                         self.Actionmenu.create_image(76,35,image = self.gifBuild, anchor = NW, tags = 'Button_Build')
+                        self.Actionmenu.create_image(140,35,image = self.gifTechTree, anchor = NW, tags = 'Button_Tech')
                 elif isinstance(units[0], Unit):
                     self.Actionmenu.create_image(13,35,image=self.gifMove,anchor = NW, tags = 'Button_Move')
                     self.Actionmenu.create_image(76,35,image=self.gifStop,anchor = NW, tags = 'Button_Stop')
@@ -477,6 +503,39 @@ class View():
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.WAITING_FOR_BUILDING_POINT_MENU):
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le lieu où la construction du bâtiment va s'effectuer",anchor = NW, fill = 'white', width = 200)
+        elif(type == self.TECHNOLOGY_TREE_MENU):
+            self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
+            self.Actionmenu.create_image(13,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Tech_Units')
+            self.Actionmenu.create_image(76,35,image = self.gifUnit, anchor = NW, tags = 'Button_Tech_Buildings')
+            self.Actionmenu.create_image(140,35,image = self.gifTransport, anchor = NW, tags = 'Button_Tech_Mothership')
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
+        elif(type == self.TECHTREE_UNIT_MENU):
+            techTree = self.game.players[self.game.playerId].techTree
+            techs = techTree.getTechs(techTree.UNITS)
+            y=5
+            for i in techs:
+                self.Actionmenu.create_text(5,y,text = i.name,anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
+                self.Actionmenu.create_text(5,y+13,text = "Minéraux: "+str(i.costMine)+"   Gaz: "+str(i.costGaz),anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
+                y+=28
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
+        elif(type == self.TECHTREE_BUILDING_MENU):
+            techTree = self.game.players[self.game.playerId].techTree
+            techs = techTree.getTechs(techTree.BUILDINGS)
+            y=5
+            for i in techs:
+                self.Actionmenu.create_text(5,y,text = i.name,anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Building_Tech/'+str(techs.index(i)))
+                self.Actionmenu.create_text(5,y+13,text = "Minéraux: "+str(i.costMine)+"   Gaz: "+str(i.costGaz),anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Building_Tech/'+str(techs.index(i)))
+                y+=28
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
+        elif(type == self.TECHTREE_MOTHERSHIP_MENU):
+            techTree = self.game.players[self.game.playerId].techTree
+            techs = techTree.getTechs(techTree.MOTHERSHIP)
+            y=5
+            for i in techs:
+                self.Actionmenu.create_text(5,y,text = i.name,anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Mothership_Tech/'+str(techs.index(i)))
+                self.Actionmenu.create_text(5,y+13,text = "Minéraux: "+str(i.costMine)+"   Gaz: "+str(i.costGaz),anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Mothership_Tech/'+str(techs.index(i)))
+                y+=28
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
 
     def createUnitsConstructionMenu(self):
         y = 35;
@@ -731,27 +790,30 @@ class View():
                     if j.discovered:
                         self.drawAsteroid(j, players[id], False)
         for i in players:
-            if self.game.players[self.game.playerId].isAlly(i.id):
-                for j in i.buildings:
-                    if self.game.players[self.game.playerId].inViewRange(j.position):
-                        j.discovered = True
-                        self.drawBuilding(j,i,False)
-                for j in i.units:
-                    if j.isAlive:
-                        if j.type == j.MOTHERSHIP:
-                            j.discovered = True
-                        self.drawUnit(j, i, False)
-            else:
-                for j in i.buildings:
-                    if self.game.players[self.game.playerId].inViewRange(j.position):
-                        j.discovered = True
-                        self.drawBuilding(j,i,False)
-                for j in i.units:
-                    if j.isAlive:
-                        if self.game.players[self.game.playerId].inViewRange(j.position):
+            if i.isAlive:
+                if self.game.players[self.game.playerId].isAlly(i.id):
+                    for j in i.buildings:
+                        if j.isAlive:
+                            if self.game.players[self.game.playerId].inViewRange(j.position):
+                                j.discovered = True
+                                self.drawBuilding(j,i,False)
+                    for j in i.units:
+                        if j.isAlive:
                             if j.type == j.MOTHERSHIP:
                                 j.discovered = True
                             self.drawUnit(j, i, False)
+                else:
+                    for j in i.buildings:
+                        if j.isAlive:
+                            if self.game.players[self.game.playerId].inViewRange(j.position):
+                                j.discovered = True
+                                self.drawBuilding(j,i,False)
+                    for j in i.units:
+                        if j.isAlive:
+                            if self.game.players[self.game.playerId].inViewRange(j.position):
+                                if j.type == j.MOTHERSHIP:
+                                    j.discovered = True
+                                self.drawUnit(j, i, False)
         if self.dragging:
             self.drawSelectionBox()
         self.drawMinimap()
@@ -900,7 +962,6 @@ class View():
                 self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="green", tag='deletable')
                 if int(unit.hitpoints) != int(unit.MAX_HP[unit.type]):
                     self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLost,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="red", tag='deletable')
-
           
     #Dessine la minimap
     def drawMinimap(self):
@@ -989,11 +1050,11 @@ class View():
             self.minimap.create_rectangle(cameraX, cameraY, cameraX+width, cameraY+height, outline='GREEN', tag='deletable')
         else:
             planet = self.game.players[self.game.playerId].currentPlanet
-            cameraX = (camera.position[0] * (planet.WIDTH / 8)) / planet.WIDTH
-            cameraY = (camera.position[1] * (planet.HEIGHT / 6)) / planet.HEIGHT
-            width = camera.screenWidth * (camera.screenWidth/4) / planet.WIDTH
-            height = camera.screenHeight * (camera.screenHeight/3) / planet.HEIGHT
-			#width = self.taille / planet.WIDTH * (self.taille/4)
+            cameraX = (camera.position[0] * (self.MINIMAP_WIDTH)) / planet.WIDTH
+            cameraY = (camera.position[1] * (self.MINIMAP_HEIGHT)) / planet.HEIGHT
+            width = camera.screenWidth * (self.MINIMAP_WIDTH) / planet.WIDTH
+            height = camera.screenHeight * (self.MINIMAP_HEIGHT) / planet.HEIGHT
+	    #width = self.taille / planet.WIDTH * (self.taille/4)
             #height = self.taille / planet.HEIGHT * ((self.taille/16)*3)
             self.minimap.create_rectangle(cameraX-width/2, cameraY-height/2, cameraX+width/2, cameraY+height/2, outline='GREEN', tag='deletable')
 
@@ -1311,6 +1372,8 @@ class View():
                 self.ongletSelectedUnit()
             elif (Button_pressed == 'cancelUnitButton'):
                 self.game.sendCancelUnit(bp[1])
+            elif (Button_pressed == 'selected_all_units'):
+                self.game.selectUnitByType(int(bp[1]))
 
 
     def takeOff(self, eve):
@@ -1344,8 +1407,14 @@ class View():
             elif (Button_pressed == "Button_Move"):
                 self.actionMenuType = self.WAITING_FOR_MOVE_POINT_MENU
                 self.isSettingMovePosition = True
-            elif (Button_pressed == "Button_Delete"):
-                self.game.eraseUnit()
+            elif (Button_pressed == "Button_Tech"):
+                self.actionMenuType = self.TECHNOLOGY_TREE_MENU
+            elif (Button_pressed == "Button_Tech_Units"):
+                self.actionMenuType = self.TECHTREE_UNIT_MENU
+            elif (Button_pressed == "Button_Tech_Buildings"):
+                self.actionMenuType = self.TECHTREE_BUILDING_MENU
+            elif (Button_pressed == "Button_Tech_Mothership"):
+                self.actionMenuType = self.TECHTREE_MOTHERSHIP_MENU
             elif (Button_pressed == "Button_Return"):
                 self.actionMenuType = self.MAIN_MENU
             elif (Button_pressed == "Button_Build_Scout"):
@@ -1360,6 +1429,10 @@ class View():
                 self.game.setChangeFormationFlag('t')
             elif (Button_pressed == "Button_Square"):
                 self.game.setChangeFormationFlag('c')
+            else:
+                #Si on achète une nouvelle technologie
+                Button_pressed = Button_pressed.split("/")
+                self.game.setBuyTech(Button_pressed[0], Button_pressed[1])
                 
     def progressCircleMouseOver(self,eve):
         tag = self.menuModes.gettags(self.menuModes.find_withtag('current'))

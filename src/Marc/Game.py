@@ -1,8 +1,9 @@
 # -*- coding: UTF-8 -*-
-import World as w
+#import World as w
 import Player as p
 import Target as t
 import Unit as u
+from World import *
 from Building import *
 from View import*
 from Helper import *
@@ -11,9 +12,6 @@ import math
 from time import time
 
 class Game():
-    #[AttaqueDamage,AttaqueSpeed,MoveSpeed,AttackRange]
-    BONUS = [0,0,0,0]
-    
     def __init__(self, controller):
         self.parent = controller
         self.players = []
@@ -88,7 +86,8 @@ class Game():
         units = ''
         #Si plusieurs unités sont sélectionnées, on les ajoute toutes dans le changement à envoyer
         for i in self.players[self.playerId].selectedObjects:
-            units += str(self.players[self.playerId].units.index(i))+ ","
+            if isinstance(i, u.Unit):
+                units += str(self.players[self.playerId].units.index(i))+ ","
         self.parent.pushChange(units, Flag(t.Target([0,0,0]), t.Target([x,y,0]),FlagState.GROUND_MOVE))
 
     def setDefaultMovingFlag(self,x,y, unit):
@@ -158,15 +157,48 @@ class Game():
     def killUnit(self, killedIndexes):
         #Désélection de l'unité qui va mourir afin d'éviter le renvoie d'une action avec cette unité
         self.players[killedIndexes[1]].units[killedIndexes[0]].kill()
-    
+
+    def setBuyTech(self, techType, index):
+        self.parent.pushChange(index, Flag(techType,0,FlagState.BUY_TECH))
+
+    def buyTech(self, playerId, techType, index):
+        player = self.players[playerId]
+        techTree = player.techTree
+        if techType == "Button_Buy_Unit_Tech":
+            tech = techTree.getUpgrade(techTree.getTechs(techTree.UNITS)[index].name,techTree.UNITS)
+        elif techType == "Button_Buy_Building_Tech":
+            tech = techTree.getUpgrade(techTree.getTechs(techTree.BUILDINGS)[index].name,techTree.BUILDINGS)
+        elif techType == "Button_Buy_Mothership_Tech":
+            tech = techTree.getUpgrade(techTree.getTechs(techTree.MOTHERSHIP)[index].name,techTree.MOTHERSHIP)
+        if self.players[playerId].ressources[0] >= tech.costMine and self.players[playerId].ressources[1] >= tech.costGaz:
+            if techType == "Button_Buy_Unit_Tech":
+                tech = techTree.buyUpgrade(techTree.getTechs(techTree.UNITS)[index].name,techTree.UNITS)
+            elif techType == "Button_Buy_Building_Tech":
+                tech = techTree.buyUpgrade(techTree.getTechs(techTree.BUILDINGS)[index].name,techTree.BUILDINGS)
+            elif techType == "Button_Buy_Mothership_Tech":
+                tech = techTree.buyUpgrade(techTree.getTechs(techTree.MOTHERSHIP)[index].name,techTree.MOTHERSHIP)
+            self.players[playerId].ressources[0] -= tech.costMine
+            self.players[playerId].ressources[1] -= tech.costGaz
+            if tech.effect == 'D':
+                player.BONUS[player.ATTACK_DAMAGE_BONUS] = tech.add
+            elif tech.effect == 'S':
+                player.BONUS[player.MOVE_SPEED_BONUS] = tech.add
+            elif tech.effect == 'AS':
+                player.BONUS[player.ATTACK_SPEED_BONUS] = tech.add
+            elif tech.effect == 'AR':
+                player.BONUS[player.ATTACK_RANGE_BONUS] = tech.add
+            elif tech.effect == 'VR':
+                player.BONUS[player.VIEW_RANGE_BONUS] = tech.add
+            player.changeBonuses()
+        
     def setGatherFlag(self,ship,ressource):
         units = str(self.players[self.playerId].units.index(ship)) + ","
         self.parent.pushChange(units, Flag(t.Target([0,0,0]),ressource, FlagState.GATHER))
 
     def makeUnitsGather(self, playerId, unitsId, solarSystemId, astroObjectId, astroObjectType):
-        if astroObjectType == w.SolarSystem.NEBULA:
+        if astroObjectType == SolarSystem.NEBULA:
             astroObject = self.galaxy.solarSystemList[solarSystemId].nebulas[astroObjectId]
-        elif astroObjectType == w.SolarSystem.ASTEROID:
+        elif astroObjectType == SolarSystem.ASTEROID:
             astroObject = self.galaxy.solarSystemList[solarSystemId].asteroids[astroObjectId]
         else:
             astroObject = self.players[playerId].motherShip
@@ -322,6 +354,9 @@ class Game():
                                                 self.parent.view.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='enemyRange')
                                             break
     
+    def selectUnitByType(self, typeId):
+        self.players[self.playerId].selectUnitsByType(typeId)
+    
     def select(self, posSelected):
         if self.players[self.playerId].currentPlanet == None:
             #Si on selectionne une unit dans l'espace             
@@ -380,7 +415,6 @@ class Game():
                             if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
                                 self.players[self.playerId].selectedObjects = []
                                 self.players[self.playerId].selectedObjects.append(j)
-
             self.parent.changeActionMenuType(View.MAIN_MENU)
         else:
             planet = self.players[self.playerId].currentPlanet
@@ -435,7 +469,7 @@ class Game():
                     if pos[0] > j.position[0]-j.IMAGE_WIDTH/2 and pos[0] < j.position[0]+j.IMAGE_WIDTH/2:
                         if pos[1] > j.position[1]-j.IMAGE_HEIGHT/2 and pos[1] < j.position[1]+j.IMAGE_HEIGHT/2:
                             if len(self.players[self.playerId].selectedObjects) > 0:
-                                if isinstance(self.players[self.playerId].selectedObjects[0], w.AstronomicalObject) == False and isinstance(self.players[self.playerId].selectedObjects[0], w.Planet) == False:               
+                                if isinstance(self.players[self.playerId].selectedObjects[0], AstronomicalObject) == False and isinstance(self.players[self.playerId].selectedObjects[0], Planet) == False:               
                                     if self.players[self.playerId].selectedObjects[0].type == u.Unit.TRANSPORT:
                                         self.setLandingFlag(self.players[self.playerId].selectedObjects[0], j)
                                         empty = False
@@ -446,7 +480,7 @@ class Game():
                             if pos[0] > j.position[0]-j.ASTEROID_WIDTH/2 and pos[0] < j.position[0]+j.ASTEROID_WIDTH/2:
                                 if pos[1] > j.position[1]-j.ASTEROID_HEIGHT/2 and pos[1] < j.position[1]+j.ASTEROID_HEIGHT/2:
                                         for unit in self.players[self.playerId].selectedObjects:
-                                            if isinstance(unit, w.AstronomicalObject) == False and isinstance(unit, w.Planet) == False:
+                                            if isinstance(unit, AstronomicalObject) == False and isinstance(unit, Planet) == False:
                                                 if unit.type == unit.CARGO:
                                                     self.setGatherFlag(unit, j)
                                                     empty = False
@@ -457,7 +491,7 @@ class Game():
                             if pos[0] > j.position[0]-j.NEBULA_WIDTH/2 and pos[0] < j.position[0]+j.NEBULA_WIDTH/2:
                                 if pos[1] > j.position[1]-j.NEBULA_HEIGHT/2 and pos[1] < j.position[1]+j.NEBULA_HEIGHT/2:
                                         for unit in self.players[self.playerId].selectedObjects:
-                                            if isinstance(unit, w.AstronomicalObject) == False and isinstance(unit, w.Planet) == False:
+                                            if isinstance(unit, AstronomicalObject) == False and isinstance(unit, Planet) == False:
                                                 if unit.type == unit.CARGO:
                                                     self.setGatherFlag(unit, j)
                                                     empty = False
@@ -466,9 +500,9 @@ class Game():
                     if pos[0] > self.players[self.playerId].motherShip.position[0]-u.Unit.SIZE[u.Unit.MOTHERSHIP][0]/2 and pos[0] < self.players[self.playerId].motherShip.position[0]+u.Unit.SIZE[u.Unit.MOTHERSHIP][0]/2:
                         if pos[1] > self.players[self.playerId].motherShip.position[1]-u.Unit.SIZE[u.Unit.MOTHERSHIP][1]/2 and pos[1] < self.players[self.playerId].motherShip.position[1]+u.Unit.SIZE[u.Unit.MOTHERSHIP][1]/2:
                             for unit in self.players[self.playerId].selectedObjects:
-                                if isinstance(unit, w.AstronomicalObject) == False and isinstance(unit, w.Planet) == False:
+                                if isinstance(unit, AstronomicalObject) == False and isinstance(unit, Planet) == False:
                                     if unit.type == unit.CARGO:
-                                        self.setGatherFlag(unit, self.players[self.playerId].units[0])
+                                        self.setGatherFlag(unit, self.players[self.playerId].motherShip)
                                         empty = False
             if empty:
                 if len(self.players[self.playerId].selectedObjects) > 0:
@@ -485,16 +519,18 @@ class Game():
             if empty:
                 if len(self.players[self.playerId].selectedObjects) > 0:
                     for i in self.players:
-                        for b in self.players[self.playerId].buildings:
-                            if b.position[0] >= pos[0]-b.SIZE[b.type][0]/2 and b.position[0] <= pos[0]+b.SIZE[b.type][0]/2:
-                                if b.position[1] >= pos[1]-b.SIZE[b.type][1]/2 and b.position[1] <= pos[1]+b.SIZE[b.type][1]/2:
-                                    if i == self.players[self.playerId]:
-                                        if not b.finished:
-                                            self.resumeBuildingFlag(b)
-                                            empty = False
-                                    else:
-                                        self.setAttackFlag(b)
-                                        empty = False
+                        if i.isAlive:
+                            for b in self.players[self.playerId].buildings:
+                                if b.isAlive:
+                                    if b.position[0] >= pos[0]-b.SIZE[b.type][0]/2 and b.position[0] <= pos[0]+b.SIZE[b.type][0]/2:
+                                        if b.position[1] >= pos[1]-b.SIZE[b.type][1]/2 and b.position[1] <= pos[1]+b.SIZE[b.type][1]/2:
+                                            if i == self.players[self.playerId]:
+                                                if not b.finished:
+                                                    self.resumeBuildingFlag(b)
+                                                    empty = False
+                                            else:
+                                                self.setAttackFlag(b)
+                                                empty = False
                                         
             if empty:
                 self.setMovingFlag(pos[0],pos[1])

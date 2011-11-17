@@ -2,6 +2,7 @@
 from Target import *
 from Flag import *
 import World as w
+import Player as p
 from Helper import *
 import math
 
@@ -18,8 +19,11 @@ class Unit(PlayerObject):
     GAS=1
     FOOD=2
     SIZE=((0,0), (125,125), (18,15), (28,32), (32,29), (20,30),(24,24))
-    MAX_HP = (50,500,50,100,125,75,100)
+    MAX_HP = (50,1500,50,100,125,75,100)
     MOVE_SPEED=(1.0, 0.0, 4.0, 2.0, 3.0, 3.0, 5.0)
+    ATTACK_SPEED=(0,8,10,0,0,0,0)
+    ATTACK_DAMAGE=(0,5,5,0,0,0,0)
+    ATTACK_RANGE=(0,250,150,0,0,0,0)
     BUILD_TIME=(300, 0, 200, 400, 300, 250, 200)
     BUILD_COST=((50,50,1), (0,0,0), (50,0,1), (150,100,1), (75,20,1), (50,10,1), (50,10,1))
     VIEW_RANGE=(150, 400, 200, 150, 175, 175,200)
@@ -47,12 +51,6 @@ class Unit(PlayerObject):
                 parent.setAnAttackFlag(unit, self)
         elif self.flag.flagState == FlagState.BUILD:
             self.build(self.flag.finalTarget)
-        elif self.flag.flagState == FlagState.LAND:
-            self.land(parent.game)
-        elif self.flag.flagState == FlagState.GATHER:
-            self.gather(parent, parent.game)
-        elif isinstance(self, SpaceAttackUnit):
-            parent.game.checkIfEnemyInRange(self)
     
     #La deplace d'un pas vers son flag et si elle est rendu, elle change arrete de bouger    
     def move(self):
@@ -99,6 +97,11 @@ class Unit(PlayerObject):
     def eraseUnit(self):
         self.flag.flagState = 0
         self.position = [-1500,-1500,0]
+
+    #Applique les bonus du Unit selon les upgrades
+    def applyBonuses(self, bonuses):
+        self.moveSpeed = self.MOVE_SPEED[self.type]+bonuses[p.Player.MOVE_SPEED_BONUS]
+        self.viewRange = self.VIEW_RANGE[self.type]+bonuses[p.Player.VIEW_RANGE_BONUS]
         
     #Change le flag pour une nouvelle destination et un nouvel etat
     def changeFlag(self, finalTarget, state):
@@ -142,9 +145,9 @@ class Mothership(Unit):
         self.unitBeingConstruct = []
         self.rallyPoint = [position[0],position[1]+(self.SIZE[type][1]/2)+5,0]
         self.owner = owner
-        self.range=250.0
-        self.AttackSpeed=10.0
-        self.AttackDamage=3.0
+        self.range=self.ATTACK_RANGE[self.type]
+        self.AttackSpeed=self.ATTACK_SPEED[self.type]
+        self.AttackDamage=self.ATTACK_DAMAGE[self.type]
         self.attackcount=self.AttackSpeed
         self.killCount = 0
 
@@ -164,12 +167,7 @@ class Mothership(Unit):
 
             elif self.flag.flagState == FlagState.CHANGE_RALLY_POINT:
                 target = self.flag.finalTarget
-                target = target.strip("[")
-                target = target.strip("]")
-                target = target.split(",")
-                for i in range(0, len(target)):
-                    target[i]=math.trunc(float(target[i])) 
-                self.rallyPoint = target
+                self.rallyPoint = [target[0], target[1], 0]
                 self.flag.flagState = FlagState.BUILD_UNIT
 
             parent.game.checkIfEnemyInRange(self)
@@ -206,6 +204,13 @@ class Mothership(Unit):
         if len(self.unitBeingConstruct) > 0:
             return self.unitBeingConstruct[0].constructionProgress >= self.unitBeingConstruct[0].buildTime
 
+    #Applique les bonus du Unit selon les upgrades
+    def applyBonuses(self, bonuses):
+        self.viewRange = self.VIEW_RANGE[self.type]+bonuses[p.Player.VIEW_RANGE_BONUS]
+        self.AttackSpeed = self.ATTACK_SPEED[self.type]+bonuses[p.Player.ATTACK_SPEED_BONUS]
+        self.AttackDamage = self.ATTACK_DAMAGE[self.type]+bonuses[p.Player.ATTACK_DAMAGE_BONUS]
+        self.range = self.ATTACK_RANGE[self.type]+bonuses[p.Player.ATTACK_RANGE_BONUS]
+
     def attack(self, players, unitToAttack=None):
         if unitToAttack == None:
             unitToAttack = self.flag.finalTarget
@@ -240,11 +245,24 @@ class Mothership(Unit):
 class SpaceAttackUnit(SpaceUnit):
     def __init__(self, name, type, position, owner):
         SpaceUnit.__init__(self, name, type, position, owner)
-        self.AttackSpeed=10.0
-        self.AttackDamage=5.0
-        self.range=150.0
+        self.range=self.ATTACK_RANGE[self.type]
+        self.AttackSpeed=self.ATTACK_SPEED[self.type]
+        self.AttackDamage=self.ATTACK_DAMAGE[self.type]
         self.attackcount=self.AttackSpeed
         self.killCount = 0
+
+    def action(self, parent):
+        if self.flag.flagState == FlagState.ATTACK:
+            if isinstance(self.flag.finalTarget, TransportShip):
+                if self.flag.finalTarget.landed:
+                    parent.game.setAStandByFlag(self)
+            killedIndex = self.attack(parent.game.players)
+            if killedIndex[0] > -1:
+                parent.killUnit(killedIndex)
+        elif self.flag.flagState == FlagState.STANDBY:
+            parent.game.checkIfEnemyInRange(self)
+        else:
+            Unit.action(self, parent)
 
     def changeFlag(self, finalTarget, state):
         self.attackcount=self.AttackSpeed
@@ -298,6 +316,13 @@ class SpaceAttackUnit(SpaceUnit):
 
         return None
 
+    #Applique les bonus du Unit selon les upgrades
+    def applyBonuses(self, bonuses):
+        Unit.applyBonuses(self, bonuses)
+        self.AttackSpeed = self.ATTACK_SPEED[self.type]+bonuses[p.Player.ATTACK_SPEED_BONUS]
+        self.AttackDamage = self.ATTACK_DAMAGE[self.type]+bonuses[p.Player.ATTACK_DAMAGE_BONUS]
+        self.range = self.ATTACK_RANGE[self.type]+bonuses[p.Player.ATTACK_RANGE_BONUS]
+
 class TransportShip(SpaceUnit):
     def __init__(self, name, type, position, owner):
         SpaceUnit.__init__(self, name, type, position, owner)
@@ -305,6 +330,12 @@ class TransportShip(SpaceUnit):
         self.capacity = 10
         self.units = []
         #self.units.append(GroundUnit('Builder', self.GROUND_UNIT, [0,0,0], self.owner,-1,-1))
+
+    def action(self, parent):
+        if self.flag.flagState == FlagState.LAND:
+            self.land(parent.game)
+        else:
+            Unit.action(self, parent)
 
     def land(self, game):
         playerId = game.playerId
@@ -383,6 +414,12 @@ class GatherShip(SpaceUnit):
         self.container = [0,0]
         self.returning = False
 
+    def action(self, parent):
+        if self.flag.flagState == FlagState.GATHER:
+            self.gather(parent, parent.game)
+        else:
+            Unit.action(self, parent)
+
     def gather(self, player, game):
         ressource = self.flag.finalTarget
         arrived = True
@@ -402,12 +439,12 @@ class GatherShip(SpaceUnit):
                                 self.container[0]+=ressource.mineralQte
                                 ressource.mineralQte = 0
                                 self.flag.initialTarget = self.flag.finalTarget
-                                self.flag.finalTarget = player.motherShip
+                                self.flag.finalTarget = player.getNearestReturnRessourceCenter(self.position)
                                 game.parent.redrawMinimap()
                             self.gatherSpeed = 20
                         else:
                             self.flag.initialTarget = self.flag.finalTarget
-                            self.flag.finalTarget = player.motherShip
+                            self.flag.finalTarget = player.getNearestReturnRessourceCenter(self.position)
                     else:
                         if self.container[1]<self.maxGather:
                             if ressource.gazQte >= 5:
@@ -417,7 +454,7 @@ class GatherShip(SpaceUnit):
                                 self.container[1]+=ressource.gazQte
                                 ressource.gazQte = 0
                                 self.flag.initialTarget = self.flag.finalTarget
-                                self.flag.finalTarget = player.motherShip
+                                self.flag.finalTarget = player.getNearestReturnRessourceCenter(self.position)
                                 game.parent.redrawMinimap()
                             self.gatherSpeed = 20
                         else:
@@ -431,8 +468,8 @@ class GatherShip(SpaceUnit):
                     arrived = False
                     self.move()
             if arrived:
-                player.ressources[0] += self.container[0]
-                player.ressources[1] += self.container[1]
+                player.ressources[player.MINERAL] += self.container[0]
+                player.ressources[player.GAS] += self.container[1]
                 self.container[0] = 0
                 self.container[1] = 0
                 if isinstance(self.flag.initialTarget, w.AstronomicalObject):
