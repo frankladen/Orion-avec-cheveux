@@ -330,7 +330,6 @@ class Game():
                     self.setMovingFlag(pos[0], pos[1])
         else:
             self.setGroundMovingFlag(pos[0], pos[1])
-        self.parent.drawWorld()
                 
     #Selection avec le clic-drag
     def boxSelect(self, selectStart, selectEnd):
