@@ -19,9 +19,6 @@ class Galaxy():
             self.width = temp
             self.height = temp
             self.depth = temp
-##            self.width=(nbPlayer-2)*self.SIZE_MULTIPLIER
-##            self.height=(nbPlayer-2)*self.SIZE_MULTIPLIER
-##            self.depth=(nbPlayer-2)*self.SIZE_MULTIPLIER
         else:
             self.width=3000
             self.height=3000
@@ -90,8 +87,6 @@ class SolarSystem():
     SUN_HEIGHT=20
     MAX_PLANETS=6
     MAX_ATRO_OBJS=8
-    NEBULA = 0
-    ASTEROID = 1
     
     def __init__(self,position,sunId):
         self.sunId = sunId

@@ -196,9 +196,9 @@ class Game():
         self.parent.pushChange(units, Flag(t.Target([0,0,0]),ressource, FlagState.GATHER))
 
     def makeUnitsGather(self, playerId, unitsId, solarSystemId, astroObjectId, astroObjectType):
-        if astroObjectType == SolarSystem.NEBULA:
+        if astroObjectType == AstronomicalObject.NEBULA:
             astroObject = self.galaxy.solarSystemList[solarSystemId].nebulas[astroObjectId]
-        elif astroObjectType == SolarSystem.ASTEROID:
+        elif astroObjectType == AstronomicalObject.ASTEROID:
             astroObject = self.galaxy.solarSystemList[solarSystemId].asteroids[astroObjectId]
         else:
             astroObject = self.players[playerId].motherShip
@@ -390,6 +390,7 @@ class Game():
                         clickedObj = i.rightClic(pos, self.playerId)
                         print(clickedObj)
             unit = self.players[self.playerId].getFirstUnit()
+            print(self.players[self.playerId].getFirstUnit().type)
             if unit != None:
                 if clickedObj != None:
                     if unit.type == unit.TRANSPORT:
