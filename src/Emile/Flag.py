@@ -20,6 +20,8 @@ class FlagState():
     DESTROY_ALL = 32768
     DEMAND_ALLIANCE = 65536
     GROUND_MOVE = 131072
+    FINISH_BUILD = 262144
+    BUY_TECH = 524288
 
 #Represente un flag
 class Flag():

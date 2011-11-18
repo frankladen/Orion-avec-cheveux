@@ -1,8 +1,10 @@
 # -*- coding: UTF-8 -*-
-import World as w
+#import World as w
 import Player as p
 import Target as t
 import Unit as u
+from World import *
+from Building import *
 from View import*
 from Helper import *
 from Flag import *
@@ -35,7 +37,37 @@ class Game():
             startPos = self.galaxy.getSpawnPoint()
             i.addBaseUnits(startPos) 
         self.players[self.playerId].addCamera(self.galaxy, taille)
-    
+
+    # Pour changer le flag des unités selectionne pour la construction        
+    def setBuildingFlag(self,x,y):
+        units = ''
+        #Si plusieurs unit�s sont s�lectionn�es, on les ajoute toutes dans le changement � envoyer
+        for i in self.players[self.playerId].selectedObjects:
+            if i.type == i.SCOUT:
+                units+= str(self.players[self.playerId].units.index(i))+","
+        self.parent.pushChange(units, Flag(i,t.Target([x,y,0]),FlagState.BUILD))
+
+    def buildBuilding(self, playerId, target, flag, unitIndex):
+        #Condition de construction
+        wp = Waypoint('Waypoint', Building.WAYPOINT, [target[0],target[1]], playerId)
+        self.players[playerId].buildings.append(wp)
+        for i in unitIndex:
+            if i != '':
+                self.players[playerId].units[int(i)].changeFlag(wp,flag)
+
+    def resumeBuildingFlag(self,building):
+        units = ''
+        for i in self.players[self.playerId].selectedObjects:
+            if i.type == i.SCOUT:
+                units+= str(self.players[self.playerId].units.index(i))+","
+        if not building.finished:
+            self.parent.pushChange(units, Flag(i,building,FlagState.FINISH_BUILD))                          
+
+    def resumeBuilding(self, playerId, building, unitIndex):
+        for i in unitIndex:
+            if i != '':
+                self.players[playerId].units[int(i)].changeFlag(self.players[playerId].buildings[building],FlagState.BUILD)
+
     #Pour changer le flag des unites selectionne pour le deplacement    
     def setMovingFlag(self,x,y):
         units = ''
@@ -54,7 +86,8 @@ class Game():
         units = ''
         #Si plusieurs unités sont sélectionnées, on les ajoute toutes dans le changement à envoyer
         for i in self.players[self.playerId].selectedObjects:
-            units += str(self.players[self.playerId].units.index(i))+ ","
+            if isinstance(i, u.Unit):
+                units += str(self.players[self.playerId].units.index(i))+ ","
         self.parent.pushChange(units, Flag(t.Target([0,0,0]), t.Target([x,y,0]),FlagState.GROUND_MOVE))
 
     def setDefaultMovingFlag(self,x,y, unit):
@@ -124,15 +157,48 @@ class Game():
     def killUnit(self, killedIndexes):
         #Désélection de l'unité qui va mourir afin d'éviter le renvoie d'une action avec cette unité
         self.players[killedIndexes[1]].units[killedIndexes[0]].kill()
-    
+
+    def setBuyTech(self, techType, index):
+        self.parent.pushChange(index, Flag(techType,0,FlagState.BUY_TECH))
+
+    def buyTech(self, playerId, techType, index):
+        player = self.players[playerId]
+        techTree = player.techTree
+        if techType == "Button_Buy_Unit_Tech":
+            tech = techTree.getTechs(techTree.UNITS)[index]
+        elif techType == "Button_Buy_Building_Tech":
+            tech = techTree.getTechs(techTree.BUILDINGS)[index]
+        elif techType == "Button_Buy_Mothership_Tech":
+            tech = techTree.getTechs(techTree.MOTHERSHIP)[index]
+        if self.players[playerId].ressources[0] >= tech.costMine and self.players[playerId].ressources[1] >= tech.costGaz:
+            if techType == "Button_Buy_Unit_Tech":
+                tech = techTree.buyUpgrade(techTree.getTechs(techTree.UNITS)[index].name,techTree.UNITS, tech)
+            elif techType == "Button_Buy_Building_Tech":
+                tech = techTree.buyUpgrade(techTree.getTechs(techTree.BUILDINGS)[index].name,techTree.BUILDINGS, tech)
+            elif techType == "Button_Buy_Mothership_Tech":
+                tech = techTree.buyUpgrade(techTree.getTechs(techTree.MOTHERSHIP)[index].name,techTree.MOTHERSHIP, tech)
+            self.players[playerId].ressources[0] -= tech.costMine
+            self.players[playerId].ressources[1] -= tech.costGaz
+            if tech.effect == 'D':
+                player.BONUS[player.ATTACK_DAMAGE_BONUS] = tech.add
+            elif tech.effect == 'S':
+                player.BONUS[player.MOVE_SPEED_BONUS] = tech.add
+            elif tech.effect == 'AS':
+                player.BONUS[player.ATTACK_SPEED_BONUS] = tech.add
+            elif tech.effect == 'AR':
+                player.BONUS[player.ATTACK_RANGE_BONUS] = tech.add
+            elif tech.effect == 'VR':
+                player.BONUS[player.VIEW_RANGE_BONUS] = tech.add
+            player.changeBonuses()
+        
     def setGatherFlag(self,ship,ressource):
         units = str(self.players[self.playerId].units.index(ship)) + ","
         self.parent.pushChange(units, Flag(t.Target([0,0,0]),ressource, FlagState.GATHER))
 
     def makeUnitsGather(self, playerId, unitsId, solarSystemId, astroObjectId, astroObjectType):
-        if astroObjectType == w.SolarSystem.NEBULA:
+        if astroObjectType == SolarSystem.NEBULA:
             astroObject = self.galaxy.solarSystemList[solarSystemId].nebulas[astroObjectId]
-        elif astroObjectType == w.SolarSystem.ASTEROID:
+        elif astroObjectType == SolarSystem.ASTEROID:
             astroObject = self.galaxy.solarSystemList[solarSystemId].asteroids[astroObjectId]
         else:
             astroObject = self.players[playerId].motherShip
@@ -288,6 +354,9 @@ class Game():
                                                 self.parent.view.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='enemyRange')
                                             break
     
+    def selectUnitByType(self, typeId):
+        self.players[self.playerId].selectUnitsByType(typeId)
+    
     def select(self, posSelected):
         player = self.players[self.playerId]
         if player.currentPlanet == None:
@@ -300,15 +369,16 @@ class Game():
                 player.selectPlanet(spaceObj)
             else:
                 player.selectObject(spaceObj, False)
-            self.parent.changeActionMenuType(View.MAIN_MENU)
         else:
             planet = player.currentPlanet
             groundObj = planet.groundSelect(posSelected)
-            player.selectObject(groundObj, False)                   
+            player.selectObject(groundObj, False)
+        self.parent.changeActionMenuType(View.MAIN_MENU)
 
     def selectAll(self, posSelected):
         self.players[self.playerId].selectAll(posSelected)
         self.parent.changeActionMenuType(View.MAIN_MENU)
+
 
     def rightClic(self, pos):
         empty = True
@@ -318,6 +388,7 @@ class Game():
                 for i in self.players:
                     if i.id != self.playerId:
                         clickedObj = i.rightClic(pos, self.playerId)
+                        print(clickedObj)
             unit = self.players[self.playerId].getFirstUnit()
             if unit != None:
                 if clickedObj != None:

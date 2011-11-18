@@ -1,6 +1,9 @@
 # -*- coding: UTF-8 -*-
-from Unit import *
+import Unit as u
 from Flag import *
+from Helper import *
+from TechTree import *
+import math
 import socket
 
 #Represente un joueur
@@ -8,12 +11,22 @@ class Player():
     MINERAL = 0
     GAS = 1
     FOOD = 2
+    #[AttaqueDamage,AttaqueSpeed,MoveSpeed,AttackRange]
+    ATTACK_DAMAGE_BONUS = 0
+    ATTACK_SPEED_BONUS = 1
+    MOVE_SPEED_BONUS = 2
+    ATTACK_RANGE_BONUS = 3
+    VIEW_RANGE_BONUS = 4
+    BONUS = [0,0,0,0,0]
+    
     def __init__(self, name, game, id , colorId):
         self.name = name
         self.game = game
         self.colorId = colorId
+        self.techTree = TechTree()
         self.selectedObjects = [] #Liste des unites selectionnes
         self.units = [] #Liste de toute les unites
+        self.buildings = [] #Liste de tous les buildings
         self.id = id #Numero du joueur dans la liste de joueur
         self.diplomacies=[]
         for i in range(8):
@@ -30,12 +43,18 @@ class Player():
         for i in self.units:
             if i.isAlive:
                 i.action(self)
-        
+    def selectUnitsByType(self, unitType):
+        units = []
+        for i in self.selectedObjects:
+            if i.type == unitType:
+                units.append(i)
+        self.selectedObjects = units
+            
     def addBaseUnits(self, startPos):
-        self.units.append(Mothership('Mothership', Unit.MOTHERSHIP,startPos, self.id))
+        self.units.append(u.Mothership('Mothership', u.Unit.MOTHERSHIP,startPos, self.id))
         self.motherShip = self.units[0]
-        self.units.append(Unit('Scout', Unit.SCOUT,[startPos[0] + 20, startPos[1] + 20 ,0], self.id))
-        self.units.append(GatherShip('Gather ship', Unit.CARGO,[startPos[0] + 40, startPos[1]+40], self.id))
+        self.units.append(u.Unit('Scout', u.Unit.SCOUT,[startPos[0] + 20, startPos[1] + 20 ,0], self.id))
+        self.units.append(u.GatherShip('Gather ship', u.Unit.CARGO,[startPos[0] + 40, startPos[1]+40], self.id))
         
     #Ajoute une camera au joueur seulement quand la partie commence    
     def addCamera(self, galaxy, taille):
@@ -45,18 +64,10 @@ class Player():
                 pos = i.position
         default = [pos[0],pos[1]]
         self.camera = Camera(default, galaxy, self, taille)
-        if default[0]-self.camera.screenCenter[0] < (self.camera.galaxy.width*-1)/2:
-            self.camera.position[0] = (self.camera.galaxy.width*-1)/2+self.camera.screenCenter[0]
-        if default[0]+self.camera.screenCenter[0] > self.camera.galaxy.width/2:
-            self.camera.position[0] = (self.camera.galaxy.width)/2-self.camera.screenCenter[0]
-        if default[1]-self.camera.screenCenter[1] < (self.camera.galaxy.height*-1)/2:
-            self.camera.position[1] = (self.camera.galaxy.height*-1)/2+self.camera.screenCenter[1]
-        if default[1]+self.camera.screenCenter[1] > self.camera.galaxy.height/2:
-            self.camera.position[1] = (self.camera.galaxy.height)/2-self.camera.screenCenter[1]
 
     def moveCamera(self):
         self.camera.move()
-    
+
     def changeDiplomacy(self, playerToChange, newStatus):
         self.diplomacies[playerToChange] = newStatus
 
@@ -109,17 +120,17 @@ class Player():
                             
     def getFirstUnit(self):
         if len(self.selectedObjects) > 0:
-            if isinstance(self.selectedObjects[0], Unit):
+            if isinstance(self.selectedObjects[0], u.Unit):
                 return self.selectedObjects[0]
         return None
     
     def rightClic(self, pos, playerId):
         if self.isAlive:
-            if playerId != self.id:
+            if self.isAlly(playerId) == False:
                 for i in self.units:
                     unit = i.select(pos)
-                    print(unit)
-                    return unit
+                    if unit != None:
+                        return unit
         return None
 
     def selectPlanet(self, planet):
@@ -132,15 +143,15 @@ class Player():
             self.selectedObjects = [planet]
             
     def lookPlanet(self, planet):
-        if planet == self.currentPlanet:
+        if planet.alreadyLanded(self.id):
             self.currentPlanet = planet
-            self.camera.placeOnLanding()
+            self.camera.placeOnLanding(planet.getLandingSpot(self.id))
         
     def inViewRange(self, position):
         x = position[0]
         y = position[1]
         for i in self.units:
-            if i.isAlive and not isinstance(i, GroundUnit):
+            if i.isAlive and not isinstance(i, u.GroundUnit):
                 if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
                     if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
                         if i.name == 'Transport':
@@ -151,7 +162,7 @@ class Player():
         for i in range(len(self.diplomacies)):
             if self.isAlly(i) and i != self.id:
                 for i in self.game.players[i].units:
-                    if i.isAlive and not isinstance(i, GroundUnit):
+                    if i.isAlive and not isinstance(i, u.GroundUnit):
                         if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
                             if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
                                 if i.name == 'Transport':
@@ -166,6 +177,20 @@ class Player():
             return self.game.isAllied(playerId, self.id)
         return False
 
+    def getNearestReturnRessourceCenter(self, position):
+        motherShipPosition = self.units[0].flag.initialTarget.position
+        nearestDistance = Helper.calcDistance(position[0],position[1],motherShipPosition[0],motherShipPosition[1])
+        nearestBuilding = self.units[0]
+        for b in self.buildings:
+            if b.type == b.WAYPOINT:
+                if b.finished:
+                    buildingPosition = b.position
+                    distance = Helper.calcDistance(position[0],position[1],buildingPosition[0],buildingPosition[1])
+                    if distance < nearestDistance:
+                        nearestDistance = distance
+                        nearestBuilding = b
+        return nearestBuilding
+
     def killUnit(self, killedIndexes):
         if killedIndexes[1] == self.id:
             if self.units[killedIndexes[0]] in self.selectedObjects:
@@ -174,6 +199,7 @@ class Player():
 
     def buildUnit(self):
         unit = self.motherShip.unitBeingConstruct.pop(0)
+        unit.applyBonuses(self.BONUS)
         if unit.type == u.Unit.TRANSPORT:
             pilot = u.GroundUnit('Builder', u.Unit.GROUND_UNIT, [-10000,-10000,-10000], self.id,-1,-1)
             unit.units.append(pilot)
@@ -188,6 +214,10 @@ class Player():
         self.isAlive = False
         for i in self.units:
             i.kill()
+
+    def changeBonuses(self):
+        for unit in self.units:
+            unit.applyBonuses(self.BONUS)
             
     def adjustRessources(self, ressourceType, amount):
         self.ressources[ressourceType] += amount
@@ -203,8 +233,8 @@ class Player():
 
     def createUnit(self, unitType):
         self.motherShip.addUnitToQueue(unitType)
-        self.ressources[self.MINERAL] -= Unit.BUILD_COST[unitType][Unit.MINERAL]
-        self.ressources[self.GAS] -= Unit.BUILD_COST[unitType][Unit.GAS]
+        self.ressources[self.MINERAL] -= u.Unit.BUILD_COST[unitType][u.Unit.MINERAL]
+        self.ressources[self.GAS] -= u.Unit.BUILD_COST[unitType][u.Unit.GAS]
         self.motherShip.flag.flagState = FlagState.BUILD_UNIT
 
     def makeUnitsAttack(self, units, targetPlayer, targetUnit):
@@ -351,7 +381,20 @@ class Camera():
         self.galaxy = galaxy #reference a la galaxie
         self.player = player
         self.movingDirection = []
-    
+        self.recalculateDefault()
+
+    #Pour replacer la position du début sur le mothership
+    def recalculateDefault(self):
+        if self.defaultPos[0]-self.screenCenter[0] < (self.galaxy.width*-1)/2:
+            self.position[0] = (self.galaxy.width*-1)/2+self.screenCenter[0]
+        if self.defaultPos[0]+self.screenCenter[0] > self.galaxy.width/2:
+            self.position[0] = (self.galaxy.width)/2-self.screenCenter[0]
+        if self.defaultPos[1]-self.screenCenter[1] < (self.galaxy.height*-1)/2:
+            self.position[1] = (self.galaxy.height*-1)/2+self.screenCenter[1]
+        if self.defaultPos[1]+self.screenCenter[1] > self.galaxy.height/2:
+            self.position[1] = (self.galaxy.height)/2-self.screenCenter[1]
+        self.defaultPos = [self.position[0], self.position[1]]
+
     #Pour savoir si la position est dans le gameArea
     def inGameArea(self, position):
         if position[0] > self.position[0] - self.screenWidth/2 and position[0] < self.position + self.screenWidth/2:
@@ -412,8 +455,9 @@ class Camera():
                 return True
         return False
 
-    def placeOnLanding(self):
+    def placeOnLanding(self, landingZone):
         planet = self.player.currentPlanet
+        self.position = [landingZone.position[0], landingZone.position[1]]
         if self.position[0]-self.screenCenter[0] < 0:
             self.position[0] = 0 + self.screenCenter[0]
         if self.position[0] + self.screenCenter[0] > planet.WIDTH:
@@ -432,7 +476,9 @@ class Camera():
             self.position[1] = (self.galaxy.height*-1)/2+self.screenCenter[1]
         if self.position[1]+self.screenCenter[1] > self.galaxy.height/2:
             self.position[1] = (self.galaxy.height)/2-self.screenCenter[1]
-
+    
+    
+    
     #Deplace la camera selon le contenu de la liste movingDirection
     def move(self):
         if self.player.currentPlanet == None:
