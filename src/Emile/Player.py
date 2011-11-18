@@ -201,7 +201,7 @@ class Player():
         unit = self.motherShip.unitBeingConstruct.pop(0)
         unit.applyBonuses(self.BONUS)
         if unit.type == u.Unit.TRANSPORT:
-            pilot = u.GroundUnit('Builder', u.Unit.GROUND_UNIT, [-10000,-10000,-10000], self.id,-1,-1)
+            pilot = u.GroundGatherUnit('Collector', u.Unit.GROUND_GATHER, [-10000,-10000,-10000], self.id,-1,-1)
             unit.units.append(pilot)
             self.units.append(pilot)
         unit.changeFlag(t.Target(self.motherShip.rallyPoint), FlagState.MOVE)
@@ -249,7 +249,12 @@ class Player():
         for i in units:
             if i != '':
                 self.units[int(i)].changeFlag(astroObject, FlagState.GATHER)
-
+                
+    def makeGroundUnitsGather(self, units, ressource):
+        for i in units:
+            if i != '':
+                self.units[int(i)].changeFlag(ressource, FlagState.GROUND_GATHER)
+        
     def makeFormation(self, units, galaxy, target = None, action = FlagState.MOVE):
         #S'il n'y a pas de target de spécifiée comme lors du changement de formation
         if target == None:

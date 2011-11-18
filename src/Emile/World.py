@@ -127,7 +127,7 @@ class SolarSystem():
                         if self.sunPosition[1]+tempY > j.position[1]-j.IMAGE_HEIGHT and self.sunPosition[1]+tempY < j.position[1]+j.IMAGE_HEIGHT:
                             placeFound = False
                             break
-            self.planets.append(Planet([self.sunPosition[0]+tempX,self.sunPosition[1]+tempY],int(random.random()*3),int(random.random()*3)))
+            self.planets.append(Planet([self.sunPosition[0]+tempX,self.sunPosition[1]+tempY],int(random.random()*3),int(random.random()*3),i, self))
         for i in range(0,nNebu):
             tempX=""
             tempY=""
@@ -242,7 +242,9 @@ class Planet(Target):
     HEIGHT=1200
     PADDING=25
     MAX_DIST_FROM_SUN = SolarSystem.WIDTH/4
-    def __init__(self, planetPosition, nMineralStack, nGazStack):
+    MINERAL = 0
+    GAZ = 1
+    def __init__(self, planetPosition, nMineralStack, nGazStack, id, solarSystem):
         Target.__init__(self, planetPosition)
         self.discovered = False
         self.minerals = []
@@ -253,6 +255,8 @@ class Planet(Target):
         self.nGazStack = nGazStack + 1
         self.landingZones = []
         self.units = []
+        self.id = id
+        self.solarSystem = solarSystem
         for i in range(0, self.nMineralStack):
             nMinerals = random.randrange(MineralStack.MAX_QTY/2, MineralStack.MAX_QTY)#random.random()*MineralStack.MAX_QTY/2+MineralStack.MAX_QTY/2)
             posFound = False
@@ -263,12 +267,12 @@ class Planet(Target):
                     posFound = False
                 if position[1] < Planet.PADDING or position[1] > Planet.HEIGHT-Planet.PADDING-MineralStack.HEIGHT/2:
                     posFound = False
-                for i in self.minerals:
-                    if position[0] > i.position[0]-i.WIDTH and position[0] < i.position[0]+i.WIDTH:
-                        if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
+                for j in self.minerals:
+                    if position[0] > j.position[0]-j.WIDTH and position[0] < j.position[0]+j.WIDTH:
+                        if position[1] > j.position[1]-j.HEIGHT and position[1] < j.position[1]+j.HEIGHT:
                             posFound = False
                             break
-            self.minerals.append(MineralStack(nMinerals,position))
+            self.minerals.append(MineralStack(nMinerals, position, i, id, solarSystem.sunId))
         for i in range(0, self.nGazStack):
             nGaz = int(random.randrange(GazStack.MAX_QTY/2, GazStack.MAX_QTY))#random.random()*GazStack.MAX_QTY/2+GazStack.MAX_QTY/2)
             posFound = False
@@ -279,17 +283,17 @@ class Planet(Target):
                     posFound = False
                 if position[1] < Planet.PADDING or position[1] > Planet.HEIGHT-Planet.PADDING-GazStack.HEIGHT/2:
                     posFound = False
-                for i in self.minerals:
-                    if position[0] > i.position[0]-i.WIDTH and position[0] < i.position[0]+i.WIDTH:
-                        if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
+                for j in self.minerals:
+                    if position[0] > j.position[0]-j.WIDTH and position[0] < j.position[0]+j.WIDTH:
+                        if position[1] > j.position[1]-j.HEIGHT and position[1] < j.position[1]+j.HEIGHT:
                             posFound = False
                             break
-                for i in self.gaz:
-                    if position[0] > i.position[0]-i.WIDTH and position[0] < i.position[0]+i.WIDTH:
-                        if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
+                for j in self.gaz:
+                    if position[0] > j.position[0]-j.WIDTH and position[0] < j.position[0]+j.WIDTH:
+                        if position[1] > j.position[1]-j.HEIGHT and position[1] < j.position[1]+j.HEIGHT:
                             posFound = False
                             break
-            self.gaz.append(GazStack(nGaz, position))
+            self.gaz.append(GazStack(nGaz, position, i, id, solarSystem.sunId))
         for i in self.minerals:
             self.mineralQte += i.nbMinerals
         for i in self.gaz:
@@ -360,9 +364,12 @@ class MineralStack(Target):
     WIDTH = 48
     HEIGHT = 64
     MAX_QTY = 3000
-    def __init__(self, nbMinerals, position):
+    def __init__(self, nbMinerals, position, id, planetId, sunId):
         Target.__init__(self, position)
         self.nbMinerals = nbMinerals
+        self.id = id
+        self.planetId = planetId
+        self.sunId = sunId
         
     def select(self, position):
         if position[0] > self.position[0]-self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:
@@ -374,10 +381,13 @@ class GazStack(Target):
     WIDTH = 24
     HEIGHT = 24
     MAX_QTY = 3000
-    def __init__(self, nbGaz, position):
+    def __init__(self, nbGaz, position, id, planetId, sunId):
         Target.__init__(self, position)
         self.nbGaz= nbGaz
-        
+        self.id = id
+        self.planetId = planetId
+        self.sunId = sunId
+
     def select(self, position):
         if position[0] > self.position[0]-self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:
             if position[1] > self.position[1]-self.HEIGHT/2 and position[1]+self.HEIGHT/2:

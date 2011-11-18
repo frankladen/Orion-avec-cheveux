@@ -203,6 +203,17 @@ class Game():
         else:
             astroObject = self.players[playerId].motherShip
         self.players[playerId].makeUnitsGather(unitsId, astroObject)
+
+    def setGroundGatherFlag(self, ship, ressource):
+        units = str(self.players[self.playerId].units.index(ship)) + ","
+        self.parent.pushChange(units, Flag(t.Target([0,0,0]), ressource, FlagState.GROUND_GATHER))
+
+    def makeGroundUnitsGather(self, playerId, unitsId, ressourceId, planetId, sunId, ressourceType):
+        if ressourceType == Planet.MINERAL:
+            ressource = self.galaxy.solarSystemList[sunId].planets[planetId].minerals[ressourceId]
+        else:
+            ressource = self.galaxy.solarSystemList[sunId].planets[planetId].gaz[ressourceId]
+        self.players[playerId].makeGroundUnitsGather(unitsId, ressource)
     
     def setLandingFlag(self, unit, planet):
         solarsystemId = 0
@@ -404,7 +415,16 @@ class Game():
                 else:
                     self.setMovingFlag(pos[0], pos[1])
         else:
-            self.setGroundMovingFlag(pos[0], pos[1])
+            unit = self.players[self.playerId].getFirstUnit()
+            clickedObj = self.getCurrentPlanet().groundSelect(pos)
+            if unit != None:
+                if clickedObj != None:
+                    if unit.type == unit.GROUND_GATHER:
+                        if isinstance(clickedObj, w.MineralStack) or isinstance(clickedObj, w.GazStack):
+                            print('wanna gather')
+                            self.setGroundGatherFlag(unit, clickedObj)
+                else:
+                    self.setGroundMovingFlag(pos[0], pos[1])
                 
     #Selection avec le clic-drag
     def boxSelect(self, selectStart, selectEnd):
