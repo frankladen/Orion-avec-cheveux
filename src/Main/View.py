@@ -1333,14 +1333,14 @@ class View():
 
     def shiftRelease(self, eve):
         self.game.multiSelect = False
-	
+
     def checkMotherShip(self, eve):
         self.game.players[self.game.playerId].currentPlanet = None
+        cam = self.game.players[self.game.playerId].camera
+        cam.position = [cam.defaultPos[0], cam.defaultPos[1]]
         self.changeBackground('GALAXY')
         self.drawWorld()
         self.redrawMinimap()
-        cam = self.game.players[self.game.playerId].camera
-        cam.position = cam.defaultPos
         self.game.players[self.game.playerId].selectedUnit = []
 
     def clickMenuModes(self,eve):

@@ -80,6 +80,20 @@ class Unit(PlayerObject):
             self.move()
         return None
 
+    def select(self, position):
+        if self.isAlive:
+            if self.position[0] >= position[0] - self.SIZE[self.type][0]/2 and self.position[0] <= position[0] + self.SIZE[self.type][0]/2:
+                if self.position[1] >= position[1] - self.SIZE[self.type][1]/2 and self.position[1] <= position[1] + self.SIZE[self.type][1]/2:
+                    return self
+        return None
+
+    def boxSelect(self, startPos, endPos):
+        if self.isAlive and not isinstance(self, Mothership):
+            if self.position[0] > startPos[0] - self.SIZE[self.type][0]/2 and self.position[0] < endPos[0] + self.SIZE[self.type][0]/2:
+                if self.position[1] > startPos[1] - self.SIZE[self.type][1]/2 and  self.position[1] < endPos[1] + self.SIZE[self.type][1]/2:
+                    return self
+        return None
+
     def build(self, building):
         if Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1]) >= self.moveSpeed:
             self.move()
@@ -337,6 +351,20 @@ class TransportShip(SpaceUnit):
         else:
             Unit.action(self, parent)
 
+    def select(self, position):
+        if self.isAlive and not self.landed:
+            if self.position[0] >= position[0] - self.SIZE[self.type][0]/2 and self.position[0] <= position[0] + self.SIZE[self.type][0]/2:
+                if self.position[1] >= position[1] - self.SIZE[self.type][1]/2 and self.position[1] <= position[1] + self.SIZE[self.type][1]/2:
+                    return self
+        return None
+
+    def boxSelect(self, startPos, endPos):
+        if self.isAlive and not self.landed:
+            if self.position[0] >= startPos[0] - self.SIZE[self.type][0]/2 and self.position[0] <= endPos[0] + self.SIZE[self.type][0]/2:
+                if self.position[1] >= startPos[1] - self.SIZE[self.type][1]/2 and self.position[1] <= endPos[1] + self.SIZE[self.type][1]/2:
+                    return self
+        return None
+    
     def land(self, game):
         playerId = game.playerId
         galaxy = game.galaxy
@@ -366,8 +394,7 @@ class TransportShip(SpaceUnit):
                     self.landed = True
                     if playerId == game.playerId:
                         cam = game.players[playerId].camera
-                        cam.position = [landingZone.position[0], landingZone.position[1]]
-                        cam.placeOnLanding()
+                        cam.placeOnLanding(landingZone)
                     for i in self.units:
                         i.position = [landingZone.position[0] + 40, landingZone.position[1]]
                         i.planetId = planetId
@@ -385,8 +412,7 @@ class TransportShip(SpaceUnit):
                     self.landed = True
                     if playerId == game.playerId:
                         cam = game.players[playerId].camera
-                        cam.position = [landingZone.position[0], landingZone.position[1]]
-                        cam.placeOnLanding()
+                        cam.placeOnLanding(landingZone)
                     for i in self.units:
                         i.position = [landingZone.position[0] + 40, landingZone.position[1]]
                         i.planetId = planetId

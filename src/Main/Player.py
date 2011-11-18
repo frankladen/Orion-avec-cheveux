@@ -64,21 +64,89 @@ class Player():
                 pos = i.position
         default = [pos[0],pos[1]]
         self.camera = Camera(default, galaxy, self, taille)
-        if default[0]-self.camera.screenCenter[0] < (self.camera.galaxy.width*-1)/2:
-            self.camera.position[0] = (self.camera.galaxy.width*-1)/2+self.camera.screenCenter[0]
-        if default[0]+self.camera.screenCenter[0] > self.camera.galaxy.width/2:
-            self.camera.position[0] = (self.camera.galaxy.width)/2-self.camera.screenCenter[0]
-        if default[1]-self.camera.screenCenter[1] < (self.camera.galaxy.height*-1)/2:
-            self.camera.position[1] = (self.camera.galaxy.height*-1)/2+self.camera.screenCenter[1]
-        if default[1]+self.camera.screenCenter[1] > self.camera.galaxy.height/2:
-            self.camera.position[1] = (self.camera.galaxy.height)/2-self.camera.screenCenter[1]
 
     def moveCamera(self):
         self.camera.move()
 
     def changeDiplomacy(self, playerToChange, newStatus):
         self.diplomacies[playerToChange] = newStatus
+
+    def selectUnit(self, position):
+        for i in self.units:
+            unit = i.select(position)
+            if unit != None:
+                self.selectedObjects = [unit]
+
+    def multiSelectUnit(self, position):
+        for i in self.units:
+            unit = i.select(position)
+            if unit != None and unit not in self.selectedObjects:
+                self.selectedObjects.append(unit)
+
+    def selectObject(self, playerObj, multi):
+        if playerObj != None and playerObj not in self.selectedObjects:
+            if not multi:
+                self.selectedObjects = [playerObj]
+            else:
+                self.selectedObjects.append(playerObj)
+
+    def boxSelect(self, selectStart, selectEnd):
+        first = True
+        if self.currentPlanet == None:
+            for i in self.units:
+                unit = i.boxSelect(selectStart, selectEnd)
+                if first:
+                    self.selectedObjects = []
+                    first = False
+                self.selectObject(unit, True)
+        else:
+            for i in self.currentPlanet.units:
+                unit = i.boxSelect(selectStart, selectEnd)
+                if first:
+                    self.selectedObjects = []
+                    first = False
+                self.selectObject(unit, True)
     
+    def selectAll(self, position):
+        if self.currentPlanet == None:
+            self.selectUnit(position)
+            firstUnit = self.selectedObjects[0]
+            if len(self.selectedObjects) > 0:
+                for i in self.units:
+                    if self.camera.inGameArea(i.position):
+                        unit = i.select(position)
+                        if unit.type == firstUnit.type:
+                            self.selectObject(unit, True)
+                            
+    def getFirstUnit(self):
+        if len(self.selectedObjects) > 0:
+            if isinstance(self.selectedObjects[0], u.Unit):
+                return self.selectedObjects[0]
+        return None
+    
+    def rightClic(self, pos, playerId):
+        if self.isAlive:
+            if self.isAlly(playerId) == False:
+                for i in self.units:
+                    unit = i.select(pos)
+                    if unit != None:
+                        return unit
+        return None
+
+    def selectPlanet(self, planet):
+        if len(self.selectedObjects) > 0:
+            if self.selectedObjects[0] == planet:
+                self.lookPlanet(planet)
+            else:
+                self.selectedObjects = [planet]
+        else:
+            self.selectedObjects = [planet]
+            
+    def lookPlanet(self, planet):
+        if planet.alreadyLanded(self.id):
+            self.currentPlanet = planet
+            self.camera.placeOnLanding(planet.getLandingSpot(self.id))
+        
     def inViewRange(self, position):
         x = position[0]
         y = position[1]
@@ -313,7 +381,26 @@ class Camera():
         self.galaxy = galaxy #reference a la galaxie
         self.player = player
         self.movingDirection = []
-        
+        self.recalculateDefault()
+
+    #Pour replacer la position du début sur le mothership
+    def recalculateDefault(self):
+        if self.defaultPos[0]-self.screenCenter[0] < (self.galaxy.width*-1)/2:
+            self.position[0] = (self.galaxy.width*-1)/2+self.screenCenter[0]
+        if self.defaultPos[0]+self.screenCenter[0] > self.galaxy.width/2:
+            self.position[0] = (self.galaxy.width)/2-self.screenCenter[0]
+        if self.defaultPos[1]-self.screenCenter[1] < (self.galaxy.height*-1)/2:
+            self.position[1] = (self.galaxy.height*-1)/2+self.screenCenter[1]
+        if self.defaultPos[1]+self.screenCenter[1] > self.galaxy.height/2:
+            self.position[1] = (self.galaxy.height)/2-self.screenCenter[1]
+        self.defaultPos = [self.position[0], self.position[1]]
+
+    #Pour savoir si la position est dans le gameArea
+    def inGameArea(self, position):
+        if position[0] > self.position[0] - self.screenWidth/2 and position[0] < self.position + self.screenWidth/2:
+            if position[1] > self.position[1] - self.screenHeight/2 and position[1] < self.position[1] + self.screenHeight/2:
+                return True
+        return False
     #Pour calculer la distance entre la camera et un point
     def calcDistance(self, position):
         distX = position[0] - self.position[0]
@@ -368,8 +455,9 @@ class Camera():
                 return True
         return False
 
-    def placeOnLanding(self):
+    def placeOnLanding(self, landingZone):
         planet = self.player.currentPlanet
+        self.position = [landingZone.position[0], landingZone.position[1]]
         if self.position[0]-self.screenCenter[0] < 0:
             self.position[0] = 0 + self.screenCenter[0]
         if self.position[0] + self.screenCenter[0] > planet.WIDTH:
