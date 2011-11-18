@@ -254,15 +254,19 @@ class Controller():
             elif flag.flagState == FlagState.GATHER:
                 if isinstance(flag.finalTarget, w.AstronomicalObject):
                     if flag.finalTarget.type == 'nebula':
-                        nebulaId = flag.finalTarget.id
+                        astroId = flag.finalTarget.id
                         solarId = flag.finalTarget.solarSystem.sunId
-                        actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(nebulaId)+","+str(solarId)+","+str(w.AstronomicalObject.NEBULA)
+                        type = w.AstronomicalObject.NEBULA
                     elif flag.finalTarget.type == 'asteroid':
-                        mineralId = flag.finalTarget.id
+                        astroId = flag.finalTarget.id
                         solarId = flag.finalTarget.solarSystem.sunId
-                        actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(mineralId)+","+str(solarId)+","+str(w.AstronomicalObject.ASTEROID)
+                        type = w.AstronomicalObject.ASTEROID
+                    actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(astroId)+","+str(solarId)+","+str(type)
                 else:
-                    actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/0,0,92"
+                    if isinstance(flag.finalTarget, u.Mothership):
+                        actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/0,0,92"
+                    else:
+                        actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(self.game.players[self.game.playerId].buildings.index(flag.finalTarget))+",0," + str(flag.finalTarget.type)
             
         elif isinstance(flag, tuple):
             if flag[2] == FlagState.LAND:

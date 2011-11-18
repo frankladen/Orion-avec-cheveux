@@ -200,6 +200,8 @@ class Game():
             astroObject = self.galaxy.solarSystemList[solarSystemId].nebulas[astroObjectId]
         elif astroObjectType == AstronomicalObject.ASTEROID:
             astroObject = self.galaxy.solarSystemList[solarSystemId].asteroids[astroObjectId]
+        elif astroObjectType == b.Building.WAYPOINT:
+            astroObject = self.players[playerId].buildings[astroObjectId]
         else:
             astroObject = self.players[playerId].motherShip
         self.players[playerId].makeUnitsGather(unitsId, astroObject)
@@ -386,22 +388,22 @@ class Game():
             clickedObj = self.galaxy.select(pos)
             if clickedObj == None:
                 for i in self.players:
-                    if i.id != self.playerId:
-                        clickedObj = i.rightClic(pos, self.playerId)
-                        print(clickedObj)
+                    clickedObj = i.rightClic(pos, self.playerId)
             unit = self.players[self.playerId].getFirstUnit()
-            print(self.players[self.playerId].getFirstUnit().type)
             if unit != None:
                 if clickedObj != None:
                     if unit.type == unit.TRANSPORT:
                         if isinstance(clickedObj, w.Planet):
                             self.setLandingFlag(unit, clickedObj)
-                    if unit.type == unit.CARGO:
-                        if isinstance(clickedObj, w.AstronomicalObject):
+                    elif unit.type == unit.CARGO:
+                        if isinstance(clickedObj, w.AstronomicalObject) or isinstance(clickedObj, u.Mothership) or isinstance(clickedObj, Waypoint):
                             self.setGatherFlag(unit, clickedObj)
-                    if unit.type == unit.ATTACK_SHIP:
+                    elif unit.type == unit.ATTACK_SHIP:
                         if isinstance(clickedObj, u.Unit):
                             self.setAttackFlag(clickedObj)
+                    elif unit.type == unit.SCOUT:
+                        if isinstance(clickedObj, Waypoint):
+                            self.resumeBuildingFlag(clickedObj)
                 else:
                     self.setMovingFlag(pos[0], pos[1])
         else:

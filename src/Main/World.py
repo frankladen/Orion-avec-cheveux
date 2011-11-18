@@ -31,8 +31,8 @@ class Galaxy():
             tempY=""
             placeFound = False
             while placeFound == False:
-                tempX=random.randrange(self.width/2 * -1, self.width/2)#(random.random()*self.width/2)-(random.random()*self.width/2)
-                tempY=random.randrange(self.height/2 * -1, self.height/2)#(random.random()*self.height/2)-(random.random()*self.width/2)
+                tempX=random.randrange(self.width/2 * -1, self.width/2)
+                tempY=random.randrange(self.height/2 * -1, self.height/2)
                 placeFound = True
                 #Conditions de placement des soleils
                 if tempX < -1*(self.width/2)+self.SUN_BORDER_SPACING or tempX > self.width/2-self.SUN_BORDER_SPACING:
@@ -40,8 +40,8 @@ class Galaxy():
                 if tempY < -1*(self.height/2)+self.SUN_BORDER_SPACING or tempY > self.height/2-self.SUN_BORDER_SPACING: 
                     placeFound = False
                 for j in self.solarSystemList:
-                    if tempX > j.sunPosition[0]-j.WIDTH/2 and tempX < j.sunPosition[0]+j.WIDTH/2:
-                        if tempY > j.sunPosition[1]-j.HEIGHT/2 and tempY < j.sunPosition[1]+j.HEIGHT/2:
+                    if tempX > j.sunPosition[0]-j.WIDTH and tempX < j.sunPosition[0]+j.WIDTH:
+                        if tempY > j.sunPosition[1]-j.HEIGHT and tempY < j.sunPosition[1]+j.HEIGHT:
                             placeFound = False
                             break
             self.solarSystemList.append(SolarSystem([tempX,tempY,0],i-1))
@@ -110,8 +110,8 @@ class SolarSystem():
             placeFound = False
             while placeFound == False:
                 placeFound = True
-                tempX = random.randrange(self.WIDTH/2*-1, self.WIDTH/2) #(random.random()*SolarSystem.WIDTH/2)-(random.random()*SolarSystem.WIDTH/2)
-                tempY = random.randrange(self.HEIGHT/2*-1, self.HEIGHT/2)#(random.random()*SolarSystem.HEIGHT/2)-(random.random()*SolarSystem.HEIGHT/2)
+                tempX = random.randrange(self.WIDTH/2*-1, self.WIDTH/2)
+                tempY = random.randrange(self.HEIGHT/2*-1, self.HEIGHT/2)
                 #Condition de placement des planetes
                 if tempX > -40 and tempX < 40:
                     placeFound = False
@@ -129,8 +129,8 @@ class SolarSystem():
             placeFound = False
             while placeFound == False:
                 placeFound = True
-                tempX = random.randrange(self.WIDTH/2*-1, self.WIDTH/2) #(random.random()*SolarSystem.WIDTH/2)-(random.random()*SolarSystem.WIDTH/2)
-                tempY = random.randrange(self.HEIGHT/2*-1, self.HEIGHT/2)#(random.random()*SolarSystem.HEIGHT/2)-(random.random()*SolarSystem.HEIGHT/2)
+                tempX = random.randrange(self.WIDTH/2*-1, self.WIDTH/2)
+                tempY = random.randrange(self.HEIGHT/2*-1, self.HEIGHT/2)
                 #Condition de placement des nebuleuses
                 if tempX > -40 and tempX < 40:
                     placeFound = False
@@ -153,8 +153,8 @@ class SolarSystem():
             placeFound = False
             while placeFound == False:
                 placeFound = True
-                tempX = random.randrange(self.WIDTH/2*-1, self.WIDTH/2) #(random.random()*SolarSystem.WIDTH/2)-(random.random()*SolarSystem.WIDTH/2)
-                tempY = random.randrange(self.HEIGHT/2*-1, self.HEIGHT/2)#(random.random()*SolarSystem.HEIGHT/2)-(random.random()*SolarSystem.HEIGHT/2)
+                tempX = random.randrange(self.WIDTH/2*-1, self.WIDTH/2)
+                tempY = random.randrange(self.HEIGHT/2*-1, self.HEIGHT/2)
                 #Condition de placement des asteroïdes
                 if tempX > -40 and tempX < 40:
                     placeFound = False
@@ -212,10 +212,10 @@ class AstronomicalObject(Target):
         self.type = type
         self.discovered = False
         if type == 'nebula':
-            self.gazQte = random.randrange(self.MAX_GAS/2, self.MAX_GAS)#((random.random()*self.MAX_GAS/2)+self.MAX_GAS/2)
+            self.gazQte = random.randrange(self.MAX_GAS/2, self.MAX_GAS)
             self.mineralQte = 0
         elif type == 'asteroid':
-            self.mineralQte = random.randrange(self.MAX_MINERALS/2, self.MAX_MINERALS)#((random.random()*self.MAX_MINERALS/2)+self.MAX_MINERALS/2)
+            self.mineralQte = random.randrange(self.MAX_MINERALS/2, self.MAX_MINERALS)
             self.gazQte = 0 
             
     def selectNebula(self, position):
@@ -249,7 +249,7 @@ class Planet(Target):
         self.landingZones = []
         self.units = []
         for i in range(0, self.nMineralStack):
-            nMinerals = random.randrange(MineralStack.MAX_QTY/2, MineralStack.MAX_QTY)#random.random()*MineralStack.MAX_QTY/2+MineralStack.MAX_QTY/2)
+            nMinerals = random.randrange(MineralStack.MAX_QTY/2, MineralStack.MAX_QTY)
             posFound = False
             while not posFound:
                 posFound = True
@@ -265,7 +265,7 @@ class Planet(Target):
                             break
             self.minerals.append(MineralStack(nMinerals,position))
         for i in range(0, self.nGazStack):
-            nGaz = int(random.randrange(GazStack.MAX_QTY/2, GazStack.MAX_QTY))#random.random()*GazStack.MAX_QTY/2+GazStack.MAX_QTY/2)
+            nGaz = int(random.randrange(GazStack.MAX_QTY/2, GazStack.MAX_QTY))
             posFound = False
             while not posFound:
                 posFound = True

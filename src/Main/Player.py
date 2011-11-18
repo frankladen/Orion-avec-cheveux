@@ -126,11 +126,21 @@ class Player():
     
     def rightClic(self, pos, playerId):
         if self.isAlive:
-            if self.isAlly(playerId) == False:
-                for i in self.units:
-                    unit = i.select(pos)
-                    if unit != None:
-                        return unit
+            if playerId != self.id:
+                if self.isAlly(playerId) == False:
+                    for i in self.units:
+                        unit = i.select(pos)
+                        if unit != None:
+                            return unit
+            else:
+                unit = self.motherShip.select(pos)
+                if unit != None:
+                    return unit
+                else:
+                    for b in self.buildings:
+                        unit = b.select(pos)
+                        if unit!= None:
+                            return unit
         return None
 
     def selectPlanet(self, planet):
