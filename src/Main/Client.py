@@ -28,20 +28,21 @@ class Controller():
 
     #TIMER D'ACTION DU JOUEUR COURANT
     def action(self, waitTime=50):
-        if self.view.currentFrame != self.view.pLobby and self.server.isGameStopped() == False:
-            self.refreshMessages(self.view.menuModes.chat)
-            if self.refresh > 0:
-                #À chaque itération je demande les nouvelles infos au serveur
-                self.pullChange()
-                self.view.gameArea.delete('enemyRange')
-                if self.game.action():
-                    self.view.refreshGame(self.game.isOnPlanet())
-                    self.refresh+=1
-                    waitTime = self.server.amITooHigh(self.game.playerId)
-                elif self.game.playerId != 0:
-                    self.view.deleteAll()
-            else:
-                self.checkIfGameStarting()
+        if self.view.currentFrame != self.view.pLobby:
+            if self.server.isGameStopped() == False:
+                self.refreshMessages(self.view.menuModes.chat)
+                if self.refresh > 0:
+                    #À chaque itération je demande les nouvelles infos au serveur
+                    self.pullChange()
+                    if self.game.action():
+                        self.view.gameArea.delete('enemyRange')
+                        self.view.refreshGame(self.game.isOnPlanet())
+                        self.refresh+=1
+                        waitTime = self.server.amITooHigh(self.game.playerId)
+                    elif self.game.playerId != 0:
+                        self.view.deleteAll()
+                else:
+                    self.checkIfGameStarting()
         else:
             if self.server.isGameStarted() == True:
                 self.startGame()
@@ -377,7 +378,7 @@ class Controller():
             self.game.killUnit((int(unitIndex[0]),actionPlayerId))
         
         elif action == str(FlagState.DESTROY_ALL):
-            self.game.killPlayer(int(unitIndex[0]))
+            self.game.killPlayer(actionPlayerId)
         
         elif action == str(FlagState.CHANGE_FORMATION):
             self.game.changeFormation(actionPlayerId, target, unitIndex, FlagState.MOVE)
@@ -439,10 +440,9 @@ class Controller():
         self.view.showGameIsFinished()
         self.view.root.destroy()
 
-    def sendKillPlayer(self, playerId=None):
-        if playerId == None:
-            playerId = self.game.playerId
-        self.pushChange(playerId, Flag(None,playerId,FlagState.DESTROY_ALL))
+    def sendKillPlayer(self):
+        playerId = self.game.playerId
+        self.pushChange(playerId, Flag(playerId,playerId,FlagState.DESTROY_ALL))
 
     #Enleve le joueur courant de la partie ainsi que ses units
     def removePlayer(self):
@@ -450,6 +450,6 @@ class Controller():
             self.view.selectedOnglet = self.view.SELECTED_CHAT
             self.sendMessage('a quitté la partie')
             self.server.removePlayer(self.game.players[self.game.playerId].name, self.game.playerId)
-
+            
 if __name__ == '__main__':
     c = Controller()

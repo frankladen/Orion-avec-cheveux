@@ -170,15 +170,15 @@ class Game():
             tech = techTree.getTechs(techTree.BUILDINGS)[index]
         elif techType == "Button_Buy_Mothership_Tech":
             tech = techTree.getTechs(techTree.MOTHERSHIP)[index]
-        if self.players[playerId].ressources[0] >= tech.costMine and self.players[playerId].ressources[1] >= tech.costGaz:
+        if player.ressources[0] >= tech.costMine and player.ressources[1] >= tech.costGaz:
             if techType == "Button_Buy_Unit_Tech":
                 tech = techTree.buyUpgrade(techTree.getTechs(techTree.UNITS)[index].name,techTree.UNITS, tech)
             elif techType == "Button_Buy_Building_Tech":
                 tech = techTree.buyUpgrade(techTree.getTechs(techTree.BUILDINGS)[index].name,techTree.BUILDINGS, tech)
             elif techType == "Button_Buy_Mothership_Tech":
                 tech = techTree.buyUpgrade(techTree.getTechs(techTree.MOTHERSHIP)[index].name,techTree.MOTHERSHIP, tech)
-            self.players[playerId].ressources[0] -= tech.costMine
-            self.players[playerId].ressources[1] -= tech.costGaz
+            player.ressources[0] -= tech.costMine
+            player.ressources[1] -= tech.costGaz
             if tech.effect == 'D':
                 player.BONUS[player.ATTACK_DAMAGE_BONUS] = tech.add
             elif tech.effect == 'S':
@@ -284,11 +284,10 @@ class Game():
     def eraseUnits(self, playerId=None):
         if playerId == None:
             playerId = self.playerId
-        self.parent.pushChange(playerId, Flag(None,playerId,FlagState.DESTROY_ALL))
+        #self.parent.pushChange(playerId, Flag(None,playerId,FlagState.DESTROY_ALL))
 
-    def sendKillPlayer(self, playerId=None):
-        if playerId == None:
-            playerId = self.playerId
+    def sendKillPlayer(self):
+        playerId = self.playerId
         self.parent.sendKillPlayer(playerId)
 
     def killPlayer(self, playerId):
@@ -296,7 +295,7 @@ class Game():
         if playerId == self.playerId:
             self.parent.removePlayer()
             self.players[self.playerId].selectedObjects = []
-        if playerId == 0:
+        if playerId == 0 or playerId == self.playerId:
             self.parent.endGame()
     
     def trade(self, player1, player2, ressourceType, amount):
@@ -336,10 +335,8 @@ class Game():
                         if i.isAlive:
                             if i != self.players[self.playerId] and self.players[self.playerId].isAlly(self.players.index(i)) == False:
                                 for j in i.units:
-                                    if j.isAlive:
-                                        if j.position[0] >= posSelected[0]-j.SIZE[j.type][0]/2 and j.position[0] <= posSelected[0]+j.SIZE[j.type][0]/2 :
-                                            if j.position[1] >= posSelected[1]-j.SIZE[j.type][1]/2  and j.position[1] <= posSelected[1]+j.SIZE[j.type][1]/2 :
-                                                self.setAttackFlag(j)
+                                    if j.select(posSelected):
+                                        self.setAttackFlag(j)
 
     def checkIfEnemyInRange(self, unit):
         for pl in self.players:
@@ -350,24 +347,21 @@ class Game():
                             if un.position[0] > unit.position[0]-unit.range and un.position[0] < unit.position[0]+unit.range:
                                 if un.position[1] > unit.position[1]-unit.range and un.position[1] < unit.position[1]+unit.range:
                                     if isinstance(un, u.TransportShip) == False:
-                                        killedIndex = unit.attack(self.players, un)
-                                        if killedIndex[0] > -1:
-                                            self.killUnit(killedIndex)
-                                        if unit.attackcount <= 5:
-                                            distance = self.players[self.playerId].camera.calcDistance(unit.position)
-                                            d2 = self.players[self.playerId].camera.calcDistance(un.position)
-                                            self.parent.view.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='enemyRange')
+                                        self.attackEnemyInRange(unit,un)
                                         break
                                     else:
                                         if un.landed == False:
-                                            killedIndex = unit.attack(self.players, un)
-                                            if killedIndex[0] > -1:
-                                                self.killUnit(killedIndex)
-                                            if unit.attackcount <= 5:
-                                                distance = self.players[self.playerId].camera.calcDistance(unit.position)
-                                                d2 = self.players[self.playerId].camera.calcDistance(un.position)
-                                                self.parent.view.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='enemyRange')
+                                            self.attackEnemyInRange(unit,un)
                                             break
+                                        
+    def attackEnemyInRange(self, unit, unitToAttack):
+        killedIndex = unit.attack(self.players, unitToAttack)
+        if killedIndex[0] > -1:
+            self.killUnit(killedIndex)
+        if unit.attackcount <= 5:
+            distance = self.players[self.playerId].camera.calcDistance(unit.position)
+            d2 = self.players[self.playerId].camera.calcDistance(unitToAttack.position)
+            self.parent.view.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='enemyRange')
     
     def selectUnitByType(self, typeId):
         self.players[self.playerId].selectUnitsByType(typeId)

@@ -695,7 +695,7 @@ class View():
         mb.showinfo('Fin de la partie', 'L\'administrateur de la partie a quitté prématurément la partie, la partie est donc terminée.')
 
     def showGameIsFinished(self):
-        mb.showinfo('Fin de la partie', 'Vous avez perdu.')
+        mb.showinfo('Fin de la partie', 'La partie est terminée.')
 
     def serverCreated(self, serverIP):
         mb.showinfo('Serveur créé', 'Le serveur a été créé à l\'adresse ' + serverIP + '.')

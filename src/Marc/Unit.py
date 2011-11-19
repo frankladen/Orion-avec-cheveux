@@ -249,10 +249,7 @@ class Mothership(Unit):
         if self.isAlive:
             p = [self.position[0], self.position[1], 0]
 
-            if (self.flag.flagState == FlagState.CREATE):
-                print("Flag est sur CREATE, C'EST PAS SUPPOSÉ")
-
-            elif self.flag.flagState == FlagState.BUILD_UNIT:
+            if self.flag.flagState == FlagState.BUILD_UNIT:
                 self.progressUnitsConstruction()
 
             elif self.flag.flagState == FlagState.CANCEL_UNIT:

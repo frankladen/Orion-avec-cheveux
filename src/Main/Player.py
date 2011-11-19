@@ -242,10 +242,11 @@ class Player():
         return self.ressources[0] >= minerals and self.ressources[0] >= gas# and self.ressources[0] >= food
 
     def createUnit(self, unitType):
-        self.motherShip.addUnitToQueue(unitType)
-        self.ressources[self.MINERAL] -= u.Unit.BUILD_COST[unitType][u.Unit.MINERAL]
-        self.ressources[self.GAS] -= u.Unit.BUILD_COST[unitType][u.Unit.GAS]
-        self.motherShip.flag.flagState = FlagState.BUILD_UNIT
+        if self.ressources[self.MINERAL] >= u.Unit.BUILD_COST[unitType][u.Unit.MINERAL] and self.ressources[self.GAS] >= u.Unit.BUILD_COST[unitType][u.Unit.GAS]:
+            self.motherShip.addUnitToQueue(unitType)
+            self.ressources[self.MINERAL] -= u.Unit.BUILD_COST[unitType][u.Unit.MINERAL]
+            self.ressources[self.GAS] -= u.Unit.BUILD_COST[unitType][u.Unit.GAS]
+            self.motherShip.flag.flagState = FlagState.BUILD_UNIT
 
     def makeUnitsAttack(self, units, targetPlayer, targetUnit):
         for i in units:
