@@ -30,6 +30,8 @@ class TechTree():
         if not tech.isAvailable:
             if tech.child:
                 return self.buyUpgrade(tech.name, branch, tech.child)
+            else:
+                return None
         else:
             tech.isAvailable = False
             if tech.child != None:
@@ -45,6 +47,8 @@ class TechTree():
         if not tech.isAvailable:
             if tech.child != None:
                 return self.getUpgrade(name, branch, tech.child)
+            else:
+                return None
         else:
             return tech
 

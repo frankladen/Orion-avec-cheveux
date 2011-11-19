@@ -56,6 +56,8 @@ class View():
         self.asteroid=PhotoImage(file='images/Galaxy/asteroid.gif')
         self.asteroidFOW=PhotoImage(file='images/Galaxy/asteroidFOW.gif')
         self.mineral = PhotoImage(file='images/Planet/crystal.gif')
+        self.gaz = PhotoImage(file='images/Planet/gaz.gif')
+        self.nuclear = PhotoImage(file='images/Planet/rad.gif')
         self.planetBackground = PhotoImage(file='images/Planet/background.gif')
         self.galaxyBackground = PhotoImage(file='images/Galaxy/night-sky.gif')
         self.lobbyBackground = PhotoImage(file='images/Menus/lobby.gif')
@@ -125,6 +127,7 @@ class View():
         self.gatherShips = []
         self.waypoints = []
         self.landingZones = []
+        self.groundUnits = []
         for i in range(0,8):
             self.scoutShips.append(PhotoImage(file='images/Ships/Scoutships/Scoutship'+str(i)+'.gif'))
             self.attackShips.append(PhotoImage(file='images/Ships/Attackships/Attackship'+str(i)+'.gif'))
@@ -134,7 +137,7 @@ class View():
             self.gatherShips.append(PhotoImage(file='images/Ships/Cargo/Cargo'+str(i)+'.gif'))
             self.landingZones.append(PhotoImage(file='images/Planet/LandingZones/landing'+str(i)+'.gif'))
             self.waypoints.append(PhotoImage(file='images/Building/waypoint'+str(i)+'.gif'))
-                
+            self.groundUnits.append(PhotoImage(file='images/Planet/GroundUnit/ground'+str(i)+'.gif'))
         self.showMinerals = Label(gameFrame, text="Mineraux: "+str(self.game.players[self.game.playerId].ressources[0]), bg="black", fg="white", anchor=E)
         self.showMinerals.grid(column=2, row=0)
         self.showGaz = Label(gameFrame, text="Gaz: "+str(self.game.players[self.game.playerId].ressources[1]), bg="black", fg="white", anchor=E)
@@ -714,9 +717,16 @@ class View():
         for i in planet.gaz:
             distance = self.game.players[self.game.playerId].camera.calcDistance(i.position)
             if i in self.game.players[self.game.playerId].selectedObjects:
-                self.gameArea.create_text(distance[0], distance[1]-20, fill="green", text="Gaz :" + str(i.nbGaz), tag='deletable')
+                self.gameArea.create_text(distance[0], distance[1]-(i.HEIGHT/2+8), fill="green", text="Gaz :" + str(i.nbGaz), tag='deletable')
                 self.gameArea.create_oval(distance[0]-(i.WIDTH/2+3), distance[1]-(i.HEIGHT/2+3), distance[0]+(i.WIDTH/2+3), distance[1]+(i.HEIGHT/2+3), outline='yellow', tag='deletable')
-            self.gameArea.create_oval(distance[0]-(i.WIDTH/2+2), distance[1]-(i.HEIGHT/2+2), distance[0]+(i.WIDTH/2+2), distance[1]+(i.HEIGHT/2+2), fill='green', tag='deletable')
+            self.gameArea.create_image(distance[0], distance[1],image=self.gaz, tag='deletable')
+        if planet.nuclearSite != None:
+            site = planet.nuclearSite
+            distance = self.game.players[self.game.playerId].camera.calcDistance(site.position)
+            if site in self.game.players[self.game.playerId].selectedObjects:
+                self.gameArea.create_text(distance[0], distance[1]-(site.HEIGHT/2+10), fill="yellow", text="Nuclear!", tag='deletable')
+                self.gameArea.create_oval(distance[0]-(site.WIDTH/2+3), distance[1]-(site.WIDTH/2+3),distance[0]+(site.WIDTH/2+3),distance[1]+(site.WIDTH/2+3), outline='purple', tag='deletable')
+            self.gameArea.create_image(distance[0], distance[1], image=self.nuclear, tag='deletable')
         for i in planet.landingZones:
             distance = self.game.players[self.game.playerId].camera.calcDistance(i.position)
             if i in self.game.players[self.game.playerId].selectedObjects:
@@ -728,7 +738,7 @@ class View():
             distance = self.game.players[self.game.playerId].camera.calcDistance(i.position)
             if i in self.game.players[self.game.playerId].selectedObjects:
                 self.gameArea.create_oval(distance[0]-(i.SIZE[i.type][0]/2+3), distance[1]-(i.SIZE[i.type][1]/2+3), distance[0]+(i.SIZE[i.type][0]/2+3),distance[1]+(i.SIZE[i.type][1]/2+3),outline='green', tag='deletable')
-            self.gameArea.create_oval(distance[0]-i.SIZE[i.type][0]/2, distance[1]-i.SIZE[i.type][1]/2, distance[0]+i.SIZE[i.type][0]/2,distance[1]+i.SIZE[i.type][1]/2, fill='red', tag='deletable')
+            self.gameArea.create_image(distance[0], distance[1], image=self.groundUnits[color], tag='deletable')
         if self.dragging:
             self.drawSelectionBox()
 
@@ -937,6 +947,8 @@ class View():
         posSelected=self.game.players[self.game.playerId].camera.calcPointInWorld(self.positionMouse[0],self.positionMouse[1])
         if unit.position[0] >= posSelected[0]-(unit.SIZE[unit.type][0]/2) and unit.position[0] <= posSelected[0]+(unit.SIZE[unit.type][0]/2):
             if unit.position[1] >= posSelected[1]-(unit.SIZE[unit.type][1]/2) and unit.position[1] <= posSelected[1]+(unit.SIZE[unit.type][1]/2):
+                if unit.owner != self.game.playerId:
+                    self.gameArea.create_text(distance[0]-(len(self.game.players[unit.owner].name)/2),distance[1]+((unit.SIZE[unit.type][1]/2)+5), text=self.game.players[unit.owner].name, fill="white", tag='deletable')
                 self.drawHPBars(distance,unit)
                             
     
@@ -962,6 +974,8 @@ class View():
                 self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="green", tag='deletable')
                 if int(unit.hitpoints) != int(unit.MAX_HP[unit.type]):
                     self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLost,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="red", tag='deletable')
+        if unit.owner != self.game.playerId:
+            self.gameArea.create_text(distance[0]-(len(self.game.players[unit.owner].name)/2),distance[1]+((unit.SIZE[unit.type][1]/2)+5), text=self.game.players[unit.owner].name, fill="white", tag='deletable')
           
     #Dessine la minimap
     def drawMinimap(self):
@@ -1001,6 +1015,8 @@ class View():
                 self.drawMiniLandingZone(i, planet)
             for i in planet.units:
                 self.drawMiniGroundUnit(i, planet)
+            if planet.nuclearSite != None:
+                self.drawMiniNuclear(planet.nuclearSite, planet)
         self.drawMiniFOV()
         
     def redrawMinimap(self):
@@ -1037,6 +1053,8 @@ class View():
                 self.drawMiniLandingZone(i, planet)
             for i in planet.units:
                 self.drawMiniGroundUnit(i, planet)
+            if planet.nuclearSite != None:
+                self.drawMiniNuclear(planet.nuclearSite, planet)
         self.drawMiniFOV()
 
     #Dessine le carrer de la camera dans la minimap	
@@ -1102,7 +1120,7 @@ class View():
             color = 'YELLOW'
         else:
             color ='RED'
-        if unit.type != unit.GROUND_UNIT:
+        if not isinstance(unit, GroundGatherUnit):
             if unit.type != unit.MOTHERSHIP:
                 if unit.type == unit.TRANSPORT:
                     if not unit.landed:
@@ -1133,6 +1151,12 @@ class View():
             self.minimap.create_rectangle(x-zone.WIDTH/8, y-zone.HEIGHT/8, x+zone.WIDTH/8, y+zone.HEIGHT/8, fill='WHITE')
         else:
             self.minimap.create_rectangle(x-zone.WIDTH/8, y-zone.HEIGHT/8, x+zone.WIDTH/8, y+zone.HEIGHT/8, fill='RED')
+
+    def drawMiniNuclear(self, site, planet):
+        if site.nbRessource > 0:
+            x = int(site.position[0] * 200 / planet.WIDTH)
+            y = int(site.position[1] * 200 / planet.HEIGHT)
+            self.minimap.create_oval(x-site.WIDTH/8, y-site.HEIGHT/8, x+site.WIDTH/8, y+site.HEIGHT/8,fill='YELLOW')
 
     def drawMiniGroundUnit(self, unit, planet):
         x = int(unit.position[0] * 200 / planet.WIDTH)
@@ -1333,15 +1357,17 @@ class View():
 
     def shiftRelease(self, eve):
         self.game.multiSelect = False
-	
+
     def checkMotherShip(self, eve):
         self.game.players[self.game.playerId].currentPlanet = None
+        cam = self.game.players[self.game.playerId].camera
+        cam.position = [cam.defaultPos[0], cam.defaultPos[1]]
+        self.game.players[self.game.playerId].selectedObjects = []
+        self.game.players[self.game.playerId].selectedObjects.append(self.game.players[self.game.playerId].motherShip)
         self.changeBackground('GALAXY')
         self.drawWorld()
         self.redrawMinimap()
-        cam = self.game.players[self.game.playerId].camera
-        cam.position = cam.defaultPos
-        self.game.players[self.game.playerId].selectedUnit = []
+        self.ongletSelectedUnit()
 
     def clickMenuModes(self,eve):
         bp = (eve.widget.gettags(eve.widget.find_withtag('current')))
@@ -1366,7 +1392,7 @@ class View():
             elif (Button_pressed == "bouton_team"):
                 self.ongletTeam()
             elif (Button_pressed == "bouton_selectedUnit"):
-                self.ongletSelectedUnit()
+                self.ongletSelecteUdnit()
             elif (Button_pressed == "selected_unit"):
                 self.game.select((float(bp[1]), float(bp[2])))
                 self.ongletSelectedUnit()
@@ -1429,7 +1455,7 @@ class View():
                 self.game.setChangeFormationFlag('t')
             elif (Button_pressed == "Button_Square"):
                 self.game.setChangeFormationFlag('c')
-            else:
+            elif len(Button_pressed.split("/")) == 2:
                 #Si on achète une nouvelle technologie
                 Button_pressed = Button_pressed.split("/")
                 self.game.setBuyTech(Button_pressed[0], Button_pressed[1])

@@ -165,18 +165,18 @@ class Game():
         player = self.players[playerId]
         techTree = player.techTree
         if techType == "Button_Buy_Unit_Tech":
-            tech = techTree.getUpgrade(techTree.getTechs(techTree.UNITS)[index].name,techTree.UNITS)
+            tech = techTree.getTechs(techTree.UNITS)[index]
         elif techType == "Button_Buy_Building_Tech":
-            tech = techTree.getUpgrade(techTree.getTechs(techTree.BUILDINGS)[index].name,techTree.BUILDINGS)
+            tech = techTree.getTechs(techTree.BUILDINGS)[index]
         elif techType == "Button_Buy_Mothership_Tech":
-            tech = techTree.getUpgrade(techTree.getTechs(techTree.MOTHERSHIP)[index].name,techTree.MOTHERSHIP)
+            tech = techTree.getTechs(techTree.MOTHERSHIP)[index]
         if self.players[playerId].ressources[0] >= tech.costMine and self.players[playerId].ressources[1] >= tech.costGaz:
             if techType == "Button_Buy_Unit_Tech":
-                tech = techTree.buyUpgrade(techTree.getTechs(techTree.UNITS)[index].name,techTree.UNITS)
+                tech = techTree.buyUpgrade(techTree.getTechs(techTree.UNITS)[index].name,techTree.UNITS, tech)
             elif techType == "Button_Buy_Building_Tech":
-                tech = techTree.buyUpgrade(techTree.getTechs(techTree.BUILDINGS)[index].name,techTree.BUILDINGS)
+                tech = techTree.buyUpgrade(techTree.getTechs(techTree.BUILDINGS)[index].name,techTree.BUILDINGS, tech)
             elif techType == "Button_Buy_Mothership_Tech":
-                tech = techTree.buyUpgrade(techTree.getTechs(techTree.MOTHERSHIP)[index].name,techTree.MOTHERSHIP)
+                tech = techTree.buyUpgrade(techTree.getTechs(techTree.MOTHERSHIP)[index].name,techTree.MOTHERSHIP, tech)
             self.players[playerId].ressources[0] -= tech.costMine
             self.players[playerId].ressources[1] -= tech.costGaz
             if tech.effect == 'D':
@@ -196,13 +196,28 @@ class Game():
         self.parent.pushChange(units, Flag(t.Target([0,0,0]),ressource, FlagState.GATHER))
 
     def makeUnitsGather(self, playerId, unitsId, solarSystemId, astroObjectId, astroObjectType):
-        if astroObjectType == SolarSystem.NEBULA:
+        if astroObjectType == AstronomicalObject.NEBULA:
             astroObject = self.galaxy.solarSystemList[solarSystemId].nebulas[astroObjectId]
-        elif astroObjectType == SolarSystem.ASTEROID:
+        elif astroObjectType == AstronomicalObject.ASTEROID:
             astroObject = self.galaxy.solarSystemList[solarSystemId].asteroids[astroObjectId]
+        elif astroObjectType == b.Building.WAYPOINT:
+            astroObject = self.players[playerId].buildings[astroObjectId]
         else:
             astroObject = self.players[playerId].motherShip
         self.players[playerId].makeUnitsGather(unitsId, astroObject)
+
+    def setGroundGatherFlag(self, ship, ressource):
+        units = str(self.players[self.playerId].units.index(ship)) + ","
+        self.parent.pushChange(units, Flag(t.Target([0,0,0]), ressource, FlagState.GROUND_GATHER))
+
+    def makeGroundUnitsGather(self, playerId, unitsId, ressourceId, planetId, sunId, ressourceType):
+        if ressourceType == Planet.MINERAL:
+            ressource = self.galaxy.solarSystemList[sunId].planets[planetId].minerals[ressourceId]
+        elif ressourceType == Planet.GAZ:
+            ressource = self.galaxy.solarSystemList[sunId].planets[planetId].gaz[ressourceId]
+        else:
+            ressource = self.galaxy.solarSystemList[sunId].planets[planetId].landingZones[ressourceId]
+        self.players[playerId].makeGroundUnitsGather(unitsId, ressource)
     
     def setLandingFlag(self, unit, planet):
         solarsystemId = 0
@@ -358,186 +373,62 @@ class Game():
         self.players[self.playerId].selectUnitsByType(typeId)
     
     def select(self, posSelected):
-        if self.players[self.playerId].currentPlanet == None:
-            #Si on selectionne une unit dans l'espace             
-            for j in self.players[self.playerId].units:
-                if j.isAlive:
-                    if j.position[0] >= posSelected[0]-(j.SIZE[j.type][0]/2) and j.position[0] <= posSelected[0]+(j.SIZE[j.type][0]/2):
-                        if j.position[1] >= posSelected[1]-(j.SIZE[j.type][1]/2) and j.position[1] <= posSelected[1]+(j.SIZE[j.type][1]/2): 
-                            if self.multiSelect == False:
-                                if j.type == j.TRANSPORT:
-                                    if not j.landed:
-                                        self.players[self.playerId].selectedObjects = []
-                                else:
-                                    self.players[self.playerId].selectedObjects = []
-                            if j not in self.players[self.playerId].selectedObjects:
-                                if j.type == j.TRANSPORT:
-                                    if not j.landed:
-                                        self.players[self.playerId].selectedObjects.append(j)
-                                else:
-                                    self.players[self.playerId].selectedObjects.append(j)
-
-            for b in self.players[self.playerId].buildings:
-                if b.buildingTimer == b.TIME[b.type]:
-                    if b.position[0] >= posSelected[0]-(b.SIZE[b.type][0]/2) and b.position[0] <= posSelected[0]+(b.SIZE[b.type][0]/2):
-                        if b.position[1] >= posSelected[1]-(b.SIZE[b.type][1]/2) and b.position[1] <= posSelected[1]+(b.SIZE[b.type][1]/2):
-                            self.players[self.playerId].selectedObjects = []
-                            self.players[self.playerId].selectedObjects.append(b)             
-
-
-            #Si on selectionne une planete
-            for i in self.galaxy.solarSystemList:
-                for j in i.planets:
-                    if j.position[0] >= posSelected[0]-j.IMAGE_WIDTH/2 and j.position[0] <= posSelected[0]+j.IMAGE_WIDTH/2:
-                        if j.position[1] >= posSelected[1]-j.IMAGE_HEIGHT/2 and j.position[1] <= posSelected[1]+j.IMAGE_HEIGHT/2:
-                            if j not in self.players[self.playerId].selectedObjects:
-                                if self.players[self.playerId].inViewRange(j.position) or j.alreadyLanded(self.playerId):
-                                    self.players[self.playerId].selectedObjects = []
-                                    self.players[self.playerId].selectedObjects.append(j)
-                            else:
-                                if j.alreadyLanded(self.players[self.playerId].id):
-                                    self.players[self.playerId].currentPlanet = j
-                                    self.parent.changeBackground('PLANET')
-                                    spot = j.getLandingSpot(self.playerId)
-                                    self.players[self.playerId].camera.position = [spot.position[0], spot.position[1]]
-                                    self.players[self.playerId].camera.placeOnLanding()
-                                    self.parent.drawPlanetGround(j)
-                                
-                for j in i.nebulas:
-                    if j.position[0] >= posSelected[0]-j.NEBULA_WIDTH/2 and j.position[0] <= posSelected[0]+j.NEBULA_WIDTH/2:
-                        if j.position[1] >= posSelected[1]-j.NEBULA_HEIGHT/2 and j.position[1] <= posSelected[1]+j.NEBULA_HEIGHT/2:
-                            if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
-                                self.players[self.playerId].selectedObjects = []
-                                self.players[self.playerId].selectedObjects.append(j)
-                for j in i.asteroids:
-                    if j.position[0] >= posSelected[0]-j.ASTEROID_WIDTH/2 and j.position[0] <= posSelected[0]+j.ASTEROID_WIDTH/2:
-                        if j.position[1] >= posSelected[1]-j.ASTEROID_HEIGHT/2 and j.position[1] <= posSelected[1]+j.ASTEROID_HEIGHT/2:
-                            if j not in self.players[self.playerId].selectedObjects and self.players[self.playerId].inViewRange(j.position):
-                                self.players[self.playerId].selectedObjects = []
-                                self.players[self.playerId].selectedObjects.append(j)
-            self.parent.changeActionMenuType(View.MAIN_MENU)
+        player = self.players[self.playerId]
+        if player.currentPlanet == None:
+            if not self.multiSelect:
+                player.selectUnit(posSelected)
+            else:
+                self.player.multiSelectUnit(posSelected)
+            spaceObj = self.galaxy.select(posSelected)
+            if isinstance(spaceObj, w.Planet):
+                player.selectPlanet(spaceObj)
+            else:
+                player.selectObject(spaceObj, False)
         else:
-            planet = self.players[self.playerId].currentPlanet
-            for i in planet.landingZones:
-                if posSelected[0] > i.position[0]-i.WIDTH/2 and posSelected[0] < i.position[0]+i.WIDTH/2:
-                    if posSelected[1] > i.position[1]-i.HEIGHT/2 and posSelected[1] < i.position[1]+i.HEIGHT/2:
-                        if i not in self.players[self.playerId].selectedObjects:
-                            self.players[self.playerId].selectedObjects = []
-                            self.players[self.playerId].selectedObjects.append(i)
-            for i in planet.minerals:
-                if posSelected[0] > i.position[0]-i.WIDTH/2 and posSelected[0] < i.position[0]+i.WIDTH/2:
-                    if posSelected[1] > i.position[1]-i.HEIGHT/2 and posSelected[1] < i.position[1]+i.HEIGHT/2:
-                        if i not in self.players[self.playerId].selectedObjects:
-                            self.players[self.playerId].selectedObjects = []
-                            self.players[self.playerId].selectedObjects.append(i)
-            for i in planet.gaz:
-                if posSelected[0] > i.position[0]-i.WIDTH/2 and posSelected[0] < i.position[0]+i.WIDTH/2:
-                    if posSelected[1] > i.position[1]-i.HEIGHT/2 and posSelected[1] < i.position[1]+i.HEIGHT/2:
-                        if i not in self.players[self.playerId].selectedObjects:
-                            self.players[self.playerId].selectedObjects = []
-                            self.players[self.playerId].selectedObjects.append(i)
-            for i in planet.units:
-                if posSelected[0] > i.position[0]-i.SIZE[i.type][0]/2 and posSelected[0] < i.position[0]+i.SIZE[i.type][0]/2:
-                    if posSelected[1] > i.position[1]-i.SIZE[i.type][1]/2 and posSelected[1] < i.position[1]++i.SIZE[i.type][1]/2:
-                        if i not in self.players[self.playerId].selectedObjects:
-                            self.players[self.playerId].selectedObjects = []
-                            self.players[self.playerId].selectedObjects.append(i)
-                            
-    def selectAll(self, posSelected):
-        if self.players[self.playerId].currentPlanet == None:
-            self.select(posSelected)
-            if len(self.players[self.playerId].selectedObjects) > 0:
-                unitToCheck = self.players[self.playerId].selectedObjects[0]
-                cam = self.players[self.playerId].camera
-                for j in self.players[self.playerId].units:
-                    if j.position[0] > cam.position[0]-cam.screenWidth/2 and j.position[0] < cam.position[0]+cam.screenWidth/2:
-                        if j.position[1] > cam.position[1]-cam.screenHeight/2 and j.position[1] < cam.position[1]+cam.screenHeight/2:
-                            if j.name == unitToCheck.name:
-                                if j != unitToCheck:
-                                    if j.type == j.TRANSPORT:
-                                        if not j.landed:
-                                            self.players[self.playerId].selectedObjects.append(j)
-                                    else:
-                                        self.players[self.playerId].selectedObjects.append(j)
+            planet = player.currentPlanet
+            groundObj = planet.groundSelect(posSelected)
+            player.selectObject(groundObj, False)
         self.parent.changeActionMenuType(View.MAIN_MENU)
+
+    def selectAll(self, posSelected):
+        self.players[self.playerId].selectAll(posSelected)
+        self.parent.changeActionMenuType(View.MAIN_MENU)
+
 
     def rightClic(self, pos):
         empty = True
         if self.getCurrentPlanet() == None:
-            for i in self.galaxy.solarSystemList:
-                for j in i.planets:
-                    if pos[0] > j.position[0]-j.IMAGE_WIDTH/2 and pos[0] < j.position[0]+j.IMAGE_WIDTH/2:
-                        if pos[1] > j.position[1]-j.IMAGE_HEIGHT/2 and pos[1] < j.position[1]+j.IMAGE_HEIGHT/2:
-                            if len(self.players[self.playerId].selectedObjects) > 0:
-                                if isinstance(self.players[self.playerId].selectedObjects[0], AstronomicalObject) == False and isinstance(self.players[self.playerId].selectedObjects[0], Planet) == False:               
-                                    if self.players[self.playerId].selectedObjects[0].type == u.Unit.TRANSPORT:
-                                        self.setLandingFlag(self.players[self.playerId].selectedObjects[0], j)
-                                        empty = False
-            if empty:
-                if len(self.players[self.playerId].selectedObjects) > 0:
-                    for i in self.galaxy.solarSystemList:
-                        for j in i.asteroids:
-                            if pos[0] > j.position[0]-j.ASTEROID_WIDTH/2 and pos[0] < j.position[0]+j.ASTEROID_WIDTH/2:
-                                if pos[1] > j.position[1]-j.ASTEROID_HEIGHT/2 and pos[1] < j.position[1]+j.ASTEROID_HEIGHT/2:
-                                        for unit in self.players[self.playerId].selectedObjects:
-                                            if isinstance(unit, AstronomicalObject) == False and isinstance(unit, Planet) == False:
-                                                if unit.type == unit.CARGO:
-                                                    self.setGatherFlag(unit, j)
-                                                    empty = False
-            if empty:
-                if len(self.players[self.playerId].selectedObjects) > 0:
-                    for i in self.galaxy.solarSystemList:
-                        for j in i.nebulas:
-                            if pos[0] > j.position[0]-j.NEBULA_WIDTH/2 and pos[0] < j.position[0]+j.NEBULA_WIDTH/2:
-                                if pos[1] > j.position[1]-j.NEBULA_HEIGHT/2 and pos[1] < j.position[1]+j.NEBULA_HEIGHT/2:
-                                        for unit in self.players[self.playerId].selectedObjects:
-                                            if isinstance(unit, AstronomicalObject) == False and isinstance(unit, Planet) == False:
-                                                if unit.type == unit.CARGO:
-                                                    self.setGatherFlag(unit, j)
-                                                    empty = False
-            if empty:
-                if len(self.players[self.playerId].selectedObjects) > 0:
-                    if pos[0] > self.players[self.playerId].motherShip.position[0]-u.Unit.SIZE[u.Unit.MOTHERSHIP][0]/2 and pos[0] < self.players[self.playerId].motherShip.position[0]+u.Unit.SIZE[u.Unit.MOTHERSHIP][0]/2:
-                        if pos[1] > self.players[self.playerId].motherShip.position[1]-u.Unit.SIZE[u.Unit.MOTHERSHIP][1]/2 and pos[1] < self.players[self.playerId].motherShip.position[1]+u.Unit.SIZE[u.Unit.MOTHERSHIP][1]/2:
-                            for unit in self.players[self.playerId].selectedObjects:
-                                if isinstance(unit, AstronomicalObject) == False and isinstance(unit, Planet) == False:
-                                    if unit.type == unit.CARGO:
-                                        self.setGatherFlag(unit, self.players[self.playerId].motherShip)
-                                        empty = False
-            if empty:
-                if len(self.players[self.playerId].selectedObjects) > 0:
-                    for i in self.players:
-                        if i.isAlive:
-                            if i != self.players[self.playerId] and self.players[self.playerId].isAlly(self.players.index(i)) == False:
-                                for j in i.units:
-                                    if j.isAlive:
-                                        if j.position[0] >= pos[0]-j.SIZE[j.type][0]/2 and j.position[0] <= pos[0]+j.SIZE[j.type][0]/2:
-                                            if j.position[1] >= pos[1]-j.SIZE[j.type][1]/2 and j.position[1] <= pos[1]+j.SIZE[j.type][1]/2:
-                                                self.setAttackFlag(j)
-                                                empty = False
-                
-            if empty:
-                if len(self.players[self.playerId].selectedObjects) > 0:
-                    for i in self.players:
-                        if i.isAlive:
-                            for b in self.players[self.playerId].buildings:
-                                if b.isAlive:
-                                    if b.position[0] >= pos[0]-b.SIZE[b.type][0]/2 and b.position[0] <= pos[0]+b.SIZE[b.type][0]/2:
-                                        if b.position[1] >= pos[1]-b.SIZE[b.type][1]/2 and b.position[1] <= pos[1]+b.SIZE[b.type][1]/2:
-                                            if i == self.players[self.playerId]:
-                                                if not b.finished:
-                                                    self.resumeBuildingFlag(b)
-                                                    empty = False
-                                            else:
-                                                self.setAttackFlag(b)
-                                                empty = False
-                                        
-            if empty:
-                self.setMovingFlag(pos[0],pos[1])
-            self.parent.drawWorld()
+            clickedObj = self.galaxy.select(pos)
+            if clickedObj == None:
+                for i in self.players:
+                    clickedObj = i.rightClic(pos, self.playerId)
+            unit = self.players[self.playerId].getFirstUnit()
+            if unit != None:
+                if clickedObj != None:
+                    if unit.type == unit.TRANSPORT:
+                        if isinstance(clickedObj, w.Planet):
+                            self.setLandingFlag(unit, clickedObj)
+                    elif unit.type == unit.CARGO:
+                        if isinstance(clickedObj, w.AstronomicalObject) or isinstance(clickedObj, u.Mothership) or isinstance(clickedObj, Waypoint):
+                            self.setGatherFlag(unit, clickedObj)
+                    elif unit.type == unit.ATTACK_SHIP:
+                        if isinstance(clickedObj, u.Unit):
+                            self.setAttackFlag(clickedObj)
+                    elif unit.type == unit.SCOUT:
+                        if isinstance(clickedObj, Waypoint):
+                            self.resumeBuildingFlag(clickedObj)
+                else:
+                    self.setMovingFlag(pos[0], pos[1])
         else:
-            if empty:
-                self.setGroundMovingFlag(pos[0], pos[1])
+            unit = self.players[self.playerId].getFirstUnit()
+            clickedObj = self.getCurrentPlanet().groundSelect(pos)
+            if unit != None:
+                if clickedObj != None:
+                    if unit.type == unit.GROUND_GATHER:
+                        if isinstance(clickedObj, w.MineralStack) or isinstance(clickedObj, w.GazStack) or isinstance(clickedObj, w.LandingZone):
+                            self.setGroundGatherFlag(unit, clickedObj)
+                else:
+                    self.setGroundMovingFlag(pos[0], pos[1])
                 
     #Selection avec le clic-drag
     def boxSelect(self, selectStart, selectEnd):
@@ -552,30 +443,7 @@ class Game():
             temp[1] = realStart[1]
             realStart[1] = realEnd[1]
             realEnd[1] = temp[1]
-        first = True
-        if self.players[self.playerId].currentPlanet == None:
-            for i in self.players[self.playerId].units:
-                if i.isAlive:
-                    if i.position[0] >= realStart[0]-i.SIZE[i.type][0]/2 and i.position[0] <= realEnd[0]+i.SIZE[i.type][0]/2:
-                        if i.position[1] >= realStart[1]-i.SIZE[i.type][1]/2 and i.position[1] <= realEnd[1]+i.SIZE[i.type][1]/2:
-                            if first:
-                                self.players[self.playerId].selectedObjects = []
-                                first = False
-                            if isinstance(i, u.Mothership) == False:
-                                if i.type == i.TRANSPORT:
-                                    if not i.landed:
-                                        self.players[self.playerId].selectedObjects.append(i)
-                                else:
-                                    self.players[self.playerId].selectedObjects.append(i)
-        else:
-            for i in self.players[self.playerId].currentPlanet.units:
-                if i.isAlive:
-                    if i.position[0] >= realStart[0]-i.SIZE[i.type][0]/2 and i.position[0] <= realEnd[0]+i.SIZE[i.type][0]/2:
-                        if i.position[1] >= realStart[1]-i.SIZE[i.type][1]/2 and i.position[1] <= realEnd[1]+i.SIZE[i.type][1]/2:
-                            if first:
-                                self.players[self.playerId].selectedObjects = []
-                                first = False
-                            self.players[self.playerId].selectedObjects.append(i)
+        self.players[self.playerId].boxSelect(realStart, realEnd)
         self.parent.view.actionMenuType = self.parent.view.MAIN_MENU
         
     #Deplacement rapide de la camera vers un endroit de la minimap

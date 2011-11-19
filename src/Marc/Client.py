@@ -66,9 +66,9 @@ class Controller():
     def sendMessage(self, mess):
         if len(self.game.players) == 1:
             if mess == "forcegaz":
-                self.game.players[self.game.playerId].ressources[p.Player.GAS] += 500
+                self.game.players[self.game.playerId].ressources[p.Player.GAS] += 5000
             elif mess == "forcemine":
-                self.game.players[self.game.playerId].ressources[p.Player.MINERAL] += 500
+                self.game.players[self.game.playerId].ressources[p.Player.MINERAL] += 5000
         elif mess.find("\\t ") == 0:
             mess = mess.split("\\t ")
             mess = "(Alliés) "+mess[1]
@@ -254,16 +254,29 @@ class Controller():
             elif flag.flagState == FlagState.GATHER:
                 if isinstance(flag.finalTarget, w.AstronomicalObject):
                     if flag.finalTarget.type == 'nebula':
-                        nebulaId = flag.finalTarget.id
+                        astroId = flag.finalTarget.id
                         solarId = flag.finalTarget.solarSystem.sunId
-                        actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(nebulaId)+","+str(solarId)+","+str(w.AstronomicalObject.NEBULA)
+                        type = w.AstronomicalObject.NEBULA
                     elif flag.finalTarget.type == 'asteroid':
-                        mineralId = flag.finalTarget.id
+                        astroId = flag.finalTarget.id
                         solarId = flag.finalTarget.solarSystem.sunId
-                        actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(mineralId)+","+str(solarId)+","+str(w.AstronomicalObject.ASTEROID)
+                        type = w.AstronomicalObject.ASTEROID
+                    actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(astroId)+","+str(solarId)+","+str(type)
                 else:
-                    actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/0,0,92"
-            
+                    if isinstance(flag.finalTarget, u.Mothership):
+                        actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/0,0,92"
+                    else:
+                        actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(self.game.players[self.game.playerId].buildings.index(flag.finalTarget))+",0," + str(flag.finalTarget.type)
+            elif flag.flagState == FlagState.GROUND_GATHER:
+                sunId = flag.finalTarget.sunId
+                planetId = flag.finalTarget.planetId
+                ressourceId = flag.finalTarget.id
+                if isinstance(flag.finalTarget, w.MineralStack):
+                    actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(ressourceId) + "," + str(planetId) + "," + str(sunId) + "," + str(w.Planet.MINERAL)
+                elif isinstance(flag.finalTarget, w.GazStack):
+                    actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(ressourceId) + "," + str(planetId) + "," + str(sunId) + "," + str(w.Planet.GAZ)
+                else:
+                    actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(ressourceId) + "," + str(planetId) + "," + str(sunId) + "," + str(w.Planet.LANDINGZONE)
         elif isinstance(flag, tuple):
             if flag[2] == FlagState.LAND:
                 actionString = str(self.game.playerId)+"/"+playerObject+"/"+str(flag[2])+"/"+str(flag[0])+","+str(flag[1])
@@ -344,6 +357,10 @@ class Controller():
         elif action == str(FlagState.GATHER):
             target = target.split(',')
             self.game.makeUnitsGather(actionPlayerId, unitIndex, int(target[1]), int(target[0]), int(target[2]))
+
+        elif action == str(FlagState.GROUND_GATHER):
+            target = target.split(',')
+            self.game.makeGroundUnitsGather(actionPlayerId, unitIndex, int(target[0]),int(target[1]),int(target[2]),int(target[3]))
         
         elif action == str(FlagState.CREATE):
             self.game.createUnit( actionPlayerId, int(target))

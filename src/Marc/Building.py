@@ -20,6 +20,13 @@ class Building(t.PlayerObject):
         self.hitpoints = self.MAX_HP[type]
         self.finished = False
 
+    def select(self, position):
+        if self.isAlive:
+            if self.position[0] >= position[0] - self.SIZE[self.type][0]/2 and self.position[0] <= position[0] + self.SIZE[self.type][0]/2:
+                if self.position[1] >= position[1] - self.SIZE[self.type][1]/2 and self.position[1] <= position[1] + self.SIZE[self.type][1]/2:
+                    return self
+        return None
+
 class Waypoint(Building):
     def __init__(self, name, type, position, owner):
         Building.__init__(self, name, type, position, owner)
