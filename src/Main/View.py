@@ -947,6 +947,8 @@ class View():
         posSelected=self.game.players[self.game.playerId].camera.calcPointInWorld(self.positionMouse[0],self.positionMouse[1])
         if unit.position[0] >= posSelected[0]-(unit.SIZE[unit.type][0]/2) and unit.position[0] <= posSelected[0]+(unit.SIZE[unit.type][0]/2):
             if unit.position[1] >= posSelected[1]-(unit.SIZE[unit.type][1]/2) and unit.position[1] <= posSelected[1]+(unit.SIZE[unit.type][1]/2):
+                if unit.owner != self.game.playerId:
+                    self.gameArea.create_text(distance[0]-(len(self.game.players[unit.owner].name)/2),distance[1]+((unit.SIZE[unit.type][1]/2)+5), text=self.game.players[unit.owner].name, fill="white", tag='deletable')
                 self.drawHPBars(distance,unit)
                             
     
@@ -972,6 +974,8 @@ class View():
                 self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="green", tag='deletable')
                 if int(unit.hitpoints) != int(unit.MAX_HP[unit.type]):
                     self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLost,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="red", tag='deletable')
+        if unit.owner != self.game.playerId:
+            self.gameArea.create_text(distance[0]-(len(self.game.players[unit.owner].name)/2),distance[1]+((unit.SIZE[unit.type][1]/2)+5), text=self.game.players[unit.owner].name, fill="white", tag='deletable')
           
     #Dessine la minimap
     def drawMinimap(self):
