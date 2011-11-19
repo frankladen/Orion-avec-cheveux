@@ -218,6 +218,101 @@ class Game():
         else:
             ressource = self.galaxy.solarSystemList[sunId].planets[planetId].landingZones[ressourceId]
         self.players[playerId].makeGroundUnitsGather(unitsId, ressource)
+
+    #Trade entre joueurs
+    def setTradeFlag(self, item, playerId2, quantite):
+        for i in items:
+            self.parent.pushChange(playerId2, Flag(i, quantite[items.index(i)], FlagState.TRADE))
+
+    def askTrade(self, name, index, mode):
+        idOtherPlayer = -1
+        for p in self.players:
+            if p.isAlive:
+                if p.name == self.parent.view.menuModes.variableTrade.get():
+                    idOtherPlayer = p.id
+                    break
+        if idOtherPlayer != -1:
+            self.parent.pushChange(idOtherPlayer, Flag(1, "askTrade", FlagState.TRADE))
+            self.tradePage=1
+            self.idTradeWith=idOtherPlayer
+            self.parent.view.ongletTradeWaiting()
+
+    def stopTrade(self):
+        self.parent.pushChange(self.idTradeWith, Flag(5, "stopTrade", FlagState.TRADE))
+
+    def startTrade(self, answer, id1):
+        if answer == True:
+            self.parent.pushChange(id1, Flag(2, "startTrade", FlagState.TRADE))
+        else:
+            self.parent.pushChange(id1, Flag(3, "deniedTrade", FlagState.TRADE))
+            self.parent.view.ongletTradeChoicePlayer()
+
+    def confirmTradeQuestion(self, id2):
+        try:
+            if int(self.parent.view.menuModes.spinMinerals1.get()) <= self.players[self.playerId].ressources[0] and int(self.parent.view.menuModes.spinGaz1.get()) <= self.players[self.playerId].ressources[1]:
+                if int(self.parent.view.menuModes.spinMinerals2.get()) <= self.players[self.idTradeWith].ressources[0] and int(self.parent.view.menuModes.spinGaz2.get()) <= self.players[self.idTradeWith].ressources[1]:
+                    self.parent.pushChange(id2, Flag(4, self.parent.view.menuModes.spinMinerals1.get()+','+self.parent.view.menuModes.spinMinerals2.get()+','+self.parent.view.menuModes.spinGaz1.get()+','+self.parent.view.menuModes.spinGaz2.get(), FlagState.TRADE))
+                    self.tradePage=1
+                    self.parent.view.ongletTradeWaiting()
+        except:
+            print('du texte dans les spins de trade')
+    def confirmTrade(self, answer, id1, min1, min2, gaz1, gaz2):
+        if answer == True:
+            self.parent.pushChange(self.idTradeWith, Flag("m", min1, FlagState.TRADE))
+            self.parent.pushChange(self.playerId, Flag("m", min2+','+str(self.idTradeWith), FlagState.TRADE))
+            self.parent.pushChange(self.idTradeWith, Flag("g", gaz1, FlagState.TRADE))
+            self.parent.pushChange(self.playerId, Flag("g", gaz2+','+str(self.idTradeWith), FlagState.TRADE))
+        else:
+            self.parent.pushChange(id1, Flag(3, "deniedTrade", FlagState.TRADE))
+            self.tradePage=-1
+            self.parent.view.ongletTradeChoicePlayer()
+
+    def tradeActions(self, actionPlayerId, target, unitIndex):
+        if target[0] == '1':
+            if int(unitIndex[0])==self.playerId:
+                self.tradePage=3
+                self.idTradeWith=actionPlayerId
+                self.parent.view.ongletTradeYesNoQuestion(actionPlayerId)
+        elif target[0] == '2':
+            if int(unitIndex[0])==self.playerId or actionPlayerId == self.playerId:
+                if int(unitIndex[0])==self.playerId:
+                    self.isMasterTrade=True
+                    self.parent.view.ongletTrade(self.playerId,self.idTradeWith)
+                else:
+                    self.isMasterTrade=False
+                    self.parent.view.ongletTrade(self.idTradeWith,self.playerId)
+                self.tradePage=2                       
+        elif target[0] == '3':
+            if int(unitIndex[0])==self.playerId:
+                self.isMasterTrade=False
+                self.tradePage=-1
+                self.idTradeWith=self.playerId
+                self.parent.view.ongletTradeNoAnswer()
+        elif target[0] == '4':
+            if int(unitIndex[0])==self.playerId:
+                self.tradePage=4
+                self.toTrade = (target[1],target[2],target[3],target[4])
+                self.parent.view.ongletTradeAskConfirm(actionPlayerId,self.toTrade[0],self.toTrade[1],self.toTrade[2],self.toTrade[3])
+        elif target[0] == '5':
+            if int(unitIndex[0])==self.playerId or actionPlayerId == self.playerId:
+                self.isMasterTrade=False
+                self.tradePage=-1
+                self.idTradeWith=self.playerId
+                self.parent.view.ongletTradeCancel()
+        elif target[0] == 'm' or target[0] == 'g':
+            if target[0] == 'm':
+                ressourceType = p.Player.MINERAL
+            elif target[0] == 'g':
+                ressourceType = p.Player.GAS
+            if int(unitIndex[0]) != actionPlayerId:
+                self.trade(actionPlayerId, int(unitIndex[0]), ressourceType, int(target[1]))
+            else:
+                self.trade(int(target[2]), actionPlayerId, ressourceType, int(target[1]))
+            self.isMasterTrade=False
+            self.tradePage=-1
+            self.idTradeWith=self.playerId
+            self.parent.view.ongletTradeYesAnswer()
+
     
     def setLandingFlag(self, unit, planet):
         solarsystemId = 0
@@ -326,6 +421,14 @@ class Game():
             return True
         else:
             return False
+
+    def getAllies(self):
+        allies = []
+        for p in self.players:
+            if p != self.players[self.playerId]:
+                if p.isAlly(self.playerId):
+                    allies.append(p.name)
+        return allies
 
    #Pour selectionner une unit
     def selectUnitEnemy(self, posSelected):

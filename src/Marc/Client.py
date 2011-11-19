@@ -174,42 +174,6 @@ class Controller():
     def changeActionMenuType(self, newMenuType):
         self.view.actionMenuType = newMenuType
 
-    #Trade entre joueurs
-    def setTradeFlag(self, item, playerId2, quantite):
-        for i in items:
-            self.pushChange(playerId2, Flag(i, quantite[items.index(i)], FlagState.TRADE))
-
-    def askTrade(self, eve):
-        idOtherPlayer = self.view.menuModes.tradeOPTIONS.index(self.view.menuModes.variableTrade.get())
-        if self.game.players[self.game.playerId].name != self.view.menuModes.variableTrade.get() and self.game.players[idOtherPlayer].units != []:
-            self.pushChange(idOtherPlayer, Flag(1, "askTrade", FlagState.TRADE))
-            self.game.tradePage=1
-            self.game.idTradeWith=idOtherPlayer
-            self.view.ongletTradeWaiting()
-
-    def startTrade(self, answer, id1):
-        if answer == True:
-            self.pushChange(id1, Flag(2, "startTrade", FlagState.TRADE))
-        else:
-            self.pushChange(id1, Flag(3, "deniedTrade", FlagState.TRADE))
-            self.view.ongletTradeChoicePlayer()
-
-    def confirmTradeQuestion(self, id2):
-        self.pushChange(id2, Flag(4, self.view.menuModes.spinMinerals1.get()+','+self.view.menuModes.spinMinerals2.get()+','+self.view.menuModes.spinGaz1.get()+','+self.view.menuModes.spinGaz2.get(), FlagState.TRADE))
-        self.game.tradePage=1
-        self.view.ongletTradeWaiting()
-
-    def confirmTrade(self, answer, id1, min1, min2, gaz1, gaz2):
-        if answer == True:
-            self.pushChange(self.game.idTradeWith, Flag("m", min1, FlagState.TRADE))
-            self.pushChange(self.game.playerId, Flag("m", min2+','+str(self.game.idTradeWith), FlagState.TRADE))
-            self.pushChange(self.game.idTradeWith, Flag("g", gaz1, FlagState.TRADE))
-            self.pushChange(self.game.playerId, Flag("g", gaz2+','+str(self.game.idTradeWith), FlagState.TRADE))
-        else:
-            self.pushChange(id1, Flag(3, "deniedTrade", FlagState.TRADE))
-            self.game.tradePage=-1
-            self.view.ongletTradeChoicePlayer()
-
     def changeAlliance(self, player, newStatus):
         self.pushChange(player, Flag(finalTarget = newStatus, flagState = FlagState.DEMAND_ALLIANCE))
     
@@ -388,45 +352,7 @@ class Controller():
 
         elif action == str(FlagState.TRADE):
             target = self.stripAndSplit(target)
-            if target[0] == '1':
-                if int(unitIndex[0])==self.game.playerId:
-                    self.game.tradePage=3
-                    self.game.idTradeWith=actionPlayerId
-                    self.view.ongletTradeYesNoQuestion(actionPlayerId)
-            elif target[0] == '2':
-                if int(unitIndex[0])==self.game.playerId or actionPlayerId == self.game.playerId:
-                    if int(unitIndex[0])==self.game.playerId:
-                        self.game.isMasterTrade=True
-                        self.view.ongletTrade(self.game.playerId,self.game.idTradeWith)
-                    else:
-                        self.game.isMasterTrade=False
-                        self.view.ongletTrade(self.game.idTradeWith,self.game.playerId)
-                    self.game.tradePage=2
-                    
-            elif target[0] == '3':
-                if int(unitIndex[0])==self.game.playerId:
-                    self.game.isMasterTrade=False
-                    self.game.tradePage=-1
-                    self.game.idTradeWith=self.game.playerId
-                    self.view.ongletTradeNoAnswer()
-            elif target[0] == '4':
-                if int(unitIndex[0])==self.game.playerId:
-                    self.game.tradePage=4
-                    self.game.toTrade = (target[1],target[2],target[3],target[4])
-                    self.view.ongletTradeAskConfirm(actionPlayerId,self.game.toTrade[0],self.game.toTrade[1],self.game.toTrade[2],self.game.toTrade[3])
-            elif target[0] == 'm' or target[0] == 'g':
-                if target[0] == 'm':
-                    ressourceType = p.Player.MINERAL
-                elif target[0] == 'g':
-                    ressourceType = p.Player.GAS
-                if int(unitIndex[0]) != actionPlayerId:
-                    self.game.trade(actionPlayerId, int(unitIndex[0]), ressourceType, int(target[1]))
-                else:
-                    self.game.trade(int(target[2]), actionPlayerId, ressourceType, int(target[1]))
-                self.game.isMasterTrade=False
-                self.game.tradePage=-1
-                self.game.idTradeWith=self.game.playerId
-                self.view.ongletTradeYesAnswer()
+            self.game.tradeActions(actionPlayerId, target, unitIndex)
                 
         elif action == str(FlagState.DEMAND_ALLIANCE):
             #actionPlayerId = le joueur qui change le status
