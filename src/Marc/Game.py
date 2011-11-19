@@ -325,8 +325,9 @@ class Game():
         self.parent.pushChange(str(self.players[self.playerId].units.index(unit)), (solarsystemId, planetIndex, FlagState.LAND))
 
     def makeUnitLand(self, playerId, unitId, solarSystemId, planetId):
-        planet = self.galaxy.solarSystemList[solarSystemId].planets[planetId]
-        self.players[playerId].makeUnitLand(unitId, planet)
+        if playerId == self.playerId:
+            planet = self.galaxy.solarSystemList[solarSystemId].planets[planetId]
+            self.players[playerId].makeUnitLand(unitId, planet)
 
     def setMotherShipRallyPoint(self, pos):
         self.parent.pushChange(0, Flag(finalTarget = pos, flagState = FlagState.CHANGE_RALLY_POINT))
