@@ -269,9 +269,10 @@ class Controller():
                 ressourceId = flag.finalTarget.id
                 if isinstance(flag.finalTarget, w.MineralStack):
                     actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(ressourceId) + "," + str(planetId) + "," + str(sunId) + "," + str(w.Planet.MINERAL)
-                else:
+                elif isinstance(flag.finalTarget, w.GazStack):
                     actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(ressourceId) + "," + str(planetId) + "," + str(sunId) + "," + str(w.Planet.GAZ)
-
+                else:
+                    actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(ressourceId) + "," + str(planetId) + "," + str(sunId) + "," + str(w.Planet.LANDINGZONE)
         elif isinstance(flag, tuple):
             if flag[2] == FlagState.LAND:
                 actionString = str(self.game.playerId)+"/"+playerObject+"/"+str(flag[2])+"/"+str(flag[0])+","+str(flag[1])

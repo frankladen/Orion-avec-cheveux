@@ -244,6 +244,7 @@ class Planet(Target):
     MAX_DIST_FROM_SUN = SolarSystem.WIDTH/4
     MINERAL = 0
     GAZ = 1
+    LANDINGZONE = 2
     def __init__(self, planetPosition, nMineralStack, nGazStack, id, solarSystem):
         Target.__init__(self, planetPosition)
         self.discovered = False
@@ -251,6 +252,7 @@ class Planet(Target):
         self.mineralQte = 0
         self.gazQte = 0
         self.gaz = []
+        self.nuclearSite = None
         self.nMineralStack = nMineralStack + 1
         self.nGazStack = nGazStack + 1
         self.landingZones = []
@@ -294,6 +296,27 @@ class Planet(Target):
                             posFound = False
                             break
             self.gaz.append(GazStack(nGaz, position, i, id, solarSystem.sunId))
+        nuclear = random.random()*3
+        if nuclear > 2:
+            posFound = False
+            while not posFound:
+                posFound = True
+                position = [random.random()*Planet.WIDTH, random.random()*Planet.HEIGHT]
+                if position[0] < Planet.PADDING or position[0] > Planet.WIDTH-Planet.PADDING-GazStack.WIDTH/2:
+                    posFound = False
+                if position[1] < Planet.PADDING or position[1] > Planet.HEIGHT-Planet.PADDING-GazStack.HEIGHT/2:
+                    posFound = False
+                for j in self.minerals:
+                    if position[0] > j.position[0]-j.WIDTH and position[0] < j.position[0]+j.WIDTH:
+                        if position[1] > j.position[1]-j.HEIGHT and position[1] < j.position[1]+j.HEIGHT:
+                            posFound = False
+                            break
+                for j in self.gaz:
+                    if position[0] > j.position[0]-j.WIDTH and position[0] < j.position[0]+j.WIDTH:
+                        if position[1] > j.position[1]-j.HEIGHT and position[1] < j.position[1]+j.HEIGHT:
+                            posFound = False
+                            break
+            self.nuclearSite = NuclearSite(position, self.id, self.solarSystem.sunId)
         for i in self.minerals:
             self.mineralQte += i.nbMinerals
         for i in self.gaz:
@@ -318,7 +341,8 @@ class Planet(Target):
                     if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
                         posFound = False
                         break
-        newSpot = LandingZone(position, playerid, landingShip)
+        id = len(self.landingZones)
+        newSpot = LandingZone(position, playerid, landingShip, id, self.id, self.solarSystem.sunId)
         self.landingZones.append(newSpot)
         return newSpot
 
@@ -354,6 +378,10 @@ class Planet(Target):
             gaz = i.select(position)
             if gaz != None and clickedObj == None:
                 clickedObj = gaz
+        if self.nuclearSite != None:
+            site = self.nuclearSite.select(position)
+            if site != None and clickedObj == None:
+                clickedObj = site
         for i in self.units:
             unit = i.select(position)
             if unit != None and clickedObj == None:
@@ -372,14 +400,14 @@ class MineralStack(Target):
         self.sunId = sunId
         
     def select(self, position):
-        if position[0] > self.position[0]-self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:
-            if position[1] > self.position[1]-self.HEIGHT/2 and position[1]+self.HEIGHT/2:
+        if self.position[0] > position[0] - self.WIDTH/2 and self.position[0] < position[0]+self.WIDTH/2:
+            if self.position[1] > position[1] -self.HEIGHT/2 and self.position[1] < position[1]+self.HEIGHT/2:
                 return self
         return None
     
 class GazStack(Target):
-    WIDTH = 24
-    HEIGHT = 24
+    WIDTH = 40
+    HEIGHT = 42
     MAX_QTY = 3000
     def __init__(self, nbGaz, position, id, planetId, sunId):
         Target.__init__(self, position)
@@ -387,19 +415,39 @@ class GazStack(Target):
         self.id = id
         self.planetId = planetId
         self.sunId = sunId
+        self.state = 0
 
     def select(self, position):
         if position[0] > self.position[0]-self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:
-            if position[1] > self.position[1]-self.HEIGHT/2 and position[1]+self.HEIGHT/2:
+            if position[1] > self.position[1]-self.HEIGHT/2 and self.position[1] < position[1]+self.HEIGHT/2:
                 return self
         return None
+
+class NuclearSite(Target):
+    WIDTH = 35
+    HEIGHT = 35
+    def __init__(self, position, planetId, sunId):
+        Target.__init__(self, position)
+        self.nbRessource = 1
+        self.planetId = planetId
+        self.sunId = sunId
+
+    def select(self, position):
+        if self.position[0] > position[0] - self.WIDTH/2 and self.position[0] < position[0] + self.WIDTH/2:
+            if self.position[1] > position[1] - self.HEIGHT/2 and self.position[1] < self.position[1] + self.HEIGHT/2:
+                return self
+        return None
+
 class LandingZone(PlayerObject):
     WIDTH = 75
     HEIGHT = 75
-    def __init__(self, position, ownerId, landingShip):
+    def __init__(self, position, ownerId, landingShip, id, planetId, sunId):
         PlayerObject.__init__(self, 'Zone d\'atterissage', 0, position, ownerId)
         self.ownerId = ownerId
         self.LandedShip = landingShip
+        self.id = id
+        self.planetId = planetId
+        self.sunId = sunId
 
     def select(self, position):
         if position[0] > self.position[0]-self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:

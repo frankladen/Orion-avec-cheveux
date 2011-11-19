@@ -211,8 +211,10 @@ class Game():
     def makeGroundUnitsGather(self, playerId, unitsId, ressourceId, planetId, sunId, ressourceType):
         if ressourceType == Planet.MINERAL:
             ressource = self.galaxy.solarSystemList[sunId].planets[planetId].minerals[ressourceId]
-        else:
+        elif ressourceType == Planet.GAZ:
             ressource = self.galaxy.solarSystemList[sunId].planets[planetId].gaz[ressourceId]
+        else:
+            ressource = self.galaxy.solarSystemList[sunId].planets[planetId].landingZones[ressourceId]
         self.players[playerId].makeGroundUnitsGather(unitsId, ressource)
     
     def setLandingFlag(self, unit, planet):
@@ -420,8 +422,7 @@ class Game():
             if unit != None:
                 if clickedObj != None:
                     if unit.type == unit.GROUND_GATHER:
-                        if isinstance(clickedObj, w.MineralStack) or isinstance(clickedObj, w.GazStack):
-                            print('wanna gather')
+                        if isinstance(clickedObj, w.MineralStack) or isinstance(clickedObj, w.GazStack) or isinstance(clickedObj, w.LandingZone):
                             self.setGroundGatherFlag(unit, clickedObj)
                 else:
                     self.setGroundMovingFlag(pos[0], pos[1])

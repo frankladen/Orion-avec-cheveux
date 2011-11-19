@@ -201,7 +201,7 @@ class Player():
         unit = self.motherShip.unitBeingConstruct.pop(0)
         unit.applyBonuses(self.BONUS)
         if unit.type == u.Unit.TRANSPORT:
-            pilot = u.GroundGatherUnit('Collector', u.Unit.GROUND_GATHER, [-10000,-10000,-10000], self.id,-1,-1)
+            pilot = u.GroundGatherUnit('Collector', u.Unit.GROUND_GATHER, [-10000,-10000,-10000], self.id, -1, -1)
             unit.units.append(pilot)
             self.units.append(pilot)
         unit.changeFlag(t.Target(self.motherShip.rallyPoint), FlagState.MOVE)

@@ -19,7 +19,7 @@ class Unit(PlayerObject):
     MINERAL=0
     GAS=1
     FOOD=2
-    SIZE=((0,0), (125,125), (18,15), (28,32), (32,29), (20,30),(24,24),(24,24))
+    SIZE=((0,0), (125,125), (18,15), (28,32), (32,29), (20,30),(24,24),(20,38))
     MAX_HP = (50,1500,50,100,125,75,100, 100)
     MOVE_SPEED=(1.0, 0.0, 4.0, 2.0, 3.0, 3.0, 5.0, 5.0)
     ATTACK_SPEED=(0,8,10,0,0,0,0,0)
@@ -139,6 +139,7 @@ class GroundUnit(Unit):
         Unit.__init__(self, name, type, position, owner)
         self.sunId = sunId
         self.planetId = planetId
+        self.planet = None
 
 class GroundGatherUnit(GroundUnit):
     def __init__(self, name, type, position, owner, planetId, sunId):
@@ -173,12 +174,12 @@ class GroundGatherUnit(GroundUnit):
                                 self.container[0]+=ressource.nbMinerals
                                 ressource.nbMinerals = 0
                                 self.flag.initialTarget = self.flag.finalTarget
-                                self.flag.finalTarget = player.currentPlanet.getLandingSpot(player.id)
+                                self.flag.finalTarget = self.planet.getLandingSpot(player.id)
                                 game.parent.redrawMinimap()
                             self.gatherSpeed = 20
                         else:
                             self.flag.initialTarget = self.flag.finalTarget
-                            self.flag.finalTarget = player.currentPlanet.getLandingSpot(player.id)
+                            self.flag.finalTarget = self.planet.getLandingSpot(player.id)
                     else:
                         if self.container[1]<self.maxGather:
                             if ressource.nbGaz >= 5:
@@ -188,12 +189,12 @@ class GroundGatherUnit(GroundUnit):
                                 self.container[1]+=ressource.nbGaz
                                 ressource.nbGaz = 0
                                 self.flag.initialTarget = self.flag.finalTarget
-                                self.flag.finalTarget = player.currentPlanet.getLandingSpot(player.id)
+                                self.flag.finalTarget = self.planet.getLandingSpot(player.id)
                                 game.parent.redrawMinimap()
                             self.gatherSpeed = 20
                         else:
                             self.flag.initialTarget = self.flag.finalTarget
-                            self.flag.finalTarget = player.currentPlanet.getLandingSpot(player.id)
+                            self.flag.finalTarget = self.planet.getLandingSpot(player.id)
                 else:
                     self.gatherSpeed-=1
         else:
@@ -475,6 +476,7 @@ class TransportShip(SpaceUnit):
                         cam = game.players[playerId].camera
                         cam.placeOnLanding(landingZone)
                     for i in self.units:
+                        i.planet = planet
                         i.position = [landingZone.position[0] + 40, landingZone.position[1]]
                         i.planetId = planetId
                         i.sunId = sunId
@@ -493,6 +495,7 @@ class TransportShip(SpaceUnit):
                         cam = game.players[playerId].camera
                         cam.placeOnLanding(landingZone)
                     for i in self.units:
+                        i.planet = planet
                         i.position = [landingZone.position[0] + 40, landingZone.position[1]]
                         i.planetId = planetId
                         i.sunId = sunId
