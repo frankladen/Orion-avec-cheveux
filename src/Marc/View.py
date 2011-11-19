@@ -347,17 +347,19 @@ class View():
 
         elif len(unitList) > 1 : 
             if isinstance(self.game.players[self.game.playerId].selectedObjects[0],u.Mothership) == False:
-                x = 20
-                y = 50
+                x = 0
+                y = 25
                 for i in unitList:
                     if isinstance(i, u.SpaceAttackUnit):
-                        self.menuModes.create_image(x, y, image = self.gifAttackUnit, tags = ('selected_unit',i.position[0],i.position[1]))
+                        self.menuModes.create_image(x, y, image = self.gifAttackUnit, tags = ('selected_unit',i.position[0],i.position[1]), anchor = NW)
                     elif isinstance(i, u.GatherShip):
-                        self.menuModes.create_image(x,y, image = self.gifCargo, tags = ('selected_unit',i.position[0],i.position[1]))
+                        self.menuModes.create_image(x,y, image = self.gifCargo, tags = ('selected_unit',i.position[0],i.position[1]), anchor = NW)
                     elif isinstance(i, u.TransportShip):
-                        self.menuModes.create_image(x,y, image = self.gifTransport, tags =  ('selected_unit',i.position[0],i.position[1]))
+                        self.menuModes.create_image(x,y, image = self.gifTransport, tags =  ('selected_unit',i.position[0],i.position[1]), anchor = NW)
                     elif isinstance(i, u.Unit):
-                        self.menuModes.create_image(x,y, image = self.gifUnit, tags = ('selected_unit',i.position[0],i.position[1]))      
+                        self.menuModes.create_image(x,y, image = self.gifUnit, tags = ('selected_unit',i.position[0],i.position[1]), anchor = NW)     
+                    self.menuModes.create_rectangle(x,y+46,x + (i.hitpoints/i.maxHP) * 52,y+51, fill = 'green')
+ 
                     countList[i.type] += 1
                                
                     #Ca sert à créer une nouvelle ligne lorsque le nombre de units selectionné le requiert
@@ -1415,7 +1417,7 @@ class View():
             elif (Button_pressed == "bouton_team"):
                 self.ongletTeam()
             elif (Button_pressed == "bouton_selectedUnit"):
-                self.ongletSelecteUdnit()
+                self.ongletSelectedUnit()
             elif (Button_pressed == "selected_unit"):
                 self.game.select((float(bp[1]), float(bp[2])))
                 self.ongletSelectedUnit()

@@ -27,7 +27,7 @@ class Game():
         self.players[self.playerId].camera.move()
         for p in self.players:
             if p.isAlive:
-                 p.action()
+                 p.action(self.players)
         return self.players[self.playerId].isAlive
 
     def start(self, players, seed, taille):

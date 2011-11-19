@@ -39,10 +39,10 @@ class Player():
         self.ressources = [100,100,10]
         self.isAlive = True
 
-    def action(self):
+    def action(self, players):
         for i in self.units:
             if i.isAlive:
-                i.action(self)
+                i.action(self, players)
     def selectUnitsByType(self, unitType):
         units = []
         for i in self.selectedObjects:
