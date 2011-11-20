@@ -28,20 +28,20 @@ class Controller():
 
     #TIMER D'ACTION DU JOUEUR COURANT
     def action(self, waitTime=50):
-        if self.view.currentFrame != self.view.pLobby and self.server.isGameStopped() == False:
-            self.refreshMessages(self.view.menuModes.chat)
-            if self.refresh > 0:
-                #À chaque itération je demande les nouvelles infos au serveur
-                self.pullChange()
-                self.view.gameArea.delete('enemyRange')
-                if self.game.action():
-                    self.view.refreshGame(self.game.isOnPlanet())
-                    self.refresh+=1
-                    waitTime = self.server.amITooHigh(self.game.playerId)
-                elif self.game.playerId != 0:
-                    self.view.deleteAll()
-            else:
-                self.checkIfGameStarting()
+        if self.view.currentFrame != self.view.pLobby:
+            if self.server.isGameStopped() == False:
+                if self.refresh > 0:
+                    if self.game.action():
+                        self.refreshMessages(self.view.menuModes.chat)
+                        #À chaque itération je demande les nouvelles infos au serveur
+                        self.pullChange()
+                        self.view.refreshGame(self.game.isOnPlanet())
+                        self.refresh+=1
+                        waitTime = self.server.amITooHigh(self.game.playerId)
+                    elif self.game.playerId != 0:
+                        self.view.deleteAll()
+                else:
+                    self.checkIfGameStarting()
         else:
             if self.server.isGameStarted() == True:
                 self.startGame()
@@ -66,9 +66,9 @@ class Controller():
     def sendMessage(self, mess):
         if len(self.game.players) == 1:
             if mess == "forcegaz":
-                self.game.players[self.game.playerId].ressources[p.Player.GAS] += 500
+                self.game.players[self.game.playerId].ressources[p.Player.GAS] += 5000
             elif mess == "forcemine":
-                self.game.players[self.game.playerId].ressources[p.Player.MINERAL] += 500
+                self.game.players[self.game.playerId].ressources[p.Player.MINERAL] += 5000
         elif mess.find("\\t ") == 0:
             mess = mess.split("\\t ")
             mess = "(Alliés) "+mess[1]
@@ -173,42 +173,6 @@ class Controller():
     def changeActionMenuType(self, newMenuType):
         self.view.actionMenuType = newMenuType
 
-    #Trade entre joueurs
-    def setTradeFlag(self, item, playerId2, quantite):
-        for i in items:
-            self.pushChange(playerId2, Flag(i, quantite[items.index(i)], FlagState.TRADE))
-
-    def askTrade(self, eve):
-        idOtherPlayer = self.view.menuModes.tradeOPTIONS.index(self.view.menuModes.variableTrade.get())
-        if self.game.players[self.game.playerId].name != self.view.menuModes.variableTrade.get() and self.game.players[idOtherPlayer].units != []:
-            self.pushChange(idOtherPlayer, Flag(1, "askTrade", FlagState.TRADE))
-            self.game.tradePage=1
-            self.game.idTradeWith=idOtherPlayer
-            self.view.ongletTradeWaiting()
-
-    def startTrade(self, answer, id1):
-        if answer == True:
-            self.pushChange(id1, Flag(2, "startTrade", FlagState.TRADE))
-        else:
-            self.pushChange(id1, Flag(3, "deniedTrade", FlagState.TRADE))
-            self.view.ongletTradeChoicePlayer()
-
-    def confirmTradeQuestion(self, id2):
-        self.pushChange(id2, Flag(4, self.view.menuModes.spinMinerals1.get()+','+self.view.menuModes.spinMinerals2.get()+','+self.view.menuModes.spinGaz1.get()+','+self.view.menuModes.spinGaz2.get(), FlagState.TRADE))
-        self.game.tradePage=1
-        self.view.ongletTradeWaiting()
-
-    def confirmTrade(self, answer, id1, min1, min2, gaz1, gaz2):
-        if answer == True:
-            self.pushChange(self.game.idTradeWith, Flag("m", min1, FlagState.TRADE))
-            self.pushChange(self.game.playerId, Flag("m", min2+','+str(self.game.idTradeWith), FlagState.TRADE))
-            self.pushChange(self.game.idTradeWith, Flag("g", gaz1, FlagState.TRADE))
-            self.pushChange(self.game.playerId, Flag("g", gaz2+','+str(self.game.idTradeWith), FlagState.TRADE))
-        else:
-            self.pushChange(id1, Flag(3, "deniedTrade", FlagState.TRADE))
-            self.game.tradePage=-1
-            self.view.ongletTradeChoicePlayer()
-
     def changeAlliance(self, player, newStatus):
         self.pushChange(player, Flag(finalTarget = newStatus, flagState = FlagState.DEMAND_ALLIANCE))
     
@@ -216,7 +180,7 @@ class Controller():
     def pushChange(self, playerObject, flag):
         actionString = ""
         if isinstance(flag, Flag):
-            if flag.flagState == FlagState.MOVE or flag.flagState == FlagState.STANDBY:
+            if flag.flagState in (FlagState.MOVE, FlagState.STANDBY):
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             elif flag.flagState == FlagState.GROUND_MOVE:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
@@ -254,16 +218,29 @@ class Controller():
             elif flag.flagState == FlagState.GATHER:
                 if isinstance(flag.finalTarget, w.AstronomicalObject):
                     if flag.finalTarget.type == 'nebula':
-                        nebulaId = flag.finalTarget.id
+                        astroId = flag.finalTarget.id
                         solarId = flag.finalTarget.solarSystem.sunId
-                        actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(nebulaId)+","+str(solarId)+","+str(w.AstronomicalObject.NEBULA)
+                        type = w.AstronomicalObject.NEBULA
                     elif flag.finalTarget.type == 'asteroid':
-                        mineralId = flag.finalTarget.id
+                        astroId = flag.finalTarget.id
                         solarId = flag.finalTarget.solarSystem.sunId
-                        actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(mineralId)+","+str(solarId)+","+str(w.AstronomicalObject.ASTEROID)
+                        type = w.AstronomicalObject.ASTEROID
+                    actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(astroId)+","+str(solarId)+","+str(type)
                 else:
-                    actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/0,0,92"
-            
+                    if isinstance(flag.finalTarget, u.Mothership):
+                        actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/0,0,92"
+                    else:
+                        actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(self.game.players[self.game.playerId].buildings.index(flag.finalTarget))+",0," + str(flag.finalTarget.type)
+            elif flag.flagState == FlagState.GROUND_GATHER:
+                sunId = flag.finalTarget.sunId
+                planetId = flag.finalTarget.planetId
+                ressourceId = flag.finalTarget.id
+                if isinstance(flag.finalTarget, w.MineralStack):
+                    actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(ressourceId) + "," + str(planetId) + "," + str(sunId) + "," + str(w.Planet.MINERAL)
+                elif isinstance(flag.finalTarget, w.GazStack):
+                    actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(ressourceId) + "," + str(planetId) + "," + str(sunId) + "," + str(w.Planet.GAZ)
+                else:
+                    actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(ressourceId) + "," + str(planetId) + "," + str(sunId) + "," + str(w.Planet.LANDINGZONE)
         elif isinstance(flag, tuple):
             if flag[2] == FlagState.LAND:
                 actionString = str(self.game.playerId)+"/"+playerObject+"/"+str(flag[2])+"/"+str(flag[0])+","+str(flag[1])
@@ -304,7 +281,7 @@ class Controller():
         target = changeInfo[3]
         refresh = int(changeInfo[4])
         #si l'action est Move, la target sera sous forme de tableau de positions [x,y,z]
-        if action == str(FlagState.MOVE) or action == str(FlagState.STANDBY) or action == str(FlagState.PATROL):
+        if action in (str(FlagState.MOVE), str(FlagState.STANDBY), str(FlagState.PATROL)):
             target = self.changeToInt(self.stripAndSplit(target))
             self.game.makeFormation(actionPlayerId, unitIndex, target, action)
             
@@ -344,13 +321,16 @@ class Controller():
         elif action == str(FlagState.GATHER):
             target = target.split(',')
             self.game.makeUnitsGather(actionPlayerId, unitIndex, int(target[1]), int(target[0]), int(target[2]))
+
+        elif action == str(FlagState.GROUND_GATHER):
+            target = target.split(',')
+            self.game.makeGroundUnitsGather(actionPlayerId, unitIndex, int(target[0]),int(target[1]),int(target[2]),int(target[3]))
         
         elif action == str(FlagState.CREATE):
             self.game.createUnit( actionPlayerId, int(target))
         
         elif action == str(FlagState.CHANGE_RALLY_POINT):
             target = self.changeToInt(self.stripAndSplit(target))
-            print(target)
             self.game.players[actionPlayerId].motherShip.changeFlag(target,int(action))
         
         elif action == str(FlagState.CANCEL_UNIT):
@@ -360,7 +340,7 @@ class Controller():
             self.game.killUnit((int(unitIndex[0]),actionPlayerId))
         
         elif action == str(FlagState.DESTROY_ALL):
-            self.game.killPlayer(int(unitIndex[0]))
+            self.game.killPlayer(actionPlayerId)
         
         elif action == str(FlagState.CHANGE_FORMATION):
             self.game.changeFormation(actionPlayerId, target, unitIndex, FlagState.MOVE)
@@ -370,45 +350,7 @@ class Controller():
 
         elif action == str(FlagState.TRADE):
             target = self.stripAndSplit(target)
-            if target[0] == '1':
-                if int(unitIndex[0])==self.game.playerId:
-                    self.game.tradePage=3
-                    self.game.idTradeWith=actionPlayerId
-                    self.view.ongletTradeYesNoQuestion(actionPlayerId)
-            elif target[0] == '2':
-                if int(unitIndex[0])==self.game.playerId or actionPlayerId == self.game.playerId:
-                    if int(unitIndex[0])==self.game.playerId:
-                        self.game.isMasterTrade=True
-                        self.view.ongletTrade(self.game.playerId,self.game.idTradeWith)
-                    else:
-                        self.game.isMasterTrade=False
-                        self.view.ongletTrade(self.game.idTradeWith,self.game.playerId)
-                    self.game.tradePage=2
-                    
-            elif target[0] == '3':
-                if int(unitIndex[0])==self.game.playerId:
-                    self.game.isMasterTrade=False
-                    self.game.tradePage=-1
-                    self.game.idTradeWith=self.game.playerId
-                    self.view.ongletTradeNoAnswer()
-            elif target[0] == '4':
-                if int(unitIndex[0])==self.game.playerId:
-                    self.game.tradePage=4
-                    self.game.toTrade = (target[1],target[2],target[3],target[4])
-                    self.view.ongletTradeAskConfirm(actionPlayerId,self.game.toTrade[0],self.game.toTrade[1],self.game.toTrade[2],self.game.toTrade[3])
-            elif target[0] == 'm' or target[0] == 'g':
-                if target[0] == 'm':
-                    ressourceType = p.Player.MINERAL
-                elif target[0] == 'g':
-                    ressourceType = p.Player.GAS
-                if int(unitIndex[0]) != actionPlayerId:
-                    self.game.trade(actionPlayerId, int(unitIndex[0]), ressourceType, int(target[1]))
-                else:
-                    self.game.trade(int(target[2]), actionPlayerId, ressourceType, int(target[1]))
-                self.game.isMasterTrade=False
-                self.game.tradePage=-1
-                self.game.idTradeWith=self.game.playerId
-                self.view.ongletTradeYesAnswer()
+            self.game.tradeActions(actionPlayerId, target, unitIndex)
                 
         elif action == str(FlagState.DEMAND_ALLIANCE):
             #actionPlayerId = le joueur qui change le status
@@ -422,10 +364,9 @@ class Controller():
         self.view.showGameIsFinished()
         self.view.root.destroy()
 
-    def sendKillPlayer(self, playerId=None):
-        if playerId == None:
-            playerId = self.game.playerId
-        self.pushChange(playerId, Flag(None,playerId,FlagState.DESTROY_ALL))
+    def sendKillPlayer(self):
+        playerId = self.game.playerId
+        self.pushChange(playerId, Flag(playerId,playerId,FlagState.DESTROY_ALL))
 
     #Enleve le joueur courant de la partie ainsi que ses units
     def removePlayer(self):
@@ -433,6 +374,6 @@ class Controller():
             self.view.selectedOnglet = self.view.SELECTED_CHAT
             self.sendMessage('a quitté la partie')
             self.server.removePlayer(self.game.players[self.game.playerId].name, self.game.playerId)
-
+            
 if __name__ == '__main__':
     c = Controller()

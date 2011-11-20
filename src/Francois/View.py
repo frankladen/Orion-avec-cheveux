@@ -56,6 +56,8 @@ class View():
         self.asteroid=PhotoImage(file='images/Galaxy/asteroid.gif')
         self.asteroidFOW=PhotoImage(file='images/Galaxy/asteroidFOW.gif')
         self.mineral = PhotoImage(file='images/Planet/crystal.gif')
+        self.gaz = PhotoImage(file='images/Planet/gaz.gif')
+        self.nuclear = PhotoImage(file='images/Planet/rad.gif')
         self.planetBackground = PhotoImage(file='images/Planet/background.gif')
         self.galaxyBackground = PhotoImage(file='images/Galaxy/night-sky.gif')
         self.lobbyBackground = PhotoImage(file='images/Menus/lobby.gif')
@@ -125,6 +127,7 @@ class View():
         self.gatherShips = []
         self.waypoints = []
         self.landingZones = []
+        self.groundUnits = []
         for i in range(0,8):
             self.scoutShips.append(PhotoImage(file='images/Ships/Scoutships/Scoutship'+str(i)+'.gif'))
             self.attackShips.append(PhotoImage(file='images/Ships/Attackships/Attackship'+str(i)+'.gif'))
@@ -134,7 +137,7 @@ class View():
             self.gatherShips.append(PhotoImage(file='images/Ships/Cargo/Cargo'+str(i)+'.gif'))
             self.landingZones.append(PhotoImage(file='images/Planet/LandingZones/landing'+str(i)+'.gif'))
             self.waypoints.append(PhotoImage(file='images/Building/waypoint'+str(i)+'.gif'))
-                
+            self.groundUnits.append(PhotoImage(file='images/Planet/GroundUnit/ground'+str(i)+'.gif'))
         self.showMinerals = Label(gameFrame, text="Mineraux: "+str(self.game.players[self.game.playerId].ressources[0]), bg="black", fg="white", anchor=E)
         self.showMinerals.grid(column=2, row=0)
         self.showGaz = Label(gameFrame, text="Gaz: "+str(self.game.players[self.game.playerId].ressources[1]), bg="black", fg="white", anchor=E)
@@ -150,24 +153,23 @@ class View():
         self.menuModes.entryMess = Entry(gameFrame, width=60)
         #Fenetres trade
         self.menuModes.variableTrade = StringVar(gameFrame)
-        self.menuModes.tradeOPTIONS = []
-        for i in self.game.players:
-            self.menuModes.tradeOPTIONS.append(i.name)
-        self.menuModes.variableTrade.set(self.menuModes.tradeOPTIONS[0])
-        self.menuModes.tradeChoice = OptionMenu(gameFrame, self.menuModes.variableTrade, *self.menuModes.tradeOPTIONS, command=self.parent.askTrade)
+        self.menuModes.tradeOPTIONS = ["Choisissez un allié pour échanger"]
+        self.menuModes.variableTrade.set("Choisissez un allié pour échanger")
+        self.menuModes.tradeChoice = OptionMenu(gameFrame, self.menuModes.variableTrade, *self.menuModes.tradeOPTIONS, command=self.game.askTrade)
         self.answerId=0
         self.answerId2=0
-        self.menuModes.yesButton = Button(gameFrame, text="Oui", command=lambda:self.parent.startTrade(True, self.answerId))
-        self.menuModes.noButton = Button(gameFrame, text="Non", command=lambda:self.parent.startTrade(False, self.answerId))
-        self.menuModes.yesButtonConfirm = Button(gameFrame, text="Oui", command=lambda:self.parent.confirmTrade(True, self.answerId, min1, min2, gaz1, gaz2))
-        self.menuModes.noButtonConfirm = Button(gameFrame, text="Non", command=lambda:self.parent.confirmTrade(False, self.answerId, min1, min2, gaz1, gaz2))
-        self.menuModes.modifyButtonConfirm = Button(gameFrame, text="Contre-offre", command=lambda:self.parent.startTrade(True,self.game.playerId))
+        self.menuModes.stopTrade = Button(gameFrame, text="Arrêter l'échange", command=self.game.stopTrade)
+        self.menuModes.yesButton = Button(gameFrame, text="Oui", command=lambda:self.game.startTrade(True, self.answerId))
+        self.menuModes.noButton = Button(gameFrame, text="Non", command=lambda:self.game.startTrade(False, self.answerId))
+        self.menuModes.yesButtonConfirm = Button(gameFrame, text="Oui", command=lambda:self.game.confirmTrade(True, self.answerId, min1, min2, gaz1, gaz2))
+        self.menuModes.noButtonConfirm = Button(gameFrame, text="Non", command=lambda:self.game.confirmTrade(False, self.answerId, min1, min2, gaz1, gaz2))
+        self.menuModes.modifyButtonConfirm = Button(gameFrame, text="Contre-offre", command=lambda:self.game.startTrade(True,self.game.playerId))
         self.menuModes.nomJoueur1 = Label(gameFrame, text=self.game.players[self.answerId].name, bg="black", fg="white")
         self.menuModes.etiqMenieral1 = Label(gameFrame,text='Minerals ', bg="black", fg="white")
         self.menuModes.etiqGaz1 = Label(gameFrame,text='Gaz ', bg="black", fg="white")
         self.menuModes.nomJoueur2 = Label(gameFrame, text=self.game.players[self.answerId2].name, bg="black", fg="white")
         self.menuModes.etiqMenieral2 = Label(gameFrame,text='Minerals ', bg="black", fg="white")
-        self.menuModes.bEchange = Button(gameFrame,text="Échange",command=lambda:self.parent.confirmTradeQuestion(self.answerId2))
+        self.menuModes.bEchange = Button(gameFrame,text="Échange",command=lambda:self.game.confirmTradeQuestion(self.answerId2))
         self.menuModes.etiqGaz2 = Label(gameFrame,text='Gaz ', bg="black", fg="white")
         self.menuModes.spinMinerals1 = Spinbox(gameFrame, from_=0, to=self.game.players[self.answerId].ressources[0])
         self.menuModes.spinGaz1 = Spinbox(gameFrame, from_=0, to=self.game.players[self.answerId].ressources[1])
@@ -249,7 +251,12 @@ class View():
     def ongletTradeChoicePlayer(self):
         self.menuModesOnlets()
         self.selectedOnglet = self.SELECTED_TRADE
-
+        self.menuModes.tradeChoice['menu'].delete(0, END)
+        self.menuModes.variableTrade.set("Choisissez un allié pour échanger")
+        allies = self.game.getAllies()
+        for i in allies:
+            self.menuModes.tradeChoice['menu'].add_command(label=i, command=lambda temp = i: self.menuModes.tradeChoice.setvar(self.menuModes.tradeChoice.cget("textvariable"), value = temp))
+        self.menuModes.variableTrade.trace('w',self.game.askTrade)
         self.menuModes.tradeChoice.grid(row=3, column=2)
 
     def ongletTradeWaiting(self):
@@ -257,6 +264,7 @@ class View():
         self.selectedOnglet = self.SELECTED_TRADE
 
         self.menuModes.create_text(150,50,text='En attente de la réponse de l\'autre joueur.',fill='white')
+        self.menuModes.stopTrade.grid(row=5,column=5)
 
     def ongletTradeNoAnswer(self):
         self.selectedOnglet = self.SELECTED_TRADE
@@ -272,22 +280,28 @@ class View():
         self.selectedOnglet = self.SELECTED_TEAM
 
         self.answerId = id1
-        self.menuModes.create_text(150,50,text='Voulez-vous accepter la demande d\'échange avec '+self.game.players[id1].name+'?',fill='white')
-        self.menuModes.yesButton.grid(row=3,column=2)
-        self.menuModes.noButton.grid(row=3,column=3)
+        self.menuModes.create_text(175,50,text='Voulez-vous accepter la demande d\'échange avec '+self.game.players[id1].name+'?',fill='white')
+        self.menuModes.yesButton.grid(row=4,column=2)
+        self.menuModes.noButton.grid(row=4,column=3)
+        self.menuModes.stopTrade.grid(row=5,column=5)
+
+    def ongletTradeCancel(self):
+        self.menuModesOnlets()
+        self.menuModes.create_text(150,50,text='L\'échange a été annulée.',fill='white')
 
     def ongletTradeAskConfirm(self, id1, min1, min2, gaz1, gaz2):
         self.menuModesOnlets()
         self.selectedOnglet = self.SELECTED_TEAM
 
         self.answerId = id1
-        self.menuModes.create_text(165,50,text=''+self.game.players[self.answerId].name+' vous offre '+min1+' unités de ses minéraux et '+gaz1+' unités de son gaz',fill='white')
+        self.menuModes.create_text(180,50,text=''+self.game.players[self.answerId].name+' vous offre '+min1+' unités de ses minéraux et '+gaz1+' unités de son gaz',fill='white')
         self.menuModes.create_text(160,65,text='contre '+min2+' unités de vos minéraux et '+gaz2+' unités de votre gaz',fill='white')
-        self.menuModes.yesButtonConfirm.config(command=lambda:self.parent.confirmTrade(True, self.answerId, min1, min2, gaz1, gaz2))
-        self.menuModes.noButtonConfirm.config(command=lambda:self.parent.confirmTrade(False, self.answerId, min1, min2, gaz1, gaz2))
+        self.menuModes.yesButtonConfirm.config(command=lambda:self.game.confirmTrade(True, self.answerId, min1, min2, gaz1, gaz2))
+        self.menuModes.noButtonConfirm.config(command=lambda:self.game.confirmTrade(False, self.answerId, min1, min2, gaz1, gaz2))
         self.menuModes.yesButtonConfirm.grid(row=4,column=2)
         self.menuModes.noButtonConfirm.grid(row=4,column=3)
         self.menuModes.modifyButtonConfirm.grid(row=4,column=4)
+        self.menuModes.stopTrade.grid(row=5,column=5)
 
     def ongletTrade(self, id1, id2):
         self.menuModesOnlets()
@@ -310,6 +324,7 @@ class View():
             self.menuModes.spinGaz1.grid(row=5,column=3)
             # Bouton ECHANGE
             self.menuModes.bEchange.grid(column=4,row=2)
+            self.menuModes.stopTrade.grid(row=2,column=5)
             # minerals Joueurs 2
             self.menuModes.nomJoueur2.grid(row=3,column=5)
             self.menuModes.etiqMenieral2.grid(row=4,column=5)
@@ -317,8 +332,10 @@ class View():
             # gaz Joueurs 2
             self.menuModes.etiqGaz2.grid(row=5,column=5)
             self.menuModes.spinGaz2.grid(row=5,column=6)
+
         else:
             self.menuModes.create_text(150,50,text='Attente de l\'offre de l\'autre joueur.',fill='white')
+            self.menuModes.stopTrade.grid(row=5,column=5)
         
     def ongletSelectedUnit(self):
         self.menuModesOnlets()
@@ -437,6 +454,7 @@ class View():
         self.menuModes.yesButtonConfirm.grid_forget()
         self.menuModes.noButtonConfirm.grid_forget()
         self.menuModes.tradeChoice.grid_forget()
+        self.menuModes.stopTrade.grid_forget()
         self.menuModes.etiqMenieral1.grid_forget()
         self.menuModes.etiqMenieral2.grid_forget()
         self.menuModes.nomJoueur1.grid_forget()
@@ -627,9 +645,12 @@ class View():
         return createServerFrame
 
     def startServer(self, connect):
-        serverAddress = self.entryCreateServer.get()
-        userName = self.entryCreateLogin.get()
-        self.parent.startServer(serverAddress, connect, userName)
+        if len(self.entryCreateLogin.get()) >= 3:
+            serverAddress = self.entryCreateServer.get()
+            userName = self.entryCreateLogin.get()
+            self.parent.startServer(serverAddress, connect, userName)
+        else:
+            self.showTooDamnShortName()
     
     #Frame du lobby
     def fLobby(self):
@@ -680,6 +701,8 @@ class View():
             self.parent.sendMessageLobby(self.entryMessLobby.get(), self.parent.server.getSockets()[self.game.playerId][1])
             self.entryMessLobby.delete(0,END)
      
+    def showTooDamnShortName(self):
+        mb.showinfo('Erreur de connection', 'Votre nom est trop petit, entrez-en un d\'au minimum 3 caractères.')
         
     def loginFailed(self):
         mb.showinfo('Erreur de connection', 'Le serveur est introuvable. Veuillez reessayer.')
@@ -694,7 +717,7 @@ class View():
         mb.showinfo('Fin de la partie', 'L\'administrateur de la partie a quitté prématurément la partie, la partie est donc terminée.')
 
     def showGameIsFinished(self):
-        mb.showinfo('Fin de la partie', 'Vous avez perdu.')
+        mb.showinfo('Fin de la partie', 'La partie est terminée.')
 
     def serverCreated(self, serverIP):
         mb.showinfo('Serveur créé', 'Le serveur a été créé à l\'adresse ' + serverIP + '.')
@@ -716,9 +739,16 @@ class View():
         for i in planet.gaz:
             distance = self.game.players[self.game.playerId].camera.calcDistance(i.position)
             if i in self.game.players[self.game.playerId].selectedObjects:
-                self.gameArea.create_text(distance[0], distance[1]-20, fill="green", text="Gaz :" + str(i.nbGaz), tag='deletable')
+                self.gameArea.create_text(distance[0], distance[1]-(i.HEIGHT/2+8), fill="green", text="Gaz :" + str(i.nbGaz), tag='deletable')
                 self.gameArea.create_oval(distance[0]-(i.WIDTH/2+3), distance[1]-(i.HEIGHT/2+3), distance[0]+(i.WIDTH/2+3), distance[1]+(i.HEIGHT/2+3), outline='yellow', tag='deletable')
-            self.gameArea.create_oval(distance[0]-(i.WIDTH/2+2), distance[1]-(i.HEIGHT/2+2), distance[0]+(i.WIDTH/2+2), distance[1]+(i.HEIGHT/2+2), fill='green', tag='deletable')
+            self.gameArea.create_image(distance[0], distance[1],image=self.gaz, tag='deletable')
+        if planet.nuclearSite != None:
+            site = planet.nuclearSite
+            distance = self.game.players[self.game.playerId].camera.calcDistance(site.position)
+            if site in self.game.players[self.game.playerId].selectedObjects:
+                self.gameArea.create_text(distance[0], distance[1]-(site.HEIGHT/2+10), fill="yellow", text="Nuclear!", tag='deletable')
+                self.gameArea.create_oval(distance[0]-(site.WIDTH/2+3), distance[1]-(site.WIDTH/2+3),distance[0]+(site.WIDTH/2+3),distance[1]+(site.WIDTH/2+3), outline='purple', tag='deletable')
+            self.gameArea.create_image(distance[0], distance[1], image=self.nuclear, tag='deletable')
         for i in planet.landingZones:
             distance = self.game.players[self.game.playerId].camera.calcDistance(i.position)
             if i in self.game.players[self.game.playerId].selectedObjects:
@@ -730,7 +760,7 @@ class View():
             distance = self.game.players[self.game.playerId].camera.calcDistance(i.position)
             if i in self.game.players[self.game.playerId].selectedObjects:
                 self.gameArea.create_oval(distance[0]-(i.SIZE[i.type][0]/2+3), distance[1]-(i.SIZE[i.type][1]/2+3), distance[0]+(i.SIZE[i.type][0]/2+3),distance[1]+(i.SIZE[i.type][1]/2+3),outline='green', tag='deletable')
-            self.gameArea.create_oval(distance[0]-i.SIZE[i.type][0]/2, distance[1]-i.SIZE[i.type][1]/2, distance[0]+i.SIZE[i.type][0]/2,distance[1]+i.SIZE[i.type][1]/2, fill='red', tag='deletable')
+            self.gameArea.create_image(distance[0], distance[1], image=self.groundUnits[color], tag='deletable')
         if self.dragging:
             self.drawSelectionBox()
 
@@ -908,7 +938,7 @@ class View():
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0], distance[1], image=self.scoutShips[player.colorId],tag='deletable')#On prend l'image dependamment du joueur que nous sommes
-                if unit.type == unit.ATTACK_SHIP:
+                if unit.type == unit.ATTACK_SHIP and unit.flag.flagState == unit.flag.ATTACK:
                     if unit.attackcount <= 5:
                         d2 = self.game.players[self.game.playerId].camera.calcDistance(unit.flag.finalTarget.position)
                         self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='deletable')
@@ -939,6 +969,8 @@ class View():
         posSelected=self.game.players[self.game.playerId].camera.calcPointInWorld(self.positionMouse[0],self.positionMouse[1])
         if unit.position[0] >= posSelected[0]-(unit.SIZE[unit.type][0]/2) and unit.position[0] <= posSelected[0]+(unit.SIZE[unit.type][0]/2):
             if unit.position[1] >= posSelected[1]-(unit.SIZE[unit.type][1]/2) and unit.position[1] <= posSelected[1]+(unit.SIZE[unit.type][1]/2):
+                if unit.owner != self.game.playerId:
+                    self.gameArea.create_text(distance[0]-(len(self.game.players[unit.owner].name)/2),distance[1]+((unit.SIZE[unit.type][1]/2)+5), text=self.game.players[unit.owner].name, fill="white", tag='deletable')
                 self.drawHPBars(distance,unit)
                             
     
@@ -964,6 +996,8 @@ class View():
                 self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="green", tag='deletable')
                 if int(unit.hitpoints) != int(unit.MAX_HP[unit.type]):
                     self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLost,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="red", tag='deletable')
+        if unit.owner != self.game.playerId:
+            self.gameArea.create_text(distance[0]-(len(self.game.players[unit.owner].name)/2),distance[1]+((unit.SIZE[unit.type][1]/2)+5), text=self.game.players[unit.owner].name, fill="white", tag='deletable')
           
     #Dessine la minimap
     def drawMinimap(self):
@@ -1003,6 +1037,8 @@ class View():
                 self.drawMiniLandingZone(i, planet)
             for i in planet.units:
                 self.drawMiniGroundUnit(i, planet)
+            if planet.nuclearSite != None:
+                self.drawMiniNuclear(planet.nuclearSite, planet)
         self.drawMiniFOV()
         
     def redrawMinimap(self):
@@ -1039,6 +1075,8 @@ class View():
                 self.drawMiniLandingZone(i, planet)
             for i in planet.units:
                 self.drawMiniGroundUnit(i, planet)
+            if planet.nuclearSite != None:
+                self.drawMiniNuclear(planet.nuclearSite, planet)
         self.drawMiniFOV()
 
     #Dessine le carrer de la camera dans la minimap	
@@ -1104,7 +1142,7 @@ class View():
             color = 'YELLOW'
         else:
             color ='RED'
-        if unit.type != unit.GROUND_UNIT:
+        if not isinstance(unit, GroundGatherUnit):
             if unit.type != unit.MOTHERSHIP:
                 if unit.type == unit.TRANSPORT:
                     if not unit.landed:
@@ -1135,6 +1173,12 @@ class View():
             self.minimap.create_rectangle(x-zone.WIDTH/8, y-zone.HEIGHT/8, x+zone.WIDTH/8, y+zone.HEIGHT/8, fill='WHITE')
         else:
             self.minimap.create_rectangle(x-zone.WIDTH/8, y-zone.HEIGHT/8, x+zone.WIDTH/8, y+zone.HEIGHT/8, fill='RED')
+
+    def drawMiniNuclear(self, site, planet):
+        if site.nbRessource > 0:
+            x = int(site.position[0] * 200 / planet.WIDTH)
+            y = int(site.position[1] * 200 / planet.HEIGHT)
+            self.minimap.create_oval(x-site.WIDTH/8, y-site.HEIGHT/8, x+site.WIDTH/8, y+site.HEIGHT/8,fill='YELLOW')
 
     def drawMiniGroundUnit(self, unit, planet):
         x = int(unit.position[0] * 200 / planet.WIDTH)
@@ -1319,7 +1363,10 @@ class View():
         if login=="" and server=="":
             login = self.entryLogin.get()
             server = self.entryServer.get()
-        self.parent.connectServer(login,server)
+        if len(login) >= 3:
+            self.parent.connectServer(login,server)
+        else:
+            self.showTooDamnShortName()
 			
     def stop(self, eve):
         self.attacking = False
@@ -1335,15 +1382,17 @@ class View():
 
     def shiftRelease(self, eve):
         self.game.multiSelect = False
-	
+
     def checkMotherShip(self, eve):
         self.game.players[self.game.playerId].currentPlanet = None
+        cam = self.game.players[self.game.playerId].camera
+        cam.position = [cam.defaultPos[0], cam.defaultPos[1]]
+        self.game.players[self.game.playerId].selectedObjects = []
+        self.game.players[self.game.playerId].selectedObjects.append(self.game.players[self.game.playerId].motherShip)
         self.changeBackground('GALAXY')
         self.drawWorld()
         self.redrawMinimap()
-        cam = self.game.players[self.game.playerId].camera
-        cam.position = cam.defaultPos
-        self.game.players[self.game.playerId].selectedUnit = []
+        self.ongletSelectedUnit()
 
     def clickMenuModes(self,eve):
         bp = (eve.widget.gettags(eve.widget.find_withtag('current')))
@@ -1431,7 +1480,7 @@ class View():
                 self.game.setChangeFormationFlag('t')
             elif (Button_pressed == "Button_Square"):
                 self.game.setChangeFormationFlag('c')
-            else:
+            elif len(Button_pressed.split("/")) == 2:
                 #Si on achète une nouvelle technologie
                 Button_pressed = Button_pressed.split("/")
                 self.game.setBuyTech(Button_pressed[0], Button_pressed[1])

@@ -36,7 +36,7 @@ class Unit(PlayerObject):
         else:
             self.moveSpeed=self.MOVE_SPEED[self.DEFAULT]
 
-    def action(self, parent, players):
+    def action(self, parent):
         if self.flag.flagState == FlagState.MOVE or self.flag.flagState == FlagState.GROUND_MOVE:
             self.move()
         elif self.flag.flagState == FlagState.ATTACK:
@@ -49,7 +49,7 @@ class Unit(PlayerObject):
         elif self.flag.flagState == FlagState.PATROL:
             unit = self.patrol()
             if unit != None:
-                parent.setAnAttackFlag(unit, self)
+                parent.game.checkIfEnemyInRange(self)
         elif self.flag.flagState == FlagState.BUILD:
             self.build(self.flag.finalTarget)
     
@@ -149,11 +149,11 @@ class GroundGatherUnit(GroundUnit):
         self.container = [0,0]
         self.returning = False
 
-    def action(self, parent, players):
+    def action(self, parent):
         if self.flag.flagState == FlagState.GROUND_GATHER:
             self.gather(parent, parent.game)
         else:
-            Unit.action(self, parent, players)
+            Unit.action(self, parent)
 
     def gather(self, player, game):
         ressource = self.flag.finalTarget
@@ -245,7 +245,7 @@ class Mothership(Unit):
         self.attackcount=self.AttackSpeed
         self.killCount = 0
 
-    def action(self, parent, players):
+    def action(self, parent):
         if self.isAlive:
             p = [self.position[0], self.position[1], 0]
 
@@ -342,29 +342,22 @@ class SpaceAttackUnit(SpaceUnit):
         self.attackcount=self.AttackSpeed
         self.killCount = 0
 
-    def action(self, parent, players):
+    def action(self, parent):
         if self.flag.flagState == FlagState.ATTACK:
             if isinstance(self.flag.finalTarget, TransportShip):
                 if self.flag.finalTarget.landed:
                     parent.game.setAStandByFlag(self)
             else:
-                killedIndex = self.attack(players)
+                killedIndex = self.attack(parent.game.players)
                 if killedIndex[0] > -1:
                     parent.killUnit(killedIndex)
         elif self.flag.flagState == FlagState.PATROL:
-            unit = self.patrol(players)
-            if unit != None:
-                if isinstance(self.flag.finalTarget, TransportShip):
-                    if self.flag.finalTarget.landed:
-                        parent.game.setAStandByFlag(self)
-                else:
-                    killedIndex = self.attack(players, unit)
-                    if killedIndex[0] > -1:
-                        parent.killUnit(killedIndex)
+            self.patrol(parent.game.players)
+            parent.game.checkIfEnemyInRange(self)
         elif self.flag.flagState == FlagState.STANDBY:
             parent.game.checkIfEnemyInRange(self)
         else:
-            Unit.action(self, parent, players)
+            Unit.action(self, parent)
 
     def changeFlag(self, finalTarget, state):
         self.attackcount=self.AttackSpeed
@@ -403,12 +396,6 @@ class SpaceAttackUnit(SpaceUnit):
         arrived = True
         if self.position[0] < self.flag.finalTarget.position[0] or self.position[0] > self.flag.finalTarget.position[0]:
                 if self.position[1] < self.flag.finalTarget.position[1] or self.position[1] > self.flag.finalTarget.position[1]:
-                    for p in players:
-                        if players.index(p) != self.owner:
-                            for uni in p.units:
-                                if uni.position[0] > self.position[0]-self.range and uni.position[0] < self.position[0]+self.range:
-                                    if uni.position[1] > self.position[1]-self.range and uni.position[1] < self.position[1]+self.range:
-                                        return uni
                     self.move()
                     arrived = False
         if arrived == True:
@@ -416,14 +403,10 @@ class SpaceAttackUnit(SpaceUnit):
             self.flag.initialTarget = self.flag.finalTarget
             self.flag.finalTarget = self.before
 
-        return None
-
     #Applique les bonus du Unit selon les upgrades
     def applyBonuses(self, bonuses):
         Unit.applyBonuses(self, bonuses)
-        self.AttackSpeed = self.ATTACK_SPEED[self.type]+bonuses[p.Player.ATTACK_SPEED_BONUS]
-        self.AttackDamage = self.ATTACK_DAMAGE[self.type]+bonuses[p.Player.ATTACK_DAMAGE_BONUS]
-        self.range = self.ATTACK_RANGE[self.type]+bonuses[p.Player.ATTACK_RANGE_BONUS]
+        Mothership.applyBonuses(self,bonuses)
 
 class TransportShip(SpaceUnit):
     def __init__(self, name, type, position, owner):
@@ -433,11 +416,11 @@ class TransportShip(SpaceUnit):
         self.units = []
         #self.units.append(GroundUnit('Builder', self.GROUND_UNIT, [0,0,0], self.owner,-1,-1))
 
-    def action(self, parent, players):
+    def action(self, parent):
         if self.flag.flagState == FlagState.LAND:
             self.land(parent.game)
         else:
-            Unit.action(self, parent, players)
+            Unit.action(self, parent)
 
     def select(self, position):
         if self.isAlive and not self.landed:
@@ -530,11 +513,11 @@ class GatherShip(SpaceUnit):
         self.container = [0,0]
         self.returning = False
 
-    def action(self, parent, players):
+    def action(self, parent):
         if self.flag.flagState == FlagState.GATHER:
             self.gather(parent, parent.game)
         else:
-            Unit.action(self, parent, players)
+            Unit.action(self, parent)
 
     def gather(self, player, game):
         ressource = self.flag.finalTarget

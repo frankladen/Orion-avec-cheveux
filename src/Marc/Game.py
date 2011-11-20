@@ -25,9 +25,10 @@ class Game():
 
     def action(self):
         self.players[self.playerId].camera.move()
+        self.parent.view.gameArea.delete('enemyRange')
         for p in self.players:
             if p.isAlive:
-                 p.action(self.players)
+                 p.action()
         return self.players[self.playerId].isAlive
 
     def start(self, players, seed, taille):
@@ -155,8 +156,7 @@ class Game():
         self.players[playerId].makeUnitsAttack(units, self.players[targetPlayer], targetUnit)
 
     def killUnit(self, killedIndexes):
-        #Désélection de l'unité qui va mourir afin d'éviter le renvoie d'une action avec cette unité
-        self.players[killedIndexes[1]].units[killedIndexes[0]].kill()
+        self.players[killedIndexes[1]].killUnit(killedIndexes)
 
     def setBuyTech(self, techType, index):
         self.parent.pushChange(index, Flag(techType,0,FlagState.BUY_TECH))
@@ -437,7 +437,7 @@ class Game():
             if len(self.players[self.playerId].selectedObjects) > 0:
                     for i in self.players:
                         if i.isAlive:
-                            if i != self.players[self.playerId] and self.players[self.playerId].isAlly(self.players.index(i)) == False:
+                            if i.id != self.playerId and self.players[self.playerId].isAlly(i.id) == False:
                                 for j in i.units:
                                     if j.select(posSelected):
                                         self.setAttackFlag(j)
@@ -445,7 +445,7 @@ class Game():
     def checkIfEnemyInRange(self, unit):
         for pl in self.players:
             if pl.isAlive:
-                if self.players.index(pl) != unit.owner and self.players[unit.owner].isAlly(self.players.index(pl)) == False:
+                if pl.id != unit.owner and self.players[unit.owner].isAlly(pl.id) == False:
                     for un in pl.units:
                         if un.isAlive:
                             if un.position[0] > unit.position[0]-unit.range and un.position[0] < unit.position[0]+unit.range:
@@ -500,6 +500,8 @@ class Game():
             if clickedObj == None:
                 for i in self.players:
                     clickedObj = i.rightClic(pos, self.playerId)
+                    if clickedObj != None:
+                        break
             unit = self.players[self.playerId].getFirstUnit()
             if unit != None:
                 if clickedObj != None:

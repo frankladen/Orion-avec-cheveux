@@ -30,12 +30,11 @@ class Controller():
     def action(self, waitTime=50):
         if self.view.currentFrame != self.view.pLobby:
             if self.server.isGameStopped() == False:
-                self.refreshMessages(self.view.menuModes.chat)
                 if self.refresh > 0:
-                    #À chaque itération je demande les nouvelles infos au serveur
-                    self.pullChange()
                     if self.game.action():
-                        self.view.gameArea.delete('enemyRange')
+                        self.refreshMessages(self.view.menuModes.chat)
+                        #À chaque itération je demande les nouvelles infos au serveur
+                        self.pullChange()
                         self.view.refreshGame(self.game.isOnPlanet())
                         self.refresh+=1
                         waitTime = self.server.amITooHigh(self.game.playerId)
@@ -181,7 +180,7 @@ class Controller():
     def pushChange(self, playerObject, flag):
         actionString = ""
         if isinstance(flag, Flag):
-            if flag.flagState == FlagState.MOVE or flag.flagState == FlagState.STANDBY:
+            if flag.flagState in (FlagState.MOVE, FlagState.STANDBY):
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             elif flag.flagState == FlagState.GROUND_MOVE:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
@@ -282,7 +281,7 @@ class Controller():
         target = changeInfo[3]
         refresh = int(changeInfo[4])
         #si l'action est Move, la target sera sous forme de tableau de positions [x,y,z]
-        if action == str(FlagState.MOVE) or action == str(FlagState.STANDBY) or action == str(FlagState.PATROL):
+        if action in (str(FlagState.MOVE), str(FlagState.STANDBY), str(FlagState.PATROL)):
             target = self.changeToInt(self.stripAndSplit(target))
             self.game.makeFormation(actionPlayerId, unitIndex, target, action)
             
@@ -332,7 +331,6 @@ class Controller():
         
         elif action == str(FlagState.CHANGE_RALLY_POINT):
             target = self.changeToInt(self.stripAndSplit(target))
-            print(target)
             self.game.players[actionPlayerId].motherShip.changeFlag(target,int(action))
         
         elif action == str(FlagState.CANCEL_UNIT):

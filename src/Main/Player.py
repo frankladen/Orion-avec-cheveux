@@ -39,10 +39,10 @@ class Player():
         self.ressources = [100,100,10]
         self.isAlive = True
 
-    def action(self, players):
+    def action(self):
         for i in self.units:
             if i.isAlive:
-                i.action(self, players)
+                i.action(self)
     def selectUnitsByType(self, unitType):
         units = []
         for i in self.selectedObjects:
@@ -204,8 +204,8 @@ class Player():
     def killUnit(self, killedIndexes):
         if killedIndexes[1] == self.id:
             if self.units[killedIndexes[0]] in self.selectedObjects:
-               self.selectedObjects.remove(self.units[killedIndexes[0]])
-        self.game.killUnit(killedIndexes)
+                self.selectedObjects.remove(self.units[killedIndexes[0]])
+        self.units[killedIndexes[0]].kill()
 
     def buildUnit(self):
         unit = self.motherShip.unitBeingConstruct.pop(0)

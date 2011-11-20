@@ -19,9 +19,6 @@ class Galaxy():
             self.width = temp
             self.height = temp
             self.depth = temp
-##            self.width=(nbPlayer-2)*self.SIZE_MULTIPLIER
-##            self.height=(nbPlayer-2)*self.SIZE_MULTIPLIER
-##            self.depth=(nbPlayer-2)*self.SIZE_MULTIPLIER
         else:
             self.width=3000
             self.height=3000
@@ -34,8 +31,8 @@ class Galaxy():
             tempY=""
             placeFound = False
             while placeFound == False:
-                tempX=random.randrange(self.width/2 * -1, self.width/2)#(random.random()*self.width/2)-(random.random()*self.width/2)
-                tempY=random.randrange(self.height/2 * -1, self.height/2)#(random.random()*self.height/2)-(random.random()*self.width/2)
+                tempX=random.randrange(self.width/2 * -1, self.width/2)
+                tempY=random.randrange(self.height/2 * -1, self.height/2)
                 placeFound = True
                 #Conditions de placement des soleils
                 if tempX < -1*(self.width/2)+self.SUN_BORDER_SPACING or tempX > self.width/2-self.SUN_BORDER_SPACING:
@@ -43,8 +40,8 @@ class Galaxy():
                 if tempY < -1*(self.height/2)+self.SUN_BORDER_SPACING or tempY > self.height/2-self.SUN_BORDER_SPACING: 
                     placeFound = False
                 for j in self.solarSystemList:
-                    if tempX > j.sunPosition[0]-j.WIDTH/2 and tempX < j.sunPosition[0]+j.WIDTH/2:
-                        if tempY > j.sunPosition[1]-j.HEIGHT/2 and tempY < j.sunPosition[1]+j.HEIGHT/2:
+                    if tempX > j.sunPosition[0]-j.WIDTH and tempX < j.sunPosition[0]+j.WIDTH:
+                        if tempY > j.sunPosition[1]-j.HEIGHT and tempY < j.sunPosition[1]+j.HEIGHT:
                             placeFound = False
                             break
             self.solarSystemList.append(SolarSystem([tempX,tempY,0],i-1))
@@ -73,7 +70,14 @@ class Galaxy():
                         break
         self.spawnPoints.append((x,y,0))
         return [x,y,0]
-
+    
+    def select(self, position):
+        clickedObj = None
+        for i in self.solarSystemList:
+            spaceObj = i.select(position)
+            if spaceObj != None and clickedObj == None:
+                clickedObj = spaceObj
+        return clickedObj
 
 #Classe qui represente 1 seul systeme solaire
 class SolarSystem():
@@ -108,8 +112,8 @@ class SolarSystem():
             placeFound = False
             while placeFound == False:
                 placeFound = True
-                tempX = random.randrange(self.WIDTH/2*-1, self.WIDTH/2) #(random.random()*SolarSystem.WIDTH/2)-(random.random()*SolarSystem.WIDTH/2)
-                tempY = random.randrange(self.HEIGHT/2*-1, self.HEIGHT/2)#(random.random()*SolarSystem.HEIGHT/2)-(random.random()*SolarSystem.HEIGHT/2)
+                tempX = random.randrange(self.WIDTH/2*-1, self.WIDTH/2)
+                tempY = random.randrange(self.HEIGHT/2*-1, self.HEIGHT/2)
                 #Condition de placement des planetes
                 if tempX > -40 and tempX < 40:
                     placeFound = False
@@ -120,15 +124,15 @@ class SolarSystem():
                         if self.sunPosition[1]+tempY > j.position[1]-j.IMAGE_HEIGHT and self.sunPosition[1]+tempY < j.position[1]+j.IMAGE_HEIGHT:
                             placeFound = False
                             break
-            self.planets.append(Planet([self.sunPosition[0]+tempX,self.sunPosition[1]+tempY],int(random.random()*3),int(random.random()*3)))
+            self.planets.append(Planet([self.sunPosition[0]+tempX,self.sunPosition[1]+tempY],int(random.random()*3),int(random.random()*3),i, self))
         for i in range(0,nNebu):
             tempX=""
             tempY=""
             placeFound = False
             while placeFound == False:
                 placeFound = True
-                tempX = random.randrange(self.WIDTH/2*-1, self.WIDTH/2) #(random.random()*SolarSystem.WIDTH/2)-(random.random()*SolarSystem.WIDTH/2)
-                tempY = random.randrange(self.HEIGHT/2*-1, self.HEIGHT/2)#(random.random()*SolarSystem.HEIGHT/2)-(random.random()*SolarSystem.HEIGHT/2)
+                tempX = random.randrange(self.WIDTH/2*-1, self.WIDTH/2)
+                tempY = random.randrange(self.HEIGHT/2*-1, self.HEIGHT/2)
                 #Condition de placement des nebuleuses
                 if tempX > -40 and tempX < 40:
                     placeFound = False
@@ -151,8 +155,8 @@ class SolarSystem():
             placeFound = False
             while placeFound == False:
                 placeFound = True
-                tempX = random.randrange(self.WIDTH/2*-1, self.WIDTH/2) #(random.random()*SolarSystem.WIDTH/2)-(random.random()*SolarSystem.WIDTH/2)
-                tempY = random.randrange(self.HEIGHT/2*-1, self.HEIGHT/2)#(random.random()*SolarSystem.HEIGHT/2)-(random.random()*SolarSystem.HEIGHT/2)
+                tempX = random.randrange(self.WIDTH/2*-1, self.WIDTH/2)
+                tempY = random.randrange(self.HEIGHT/2*-1, self.HEIGHT/2)
                 #Condition de placement des asteroïdes
                 if tempX > -40 and tempX < 40:
                     placeFound = False
@@ -174,7 +178,23 @@ class SolarSystem():
                             placeFound = False
                             break
             self.asteroids.append(AstronomicalObject('asteroid', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY),i,self))
-        
+
+    def select(self, position):
+        clickedObj = None
+        for i in self.planets:
+            planet = i.select(position)
+            if planet != None and clickedObj == None:
+                clickedObj = planet
+        for i in self.nebulas:
+            nebula = i.selectNebula(position)
+            if nebula != None and clickedObj == None:
+                clickedObj = nebula
+        for i in self.asteroids:
+            asteroid = i.selectAsteroid(position)
+            if asteroid != None and clickedObj == None:
+                clickedObj = asteroid
+        return clickedObj
+
 #Represente un objet spacial (Planete, Meteorite, Nebuleuse)
 #Le type represente quel objet parmi les 3
 class AstronomicalObject(Target):
@@ -194,12 +214,24 @@ class AstronomicalObject(Target):
         self.type = type
         self.discovered = False
         if type == 'nebula':
-            self.gazQte = random.randrange(self.MAX_GAS/2, self.MAX_GAS)#((random.random()*self.MAX_GAS/2)+self.MAX_GAS/2)
+            self.gazQte = random.randrange(self.MAX_GAS/2, self.MAX_GAS)
             self.mineralQte = 0
         elif type == 'asteroid':
-            self.mineralQte = random.randrange(self.MAX_MINERALS/2, self.MAX_MINERALS)#((random.random()*self.MAX_MINERALS/2)+self.MAX_MINERALS/2)
+            self.mineralQte = random.randrange(self.MAX_MINERALS/2, self.MAX_MINERALS)
             self.gazQte = 0 
             
+    def selectNebula(self, position):
+        if position[0] >= self.position[0]-self.NEBULA_WIDTH/2 and position[0] <= self.position[0]+self.NEBULA_WIDTH/2:
+            if position[1] >= self.position[1]-self.NEBULA_HEIGHT/2 and position[1] <= self.position[1]+self.NEBULA_HEIGHT/2:
+                return self
+        return None
+    
+    def selectAsteroid(self, position):
+        if position[0] >= self.position[0]-self.ASTEROID_WIDTH/2 and position[0] <= self.position[0]+self.ASTEROID_WIDTH/2:
+            if position[1] >= self.position[1]-self.ASTEROID_HEIGHT/2 and position[1] <= self.position[1]+self.ASTEROID_HEIGHT/2:
+                return self
+        return None
+    
 class Planet(Target):
     IMAGE_WIDTH=15
     IMAGE_HEIGHT=15
@@ -207,19 +239,25 @@ class Planet(Target):
     HEIGHT=1200
     PADDING=25
     MAX_DIST_FROM_SUN = SolarSystem.WIDTH/4
-    def __init__(self, planetPosition, nMineralStack, nGazStack):
+    MINERAL = 0
+    GAZ = 1
+    LANDINGZONE = 2
+    def __init__(self, planetPosition, nMineralStack, nGazStack, id, solarSystem):
         Target.__init__(self, planetPosition)
         self.discovered = False
         self.minerals = []
         self.mineralQte = 0
         self.gazQte = 0
         self.gaz = []
+        self.nuclearSite = None
         self.nMineralStack = nMineralStack + 1
         self.nGazStack = nGazStack + 1
         self.landingZones = []
         self.units = []
+        self.id = id
+        self.solarSystem = solarSystem
         for i in range(0, self.nMineralStack):
-            nMinerals = random.randrange(MineralStack.MAX_QTY/2, MineralStack.MAX_QTY)#random.random()*MineralStack.MAX_QTY/2+MineralStack.MAX_QTY/2)
+            nMinerals = random.randrange(MineralStack.MAX_QTY/2, MineralStack.MAX_QTY)
             posFound = False
             while not posFound:
                 posFound = True
@@ -228,14 +266,14 @@ class Planet(Target):
                     posFound = False
                 if position[1] < Planet.PADDING or position[1] > Planet.HEIGHT-Planet.PADDING-MineralStack.HEIGHT/2:
                     posFound = False
-                for i in self.minerals:
-                    if position[0] > i.position[0]-i.WIDTH and position[0] < i.position[0]+i.WIDTH:
-                        if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
+                for j in self.minerals:
+                    if position[0] > j.position[0]-j.WIDTH and position[0] < j.position[0]+j.WIDTH:
+                        if position[1] > j.position[1]-j.HEIGHT and position[1] < j.position[1]+j.HEIGHT:
                             posFound = False
                             break
-            self.minerals.append(MineralStack(nMinerals,position))
+            self.minerals.append(MineralStack(nMinerals, position, i, id, solarSystem.sunId))
         for i in range(0, self.nGazStack):
-            nGaz = int(random.randrange(GazStack.MAX_QTY/2, GazStack.MAX_QTY))#random.random()*GazStack.MAX_QTY/2+GazStack.MAX_QTY/2)
+            nGaz = int(random.randrange(GazStack.MAX_QTY/2, GazStack.MAX_QTY))
             posFound = False
             while not posFound:
                 posFound = True
@@ -244,17 +282,38 @@ class Planet(Target):
                     posFound = False
                 if position[1] < Planet.PADDING or position[1] > Planet.HEIGHT-Planet.PADDING-GazStack.HEIGHT/2:
                     posFound = False
-                for i in self.minerals:
-                    if position[0] > i.position[0]-i.WIDTH and position[0] < i.position[0]+i.WIDTH:
-                        if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
+                for j in self.minerals:
+                    if position[0] > j.position[0]-j.WIDTH and position[0] < j.position[0]+j.WIDTH:
+                        if position[1] > j.position[1]-j.HEIGHT and position[1] < j.position[1]+j.HEIGHT:
                             posFound = False
                             break
-                for i in self.gaz:
-                    if position[0] > i.position[0]-i.WIDTH and position[0] < i.position[0]+i.WIDTH:
-                        if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
+                for j in self.gaz:
+                    if position[0] > j.position[0]-j.WIDTH and position[0] < j.position[0]+j.WIDTH:
+                        if position[1] > j.position[1]-j.HEIGHT and position[1] < j.position[1]+j.HEIGHT:
                             posFound = False
                             break
-            self.gaz.append(GazStack(nGaz, position))
+            self.gaz.append(GazStack(nGaz, position, i, id, solarSystem.sunId))
+        nuclear = random.random()*3
+        if nuclear > 2:
+            posFound = False
+            while not posFound:
+                posFound = True
+                position = [random.random()*Planet.WIDTH, random.random()*Planet.HEIGHT]
+                if position[0] < Planet.PADDING or position[0] > Planet.WIDTH-Planet.PADDING-GazStack.WIDTH/2:
+                    posFound = False
+                if position[1] < Planet.PADDING or position[1] > Planet.HEIGHT-Planet.PADDING-GazStack.HEIGHT/2:
+                    posFound = False
+                for j in self.minerals:
+                    if position[0] > j.position[0]-j.WIDTH and position[0] < j.position[0]+j.WIDTH:
+                        if position[1] > j.position[1]-j.HEIGHT and position[1] < j.position[1]+j.HEIGHT:
+                            posFound = False
+                            break
+                for j in self.gaz:
+                    if position[0] > j.position[0]-j.WIDTH and position[0] < j.position[0]+j.WIDTH:
+                        if position[1] > j.position[1]-j.HEIGHT and position[1] < j.position[1]+j.HEIGHT:
+                            posFound = False
+                            break
+            self.nuclearSite = NuclearSite(position, self.id, self.solarSystem.sunId)
         for i in self.minerals:
             self.mineralQte += i.nbMinerals
         for i in self.gaz:
@@ -279,7 +338,8 @@ class Planet(Target):
                     if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
                         posFound = False
                         break
-        newSpot = LandingZone(position, playerid, landingShip)
+        id = len(self.landingZones)
+        newSpot = LandingZone(position, playerid, landingShip, id, self.id, self.solarSystem.sunId)
         self.landingZones.append(newSpot)
         return newSpot
 
@@ -294,26 +354,99 @@ class Planet(Target):
             if i.ownerId == playerId:
                 return i
         return None
+
+    def select(self, position):
+        if position[0] > self.position[0]-self.IMAGE_WIDTH/2 and position[0] < self.position[0]+self.IMAGE_WIDTH/2:
+            if position[1] > self.position[1]-self.IMAGE_HEIGHT/2 and position[1] < self.position[1]+self.IMAGE_HEIGHT/2:
+                return self
+        return None
+    
+    def groundSelect(self, position):
+        clickedObj = None
+        for i in self.landingZones:
+            landing = i.select(position)
+            if landing != None and clickedObj == None:
+                clickedObj = landing
+        for i in self.minerals:
+            mineral = i.select(position)
+            if mineral != None and clickedObj == None:
+                clickedObj = mineral
+        for i in self.gaz:
+            gaz = i.select(position)
+            if gaz != None and clickedObj == None:
+                clickedObj = gaz
+        if self.nuclearSite != None:
+            site = self.nuclearSite.select(position)
+            if site != None and clickedObj == None:
+                clickedObj = site
+        for i in self.units:
+            unit = i.select(position)
+            if unit != None and clickedObj == None:
+                clickedObj = unit
+        return clickedObj
+
 class MineralStack(Target):
     WIDTH = 48
     HEIGHT = 64
     MAX_QTY = 3000
-    def __init__(self, nbMinerals, position):
+    def __init__(self, nbMinerals, position, id, planetId, sunId):
         Target.__init__(self, position)
         self.nbMinerals = nbMinerals
+        self.id = id
+        self.planetId = planetId
+        self.sunId = sunId
         
+    def select(self, position):
+        if self.position[0] > position[0] - self.WIDTH/2 and self.position[0] < position[0]+self.WIDTH/2:
+            if self.position[1] > position[1] -self.HEIGHT/2 and self.position[1] < position[1]+self.HEIGHT/2:
+                return self
+        return None
+    
 class GazStack(Target):
-    WIDTH = 24
-    HEIGHT = 24
+    WIDTH = 40
+    HEIGHT = 42
     MAX_QTY = 3000
-    def __init__(self, nbGaz, position):
+    def __init__(self, nbGaz, position, id, planetId, sunId):
         Target.__init__(self, position)
         self.nbGaz= nbGaz
-        
+        self.id = id
+        self.planetId = planetId
+        self.sunId = sunId
+        self.state = 0
+
+    def select(self, position):
+        if position[0] > self.position[0]-self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:
+            if position[1] > self.position[1]-self.HEIGHT/2 and self.position[1] < position[1]+self.HEIGHT/2:
+                return self
+        return None
+
+class NuclearSite(Target):
+    WIDTH = 35
+    HEIGHT = 35
+    def __init__(self, position, planetId, sunId):
+        Target.__init__(self, position)
+        self.nbRessource = 1
+        self.planetId = planetId
+        self.sunId = sunId
+
+    def select(self, position):
+        if self.position[0] > position[0] - self.WIDTH/2 and self.position[0] < position[0] + self.WIDTH/2:
+            if self.position[1] > position[1] - self.HEIGHT/2 and self.position[1] < self.position[1] + self.HEIGHT/2:
+                return self
+        return None
+
 class LandingZone(PlayerObject):
     WIDTH = 75
     HEIGHT = 75
-    def __init__(self, position, ownerId, landingShip):
+    def __init__(self, position, ownerId, landingShip, id, planetId, sunId):
         PlayerObject.__init__(self, 'Zone d\'atterissage', 0, position, ownerId)
         self.ownerId = ownerId
         self.LandedShip = landingShip
+        self.id = id
+        self.planetId = planetId
+        self.sunId = sunId
+
+    def select(self, position):
+        if position[0] > self.position[0]-self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:
+            if position[1] > self.position[1]-self.HEIGHT/2 and position[1] < self.position[1]+self.HEIGHT/2:
+                return self

@@ -19,7 +19,7 @@ class PlayerObject(Target):
         self.maxHP = 50
         self.isAlive = True
         self.constructionProgress = 0
-        if type <= u.Unit.GROUND_UNIT:
+        if type <= u.Unit.GROUND_GATHER:
             self.viewRange = u.Unit.VIEW_RANGE[type]
             self.hitpoints = u.Unit.MAX_HP[type]
             self.maxHP=self.hitpoints
