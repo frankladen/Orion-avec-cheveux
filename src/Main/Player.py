@@ -205,7 +205,9 @@ class Player():
         if killedIndexes[1] == self.id:
             if self.units[killedIndexes[0]] in self.selectedObjects:
                 self.selectedObjects.remove(self.units[killedIndexes[0]])
-        self.units[killedIndexes[0]].kill()
+            self.units[killedIndexes[0]].kill()
+        else:
+            parent.killUnit(killedIndexes)
 
     def buildUnit(self):
         unit = self.motherShip.unitBeingConstruct.pop(0)
