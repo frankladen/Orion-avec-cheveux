@@ -136,6 +136,9 @@ class ControleurServeur(object):
        
     def getNumSocket(self, login, ip):
         if len(self.sockets) < 8:
+            for s in self.sockets:
+                if s[1].upper() == login.upper():
+                    return -1
             self.sockets.append([ip,login,False, -1])
             return len(self.sockets)-1
           

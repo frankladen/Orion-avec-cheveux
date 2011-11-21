@@ -127,22 +127,22 @@ class Controller():
 	#Connection au serveur			
     def connectServer(self, login, serverIP):
         self.server=Pyro4.core.Proxy("PYRO:ServeurOrion@"+serverIP+":54400")
-        #try:
-            #Je demande au serveur si la partie est démarrée, si oui on le refuse de la partie, cela permet de vérifier
-            #en même temps si le serveur existe réellement à cette adresse.
+        #Je demande au serveur si la partie est démarrée, si oui on le refuse de la partie, cela permet de vérifier
+        #en même temps si le serveur existe réellement à cette adresse.
         if self.server.isGameStarted() == True:
             self.view.gameHasBeenStarted()
             self.view.changeFrame(self.view.mainMenu)
         else:
             #Je fais chercher auprès du serveur l'ID de ce client et par le fais même, le serveur prend connaissance de mon existence
             self.game.playerId=self.server.getNumSocket(login, self.playerIp)
-            #Je vais au lobby, si la connection a fonctionner
-            self.view.pLobby = self.view.fLobby()
-            self.view.changeFrame(self.view.pLobby)
-            self.action()
-##        except:
-##            self.view.loginFailed()
-##            self.view.changeFrame(self.view.mainMenu)
+            if self.game.playerId != -1:
+                #Je vais au lobby, si la connection a fonctionner
+                self.view.pLobby = self.view.fLobby()
+                self.view.changeFrame(self.view.pLobby)
+                self.action()
+            else:
+                self.view.showNameAlreadyChosen()
+                self.view.changeFrame(self.view.joinGame)
         
     #Demmare la partie et genere la galaxie (Quand l'admin appui sur start game dans le lobby)    
     def startGame(self):
