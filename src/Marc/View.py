@@ -2,6 +2,7 @@
 from tkinter import *
 from Unit import *
 from World import *
+from Flag import *
 import time
 import Building as b
 from winsound import *
@@ -938,8 +939,8 @@ class View():
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0], distance[1], image=self.scoutShips[player.colorId],tag='deletable')#On prend l'image dependamment du joueur que nous sommes
-                if unit.type == unit.ATTACK_SHIP and unit.flag.flagState == unit.flag.ATTACK:
-                    if unit.attackcount <= 5:
+                if unit.type == unit.ATTACK_SHIP: 
+                    if unit.attackcount <= 5 and unit.flag.flagState == FlagState.ATTACK:
                         d2 = self.game.players[self.game.playerId].camera.calcDistance(unit.flag.finalTarget.position)
                         self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='deletable')
                     if unit in player.selectedObjects:

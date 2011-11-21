@@ -157,6 +157,7 @@ class Game():
 
     def killUnit(self, killedIndexes):
         self.players[killedIndexes[1]].killUnit(killedIndexes)
+        self.players[killedIndexes[1]].units[killedIndexes[0]].kill()
 
     def setBuyTech(self, techType, index):
         self.parent.pushChange(index, Flag(techType,0,FlagState.BUY_TECH))
