@@ -185,15 +185,21 @@ class Controller():
             elif flag.flagState == FlagState.GROUND_MOVE:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             elif flag.flagState == FlagState.ATTACK:
-                targetId = self.game.players[flag.finalTarget.owner].units.index(flag.finalTarget)
-                if isinstance(flag.initialTarget, int):
-                    actionString = str(flag.initialTarget)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/U"+str(targetId)+"P"+str(flag.finalTarget.owner)
+                if isinstance(flag.finalTarget, u.Unit):
+                    targetId = self.game.players[flag.finalTarget.owner].units.index(flag.finalTarget)
+                    type = "u"
                 else:
-                    actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/U"+str(targetId)+"P"+str(flag.finalTarget.owner)
+                    type = "b"
+                    targetId = self.game.players[flag.finalTarget.owner].buildings.index(flag.finalTarget)
+                if isinstance(flag.initialTarget, int):
+                    actionString = str(flag.initialTarget)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(targetId)+","+str(flag.finalTarget.owner)+","+type
+                else:
+                    actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(targetId)+","+str(flag.finalTarget.owner)+","+type
             elif flag.flagState == FlagState.FINISH_BUILD:
                 buildingId = self.game.players[flag.finalTarget.owner].buildings.index(flag.finalTarget)
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(buildingId)   
             elif flag.flagState == FlagState.BUILD:
+                flag.finalTarget.position.append(flag.initialTarget)
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             elif flag.flagState == FlagState.CREATE:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState) + "/" + str(flag.finalTarget)
@@ -296,12 +302,11 @@ class Controller():
             
         elif action == str(FlagState.BUILD):
             target = self.changeToInt(self.stripAndSplit(target))
-            self.game.buildBuilding(actionPlayerId, target, int(action), unitIndex)
+            self.game.buildBuilding(actionPlayerId, target, int(action), unitIndex, int(target[3]))
                         
         elif action == str(FlagState.ATTACK):
-            target = target.split("P")
-            target[0] = target[0].strip("U")
-            self.game.makeUnitsAttack(actionPlayerId, unitIndex, int(target[1]), int(target[0]))
+            target = target.split(",")
+            self.game.makeUnitsAttack(actionPlayerId, unitIndex, int(target[1]), int(target[0]), target[2])
                     
         elif action == str(FlagState.LAND):
             target = target.split(',')

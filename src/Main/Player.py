@@ -76,6 +76,10 @@ class Player():
             unit = i.select(position)
             if unit != None:
                 self.selectedObjects = [unit]
+        for i in self.buildings:
+            building = i.select(position)
+            if building != None:
+                self.selectedObjects = [building]
 
     def multiSelectUnit(self, position):
         for i in self.units:
@@ -126,21 +130,18 @@ class Player():
     
     def rightClic(self, pos, playerId):
         if self.isAlive:
-            if playerId != self.id:
-                if self.isAlly(playerId) == False:
-                    for i in self.units:
-                        unit = i.select(pos)
-                        if unit != None:
-                            return unit
-            else:
+            if self.isAlly(playerId) == False or playerId == self.id:
+                for i in self.units:
+                    unit = i.select(pos)
+                    if unit != None:
+                        return unit
                 unit = self.motherShip.select(pos)
                 if unit != None:
                     return unit
-                else:
-                    for b in self.buildings:
-                        unit = b.select(pos)
-                        if unit!= None:
-                            return unit
+                for b in self.buildings:
+                    building = b.select(pos)
+                    if building != None:
+                        return building                
         return None
 
     def selectPlanet(self, planet):
@@ -169,6 +170,12 @@ class Player():
                                 return True
                         else:
                             return True
+        for i in self.buildings:
+            if i.isAlive and i.finished:
+                if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
+                    if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
+                        return True
+                    
         for i in range(len(self.diplomacies)):
             if self.isAlly(i) and i != self.id:
                 for i in self.game.players[i].units:
@@ -180,6 +187,11 @@ class Player():
                                         return True
                                 else:
                                     return True
+                for i in self.game.players[i].buildings:
+                    if i.isAlive and i.finished:
+                        if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
+                            if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
+                                return True
         return False
     
     def isAlly(self, playerId):
@@ -202,12 +214,15 @@ class Player():
         return nearestBuilding
 
     def killUnit(self, killedIndexes):
-        print("killUnit")
         if killedIndexes[1] == self.id:
-            print("kill mon unit")
-            if self.units[killedIndexes[0]] in self.selectedObjects:
-                self.selectedObjects.remove(self.units[killedIndexes[0]])
-            self.units[killedIndexes[0]].kill()
+            if killedIndexes[2] == False:
+                if self.units[killedIndexes[0]] in self.selectedObjects:
+                    self.selectedObjects.remove(self.units[killedIndexes[0]])
+                self.units[killedIndexes[0]].kill()
+            else:
+                if self.buildings[killedIndexes[0]] in self.selectedObjects:
+                    self.selectedObjects.remove(self.buildings[killedIndexes[0]])
+                self.buildings[killedIndexes[0]].kill()
         else:
             self.game.killUnit(killedIndexes)
 
@@ -252,10 +267,13 @@ class Player():
             self.ressources[self.GAS] -= u.Unit.BUILD_COST[unitType][u.Unit.GAS]
             self.motherShip.flag.flagState = FlagState.BUILD_UNIT
 
-    def makeUnitsAttack(self, units, targetPlayer, targetUnit):
+    def makeUnitsAttack(self, units, targetPlayer, targetUnit, type):
         for i in units:
             if i != '':
-                self.units[int(i)].changeFlag(targetPlayer.units[targetUnit], FlagState.ATTACK)
+                if type == "u":
+                    self.units[int(i)].changeFlag(targetPlayer.units[targetUnit], FlagState.ATTACK)
+                else:
+                    self.units[int(i)].changeFlag(targetPlayer.buildings[targetUnit], FlagState.ATTACK)
 
     def makeUnitLand(self, unitId, planet):
         self.units[unitId].changeFlag(planet, FlagState.LAND)
@@ -283,9 +301,9 @@ class Player():
         targetorig[1]=target[1]
         #Permet de savoir combien en x et en y je dois les séparer selon la grosseur
         #du plus gros unit dans les selectedObjects
-        widths = []
-        heights = []
-        for i in range(0,len(units)-1):
+        widths = [self.units[int(units[0])].SIZE[self.units[int(units[0])].type][0]]
+        heights = [self.units[int(units[0])].SIZE[self.units[int(units[0])].type][1]]
+        for i in range(0,len(units)-2):
             unit = self.units[int(units[i])]
             widths.append(unit.SIZE[unit.type][0])
             heights.append(unit.SIZE[unit.type][1])

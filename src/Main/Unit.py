@@ -3,6 +3,7 @@ from Target import *
 from Flag import *
 import World as w
 import Player as p
+import Building as b
 from Helper import *
 import math
 
@@ -307,6 +308,7 @@ class Mothership(Unit):
             unitToAttack = self.flag.finalTarget
         index = -1
         killedOwner = -1
+        isBuilding = False
         distance = Helper.calcDistance(self.position[0], self.position[1], unitToAttack.position[0], unitToAttack.position[1])
         try:
             if distance > self.range :
@@ -316,8 +318,12 @@ class Mothership(Unit):
                 if self.attackcount == 0:
                     unitToAttack.hitpoints-=self.AttackDamage
                     if unitToAttack.hitpoints <= 0:
-                        index = players[unitToAttack.owner].units.index(unitToAttack)
                         killedOwner = unitToAttack.owner
+                        if isinstance(unitToAttack, b.Building) == False:
+                            index = players[unitToAttack.owner].units.index(unitToAttack)
+                            isBuilding = True
+                        else:
+                            index = players[unitToAttack.owner].buildings.index(unitToAttack)
                         for i in players[self.owner].units:
                             if i.isAlive:
                                 if i.flag.finalTarget == unitToAttack:
@@ -325,10 +331,10 @@ class Mothership(Unit):
                                     i.attackcount=i.AttackSpeed
                         self.killCount +=1
                     self.attackcount=self.AttackSpeed
-            return (index, killedOwner)
+            return (index, killedOwner, isBuilding)
         except ValueError:
             self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.BUILD_UNIT)
-            return (-1, -1)
+            return (-1, -1, isBuilding)
 
     def getUnitBeingConstructAt(self, index):
         return self.unitBeingConstruct[index]
@@ -368,6 +374,7 @@ class SpaceAttackUnit(SpaceUnit):
             unitToAttack = self.flag.finalTarget
         index = -1
         killedOwner = -1
+        isBuilding = False
         distance = Helper.calcDistance(self.position[0], self.position[1], unitToAttack.position[0], unitToAttack.position[1])
         try:
             if distance > self.range :
@@ -378,7 +385,11 @@ class SpaceAttackUnit(SpaceUnit):
                 if self.attackcount == 0:
                     unitToAttack.hitpoints-=self.AttackDamage
                     if unitToAttack.hitpoints <= 0:
-                        index = players[unitToAttack.owner].units.index(unitToAttack)
+                        if isinstance(unitToAttack, b.Building) == False:
+                            index = players[unitToAttack.owner].units.index(unitToAttack)
+                            isBuilding = True
+                        else:
+                            index = players[unitToAttack.owner].buildings.index(unitToAttack)
                         killedOwner = unitToAttack.owner
                         for i in players[self.owner].units:
                             if i.isAlive:
@@ -387,10 +398,10 @@ class SpaceAttackUnit(SpaceUnit):
                                     i.attackcount=i.AttackSpeed
                         self.killCount +=1
                     self.attackcount=self.AttackSpeed
-            return (index, killedOwner)
+            return (index, killedOwner, isBuilding)
         except ValueError:
             self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.STANDBY)
-            return (-1, -1)
+            return (-1, -1, isBuilding)
 
     def patrol(self, players):
         arrived = True

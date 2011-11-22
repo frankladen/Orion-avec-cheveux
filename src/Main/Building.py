@@ -10,9 +10,10 @@ class Building(t.PlayerObject):
     FARM=3
     TURRET=4
     SIZE =((30,30),(0,0),(0,0),(0,0),(0,0))
+    COST = ((50,50),(0,0),(0,0),(0,0),(0,0))
     TIME = (60,0,0,0,0)
     MAX_HP = (150,0,0,0,0)
-    VIEW_RANGE=(150, 0, 0, 0, 0)
+    VIEW_RANGE=(200, 0, 0, 0, 0)
     
     def __init__(self, name,type, position, owner):
         t.PlayerObject.__init__(self, name,type, position, owner)

@@ -40,21 +40,28 @@ class Game():
         self.players[self.playerId].addCamera(self.galaxy, taille)
 
     # Pour changer le flag des unités selectionne pour la construction        
-    def setBuildingFlag(self,x,y):
+    def setBuildingFlag(self,x,y, type):
         units = ''
         #Si plusieurs unit�s sont s�lectionn�es, on les ajoute toutes dans le changement � envoyer
         for i in self.players[self.playerId].selectedObjects:
             if i.type == i.SCOUT:
                 units+= str(self.players[self.playerId].units.index(i))+","
-        self.parent.pushChange(units, Flag(i,t.Target([x,y,0]),FlagState.BUILD))
+        if self.players[self.playerId].ressources[0] >= Building.COST[type][0] and self.players[self.playerId].ressources[1] >= Building.COST[type][1]:
+            self.parent.pushChange(units, Flag(type,t.Target([x,y,0]),FlagState.BUILD))
 
-    def buildBuilding(self, playerId, target, flag, unitIndex):
+    def buildBuilding(self, playerId, target, flag, unitIndex, type):
         #Condition de construction
-        wp = Waypoint('Waypoint', Building.WAYPOINT, [target[0],target[1]], playerId)
-        self.players[playerId].buildings.append(wp)
-        for i in unitIndex:
-            if i != '':
-                self.players[playerId].units[int(i)].changeFlag(wp,flag)
+        wp = None
+        if self.players[self.playerId].ressources[0] >= Building.COST[type][0] and self.players[self.playerId].ressources[1] >= Building.COST[type][1]:
+            self.players[self.playerId].ressources[0] -= Building.COST[type][0]
+            self.players[self.playerId].ressources[1] -= Building.COST[type][1]
+            if type == Building.WAYPOINT:
+                wp = Waypoint('Waypoint', Building.WAYPOINT, [target[0],target[1],0], playerId)
+        if wp != None:
+            self.players[playerId].buildings.append(wp)
+            for i in unitIndex:
+                if i != '':
+                    self.players[playerId].units[int(i)].changeFlag(wp,flag)
 
     def resumeBuildingFlag(self,building):
         units = ''
@@ -152,13 +159,11 @@ class Game():
         if units != "":
             self.pushChange(units, Flag(unit.owner,attackedUnit,FlagState.ATTACK))
 
-    def makeUnitsAttack(self, playerId, units, targetPlayer, targetUnit):
-        self.players[playerId].makeUnitsAttack(units, self.players[targetPlayer], targetUnit)
+    def makeUnitsAttack(self, playerId, units, targetPlayer, targetUnit, type):
+        self.players[playerId].makeUnitsAttack(units, self.players[targetPlayer], targetUnit, type)
 
     def killUnit(self, killedIndexes):
-        print("dans killUnit de game")
         self.players[killedIndexes[1]].killUnit(killedIndexes)
-        #self.players[killedIndexes[1]].units[killedIndexes[0]].kill()
 
     def setBuyTech(self, techType, index):
         self.parent.pushChange(index, Flag(techType,0,FlagState.BUY_TECH))
@@ -462,7 +467,6 @@ class Game():
                                         
     def attackEnemyInRange(self, unit, unitToAttack):
         killedIndex = unit.attack(self.players, unitToAttack)
-        print("attackEnemyInRange")
         if killedIndex[0] > -1:
             self.players[killedIndex[1]].killUnit(killedIndex)
         if unit.attackcount <= 5:
@@ -512,14 +516,19 @@ class Game():
                         if isinstance(clickedObj, w.Planet):
                             self.setLandingFlag(unit, clickedObj)
                     elif unit.type == unit.CARGO:
-                        if isinstance(clickedObj, w.AstronomicalObject) or isinstance(clickedObj, u.Mothership) or isinstance(clickedObj, Waypoint):
+                        if isinstance(clickedObj, w.AstronomicalObject):
                             self.setGatherFlag(unit, clickedObj)
+                        elif isinstance(clickedObj, u.Mothership) or isinstance(clickedObj, Waypoint):
+                            if clickedObj.owner == self.playerId:
+                                self.setGatherFlag(unit, clickedObj)
                     elif unit.type == unit.ATTACK_SHIP:
-                        if isinstance(clickedObj, u.Unit):
-                            self.setAttackFlag(clickedObj)
+                        if isinstance(clickedObj, u.Unit) or isinstance(clickedObj, Building):
+                            if clickedObj.owner != self.playerId:
+                                self.setAttackFlag(clickedObj)
                     elif unit.type == unit.SCOUT:
                         if isinstance(clickedObj, Waypoint):
-                            self.resumeBuildingFlag(clickedObj)
+                            if clickedObj.owner == self.playerId:
+                                self.resumeBuildingFlag(clickedObj)
                 else:
                     self.setMovingFlag(pos[0], pos[1])
         else:

@@ -523,7 +523,7 @@ class View():
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le mouvement de patrouille de vos units d'attaques sélectionnés",anchor = NW, fill = 'white', width = 200)
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.WAITING_FOR_BUILDING_POINT_MENU):
-            self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le lieu où la construction du bâtiment va s'effectuer",anchor = NW, fill = 'white', width = 200)
+            self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le lieu où la construction du bâtiment va s'effectuer. 50 minéraux et 50 gaz est requis.",anchor = NW, fill = 'white', width = 200)
         elif(type == self.TECHNOLOGY_TREE_MENU):
             self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
             self.Actionmenu.create_image(13,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Tech_Units')
@@ -918,13 +918,11 @@ class View():
             if not isInFOW:
                 if building.type == b.Building.WAYPOINT:
                     if building.buildingTimer < building.TIME[building.type]:
-                        if building in player.selectedObjects:
-                            self.gameArea.create_oval(distance[0]-(building.SIZE[building.type][0]/2+15),distance[1]-(building.SIZE[building.type][1]/2+15),distance[0]+(building.SIZE[building.type][0]/2+15),distance[1]+(building.SIZE[building.type][1]/2+15), outline="purple", tag='deletable')
                         self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifConstruction,tag='deletable')  
-                    else:
-                        if building in player.selectedObjects:
-                            self.gameArea.create_oval(distance[0]-(building.SIZE[building.type][0]/2),distance[1]-(building.SIZE[building.type][1]/2),distance[0]+(building.SIZE[building.type][0]/2),distance[1]+(building.SIZE[building.type][1]/2), outline="purple", tag='deletable')    
+                    else:   
                         self.gameArea.create_image(distance[0]+1, distance[1], image=self.waypoints[player.colorId],tag='deletable')
+                if building in player.selectedObjects:
+                    self.gameArea.create_oval(distance[0]-(building.SIZE[building.type][0]/2),distance[1]-(building.SIZE[building.type][1]/2),distance[0]+(building.SIZE[building.type][0]/2),distance[1]+(building.SIZE[building.type][1]/2), outline="purple", tag='deletable') 
                 if building.hitpoints <= 5:
                     self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
                 if self.hpBars:
@@ -1024,11 +1022,21 @@ class View():
                     for j in i.units:
                         if j.isAlive:
                                 self.drawMiniUnit(j)
+                    for j in i.buildings:
+                        if j.isAlive:
+                            if j.finished:
+                                if players[self.game.playerId].inViewRange(j.position):
+                                    self.drawMiniBuilding(j)
                 else:
                     for j in i.units:
                         if j.isAlive:
                             if players[self.game.playerId].inViewRange(j.position):
                                 self.drawMiniUnit(j)
+                    for j in i.buildings:
+                        if j.isAlive:
+                            if j.finished:
+                                if players[self.game.playerId].inViewRange(j.position):
+                                    self.drawMiniBuilding(j)
 
         else:
             self.minimap.create_rectangle(0,0,200,200, fill='#009900', tag='deletable')
@@ -1062,12 +1070,22 @@ class View():
                 if self.game.players[self.game.playerId].isAlly(i.id):
                     for j in i.units:
                         if j.isAlive:
-                                self.drawMiniUnit(j)
+                            self.drawMiniUnit(j)
+                    for j in i.buildings:
+                        if j.isAlive:
+                            if j.finished:
+                                if players[self.game.playerId].inViewRange(j.position):
+                                    self.drawMiniBuilding(j)
                 else:
                     for j in i.units:
                         if j.isAlive:
                             if players[self.game.playerId].inViewRange(j.position):
                                 self.drawMiniUnit(j)
+                    for j in i.buildings:
+                        if j.isAlive:
+                            if j.finished:
+                                if players[self.game.playerId].inViewRange(j.position):
+                                    self.drawMiniBuilding(j)
         else:
             self.minimap.create_rectangle(0,0,200,200, fill='#009900', tag='deletable')
             planet = self.game.players[self.game.playerId].currentPlanet
@@ -1157,6 +1175,17 @@ class View():
                 width = self.MINIMAP_WIDTH / self.game.galaxy.width * unit.SIZE[unit.type][0]
                 height = self.MINIMAP_HEIGHT / self.game.galaxy.height * unit.SIZE[unit.type][1]
                 self.minimap.create_oval((unitX-width/2, unitY-height/2, unitX+width/2, unitY+height/2),fill=color, tag='deletable')
+
+    def drawMiniBuilding(self, building):
+        buildingX = (building.position[0] + self.game.galaxy.width/2) / self.game.galaxy.width * (self.taille/6)
+        buildingY = (building.position[1] + self.game.galaxy.height/2) / self.game.galaxy.height * (self.taille/6)
+        if building.owner == self.game.playerId:
+            color = 'GREEN'
+        elif self.game.players[self.game.playerId].isAlly(building.owner):
+            color = 'YELLOW'
+        else:
+            color ='RED'
+        self.minimap.create_polygon((buildingX-2, buildingY+2, buildingX, buildingY-2, buildingX+2, buildingY+2),fill=color, tag='deletable')
 
     def drawMiniMinerals(self, mineral, planet):
         if mineral.nbMinerals > 0:
@@ -1302,7 +1331,7 @@ class View():
                 self.actionMenuType = self.MAIN_MENU
                 
             elif self.isSettingBuildingPosition or self.building:
-                self.game.setBuildingFlag(pos[0],pos[1])
+                self.game.setBuildingFlag(pos[0],pos[1], b.Building.WAYPOINT)
                 self.isSettingBuildingPosition = False
                 self.actionMenuType = self.MAIN_MENU
                     
