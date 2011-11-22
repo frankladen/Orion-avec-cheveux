@@ -321,9 +321,9 @@ class Mothership(Unit):
                         killedOwner = unitToAttack.owner
                         if isinstance(unitToAttack, b.Building) == False:
                             index = players[unitToAttack.owner].units.index(unitToAttack)
-                            isBuilding = True
                         else:
                             index = players[unitToAttack.owner].buildings.index(unitToAttack)
+                            isBuilding = True
                         for i in players[self.owner].units:
                             if i.isAlive:
                                 if i.flag.finalTarget == unitToAttack:
@@ -387,9 +387,9 @@ class SpaceAttackUnit(SpaceUnit):
                     if unitToAttack.hitpoints <= 0:
                         if isinstance(unitToAttack, b.Building) == False:
                             index = players[unitToAttack.owner].units.index(unitToAttack)
-                            isBuilding = True
                         else:
                             index = players[unitToAttack.owner].buildings.index(unitToAttack)
+                            isBuilding = True
                         killedOwner = unitToAttack.owner
                         for i in players[self.owner].units:
                             if i.isAlive:
