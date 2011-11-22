@@ -376,7 +376,7 @@ class Game():
             if not self.multiSelect:
                 player.selectUnit(posSelected)
             else:
-                self.player.multiSelectUnit(posSelected)
+                player.multiSelectUnit(posSelected)
             spaceObj = self.galaxy.select(posSelected)
             if isinstance(spaceObj, w.Planet):
                 player.selectPlanet(spaceObj)

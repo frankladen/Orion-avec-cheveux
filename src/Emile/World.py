@@ -297,7 +297,7 @@ class Planet(Target):
                             break
             self.gaz.append(GazStack(nGaz, position, i, id, solarSystem.sunId))
         nuclear = random.random()*3
-        if nuclear > 2:
+        if nuclear > 3:
             posFound = False
             while not posFound:
                 posFound = True
@@ -352,6 +352,7 @@ class Planet(Target):
             if i.ownerId == playerId:
                 alreadyLanded = True
         return alreadyLanded
+
     def getLandingSpot(self, playerId):
         for i in self.landingZones:
             if i.ownerId == playerId:
@@ -419,7 +420,7 @@ class GazStack(Target):
 
     def select(self, position):
         if position[0] > self.position[0]-self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:
-            if position[1] > self.position[1]-self.HEIGHT/2 and self.position[1] < position[1]+self.HEIGHT/2:
+            if position[1] > self.position[1]-self.HEIGHT/2 and position[1] < self.position[1] +self.HEIGHT/2:
                 return self
         return None
 

@@ -709,17 +709,19 @@ class View():
         self.drawPlanetBackground()
         color = self.game.players[self.game.playerId].colorId
         for i in planet.minerals:
-            distance = self.game.players[self.game.playerId].camera.calcDistance(i.position)
-            if i in self.game.players[self.game.playerId].selectedObjects:
-                self.gameArea.create_text(distance[0], distance[1]-40, fill="cyan", text="Mineral :" + str(i.nbMinerals), tag='deletable')
-                self.gameArea.create_oval(distance[0]-(i.WIDTH/2+3), distance[1]-(i.HEIGHT/2+3), distance[0]+(i.WIDTH/2+3), distance[1]+(i.HEIGHT/2+3), outline='yellow', tag='deletable')
-            self.gameArea.create_image(distance[0], distance[1], image=self.mineral, tag='deletable')
+            if i.nbMinerals > 0:
+                distance = self.game.players[self.game.playerId].camera.calcDistance(i.position)
+                if i in self.game.players[self.game.playerId].selectedObjects:
+                    self.gameArea.create_text(distance[0], distance[1]-40, fill="cyan", text="Mineral :" + str(i.nbMinerals), tag='deletable')
+                    self.gameArea.create_oval(distance[0]-(i.WIDTH/2+3), distance[1]-(i.HEIGHT/2+3), distance[0]+(i.WIDTH/2+3), distance[1]+(i.HEIGHT/2+3), outline='yellow', tag='deletable')
+                self.gameArea.create_image(distance[0], distance[1], image=self.mineral, tag='deletable')
         for i in planet.gaz:
-            distance = self.game.players[self.game.playerId].camera.calcDistance(i.position)
-            if i in self.game.players[self.game.playerId].selectedObjects:
-                self.gameArea.create_text(distance[0], distance[1]-(i.HEIGHT/2+8), fill="green", text="Gaz :" + str(i.nbGaz), tag='deletable')
-                self.gameArea.create_oval(distance[0]-(i.WIDTH/2+3), distance[1]-(i.HEIGHT/2+3), distance[0]+(i.WIDTH/2+3), distance[1]+(i.HEIGHT/2+3), outline='yellow', tag='deletable')
-            self.gameArea.create_image(distance[0], distance[1],image=self.gaz, tag='deletable')
+            if i.nbGaz > 0:
+                distance = self.game.players[self.game.playerId].camera.calcDistance(i.position)
+                if i in self.game.players[self.game.playerId].selectedObjects:
+                    self.gameArea.create_text(distance[0], distance[1]-(i.HEIGHT/2+8), fill="green", text="Gaz :" + str(i.nbGaz), tag='deletable')
+                    self.gameArea.create_oval(distance[0]-(i.WIDTH/2+3), distance[1]-(i.HEIGHT/2+3), distance[0]+(i.WIDTH/2+3), distance[1]+(i.HEIGHT/2+3), outline='yellow', tag='deletable')
+                self.gameArea.create_image(distance[0], distance[1],image=self.gaz, tag='deletable')
         if planet.nuclearSite != None:
             site = planet.nuclearSite
             distance = self.game.players[self.game.playerId].camera.calcDistance(site.position)
