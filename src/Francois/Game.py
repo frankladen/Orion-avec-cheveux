@@ -156,8 +156,9 @@ class Game():
         self.players[playerId].makeUnitsAttack(units, self.players[targetPlayer], targetUnit)
 
     def killUnit(self, killedIndexes):
+        print("dans killUnit de game")
         self.players[killedIndexes[1]].killUnit(killedIndexes)
-        self.players[killedIndexes[1]].units[killedIndexes[0]].kill()
+        #self.players[killedIndexes[1]].units[killedIndexes[0]].kill()
 
     def setBuyTech(self, techType, index):
         self.parent.pushChange(index, Flag(techType,0,FlagState.BUY_TECH))
@@ -461,8 +462,9 @@ class Game():
                                         
     def attackEnemyInRange(self, unit, unitToAttack):
         killedIndex = unit.attack(self.players, unitToAttack)
+        print("attackEnemyInRange")
         if killedIndex[0] > -1:
-            self.killUnit(killedIndex)
+            self.players[killedIndex[1]].killUnit(killedIndex)
         if unit.attackcount <= 5:
             distance = self.players[self.playerId].camera.calcDistance(unit.position)
             d2 = self.players[self.playerId].camera.calcDistance(unitToAttack.position)

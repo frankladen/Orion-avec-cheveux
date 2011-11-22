@@ -701,6 +701,9 @@ class View():
         if self.entryMessLobby.get() != "":
             self.parent.sendMessageLobby(self.entryMessLobby.get(), self.parent.server.getSockets()[self.game.playerId][1])
             self.entryMessLobby.delete(0,END)
+
+    def showNameAlreadyChosen(self):
+        mb.showinfo('Erreur de connection', 'Le nom que vous avez choisi a déjà été choisi par quelqu\'un dans le lobby')
      
     def showTooDamnShortName(self):
         mb.showinfo('Erreur de connection', 'Votre nom est trop petit, entrez-en un d\'au minimum 3 caractères.')
