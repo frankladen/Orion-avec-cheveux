@@ -342,7 +342,7 @@ class Controller():
             self.game.cancelUnit(actionPlayerId, int(target))
 
         elif action == str(FlagState.DESTROY):
-            self.game.killUnit((int(unitIndex[0]),actionPlayerId))
+            self.game.killUnit((int(unitIndex[0]),actionPlayerId),False)
         
         elif action == str(FlagState.DESTROY_ALL):
             self.game.killPlayer(actionPlayerId)
