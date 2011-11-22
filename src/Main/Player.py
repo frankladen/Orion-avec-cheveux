@@ -200,9 +200,9 @@ class Player():
         return False
 
     def getNearestReturnRessourceCenter(self, position):
-        motherShipPosition = self.units[0].flag.initialTarget.position
+        motherShipPosition = self.motherShip.position
         nearestDistance = Helper.calcDistance(position[0],position[1],motherShipPosition[0],motherShipPosition[1])
-        nearestBuilding = self.units[0]
+        nearestBuilding = self.motherShip
         for b in self.buildings:
             if b.type == b.WAYPOINT:
                 if b.finished:
