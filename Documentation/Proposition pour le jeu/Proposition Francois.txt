@@ -1,0 +1,9 @@
+Intelligence artificiel (un peu utopique mais bon…)
+différent type de civilisation
+barrack pour les attacks units
+différents types d'attack unit, autant spatiale que terrestre
+que l'architecture client-serveur fonctionne dans deux réseau différent, sans configuration supplémentaire, et avec le moins de lag possible.
+mettre des sons avec pygame
+faire un installeur afin que l'on puisse commencer à jouer avec "un clic" sur n'importe quel ordinateur.
+Se réunir et faire quelque parties à plusieurs (genre 4 et +) et ensuite ajuster différente constante afin de rendre le jeu plus le fun..
+rendre la fenetre de jeu vraiment badass graphiquement, genre avec des bordures fucktop pis tt..
