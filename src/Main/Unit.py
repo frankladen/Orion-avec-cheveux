@@ -306,35 +306,36 @@ class Mothership(Unit):
     def attack(self, players, unitToAttack=None):
         if unitToAttack == None:
             unitToAttack = self.flag.finalTarget
-        index = -1
-        killedOwner = -1
-        isBuilding = False
-        distance = Helper.calcDistance(self.position[0], self.position[1], unitToAttack.position[0], unitToAttack.position[1])
-        try:
-            if distance > self.range :
-                self.attackcount=self.AttackSpeed
-            else:
-                self.attackcount = self.attackcount - 1
-                if self.attackcount == 0:
-                    unitToAttack.hitpoints-=self.AttackDamage
-                    if unitToAttack.hitpoints <= 0:
-                        killedOwner = unitToAttack.owner
-                        if isinstance(unitToAttack, b.Building) == False:
-                            index = players[unitToAttack.owner].units.index(unitToAttack)
-                        else:
-                            index = players[unitToAttack.owner].buildings.index(unitToAttack)
-                            isBuilding = True
-                        for i in players[self.owner].units:
-                            if i.isAlive:
-                                if i.flag.finalTarget == unitToAttack:
-                                    i.flag = Flag(t.Target(i.position), t.Target(i.position), FlagState.BUILD_UNIT)
-                                    i.attackcount=i.AttackSpeed
-                        self.killCount +=1
+        if not isinstance(unitToAttack, GroundUnit):
+            index = -1
+            killedOwner = -1
+            isBuilding = False
+            distance = Helper.calcDistance(self.position[0], self.position[1], unitToAttack.position[0], unitToAttack.position[1])
+            try:
+                if distance > self.range :
                     self.attackcount=self.AttackSpeed
-            return (index, killedOwner, isBuilding)
-        except ValueError:
-            self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.BUILD_UNIT)
-            return (-1, -1, isBuilding)
+                else:
+                    self.attackcount = self.attackcount - 1
+                    if self.attackcount == 0:
+                        unitToAttack.hitpoints-=self.AttackDamage
+                        if unitToAttack.hitpoints <= 0:
+                            killedOwner = unitToAttack.owner
+                            if isinstance(unitToAttack, b.Building) == False:
+                                index = players[unitToAttack.owner].units.index(unitToAttack)
+                            else:
+                                index = players[unitToAttack.owner].buildings.index(unitToAttack)
+                                isBuilding = True
+                            for i in players[self.owner].units:
+                                if i.isAlive:
+                                    if i.flag.finalTarget == unitToAttack:
+                                        i.flag = Flag(t.Target(i.position), t.Target(i.position), FlagState.BUILD_UNIT)
+                                        i.attackcount=i.AttackSpeed
+                            self.killCount +=1
+                        self.attackcount=self.AttackSpeed
+                return (index, killedOwner, isBuilding)
+            except ValueError:
+                self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.BUILD_UNIT)
+                return (-1, -1, isBuilding)
 
     def getUnitBeingConstructAt(self, index):
         return self.unitBeingConstruct[index]

@@ -302,8 +302,9 @@ class Player():
             targetorig[1]=target[1]
             #Permet de savoir combien en x et en y je dois les séparer selon la grosseur
             #du plus gros unit dans les selectedObjects
-            widths = [self.units[int(units[0])].SIZE[self.units[int(units[0])].type][0]]
-            heights = [self.units[int(units[0])].SIZE[self.units[int(units[0])].type][1]]
+            unit =  self.units[int(units[0])]
+            widths = [unit.SIZE[unit.type][0]]
+            heights = [unit.SIZE[unit.type][1]]
             for i in range(0,len(units)-2):
                 unit = self.units[int(units[i])]
                 widths.append(unit.SIZE[unit.type][0])
