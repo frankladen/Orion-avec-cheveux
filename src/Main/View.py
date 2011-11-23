@@ -25,6 +25,7 @@ class View():
     TECHTREE_UNIT_MENU = 10
     TECHTREE_BUILDING_MENU = 11
     TECHTREE_MOTHERSHIP_MENU = 12
+    SPACE_BUILDINGS_MENU = 13
     MINIMAP_WIDTH=200
     MINIMAP_HEIGHT=200
     SELECTED_TRADE = 20
@@ -80,6 +81,7 @@ class View():
         self.gifTransport = PhotoImage(file='images/icones/transport.gif')
         self.gifCargo = PhotoImage(file='images/icones/cargo.gif')
         self.gifUnit = PhotoImage(file='images/icones/scout.gif')
+        self.gifTurret = PhotoImage(file='images/Building/turret.gif')
         self.gifSelectedUnit = PhotoImage(file='images/icones/boutonSelectedUnit.gif')
         self.gifTriangle = PhotoImage(file='images/icones/iconeFormationTriangle.gif')
         self.gifSquare = PhotoImage(file='images/icones/iconeFormationCarre.gif')
@@ -108,6 +110,7 @@ class View():
         self.isSettingBuildingPosition = False
         self.dragging = False
         self.hpBars=False
+        self.buildingToBuild=-1
         # Quand le user ferme la fenêtre et donc le jeu, il faut l'enlever du serveur
         self.root.protocol('WM_DELETE_WINDOW', self.parent.sendKillPlayer)
         self.selectedOnglet = self.SELECTED_CHAT
@@ -497,7 +500,7 @@ class View():
                     self.Actionmenu.create_image(76,35,image=self.gifStop,anchor = NW, tags = 'Button_Stop')
                     self.Actionmenu.create_image(140,35,image=self.gifPatrol,anchor = NW, tags = 'Button_Patrol')
                     if units[0].type == units[0].SCOUT:
-                        self.Actionmenu.create_image(13,89,image=self.gifBuild,anchor = NW, tags = 'Button_Build_Waypoint')
+                        self.Actionmenu.create_image(13,89,image=self.gifBuild,anchor = NW, tags = 'Button_Space_Buildings')
                     elif isinstance(units[0], SpaceAttackUnit):
                         self.Actionmenu.create_image(13,89,image=self.gifAttack,anchor = NW, tags = 'Button_Attack')
                 if len(self.game.players[self.game.playerId].selectedObjects) > 1:
@@ -510,6 +513,10 @@ class View():
             self.Actionmenu.create_image(140,35,image = self.gifCargo, anchor = NW, tags = 'Button_Build_Gather')
             self.Actionmenu.create_image(13,89,image = self.gifTransport, anchor = NW, tags = 'Button_Build_Transport')
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
+        elif(type == self.SPACE_BUILDINGS_MENU):
+            self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
+            self.Actionmenu.create_image(13,35,image = self.gifUnit, anchor = NW, tags = 'Button_Build_Waypoint')
+            self.Actionmenu.create_image(76,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Build_Turret')
         elif(type == self.WAITING_FOR_RALLY_POINT_MENU):
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le point de ralliement du vaisseau mère.",anchor = NW, fill = 'white', width = 200)
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
@@ -523,7 +530,7 @@ class View():
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le mouvement de patrouille de vos units d'attaques sélectionnés",anchor = NW, fill = 'white', width = 200)
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.WAITING_FOR_BUILDING_POINT_MENU):
-            self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le lieu où la construction du bâtiment va s'effectuer. 50 minéraux et 50 gaz est requis.",anchor = NW, fill = 'white', width = 200)
+            self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le lieu où la construction du bâtiment va s'effectuer.",anchor = NW, fill = 'white', width = 200)
         elif(type == self.TECHNOLOGY_TREE_MENU):
             self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
             self.Actionmenu.create_image(13,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Tech_Units')
@@ -921,6 +928,11 @@ class View():
                         self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifConstruction,tag='deletable')  
                     else:   
                         self.gameArea.create_image(distance[0]+1, distance[1], image=self.waypoints[player.colorId],tag='deletable')
+                elif building.type == b.Building.TURRET:
+                    if building.buildingTimer < building.TIME[building.type]:
+                        self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifConstruction,tag='deletable')  
+                    else:   
+                        self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifTurret,tag='deletable')
                 if building in player.selectedObjects:
                     self.gameArea.create_oval(distance[0]-(building.SIZE[building.type][0]/2),distance[1]-(building.SIZE[building.type][1]/2),distance[0]+(building.SIZE[building.type][0]/2),distance[1]+(building.SIZE[building.type][1]/2), outline="purple", tag='deletable') 
                 if building.hitpoints <= 5:
@@ -1331,7 +1343,7 @@ class View():
                 self.actionMenuType = self.MAIN_MENU
                 
             elif self.isSettingBuildingPosition or self.building:
-                self.game.setBuildingFlag(pos[0],pos[1], b.Building.WAYPOINT)
+                self.game.setBuildingFlag(pos[0],pos[1], b.Building.TURRET)
                 self.isSettingBuildingPosition = False
                 self.actionMenuType = self.MAIN_MENU
                     
@@ -1485,8 +1497,15 @@ class View():
             elif (Button_pressed == "Button_Attack"):
                 self.actionMenuType = self.WAITING_FOR_ATTACK_POINT_MENU
                 self.isSettingAttackPosition = True
+            elif (Button_pressed == "Button_Space_Buildings"):
+                self.actionMenuType = self.SPACE_BUILDINGS_MENU
             elif (Button_pressed == "Button_Build_Waypoint"):
                 self.actionMenuType = self.WAITING_FOR_BUILDING_POINT_MENU
+                self.buildingToBuild = b.Building.WAYPOINT
+                self.isSettingBuildingPosition = True;
+            elif (Button_pressed == "Button_Build_Turret"):
+                self.actionMenuType = self.WAITING_FOR_BUILDING_POINT_MENU
+                self.buildingToBuild = b.Building.TURRET
                 self.isSettingBuildingPosition = True;
             elif (Button_pressed == "Button_Move"):
                 self.actionMenuType = self.WAITING_FOR_MOVE_POINT_MENU

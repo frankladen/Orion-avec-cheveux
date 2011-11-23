@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-
 import Unit as u
+import Building as b
 from Flag import *
 from Helper import *
 from TechTree import *
@@ -43,6 +44,10 @@ class Player():
         for i in self.units:
             if i.isAlive:
                 i.action(self)
+        for i in self.buildings:
+            if i.type == b.Building.TURRET:
+                if i.finished and i.isAlive:
+                    self.game.checkIfEnemyInRange(i)
     def selectUnitsByType(self, unitType):
         units = []
         for i in self.selectedObjects:

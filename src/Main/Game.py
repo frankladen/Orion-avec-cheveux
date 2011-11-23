@@ -52,11 +52,13 @@ class Game():
     def buildBuilding(self, playerId, target, flag, unitIndex, type):
         #Condition de construction
         wp = None
-        if self.players[self.playerId].ressources[0] >= Building.COST[type][0] and self.players[self.playerId].ressources[1] >= Building.COST[type][1]:
-            self.players[self.playerId].ressources[0] -= Building.COST[type][0]
-            self.players[self.playerId].ressources[1] -= Building.COST[type][1]
+        if self.players[playerId].ressources[0] >= Building.COST[type][0] and self.players[playerId].ressources[1] >= Building.COST[type][1]:
+            self.players[playerId].ressources[0] -= Building.COST[type][0]
+            self.players[playerId].ressources[1] -= Building.COST[type][1]
             if type == Building.WAYPOINT:
                 wp = Waypoint('Waypoint', Building.WAYPOINT, [target[0],target[1],0], playerId)
+            elif type == Building.TURRET:
+                wp = Turret('Turret', Building.TURRET, [target[0],target[1],0], playerId)
         if wp != None:
             self.players[playerId].buildings.append(wp)
             for i in unitIndex:
@@ -137,8 +139,11 @@ class Game():
             units = ""
             for i in self.players[self.playerId].selectedObjects:
                 if isinstance(i, u.SpaceAttackUnit):
-                    if attackedUnit.type == u.Unit.TRANSPORT:
-                        if not attackedUnit.landed:
+                    if isinstance(attackedUnit, u.Unit):
+                        if attackedUnit.type == u.Unit.TRANSPORT:
+                            if not attackedUnit.landed:
+                                units += str(self.players[self.playerId].units.index(i)) + ","
+                        else:
                             units += str(self.players[self.playerId].units.index(i)) + ","
                     else:
                         units += str(self.players[self.playerId].units.index(i)) + ","
