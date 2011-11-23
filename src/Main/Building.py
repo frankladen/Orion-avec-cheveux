@@ -10,11 +10,12 @@ class Building(t.PlayerObject):
     BARRACK=2
     FARM=3
     TURRET=4
-    SIZE =((30,30),(0,0),(0,0),(0,0),(30,30))
-    COST = ((50,50),(0,0),(0,0),(0,0),(50,50))
-    TIME = (60,0,0,0,75)
-    MAX_HP = (150,0,0,0,200)
-    VIEW_RANGE=(200, 0, 0, 0, 250)
+    SIZE =((30,30),(0,0),(0,0),(30,30),(74,74))
+    INSPACE = (True,False,False,False,True)
+    COST = ((50,50),(0,0),(0,0),(50,50),(50,50))
+    TIME = (60,0,0,75,75)
+    MAX_HP = (150,0,0,200,200)
+    VIEW_RANGE=(200, 0, 0, 100, 250)
     
     def __init__(self, name,type, position, owner):
         t.PlayerObject.__init__(self, name,type, position, owner)
@@ -29,13 +30,17 @@ class Building(t.PlayerObject):
                     return self
         return None
 
-class Waypoint(Building):
+class SpaceBuilding(Building):
     def __init__(self, name, type, position, owner):
         Building.__init__(self, name, type, position, owner)
+
+class Waypoint(Building):
+    def __init__(self, name, type, position, owner):
+        SpaceBuilding.__init__(self, name, type, position, owner)
         
 class Turret(Building):
     def __init__(self, name, type, position, owner):
-        Building.__init__(self, name, type, position, owner)
+        SpaceBuilding.__init__(self, name, type, position, owner)
         self.range=200
         self.AttackSpeed=12
         self.AttackDamage=6
@@ -71,9 +76,15 @@ class Turret(Building):
             self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.STANDBY)
             return (-1, -1, isBuilding)
 
-    
-    
-        
+class GroundBuilding(Building):
+    def __init__(self, name, type, position, owner, sunId, planetId):
+        Building.__init__(self, name, type, position, owner)
+        self.sunId = sunId
+        self.planetId = planetId
+
+class Farm(Building):
+    def __init__(self, name, type, position, owner, sunId, planetId):
+        GroundBuilding.__init__(self, name, type, position, owner, sunId, planetId)
         
         
         

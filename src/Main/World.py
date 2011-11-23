@@ -254,6 +254,7 @@ class Planet(Target):
         self.nGazStack = nGazStack + 1
         self.landingZones = []
         self.units = []
+        self.buildings = []
         self.id = id
         self.solarSystem = solarSystem
         for i in range(0, self.nMineralStack):

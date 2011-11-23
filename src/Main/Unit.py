@@ -18,23 +18,24 @@ class Unit(PlayerObject):
     GROUND_GATHER = 7
     SPECIAL_GATHER = 8
     GROUND_ATTACK = 9
-    FRENCHNAME = ('Unité', 'Vaisseau mère','Scout', "Vaisseau d'attaque", "Vaisseau de Transport", "Cargo", 'Unité terrestre', 'Unité de collecte', '', 'Unité d\'attaque')
+    GROUND_BUILDER_UNIT = 10
+    FRENCHNAME = ('Unité', 'Vaisseau mère','Scout', "Vaisseau d'attaque", "Vaisseau de Transport", "Cargo", 'Unité terrestre', 'Unité de collecte', '', 'Unité d\'attaque', 'Unité de construction')
     MINERAL=0
     GAS=1
     FOOD=2
-    SIZE=((0,0), (125,125), (18,15), (28,32), (32,29), (20,30),(24,24),(20,38), (0,0), (20,20))
-    MAX_HP = (50,1500, 50, 100,125, 75, 100, 100, 100, 100)
-    MOVE_SPEED=(1.0, 0.0, 4.0, 2.0, 3.0, 3.0, 5.0, 5.0, 3.0, 3.5)
-    ATTACK_SPEED=(0,8,0,10,0,0,0,0,0,10)
-    ATTACK_DAMAGE=(0,5,0,5,0,0,0,0,0,5)
-    ATTACK_RANGE=(0,250,0,150,0,0,0,0,0,150)
-    BUILD_TIME=(300, 0, 200, 400, 300, 250, 200, 200, 200, 200)
-    BUILD_COST=((50,50,1), (0,0,0), (50,0,1), (150,100,1), (75,20,1), (50,10,1), (50,10,1),(50,10,1), (50,15,1), (60,60,1))
-    VIEW_RANGE=(150, 400, 200, 150, 175, 175,200, 200, 200, 200)
+    SIZE=((0,0), (125,125), (18,15), (28,32), (32,29), (20,30),(24,24),(20,38), (0,0), (36,33), (20,20))
+    MAX_HP = (50,1500, 50, 100,125, 75, 100, 100, 100, 100, 100)
+    MOVE_SPEED=(1.0, 0.0, 4.0, 2.0, 3.0, 3.0, 5.0, 5.0, 3.0, 3.5, 4.0)
+    ATTACK_SPEED=(0,8,0,10,0,0,0,0,0,10,0)
+    ATTACK_DAMAGE=(0,5,0,5,0,0,0,0,0,5,0)
+    ATTACK_RANGE=(0,250,0,150,0,0,0,0,0,150,0)
+    BUILD_TIME=(300, 0, 200, 400, 300, 250, 200, 200, 200, 200, 200)
+    BUILD_COST=((50,50,1), (0,0,0), (50,0,1), (150,100,1), (75,20,1), (50,10,1), (50,10,1),(50,10,1), (50,15,1), (60,60,1), (30,25,1))
+    VIEW_RANGE=(150, 400, 200, 150, 175, 175,200, 200, 200, 200, 200)
     
     def __init__(self, name, type, position, owner):
         PlayerObject.__init__(self, name, type, position, owner)
-        if type <= self.GROUND_ATTACK:
+        if type <= self.GROUND_BUILDER_UNIT:
             self.moveSpeed=self.MOVE_SPEED[type]
         else:
             self.moveSpeed=self.MOVE_SPEED[self.DEFAULT]
@@ -172,6 +173,54 @@ class GroundUnit(Unit):
         self.sunId = -1
         self.planet = None
 
+class GroundBuilderUnit(GroundUnit):
+    def __init__(self, name, type, position, owner, planetId, sunId, isLanded = False):
+        GroundUnit.__init__(self, name, type, position, owner, planetId, sunId, isLanded)
+
+    def action(self, parent):
+        if self.isLanded:
+            if self.flag.flagState == FlagState.MOVE or self.flag.flagState == FlagState.GROUND_MOVE:
+                self.move()
+            elif self.flag.flagState == FlagState.PATROL:
+                unit = self.patrol()
+            elif self.flag.flagState == FlagState.BUILD:
+                self.build(self.flag.finalTarget, parent)
+
+    def build(self, building, player):
+        if Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1]) >= self.moveSpeed:
+            self.move()
+        else:
+            endPos = [self.flag.finalTarget.position[0],self.flag.finalTarget.position[1]]
+            self.position = endPos
+            
+            if building.buildingTimer < building.TIME[building.type]:
+                building.buildingTimer += 1
+            else:
+                building.finished = True
+                self.flag.flagState = FlagState.STANDBY
+                if building.type == b.Building.FARM:
+                    player.MAX_FOOD +=5
+
+    def load(self, game):
+        landingZone = self.flag.finalTarget
+        planet = game.galaxy.solarSystemList[landingZone.sunId].planets[landingZone.planetId]
+        arrived = True
+        if self.position[0] < landingZone.position[0] or self.position[0] > landingZone.position[0]:
+            if self.position[1] < landingZone.position[1] or self.position[1] > landingZone.position[1]:
+                arrived = False
+                self.move()
+        if arrived and landingZone.LandedShip != None:
+            self.planet = None
+            self.position = [-100000, -100000]
+            self.planetId = -1
+            self.sunId = -1
+            planet.units.pop(planet.units.index(self))
+            landingZone.LandedShip.units.append(self)
+            if self in game.players[self.owner].selectedObjects:
+                game.players[self.owner].selectedObjects.pop(game.players[self.owner].selectedObjects.index(self))
+            self.flag.flagState = FlagState.STANDBY
+               
+            
 class GroundGatherUnit(GroundUnit):
     def __init__(self, name, type, position, owner, planetId, sunId, isLanded = False):
         GroundUnit.__init__(self, name, type, position, owner, planetId, sunId, isLanded)
@@ -181,16 +230,15 @@ class GroundGatherUnit(GroundUnit):
         self.returning = False
 
     def action(self, parent):
-        if self.isLanded:
-            if self.flag.flagState == FlagState.GROUND_GATHER:
-                self.gather(parent, parent.game)
-            else:
-                Unit.action(self, parent)
+        if self.flag.flagState == FlagState.GROUND_GATHER:
+            self.gather(parent, parent.game)
+        else:
+            GroundUnit.action(self, parent)
 
     def gather(self, player, game):
         ressource = self.flag.finalTarget
         arrived = True
-        if isinstance(self.flag.finalTarget, w.MineralStack) or isinstance(self.flag.finalTarget, w.GazStack):
+        if isinstance(ressource, w.MineralStack) or isinstance(ressource, w.GazStack):
             if self.position[0] < ressource.position[0] or self.position[0] > ressource.position[0]:
                 if self.position[1] < ressource.position[1] or self.position[1] > ressource.position[1]:
                     arrived = False
@@ -206,12 +254,12 @@ class GroundGatherUnit(GroundUnit):
                                 self.container[0]+=ressource.nbMinerals
                                 ressource.nbMinerals = 0
                                 self.flag.initialTarget = self.flag.finalTarget
-                                self.flag.finalTarget = self.planet.getLandingSpot(player.id)
+                                self.flag.finalTarget =player.getNearestReturnRessourceCenterOnSpace(self.position, self)
                                 game.parent.redrawMinimap()
                             self.gatherSpeed = 20
                         else:
                             self.flag.initialTarget = self.flag.finalTarget
-                            self.flag.finalTarget = self.planet.getLandingSpot(player.id)
+                            self.flag.finalTarget = player.getNearestReturnRessourceCenterOnSpace(self.position, self)
                     else:
                         if self.container[1]<self.maxGather:
                             if ressource.nbGaz >= 5:
@@ -221,12 +269,12 @@ class GroundGatherUnit(GroundUnit):
                                 self.container[1]+=ressource.nbGaz
                                 ressource.nbGaz = 0
                                 self.flag.initialTarget = self.flag.finalTarget
-                                self.flag.finalTarget = self.planet.getLandingSpot(player.id)
+                                self.flag.finalTarget = player.getNearestReturnRessourceCenterOnSpace(self.position, self)
                                 game.parent.redrawMinimap()
                             self.gatherSpeed = 20
                         else:
                             self.flag.initialTarget = self.flag.finalTarget
-                            self.flag.finalTarget = self.planet.getLandingSpot(player.id)
+                            self.flag.finalTarget = player.getNearestReturnRessourceCenterOnSpace(self.position, self)
                 else:
                     self.gatherSpeed-=1
         else:
@@ -295,14 +343,6 @@ class GroundAttackUnit(GroundUnit):
             self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.STANDBY)
             return (-1, -1)
             
-        
-    
-class GroundBuildUnit(GroundUnit):
-    def __init__(self):
-        super(GroundBuildUnit,self).__init__()
-    
-    def build(self,building):
-        print("build")
 
 class Mothership(Unit):
     REGEN_WAIT_TIME = 30
@@ -629,6 +669,9 @@ class TransportShip(SpaceUnit):
         for i in planet.landingZones:
             if i.ownerId == self.owner:
                 i.LandedShip = None
+
+    def load(self, unit):
+        unit.flag = Flag(unit.position, unit.landingZone, FlagState.LOAD)
 
 class GatherShip(SpaceUnit):
     GATHERTIME=20

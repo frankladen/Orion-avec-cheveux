@@ -40,16 +40,19 @@ class Game():
         self.players[self.playerId].addCamera(self.galaxy, taille)
 
     # Pour changer le flag des unités selectionne pour la construction        
-    def setBuildingFlag(self,x,y, type):
+    def setBuildingFlag(self,x,y, type, sunId=0, planetId=0):
         units = ''
         #Si plusieurs unit�s sont s�lectionn�es, on les ajoute toutes dans le changement � envoyer
         for i in self.players[self.playerId].selectedObjects:
-            if i.type == i.SCOUT:
+            if i.type in (i.SCOUT, i.GROUND_BUILDER_UNIT):
                 units+= str(self.players[self.playerId].units.index(i))+","
         if self.players[self.playerId].ressources[0] >= Building.COST[type][0] and self.players[self.playerId].ressources[1] >= Building.COST[type][1]:
-            self.parent.pushChange(units, Flag(type,t.Target([x,y,0]),FlagState.BUILD))
+            if Building.INSPACE[type] == True:
+                self.parent.pushChange(units, Flag((type,0),t.Target([x,y,0]),FlagState.BUILD))
+            else:
+                self.parent.pushChange(units, Flag((type,sunId,planetId),t.Target([x,y,0]),FlagState.BUILD))
 
-    def buildBuilding(self, playerId, target, flag, unitIndex, type):
+    def buildBuilding(self, playerId, target, flag, unitIndex, type, sunId=0, planetId=0):
         #Condition de construction
         wp = None
         if self.players[playerId].ressources[0] >= Building.COST[type][0] and self.players[playerId].ressources[1] >= Building.COST[type][1]:
@@ -59,6 +62,10 @@ class Game():
                 wp = Waypoint('Waypoint', Building.WAYPOINT, [target[0],target[1],0], playerId)
             elif type == Building.TURRET:
                 wp = Turret('Turret', Building.TURRET, [target[0],target[1],0], playerId)
+            elif type == Building.FARM:
+                wp = Farm('Farm', Building.FARM, [target[0],target[1],0], playerId, sunId, planetId)
+                wp.planet = self.galaxy.solarSystemList[sunId].planets[planetId]
+                self.galaxy.solarSystemList[sunId].planets[planetId].buildings.append(wp)
         if wp != None:
             self.players[playerId].buildings.append(wp)
             for i in unitIndex:
@@ -68,7 +75,7 @@ class Game():
     def resumeBuildingFlag(self,building):
         units = ''
         for i in self.players[self.playerId].selectedObjects:
-            if i.type == i.SCOUT:
+            if i.type in (i.SCOUT, i.GROUND_BUILDER_UNIT):
                 units+= str(self.players[self.playerId].units.index(i))+","
         if not building.finished:
             self.parent.pushChange(units, Flag(i,building,FlagState.FINISH_BUILD))                          
@@ -231,7 +238,11 @@ class Game():
             ressource = self.galaxy.solarSystemList[sunId].planets[planetId].gaz[ressourceId]
         else:
             ressource = self.galaxy.solarSystemList[sunId].planets[planetId].landingZones[ressourceId]
-        self.players[playerId].makeGroundUnitsGather(unitsId, ressource)
+        if isinstance(ressource, LandingZone):
+            if ressource.LandedShip == None:
+                self.players[playerId].makeGroundUnitsGather(unitsId, ressource)
+        else:
+            self.players[playerId].makeGroundUnitsGather(unitsId, ressource)
 
     #Trade entre joueurs
     def setTradeFlag(self, item, playerId2, quantite):
@@ -364,6 +375,16 @@ class Game():
                     sunId = self.galaxy.solarSystemList.index(i)
         self.parent.pushChange(shipId,(planetId, sunId, 'TAKEOFF'))
 
+    def setLoadFlag(self, unit, landingZone):
+        units = ""
+        units += str(self.players[self.playerId].units.index(unit)) + ","
+        self.parent.pushChange(units, Flag(unit, landingZone, FlagState.LOAD))
+
+    def loadUnit(self, unit, planet, playerId):
+        landingZone = planet.getLandingSpot(playerId)
+        if landingZone != None:
+            self.players[playerId].makeUnitLoad(unit, landingZone)
+
     #Trade entre joueurs
     def setTradeFlag(self, item, playerId2, quantite):
         for i in items:
@@ -373,11 +394,16 @@ class Game():
     def addUnit(self, unitType):
         mineralCost = u.Unit.BUILD_COST[unitType][0]
         gazCost = u.Unit.BUILD_COST[unitType][1]
-        if self.players[self.playerId].canAfford(mineralCost, gazCost):
+        foodCost = u.Unit.BUILD_COST[unitType][2]
+        if self.players[self.playerId].canAfford(mineralCost, gazCost, foodCost):
             self.parent.pushChange(0, Flag(finalTarget = unitType, flagState = FlagState.CREATE))
 
     def createUnit(self, player, unitType):
-        self.players[player].createUnit(unitType)
+        mineralCost = u.Unit.BUILD_COST[unitType][0]
+        gazCost = u.Unit.BUILD_COST[unitType][1]
+        foodCost = u.Unit.BUILD_COST[unitType][2]
+        if self.players[player].canAfford(mineralCost, gazCost, foodCost):
+            self.players[player].createUnit(unitType)
 
     def sendCancelUnit(self, unit):
         self.parent.pushChange(0, Flag(finalTarget = unit, flagState = FlagState.CANCEL_UNIT))
@@ -396,10 +422,6 @@ class Game():
         if playerId == None:
             playerId = self.playerId
         #self.parent.pushChange(playerId, Flag(None,playerId,FlagState.DESTROY_ALL))
-
-    def sendKillPlayer(self):
-        playerId = self.playerId
-        self.parent.sendKillPlayer(playerId)
 
     def killPlayer(self, playerId):
         self.players[playerId].kill()
@@ -495,7 +517,10 @@ class Game():
             groundObj = planet.groundSelect(posSelected)
             player.selectObject(groundObj, False)
         self.parent.changeActionMenuType(View.MAIN_MENU)
-
+    
+    def selectObjectFromMenu(self, unitId):
+        self.players[self.playerId].selectObjectFromMenu(unitId)
+    
     def selectAll(self, posSelected):
         self.players[self.playerId].selectAll(posSelected)
         self.parent.changeActionMenuType(View.MAIN_MENU)
@@ -539,6 +564,8 @@ class Game():
                     if unit.type == unit.GROUND_GATHER:
                         if isinstance(clickedObj, w.MineralStack) or isinstance(clickedObj, w.GazStack) or isinstance(clickedObj, w.LandingZone):
                             self.setGroundGatherFlag(unit, clickedObj)
+                    if isinstance(clickedObj, w.LandingZone):
+                        self.setLoadFlag(unit, clickedObj)
                 else:
                     self.setGroundMovingFlag(pos[0], pos[1])
                 

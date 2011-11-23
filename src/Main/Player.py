@@ -19,6 +19,7 @@ class Player():
     ATTACK_RANGE_BONUS = 3
     VIEW_RANGE_BONUS = 4
     BONUS = [0,0,0,0,0]
+    MAX_FOOD = 10
     
     def __init__(self, name, game, id , colorId):
         self.name = name
@@ -37,7 +38,7 @@ class Player():
         self.motherShip = None
         self.formation="carre"
         self.currentPlanet = None
-        self.ressources = [100,100,10]
+        self.ressources = [100,100,2]
         self.isAlive = True
 
     def action(self):
@@ -98,7 +99,10 @@ class Player():
                 self.selectedObjects = [playerObj]
             else:
                 self.selectedObjects.append(playerObj)
-
+    
+    def selectObjectFromMenu(self, unitId):
+        self.selectedObjects = [self.selectedObjects[unitId]]
+    
     def boxSelect(self, selectStart, selectEnd):
         first = True
         if self.currentPlanet == None:
@@ -218,6 +222,24 @@ class Player():
                         nearestBuilding = b
         return nearestBuilding
 
+    def getNearestReturnRessourceCenterOnSpace(self, position, unit):
+        sunId = unit.sunId
+        planetId = unit.planetId
+        landingSpotPosition = unit.planet.getLandingSpot(unit.owner).position
+        nearestDistance = Helper.calcDistance(position[0],position[1],landingSpotPosition[0],landingSpotPosition[1])
+        nearestBuilding = unit.planet.getLandingSpot(unit.owner)
+        for b in self.buildings:
+            if b.type == b.FARM:
+                if b.finished:
+                    if b.sunId == sunId:
+                        if b.planetId == planetId:
+                            buildingPosition = b.position
+                            distance = Helper.calcDistance(position[0],position[1],buildingPosition[0],buildingPosition[1])
+                            if distance < nearestDistance:
+                                nearestDistance = distance
+                                nearestBuilding = b
+        return nearestBuilding
+
     def checkIfIsAttacking(self, killedIndexes):
         unitToAttack = self.game.players[killedIndexes[1]].units[killedIndexes[0]]
         for i in self.units:
@@ -232,13 +254,17 @@ class Player():
                 if self.units[killedIndexes[0]] in self.selectedObjects:
                     self.selectedObjects.remove(self.units[killedIndexes[0]])
                 self.units[killedIndexes[0]].kill()
+                self.ressources[self.FOOD] -= u.Unit.BUILD_COST[self.units[killedIndexes[0]].type][self.FOOD]
             else:
                 if self.buildings[killedIndexes[0]] in self.selectedObjects:
                     self.selectedObjects.remove(self.buildings[killedIndexes[0]])
                 self.buildings[killedIndexes[0]].kill()
+                if self.buildings[killedIndexes[0]].type == b.Building.FARM:
+                    self.MAX_FOOD -= 5
             self.game.killUnit(killedIndexes, False)
         else:
             self.game.killUnit(killedIndexes, True)
+
 
     def hasUnitInRange(self, position, range, onPlanet = False, planetId = -1, solarSystemId = -1):
         unitInRange = None
@@ -254,10 +280,13 @@ class Player():
         if unit.type == u.Unit.TRANSPORT:
             pilot = u.GroundGatherUnit('Collector', u.Unit.GROUND_GATHER, [-10000,-10000,-10000], self.id, -1, -1)
             attacker = u.GroundAttackUnit('Attacker', u.Unit.GROUND_ATTACK, [-10000,-10000,-10000], self.id, -1, -1)
+            builder = u.GroundBuilderUnit('Builder', u.Unit.GROUND_BUILDER_UNIT, [-10000,-10000,-10000], self.id, -1, -1)
             unit.units.append(pilot)
             unit.units.append(attacker)
+            unit.units.append(builder)
             self.units.append(pilot)
             self.units.append(attacker)
+            self.units.append(builder)
         unit.changeFlag(t.Target(self.motherShip.rallyPoint), FlagState.MOVE)
         self.units.append(unit)
 
@@ -280,16 +309,18 @@ class Player():
         unit = self.motherShip.getUnitBeingConstructAt(unitId)
         self.adjustRessources(self.MINERAL, unit.buildCost[0])
         self.adjustRessources(self.GAS, unit.buildCost[1])
+        self.ressources[self.FOOD] -= unit.buildCost[2]
         self.motherShip.changeFlag(unitId, FlagState.CANCEL_UNIT)
 
-    def canAfford(self, minerals, gas, food=0):
-        return self.ressources[0] >= minerals and self.ressources[0] >= gas# and self.ressources[0] >= food
+    def canAfford(self, minerals, gas, food):
+        return self.ressources[0] >= minerals and self.ressources[0] >= gas and self.ressources[2]+food <= self.MAX_FOOD
 
     def createUnit(self, unitType):
         if self.ressources[self.MINERAL] >= u.Unit.BUILD_COST[unitType][u.Unit.MINERAL] and self.ressources[self.GAS] >= u.Unit.BUILD_COST[unitType][u.Unit.GAS]:
             self.motherShip.addUnitToQueue(unitType)
             self.ressources[self.MINERAL] -= u.Unit.BUILD_COST[unitType][u.Unit.MINERAL]
             self.ressources[self.GAS] -= u.Unit.BUILD_COST[unitType][u.Unit.GAS]
+            self.ressources[self.FOOD] += u.Unit.BUILD_COST[unitType][u.Unit.FOOD]
             self.motherShip.flag.flagState = FlagState.BUILD_UNIT
 
     def makeUnitsAttack(self, units, targetPlayer, targetUnit, type):
@@ -303,6 +334,9 @@ class Player():
     def makeUnitLand(self, unitId, planet):
         self.units[unitId].changeFlag(planet, FlagState.LAND)
 
+    def makeUnitLoad(self, unit, landingZone):
+        unit.changeFlag(landingZone, FlagState.LOAD)
+    
     def makeUnitsGather(self, units, astroObject):
         for i in units:
             if i != '':
