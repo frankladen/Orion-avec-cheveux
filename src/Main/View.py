@@ -86,7 +86,6 @@ class View():
         self.gifTriangle = PhotoImage(file='images/icones/iconeFormationTriangle.gif')
         self.gifSquare = PhotoImage(file='images/icones/iconeFormationCarre.gif')
         self.gifReturn = PhotoImage(file='images/icones/return.gif')
-        self.gifGroundAttackUnit = PhotoImage(file='images/Planet/GroundUnit/tank.gif')
         #fenetres
         self.mainMenu = self.fMainMenu()
         self.mainMenu.pack()
@@ -135,6 +134,7 @@ class View():
         self.waypoints = []
         self.landingZones = []
         self.groundUnits = []
+        self.gifGroundAttackUnit = []
         for i in range(0,8):
             self.scoutShips.append(PhotoImage(file='images/Ships/Scoutships/Scoutship'+str(i)+'.gif'))
             self.attackShips.append(PhotoImage(file='images/Ships/Attackships/Attackship'+str(i)+'.gif'))
@@ -145,6 +145,7 @@ class View():
             self.landingZones.append(PhotoImage(file='images/Planet/LandingZones/landing'+str(i)+'.gif'))
             self.waypoints.append(PhotoImage(file='images/Building/waypoint'+str(i)+'.gif'))
             self.groundUnits.append(PhotoImage(file='images/Planet/GroundUnit/ground'+str(i)+'.gif'))
+            self.gifGroundAttackUnit.append(PhotoImage(file='images/Planet/Tanks/tank'+str(i)+'.gif'))
         self.showMinerals = Label(gameFrame, text="Mineraux: "+str(self.game.players[self.game.playerId].ressources[0]), bg="black", fg="white", anchor=NW)
         self.showMinerals.grid(column=1, row=0, columnspan=2)
         self.showGaz = Label(gameFrame, text="Gaz: "+str(self.game.players[self.game.playerId].ressources[1]), bg="black", fg="white", anchor=NW)
@@ -368,7 +369,7 @@ class View():
                     elif isinstance(i, u.GroundGatherUnit):
                         self.menuModes.create_image(x,y, image = self.groundUnits[self.game.players[self.game.playerId].colorId], tags =  ('selected_unit',unitList.index(i)), anchor = NW)
                     elif isinstance(i, u.GroundAttackUnit):
-                        self.menuModes.create_image(x, y, image = self.gifGroundAttackUnit, tags = ('selected_unit',unitList.index(i)), anchor = NW)           
+                        self.menuModes.create_image(x, y, image = self.gifGroundAttackUnit[self.game.players[self.game.playerId].colorId], tags = ('selected_unit',unitList.index(i)), anchor = NW)           
                         
                     elif isinstance(i, u.Unit):
                         self.menuModes.create_image(x,y, image = self.gifUnit, tags = ('selected_unit',unitList.index(i)), anchor = NW)     
@@ -420,7 +421,7 @@ class View():
                     if isinstance(unit, u.GatherShip):
                         self.menuModes.create_image(20, 50, image = self.gifAttackUnit)
                     else:
-                        self.menuModes.create_image(20, 50, image = self.gifGroundAttackUnit)
+                        self.menuModes.create_image(20, 50, image = self.gifGroundAttackUnit[self.game.players[self.game.playerId].colorId])
                     self.menuModes.create_text(20,160, text = "Vitesse d'attaque : " + str(unit.AttackSpeed),anchor = NW, fill = 'white')
                     self.menuModes.create_text(20,180, text = "Force d'attaque : " + str(unit.AttackDamage),anchor = NW, fill = 'white')
                 elif isinstance(unit, u.GatherShip) or isinstance(unit, u.GroundGatherUnit):
@@ -827,10 +828,9 @@ class View():
         if unit in self.game.players[self.game.playerId].selectedObjects:
             self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3), distance[1]-(unit.SIZE[unit.type][1]/2+3), distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3),outline='green', tag='deletable')
         if isinstance(unit, GroundGatherUnit):
-            #unitImage = self.groundUnits[color]
             self.gameArea.create_image(distance[0], distance[1], image=self.groundUnits[color], tag='deletable')
         elif isinstance(unit, GroundAttackUnit):
-            self.gameArea.create_image(distance[0], distance[1], image=self.gifGroundAttackUnit, tag='deletable')
+            self.gameArea.create_image(distance[0], distance[1], image=self.gifGroundAttackUnit[color], tag='deletable')
         elif isinstance(unit, GroundBuilderUnit):
             self.gameArea.create_polygon(distance[0]-unit.SIZE[unit.type][0]/2, distance[1]+unit.SIZE[unit.type][1]/2, distance[0], distance[1]-unit.SIZE[unit.type][1]/2, distance[0]+unit.SIZE[unit.type][0]/2, distance[1]+unit.SIZE[unit.type][1]/2, fill='blue', tag='deletable')
 
