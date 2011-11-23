@@ -8,8 +8,6 @@ import Building as b
 from winsound import *
 import tkinter.messagebox as mb
 
-
-
 class View():
     ACTIONMENU_ICON_WIDTH=37
     ACTIONMENU_ICON_HEIGHT=34
@@ -345,7 +343,7 @@ class View():
         self.menuModesOnlets()
         self.selectedOnglet = self.SELECTED_UNIT_SELECTED
         unitList = self.game.players[self.game.playerId].selectedObjects
-        countList = [0,0,0,0,0,0,0]
+        countList = [0,0,0,0,0,0,0,0,0,0]
         if len(unitList) == 1:
             self.showInfo(unitList[0])
 
@@ -387,18 +385,17 @@ class View():
                             self.menuModes.create_image(800,y,anchor = NE, image = self.gifTransport,tags = ('selected_all_units',i))                                
                         elif i == Unit.ATTACK_SHIP: 
                             self.menuModes.create_image(800,y, anchor = NE,image = self.gifAttackUnit,tags = ('selected_all_units',i))    
-                        
                         y+=46
 
     def showInfo(self, unit):
         if isinstance(unit, Planet) == False and isinstance(unit, AstronomicalObject) == False and isinstance(unit, Unit):
-            self.menuModes.create_text(20,80, text = 'Type : ' + Unit.FRENCHNAME[unit.type], anchor = NW, fill = 'white')
-            self.menuModes.create_text(20,100, text = "HP : " + str(math.trunc(unit.hitpoints)) + "/" + str(unit.maxHP),anchor = NW, fill = 'white')
-            self.menuModes.create_text(20,120, text = "Vitesse de déplacement : " + str(unit.moveSpeed) + " années lumière à l'heure.", anchor = NW, fill = 'white')
-            self.menuModes.create_text(20,140, text = "Champ de vision : " + str(unit.viewRange) + " années lumière", anchor = NW, fill = 'white')
             #Ces images seront remplacer par de plus grandes et plus belles ! (aghi on t'attends ! )
 
             if isinstance(unit, u.Mothership) == False :
+                self.menuModes.create_text(20,80, text = 'Type : ' + Unit.FRENCHNAME[unit.type], anchor = NW, fill = 'white')
+                self.menuModes.create_text(20,100, text = "HP : " + str(math.trunc(unit.hitpoints)) + "/" + str(unit.maxHP),anchor = NW, fill = 'white')
+                self.menuModes.create_text(20,120, text = "Vitesse de déplacement : " + str(unit.moveSpeed) + " années lumière à l'heure.", anchor = NW, fill = 'white')
+                self.menuModes.create_text(20,140, text = "Champ de vision : " + str(unit.viewRange) + " années lumière", anchor = NW, fill = 'white')
                 if isinstance(self.game.players[self.game.playerId].selectedObjects[0], u.SpaceAttackUnit):
                     self.menuModes.create_image(20, 50, image = self.gifAttackUnit)
                     self.menuModes.create_text(20,160, text = "Vitesse d'attaque : " + str(unit.AttackSpeed),anchor = NW, fill = 'white')
@@ -419,15 +416,29 @@ class View():
                     self.menuModes.create_oval((675, 190,500,10), fill='green', tags = 'arc', outline ='green')
 
             else:
+                self.menuModes.create_text(20,60, text = 'Type : ' + Unit.FRENCHNAME[unit.type], anchor = NW, fill = 'white')
+                self.menuModes.create_text(20,80, text = "HP : " + str(math.trunc(unit.hitpoints)) + "/" + str(unit.maxHP),anchor = NW, fill = 'white')
+                self.menuModes.create_text(20,100, text = "Armure : " + str(math.trunc(unit.armor)) + "/" + str(unit.MAX_ARMOR),anchor = NW, fill = 'white')
+                self.menuModes.create_text(20,120, text = "Bouclier : " + str(math.trunc(unit.shield)) + "/" + str(unit.MAX_SHIELD),anchor = NW, fill = 'white')
+                self.menuModes.create_text(20,140, text = "Vitesse de déplacement : " + str(unit.moveSpeed) + " années lumière à l'heure.", anchor = NW, fill = 'white')
+                self.menuModes.create_text(20,160, text = "Champ de vision : " + str(unit.viewRange) + " années lumière", anchor = NW, fill = 'white')
                 if len(self.game.players[self.game.playerId].motherShip.unitBeingConstruct) > 0:
-                    self.menuModes.create_text(20,160, text = str(len(self.game.players[self.game.playerId].motherShip.unitBeingConstruct)) + " unités actuellement en contruction", anchor = NW, fill = 'white')
+                    self.menuModes.create_text(20,180, text = str(len(self.game.players[self.game.playerId].motherShip.unitBeingConstruct)) + " unités actuellement en contruction", anchor = NW, fill = 'white')
                     self.createUnitsConstructionMenu()
                 else:
-                    self.menuModes.create_text(20,160, text = "Aucune unité n'est actuellement en contruction", anchor = NW, fill = 'white')
-                    if self.game.players[self.game.playerId].selectedObjects[0].hitpoints != self.game.players[self.game.playerId].selectedObjects[0].maxHP:
-                        self.menuModes.create_arc((675, 190,500,10), start=0, extent= (self.game.players[self.game.playerId].selectedObjects[0].hitpoints / self.game.players[self.game.playerId].selectedObjects[0].maxHP)*359.99999999 , fill='green', tags = 'arc')
+                    self.menuModes.create_text(20,180, text = "Aucune unité n'est actuellement en contruction", anchor = NW, fill = 'white')
+                    if unit.shield != unit.MAX_SHIELD:
+                        self.menuModes.create_arc((675, 190, 500, 10), start=0, extent= (unit.shield / unit.MAX_SHIELD)*359.99999999 , fill='blue', tags = 'arc')
                     else:
-                        self.menuModes.create_oval((675, 190,500,10), fill='green', tags = 'arc', outline ='green')
+                        self.menuModes.create_oval((675, 190, 500, 10), fill='blue', tags = 'arc', outline ='blue')
+                    if unit.armor != unit.MAX_ARMOR:
+                        self.menuModes.create_arc((662, 177, 515, 22), start=0, extent= (unit.armor / unit.MAX_ARMOR)*359.99999999 , fill='red', tags = 'arc')
+                    else:
+                        self.menuModes.create_oval((662, 177, 515, 22), fill='red', tags = 'arc', outline ='red')
+                    if unit.hitpoints != unit.maxHP:
+                        self.menuModes.create_arc((650, 165,525,35), start=0, extent= (unit.hitpoints / unit.maxHP)*359.99999999 , fill='green', tags = 'arc')
+                    else:
+                        self.menuModes.create_oval((650, 165,525,35), fill='green', tags = 'arc', outline ='green')
 
     def refreshGame(self, isOnPlanet):
         self.showMinerals.config(text="Mineraux: "+str(self.game.players[self.game.playerId].ressources[0]))
@@ -503,6 +514,8 @@ class View():
                         self.Actionmenu.create_image(13,89,image=self.gifBuild,anchor = NW, tags = 'Button_Space_Buildings')
                     elif isinstance(units[0], SpaceAttackUnit):
                         self.Actionmenu.create_image(13,89,image=self.gifAttack,anchor = NW, tags = 'Button_Attack')
+                elif isinstance(units[0], LandingZone):
+                    self.Actionmenu.create_image(76,35,image = self.gifBuild, anchor = NW, tags = 'Button_Build')
                 if len(self.game.players[self.game.playerId].selectedObjects) > 1:
                     self.Actionmenu.create_image(76,143,image=self.gifTriangle,anchor = NW, tags = 'Button_Triangle')
                     self.Actionmenu.create_image(140,143,image=self.gifSquare,anchor = NW, tags = 'Button_Square')
@@ -768,12 +781,20 @@ class View():
             if i.LandedShip != None:
                 self.gameArea.create_image(distance[0]+1, distance[1], image=self.landedShips[color], tag='deletable')
         for i in planet.units:
-            distance = self.game.players[self.game.playerId].camera.calcDistance(i.position)
-            if i in self.game.players[self.game.playerId].selectedObjects:
-                self.gameArea.create_oval(distance[0]-(i.SIZE[i.type][0]/2+3), distance[1]-(i.SIZE[i.type][1]/2+3), distance[0]+(i.SIZE[i.type][0]/2+3),distance[1]+(i.SIZE[i.type][1]/2+3),outline='green', tag='deletable')
-            self.gameArea.create_image(distance[0], distance[1], image=self.groundUnits[color], tag='deletable')
+            if i.isAlive:
+                self.drawUnitGround(i, color)
         if self.dragging:
             self.drawSelectionBox()
+
+    def drawUnitGround(self, unit, color):
+        distance = self.game.players[self.game.playerId].camera.calcDistance(unit.position)
+        if unit in self.game.players[self.game.playerId].selectedObjects:
+            self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3), distance[1]-(unit.SIZE[unit.type][1]/2+3), distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3),outline='green', tag='deletable')
+        if isinstance(unit, GroundGatherUnit):
+            #unitImage = self.groundUnits[color]
+            self.gameArea.create_image(distance[0], distance[1], image=self.groundUnits[color], tag='deletable')
+        elif isinstance(unit, GroundAttackUnit):
+            self.gameArea.create_polygon(distance[0]-unit.SIZE[unit.type][0]/2, distance[1]+unit.SIZE[unit.type][1]/2, distance[0], distance[1]-unit.SIZE[unit.type][1]/2, distance[0]+unit.SIZE[unit.type][0]/2, distance[1]+unit.SIZE[unit.type][1]/2, fill='green', tag='deletable')
 
     def drawPlanetBackground(self):
         self.gameArea.delete('background')
@@ -1176,7 +1197,7 @@ class View():
             color = 'YELLOW'
         else:
             color ='RED'
-        if not isinstance(unit, GroundGatherUnit):
+        if not isinstance(unit, GroundUnit):
             if unit.type != unit.MOTHERSHIP:
                 if unit.type == unit.TRANSPORT:
                     if not unit.landed:

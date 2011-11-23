@@ -218,6 +218,14 @@ class Player():
                         nearestBuilding = b
         return nearestBuilding
 
+    def checkIfIsAttacking(self, killedIndexes):
+        unitToAttack = self.game.players[killedIndexes[1]].units[killedIndexes[0]]
+        for i in self.units:
+            if i.isAlive:
+                if i.flag.finalTarget == unitToAttack:
+                    i.flag = Flag(t.Target(i.position), t.Target(i.position), FlagState.STANDBY)
+                    i.attackcount=i.AttackSpeed
+
     def killUnit(self, killedIndexes):
         if killedIndexes[1] == self.id:
             if killedIndexes[2] == False:
@@ -228,16 +236,28 @@ class Player():
                 if self.buildings[killedIndexes[0]] in self.selectedObjects:
                     self.selectedObjects.remove(self.buildings[killedIndexes[0]])
                 self.buildings[killedIndexes[0]].kill()
+            self.game.killUnit(killedIndexes, False)
         else:
-            self.game.killUnit(killedIndexes)
+            self.game.killUnit(killedIndexes, True)
+
+    def hasUnitInRange(self, position, range, onPlanet = False, planetId = -1, solarSystemId = -1):
+        unitInRange = None
+        for un in self.units:
+            if un.isAlive:
+                unitInRange = un.isInRange(position, range, onPlanet = False, planetId = -1, solarSystemId = -1)
+                if unitInRange != None:
+                    return unitInRange
 
     def buildUnit(self):
         unit = self.motherShip.unitBeingConstruct.pop(0)
         unit.applyBonuses(self.BONUS)
         if unit.type == u.Unit.TRANSPORT:
             pilot = u.GroundGatherUnit('Collector', u.Unit.GROUND_GATHER, [-10000,-10000,-10000], self.id, -1, -1)
+            attacker = u.GroundAttackUnit('Attacker', u.Unit.GROUND_ATTACK, [-10000,-10000,-10000], self.id, -1, -1)
             unit.units.append(pilot)
+            unit.units.append(attacker)
             self.units.append(pilot)
+            self.units.append(attacker)
         unit.changeFlag(t.Target(self.motherShip.rallyPoint), FlagState.MOVE)
         self.units.append(unit)
 

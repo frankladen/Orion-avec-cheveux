@@ -167,8 +167,10 @@ class Game():
     def makeUnitsAttack(self, playerId, units, targetPlayer, targetUnit, type):
         self.players[playerId].makeUnitsAttack(units, self.players[targetPlayer], targetUnit, type)
 
-    def killUnit(self, killedIndexes):
-        self.players[killedIndexes[1]].killUnit(killedIndexes)
+    def killUnit(self, killedIndexes, hasToKill = True):
+        if hasToKill:
+            self.players[killedIndexes[1]].killUnit(killedIndexes)
+        self.players[self.playerId].checkIfIsAttacking(killedIndexes)
 
     def setBuyTech(self, techType, index):
         self.parent.pushChange(index, Flag(techType,0,FlagState.BUY_TECH))
@@ -268,6 +270,7 @@ class Game():
                     self.parent.view.ongletTradeWaiting()
         except:
             print('du texte dans les spins de trade')
+            
     def confirmTrade(self, answer, id1, min1, min2, gaz1, gaz2):
         if answer == True:
             self.parent.pushChange(self.idTradeWith, Flag("m", min1, FlagState.TRADE))
@@ -454,21 +457,14 @@ class Game():
                                     if j.select(posSelected):
                                         self.setAttackFlag(j)
 
-    def checkIfEnemyInRange(self, unit):
+    def checkIfEnemyInRange(self, unit, onPlanet = False, planetId = -1, solarSystemId = -1):
         for pl in self.players:
             if pl.isAlive:
                 if pl.id != unit.owner and self.players[unit.owner].isAlly(pl.id) == False:
-                    for un in pl.units:
-                        if un.isAlive:
-                            if un.position[0] > unit.position[0]-unit.range and un.position[0] < unit.position[0]+unit.range:
-                                if un.position[1] > unit.position[1]-unit.range and un.position[1] < unit.position[1]+unit.range:
-                                    if isinstance(un, u.TransportShip) == False:
-                                        self.attackEnemyInRange(unit,un)
-                                        break
-                                    else:
-                                        if un.landed == False:
-                                            self.attackEnemyInRange(unit,un)
-                                            break
+                    enemyUnit = pl.hasUnitInRange(unit.position, unit.range, onPlanet, planetId, solarSystemId)
+                    if enemyUnit != None:
+                        self.attackEnemyInRange(unit, enemyUnit)
+                        break
                                         
     def attackEnemyInRange(self, unit, unitToAttack):
         killedIndex = unit.attack(self.players, unitToAttack)
@@ -488,7 +484,7 @@ class Game():
             if not self.multiSelect:
                 player.selectUnit(posSelected)
             else:
-                self.player.multiSelectUnit(posSelected)
+                player.multiSelectUnit(posSelected)
             spaceObj = self.galaxy.select(posSelected)
             if isinstance(spaceObj, w.Planet):
                 player.selectPlanet(spaceObj)
@@ -503,7 +499,6 @@ class Game():
     def selectAll(self, posSelected):
         self.players[self.playerId].selectAll(posSelected)
         self.parent.changeActionMenuType(View.MAIN_MENU)
-
 
     def rightClic(self, pos):
         empty = True
