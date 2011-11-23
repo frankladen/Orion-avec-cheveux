@@ -34,7 +34,7 @@ class Unit(PlayerObject):
     
     def __init__(self, name, type, position, owner):
         PlayerObject.__init__(self, name, type, position, owner)
-        if type <= self.GROUND_GATHER:
+        if type <= self.GROUND_ATTACK:
             self.moveSpeed=self.MOVE_SPEED[type]
         else:
             self.moveSpeed=self.MOVE_SPEED[self.DEFAULT]
