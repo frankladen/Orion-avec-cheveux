@@ -245,6 +245,9 @@ class Player():
     def makeUnitLand(self, unitId, planet):
         self.units[unitId].changeFlag(planet, FlagState.LAND)
 
+    def makeUnitLoad(self, unit, landingZone):
+        unit.changeFlag(landingZone, FlagState.LOAD)
+    
     def makeUnitsGather(self, units, astroObject):
         for i in units:
             if i != '':

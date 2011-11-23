@@ -215,7 +215,11 @@ class Game():
             ressource = self.galaxy.solarSystemList[sunId].planets[planetId].gaz[ressourceId]
         else:
             ressource = self.galaxy.solarSystemList[sunId].planets[planetId].landingZones[ressourceId]
-        self.players[playerId].makeGroundUnitsGather(unitsId, ressource)
+        if isinstance(ressource, LandingZone):
+            if ressource.LandedShip == None:
+                self.players[playerId].makeGroundUnitsGather(unitsId, ressource)
+        else:
+            self.players[playerId].makeGroundUnitsGather(unitsId, ressource)
     
     def setLandingFlag(self, unit, planet):
         solarsystemId = 0
@@ -250,6 +254,16 @@ class Game():
                     planetId = i.planets.index(j)
                     sunId = self.galaxy.solarSystemList.index(i)
         self.parent.pushChange(shipId,(planetId, sunId, 'TAKEOFF'))
+
+    def setLoadFlag(self, unit, landingZone):
+        units = ""
+        units += str(self.players[self.playerId].units.index(unit)) + ","
+        self.parent.pushChange(units, Flag(unit, landingZone, FlagState.LOAD))
+
+    def loadUnit(self, unit, planet, playerId):
+        landingZone = planet.getLandingSpot(playerId)
+        if landingZone != None:
+            self.players[playerId].makeUnitLoad(unit, landingZone)
 
     #Trade entre joueurs
     def setTradeFlag(self, item, playerId2, quantite):
@@ -392,7 +406,6 @@ class Game():
         self.players[self.playerId].selectAll(posSelected)
         self.parent.changeActionMenuType(View.MAIN_MENU)
 
-
     def rightClic(self, pos):
         empty = True
         if self.getCurrentPlanet() == None:
@@ -424,6 +437,8 @@ class Game():
                     if unit.type == unit.GROUND_GATHER:
                         if isinstance(clickedObj, w.MineralStack) or isinstance(clickedObj, w.GazStack) or isinstance(clickedObj, w.LandingZone):
                             self.setGroundGatherFlag(unit, clickedObj)
+                    if isinstance(clickedObj, w.LandingZone):
+                        self.setLoadFlag(unit, clickedObj)
                 else:
                     self.setGroundMovingFlag(pos[0], pos[1])
                 

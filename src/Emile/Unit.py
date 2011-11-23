@@ -141,8 +141,33 @@ class GroundUnit(Unit):
         self.sunId = sunId
         self.planetId = planetId
         self.planet = None
-   
 
+    def action(self, parent):
+        if self.flag.flagState == FlagState.LOAD:
+            self.load(parent.game)
+        else:
+            Unit.action(self, parent)
+
+    def load(self, game):
+        landingZone = self.flag.finalTarget
+        planet = game.galaxy.solarSystemList[landingZone.sunId].planets[landingZone.planetId]
+        arrived = True
+        if self.position[0] < landingZone.position[0] or self.position[0] > landingZone.position[0]:
+            if self.position[1] < landingZone.position[1] or self.position[1] > landingZone.position[1]:
+                arrived = False
+                self.move()
+        if arrived and landingZone.LandedShip != None:
+            self.planet = None
+            self.position = [-100000, -100000]
+            self.planetId = -1
+            self.sunId = -1
+            planet.units.pop(planet.units.index(self))
+            landingZone.LandedShip.units.append(self)
+            if self in game.players[self.owner].selectedObjects:
+                game.players[self.owner].selectedObjects.pop(game.players[self.owner].selectedObjects.index(self))
+            self.flag.flagState = FlagState.STANDBY
+               
+            
 class GroundGatherUnit(GroundUnit):
     def __init__(self, name, type, position, owner, planetId, sunId):
         GroundUnit.__init__(self, name, type, position, owner, planetId, sunId)
@@ -155,12 +180,12 @@ class GroundGatherUnit(GroundUnit):
         if self.flag.flagState == FlagState.GROUND_GATHER:
             self.gather(parent, parent.game)
         else:
-            Unit.action(self, parent)
+            GroundUnit.action(self, parent)
 
     def gather(self, player, game):
         ressource = self.flag.finalTarget
         arrived = True
-        if isinstance(self.flag.finalTarget, w.MineralStack) or isinstance(self.flag.finalTarget, w.GazStack):
+        if isinstance(ressource, w.MineralStack) or isinstance(ressource, w.GazStack):
             if self.position[0] < ressource.position[0] or self.position[0] > ressource.position[0]:
                 if self.position[1] < ressource.position[1] or self.position[1] > ressource.position[1]:
                     arrived = False
@@ -479,6 +504,7 @@ class TransportShip(SpaceUnit):
                     if playerId == game.playerId:
                         cam = game.players[playerId].camera
                         cam.placeOnLanding(landingZone)
+                    #print(self.units)
                     for i in self.units:
                         i.planet = planet
                         i.position = [landingZone.position[0] + 40, landingZone.position[1]]
@@ -501,6 +527,7 @@ class TransportShip(SpaceUnit):
                     if playerId == game.playerId:
                         cam = game.players[playerId].camera
                         cam.placeOnLanding(landingZone)
+                    #print(self.units)
                     for i in self.units:
                         i.planet = planet
                         i.position = [landingZone.position[0] + 40, landingZone.position[1]]
@@ -522,8 +549,8 @@ class TransportShip(SpaceUnit):
             if i.ownerId == self.owner:
                 i.LandedShip = None
 
-    def load(self, unit):
-        unit.flag = Flag(unit.position, unit.landingZone, FlagState.LOAD)
+    #def load(self, unit):
+        #unit.flag = Flag(unit.position, unit.landingZone, FlagState.LOAD)
         
 class GatherShip(SpaceUnit):
     GATHERTIME=20
