@@ -10,7 +10,7 @@ class Building(t.PlayerObject):
     BARRACK=2
     FARM=3
     TURRET=4
-    SIZE =((30,30),(0,0),(0,0),(30,30),(74,74))
+    SIZE =((30,30),(0,0),(0,0),(30,30),(75,59))
     INSPACE = (True,False,False,False,True)
     COST = ((50,50),(0,0),(0,0),(50,50),(50,50))
     TIME = (60,0,0,75,75)

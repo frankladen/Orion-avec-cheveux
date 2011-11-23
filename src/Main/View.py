@@ -80,7 +80,6 @@ class View():
         self.gifTransport = PhotoImage(file='images/icones/transport.gif')
         self.gifCargo = PhotoImage(file='images/icones/cargo.gif')
         self.gifUnit = PhotoImage(file='images/icones/scout.gif')
-        self.gifFarm = PhotoImage(file='images/Building/farm.gif')
         self.gifSelectedUnit = PhotoImage(file='images/icones/boutonSelectedUnit.gif')
         self.gifTriangle = PhotoImage(file='images/icones/iconeFormationTriangle.gif')
         self.gifSquare = PhotoImage(file='images/icones/iconeFormationCarre.gif')
@@ -135,6 +134,7 @@ class View():
         self.groundUnits = []
         self.gifGroundAttackUnit = []
         self.gifTurret = []
+        self.gifFarm = []
         for i in range(0,8):
             self.scoutShips.append(PhotoImage(file='images/Ships/Scoutships/Scoutship'+str(i)+'.gif'))
             self.attackShips.append(PhotoImage(file='images/Ships/Attackships/Attackship'+str(i)+'.gif'))
@@ -147,6 +147,7 @@ class View():
             self.groundUnits.append(PhotoImage(file='images/Planet/GroundUnit/ground'+str(i)+'.gif'))
             self.gifGroundAttackUnit.append(PhotoImage(file='images/Planet/Tanks/tank'+str(i)+'.gif'))
             self.gifTurret.append(PhotoImage(file='images/Building/Turrets/turret'+str(i)+'.gif'))
+            self.gifFarm.append(PhotoImage(file='images/Building/Farms/farm'+str(i)+'.gif'))
         self.showMinerals = Label(gameFrame, text="Mineraux: "+str(self.game.players[self.game.playerId].ressources[0]), bg="black", fg="white", anchor=NW)
         self.showMinerals.grid(column=1, row=0, columnspan=2)
         self.showGaz = Label(gameFrame, text="Gaz: "+str(self.game.players[self.game.playerId].ressources[1]), bg="black", fg="white", anchor=NW)
@@ -841,7 +842,7 @@ class View():
             self.gameArea.create_oval(distance[0]-(building.SIZE[building.type][0]/2+3), distance[1]-(building.SIZE[building.type][1]/2+3), distance[0]+(building.SIZE[building.type][0]/2+3),distance[1]+(building.SIZE[building.type][1]/2+3),outline='green', tag='deletable')
         if isinstance(building, b.Farm):
             if building.finished == True:
-                self.gameArea.create_image(distance[0], distance[1], image=self.gifFarm, tag='deletable')
+                self.gameArea.create_image(distance[0], distance[1], image=self.gifFarm[color], tag='deletable')
             else:
                 self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifConstruction,tag='deletable')  
 
