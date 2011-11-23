@@ -5,7 +5,7 @@ from World import *
 from Flag import *
 import time
 import Building as b
-from winsound import *
+#from winsound import *
 import tkinter.messagebox as mb
 
 class View():
@@ -84,6 +84,7 @@ class View():
         self.gifTriangle = PhotoImage(file='images/icones/iconeFormationTriangle.gif')
         self.gifSquare = PhotoImage(file='images/icones/iconeFormationCarre.gif')
         self.gifReturn = PhotoImage(file='images/icones/return.gif')
+        self.gifGroundAttackUnit = PhotoImage(file='images/Planet/GroundUnit/tank.gif')
         #fenetres
         self.mainMenu = self.fMainMenu()
         self.mainMenu.pack()
@@ -353,13 +354,18 @@ class View():
                 y = 25
                 for i in unitList:
                     if isinstance(i, u.SpaceAttackUnit):
-                        self.menuModes.create_image(x, y, image = self.gifAttackUnit, tags = ('selected_unit',i.position[0],i.position[1]), anchor = NW)
+                        self.menuModes.create_image(x, y, image = self.gifAttackUnit, tags = ('selected_unit',unitList.index(i)), anchor = NW)
                     elif isinstance(i, u.GatherShip):
-                        self.menuModes.create_image(x,y, image = self.gifCargo, tags = ('selected_unit',i.position[0],i.position[1]), anchor = NW)
+                        self.menuModes.create_image(x,y, image = self.gifCargo, tags = ('selected_unit',unitList.index(i)), anchor = NW)
                     elif isinstance(i, u.TransportShip):
-                        self.menuModes.create_image(x,y, image = self.gifTransport, tags =  ('selected_unit',i.position[0],i.position[1]), anchor = NW)
+                        self.menuModes.create_image(x,y, image = self.gifTransport, tags =  ('selected_unit',unitList.index(i)), anchor = NW)
+                    elif isinstance(i, u.GroundGatherUnit):
+                        self.menuModes.create_image(x,y, image = self.groundUnits[self.game.players[self.game.playerId].colorId], tags =  ('selected_unit',unitList.index(i)), anchor = NW)
+                    elif isinstance(i, u.GroundAttackUnit):
+                        self.menuModes.create_image(x, y, image = self.gifGroundAttackUnit, tags = ('selected_unit',unitList.index(i)), anchor = NW)           
+                        
                     elif isinstance(i, u.Unit):
-                        self.menuModes.create_image(x,y, image = self.gifUnit, tags = ('selected_unit',i.position[0],i.position[1]), anchor = NW)     
+                        self.menuModes.create_image(x,y, image = self.gifUnit, tags = ('selected_unit',unitList.index(i)), anchor = NW)     
                     self.menuModes.create_rectangle(x,y+46,x + (i.hitpoints/i.maxHP) * 52,y+51, fill = 'green')
  
                     countList[i.type] += 1
@@ -367,8 +373,8 @@ class View():
                     #Ca sert à créer une nouvelle ligne lorsque le nombre de units selectionné le requiert
                     x += 52
                     if x > 600:
-                        x = 20
-                        y+= 46
+                        x = 0
+                        y+= 51
                 
                 y = 0
                 for i in range(0,len(countList)):
@@ -377,14 +383,22 @@ class View():
                         self.menuModes.create_text(700,y + 20,text= str(countList[i]) +'X' ,fill='white')
 
                         if i == Unit.SCOUT:
-                            self.menuModes.create_image(800,y, anchor = NE, image = self.gifUnit,tags = ('selected_all_units',i))
-                            
+                            self.menuModes.create_image(800,y, anchor = NE, image = self.gifUnit,tags = ('selected_all_units',i))            
                         elif i == Unit.CARGO: 
                             self.menuModes.create_image(800,y,anchor = NE, image = self.gifCargo,tags = ('selected_all_units',i))
                         elif i == Unit.TRANSPORT: 
                             self.menuModes.create_image(800,y,anchor = NE, image = self.gifTransport,tags = ('selected_all_units',i))                                
                         elif i == Unit.ATTACK_SHIP: 
-                            self.menuModes.create_image(800,y, anchor = NE,image = self.gifAttackUnit,tags = ('selected_all_units',i))    
+                            self.menuModes.create_image(800,y, anchor = NE,image = self.gifAttackUnit,tags = ('selected_all_units',i))
+                        elif i == Unit.GROUND_GATHER:
+                            self.menuModes.create_image(800,y, anchor = NE,image = self.groundUnits[self.game.players[self.game.playerId].colorId],tags = ('selected_all_units',i))
+                        elif i == Unit.GROUND_ATTACK:
+                            self.menuModes.create_image(800,y, anchor = NE,image = self.gifAttackUnit,tags = ('selected_all_units',i))
+                        elif i == Unit.DEFAULT:
+                            self.menuModes.create_image(800,y, anchor = NE, image = self.gifUnit,tags = ('selected_all_units',i))
+                        elif i == Unit.GROUND_UNIT:
+                            self.menuModes.create_image(800,y, anchor = NE,image = self.groundUnits[self.game.players[self.game.playerId].colorId],tags = ('selected_all_units',i))
+
                         y+=46
 
     def showInfo(self, unit):
@@ -392,31 +406,37 @@ class View():
             #Ces images seront remplacer par de plus grandes et plus belles ! (aghi on t'attends ! )
 
             if isinstance(unit, u.Mothership) == False :
-                self.menuModes.create_text(20,80, text = 'Type : ' + Unit.FRENCHNAME[unit.type], anchor = NW, fill = 'white')
+                self.menuModes.create_text(20,80, text = 'Type : ' + unit.name, anchor = NW, fill = 'white')
                 self.menuModes.create_text(20,100, text = "HP : " + str(math.trunc(unit.hitpoints)) + "/" + str(unit.maxHP),anchor = NW, fill = 'white')
                 self.menuModes.create_text(20,120, text = "Vitesse de déplacement : " + str(unit.moveSpeed) + " années lumière à l'heure.", anchor = NW, fill = 'white')
                 self.menuModes.create_text(20,140, text = "Champ de vision : " + str(unit.viewRange) + " années lumière", anchor = NW, fill = 'white')
-                if isinstance(self.game.players[self.game.playerId].selectedObjects[0], u.SpaceAttackUnit):
-                    self.menuModes.create_image(20, 50, image = self.gifAttackUnit)
+                if isinstance(unit, u.SpaceAttackUnit) or isinstance(unit, u.GroundAttackUnit):
+                    if isinstance(unit, u.GatherShip):
+                        self.menuModes.create_image(20, 50, image = self.gifAttackUnit)
+                    else:
+                        self.menuModes.create_image(20, 50, image = self.gifGroundAttackUnit)
                     self.menuModes.create_text(20,160, text = "Vitesse d'attaque : " + str(unit.AttackSpeed),anchor = NW, fill = 'white')
                     self.menuModes.create_text(20,180, text = "Force d'attaque : " + str(unit.AttackDamage),anchor = NW, fill = 'white')
-                elif isinstance(self.game.players[self.game.playerId].selectedObjects[0], u.GatherShip):
-                    self.menuModes.create_image(20,50, image = self.gifCargo)
+                elif isinstance(unit, u.GatherShip) or isinstance(unit, u.GroundGatherUnit):
+                    if isinstance(unit, u.GatherShip):
+                        self.menuModes.create_image(20,50, image = self.gifCargo)
+                    else:
+                        self.menuModes.create_image(20,50, image = self.groundUnits[self.game.players[self.game.playerId].colorId])
                     self.menuModes.create_text(20,160, text = "Chargement : gaz = " + str(unit.container[1]) + " mineral = " + str(unit.container[0]), anchor = NW, fill = 'white')
                     self.menuModes.create_text(20,180, text = "Taille du réservoir : " + str(unit.maxGather), anchor = NW, fill = 'white')
                     self.menuModes.create_text(20,200, text = "Vitesse de minage : " + str(unit.gatherSpeed), anchor = NW, fill = 'white')
-                elif isinstance(self.game.players[self.game.playerId].selectedObjects[0], u.TransportShip):
+                elif isinstance(unit, u.TransportShip):
                     self.menuModes.create_image(20,50, image = self.gifTransport)
-                elif isinstance(self.game.players[self.game.playerId].selectedObjects[0], u.Unit):
+                elif isinstance(unit, u.Unit):
                     self.menuModes.create_image(20,50, image = self.gifUnit)
 
-                if self.game.players[self.game.playerId].selectedObjects[0].hitpoints != self.game.players[self.game.playerId].selectedObjects[0].maxHP:
-                    self.menuModes.create_arc((675, 190,500,10), start=0, extent= (self.game.players[self.game.playerId].selectedObjects[0].hitpoints / self.game.players[self.game.playerId].selectedObjects[0].maxHP)*359.99999999 , fill='green', tags = 'arc', outline ='green')
+                if unit.hitpoints != unit.maxHP:
+                    self.menuModes.create_arc((675, 190,500,10), start=0, extent= (unit.hitpoints / unit.maxHP)*359.99999999 , fill='green', tags = 'arc', outline ='green')
                 else:
                     self.menuModes.create_oval((675, 190,500,10), fill='green', tags = 'arc', outline ='green')
 
             else:
-                self.menuModes.create_text(20,60, text = 'Type : ' + Unit.FRENCHNAME[unit.type], anchor = NW, fill = 'white')
+                self.menuModes.create_text(20,60, text = 'Type : ' + unit.name, anchor = NW, fill = 'white')
                 self.menuModes.create_text(20,80, text = "HP : " + str(math.trunc(unit.hitpoints)) + "/" + str(unit.maxHP),anchor = NW, fill = 'white')
                 self.menuModes.create_text(20,100, text = "Armure : " + str(math.trunc(unit.armor)) + "/" + str(unit.MAX_ARMOR),anchor = NW, fill = 'white')
                 self.menuModes.create_text(20,120, text = "Bouclier : " + str(math.trunc(unit.shield)) + "/" + str(unit.MAX_SHIELD),anchor = NW, fill = 'white')
@@ -794,7 +814,7 @@ class View():
             #unitImage = self.groundUnits[color]
             self.gameArea.create_image(distance[0], distance[1], image=self.groundUnits[color], tag='deletable')
         elif isinstance(unit, GroundAttackUnit):
-            self.gameArea.create_polygon(distance[0]-unit.SIZE[unit.type][0]/2, distance[1]+unit.SIZE[unit.type][1]/2, distance[0], distance[1]-unit.SIZE[unit.type][1]/2, distance[0]+unit.SIZE[unit.type][0]/2, distance[1]+unit.SIZE[unit.type][1]/2, fill='green', tag='deletable')
+            self.gameArea.create_image(distance[0], distance[1], image=self.gifGroundAttackUnit, tag='deletable')
 
     def drawPlanetBackground(self):
         self.gameArea.delete('background')
@@ -1485,7 +1505,7 @@ class View():
             elif (Button_pressed == "bouton_selectedUnit"):
                 self.ongletSelectedUnit()
             elif (Button_pressed == "selected_unit"):
-                self.game.select((float(bp[1]), float(bp[2])))
+                self.game.selectObjectFromMenu(int(bp[1]))
                 self.ongletSelectedUnit()
             elif (Button_pressed == 'cancelUnitButton'):
                 self.game.sendCancelUnit(bp[1])

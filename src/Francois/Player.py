@@ -98,7 +98,10 @@ class Player():
                 self.selectedObjects = [playerObj]
             else:
                 self.selectedObjects.append(playerObj)
-
+    
+    def selectObjectFromMenu(self, unitId):
+        self.selectedObjects = [self.selectedObjects[unitId]]
+    
     def boxSelect(self, selectStart, selectEnd):
         first = True
         if self.currentPlanet == None:

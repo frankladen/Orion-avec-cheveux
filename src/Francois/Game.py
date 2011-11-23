@@ -495,7 +495,10 @@ class Game():
             groundObj = planet.groundSelect(posSelected)
             player.selectObject(groundObj, False)
         self.parent.changeActionMenuType(View.MAIN_MENU)
-
+    
+    def selectObjectFromMenu(self, unitId):
+        self.players[self.playerId].selectObjectFromMenu(unitId)
+    
     def selectAll(self, posSelected):
         self.players[self.playerId].selectAll(posSelected)
         self.parent.changeActionMenuType(View.MAIN_MENU)
@@ -584,7 +587,8 @@ class Game():
 
     def getCurrentPlanet(self):
         return self.players[self.playerId].currentPlanet
-        
+    
+       
     def setTakeOffFlag(self, ship, planet):
         planetId = 0
         sunId = 0
