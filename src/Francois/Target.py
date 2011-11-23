@@ -19,7 +19,7 @@ class PlayerObject(Target):
         self.maxHP = 50
         self.isAlive = True
         self.constructionProgress = 0
-        if type <= u.Unit.GROUND_GATHER:
+        if type <= u.Unit.GROUND_ATTACK:
             self.viewRange = u.Unit.VIEW_RANGE[type]
             self.hitpoints = u.Unit.MAX_HP[type]
             self.maxHP=self.hitpoints
@@ -34,6 +34,14 @@ class PlayerObject(Target):
 
     def getFlag(self):
         return self.flag
+
+    def takeDammage(self, amount):
+        self.hitpoints-=amount
+        if self.hitpoints <= 0:
+            return True
+        else:
+            return False
+        
     
     def kill(self):
         self.isAlive = False        
