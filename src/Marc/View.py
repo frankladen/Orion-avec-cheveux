@@ -1371,6 +1371,7 @@ class View():
                 color = 'WHITE'
             elif self.game.players[self.game.playerId].isAlly(unit.owner):
                 color ='YELLOW'
+<<<<<<< HEAD
             else:
                 color ='RED'
             self.minimap.create_oval(x-unit.SIZE[unit.type][0]/8, y-unit.SIZE[unit.type][1]/8, x+unit.SIZE[unit.type][0]/8, y+unit.SIZE[unit.type][1]/8, fill=color, outline='black', tag='deletable')
@@ -1385,6 +1386,22 @@ class View():
                 color ='YELLOW'
             else:
                 color ='RED'
+=======
+            else:
+                color ='RED'
+            self.minimap.create_oval(x-unit.SIZE[unit.type][0]/8, y-unit.SIZE[unit.type][1]/8, x+unit.SIZE[unit.type][0]/8, y+unit.SIZE[unit.type][1]/8, fill=color, outline='black', tag='deletable')
+
+    def drawMiniGroundBuilding(self, building, planet):
+        if building.isAlive:
+            x = int(building.position[0] * 200 / planet.WIDTH)
+            y = int(building.position[1] * 200 / planet.HEIGHT)
+            if building.owner == self.game.playerId:
+                color = 'WHITE'
+            elif self.game.players[self.game.playerId].isAlly(building.owner):
+                color ='YELLOW'
+            else:
+                color ='RED'
+>>>>>>> 312e2df402d5adc207bd9b0334fd0acbd16b9671
             self.minimap.create_oval(x-building.SIZE[building.type][0]/8, y-building.SIZE[building.type][1]/8, x+building.SIZE[building.type][0]/8, y+building.SIZE[building.type][1]/8, fill=color, outline='black', tag='deletable')
 
     #Dessine la boite de selection lors du clic-drag	
