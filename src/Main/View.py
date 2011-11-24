@@ -843,7 +843,7 @@ class View():
                 self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='deletable')
             self.gameArea.create_image(distance[0], distance[1], image=self.gifGroundAttackUnit[color], tag='deletable')
         elif isinstance(unit, GroundBuilderUnit):
-            self.gameArea.create_polygon(distance[0]-unit.SIZE[unit.type][0]/2, distance[1]+unit.SIZE[unit.type][1]/2, distance[0], distance[1]-unit.SIZE[unit.type][1]/2, distance[0]+unit.SIZE[unit.type][0]/2, distance[1]+unit.SIZE[unit.type][1]/2, fill='blue', tag='deletable')
+            self.gameArea.create_image(distance[0], distance[1], image=self.groundBuilders[color], tag='deletable')
         if unit.hitpoints <= 5:
             self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
 
