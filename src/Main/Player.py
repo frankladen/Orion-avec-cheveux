@@ -145,7 +145,22 @@ class Player():
             if isinstance(self.selectedObjects[0], u.Unit):
                 return self.selectedObjects[0]
         return None
-    
+
+    def getShipToUnload (self):
+        planet = self.currentPlanet
+        print(planet)
+        if planet != None:
+            zone = planet.getLandingSpot(self.id)
+            print(zone)
+            if zone != None:
+                if zone in self.selectedObjects:
+                    ship = zone.LandedShip
+                    print(ship)
+                    if ship != None:
+                        return zone
+                        print(zone)
+        return None
+        
     def rightClic(self, pos, playerId):
         if self.isAlive:
             if self.isAlly(playerId) == False or playerId == self.id:
@@ -356,8 +371,10 @@ class Player():
     def makeUnitLand(self, unitId, planet):
         self.units[unitId].changeFlag(planet, FlagState.LAND)
 
-    def makeUnitLoad(self, unit, landingZone):
-        unit.changeFlag(landingZone, FlagState.LOAD)
+    def makeUnitLoad(self, units, landingZone):
+        for i in units:
+            if i != '':
+                self.units[int(i)].changeFlag(landingZone, FlagState.LOAD)
     
     def makeUnitsGather(self, units, astroObject):
         for i in units:
@@ -605,16 +622,16 @@ class Camera():
         if self.player.currentPlanet == None:
             if 'LEFT' in self.movingDirection:
                 if self.position[0] > (self.galaxy.width*-1)/2+self.screenCenter[0]:
-                    self.position[0]-=10
+                    self.position[0]-=20
             elif 'RIGHT' in self.movingDirection:
                 if self.position[0] < self.galaxy.width/2 - self.screenCenter[0]:
-                    self.position[0]+=10
+                    self.position[0]+=20
             if 'UP' in self.movingDirection:
                 if self.position[1] > (self.galaxy.height*-1)/2 + self.screenCenter[1]:
-                    self.position[1]-=10
+                    self.position[1]-=20
             elif 'DOWN' in self.movingDirection:
                 if self.position[1] < self.galaxy.height/2 - self.screenCenter[1]:
-                    self.position[1]+=10
+                    self.position[1]+=20
         else:
             planet = self.player.currentPlanet
             if 'LEFT' in self.movingDirection:

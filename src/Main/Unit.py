@@ -192,18 +192,16 @@ class GroundUnit(Unit):
             if self in game.players[self.owner].selectedObjects:
                 game.players[self.owner].selectedObjects.pop(game.players[self.owner].selectedObjects.index(self))
             self.flag.flagState = FlagState.STANDBY
+
 class GroundBuilderUnit(GroundUnit):
     def __init__(self, name, type, position, owner, planetId, sunId, isLanded = False):
         GroundUnit.__init__(self, name, type, position, owner, planetId, sunId, isLanded)
 
     def action(self, parent):
-        if self.isLanded:
-            if self.flag.flagState == FlagState.MOVE or self.flag.flagState == FlagState.GROUND_MOVE:
-                self.move()
-            elif self.flag.flagState == FlagState.PATROL:
-                unit = self.patrol()
-            elif self.flag.flagState == FlagState.BUILD:
-                self.build(self.flag.finalTarget, parent)
+        if self.flag.flagState == FlagState.BUILD:
+            self.build(self.flag.finalTarget, parent)
+        else:
+            GroundUnit.action(self, parent)
 
     def build(self, building, player):
         if Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1]) >= self.moveSpeed:
@@ -328,7 +326,6 @@ class GroundAttackUnit(GroundUnit):
         self.killCount = 0
 
     def action(self, parent):
-        print(self.flag.flagState)
         if self.isLanded:
             if self.flag.flagState == FlagState.ATTACK:
                 killedIndex = self.attack(parent.game.players)

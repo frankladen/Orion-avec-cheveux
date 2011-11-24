@@ -1587,6 +1587,9 @@ class View():
                     if i in self.game.players[self.game.playerId].selectedObjects:
                         self.game.setTakeOffFlag(i.LandedShip, planet)
 
+    def unload(self, eve):
+        self.game.unload()
+
     def clickActionMenu(self,eve):
         bp = (eve.widget.gettags(eve.widget.find_withtag('current')))
         if bp != ():
@@ -1693,6 +1696,8 @@ class View():
         self.gameArea.bind("c", self.selectAll)
         self.gameArea.bind("t", self.takeOff)
         self.gameArea.bind("T", self.takeOff)
+        self.gameArea.bind("u", self.unload)
+        self.gameArea.bind("U", self.unload)
         self.gameArea.bind("<KeyRelease-c>", self.unSelectAll)
         self.gameArea.bind("1", self.checkMotherShip)
         self.gameArea.bind("<Control_L>",self.ctrlPressed)

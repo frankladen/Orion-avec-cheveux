@@ -380,13 +380,30 @@ class Game():
 
     def setLoadFlag(self, unit, landingZone):
         units = ""
-        units += str(self.players[self.playerId].units.index(unit)) + ","
+        for i in unit:
+            if isinstance(i, u.GroundUnit):
+                units += str(self.players[self.playerId].units.index(i)) + ","
         self.parent.pushChange(units, Flag(unit, landingZone, FlagState.LOAD))
 
-    def loadUnit(self, unit, planet, playerId):
+    def loadUnit(self, units, planetId, sunId, playerId):
+        planet = self.galaxy.solarSystemList[sunId].planets[planetId]
         landingZone = planet.getLandingSpot(playerId)
         if landingZone != None:
-            self.players[playerId].makeUnitLoad(unit, landingZone)
+            self.players[playerId].makeUnitLoad(units, landingZone)
+
+    def unload(self):
+        zone = self.players[self.playerId].getShipToUnload()
+        if zone != None:
+            self.parent.pushChange(zone, 'UNLOAD')
+
+    def makeZoneUnload(self, zoneId, playerId, planetId, sunId):
+        landingZone = self.galaxy.solarSystemList[sunId].planets[planetId].landingZones[zoneId]
+        planet = self.galaxy.solarSystemList[sunId].planets[planetId]
+        units = landingZone.LandedShip.units
+        for i in units:
+            position = [landingZone.position[0] + 40, landingZone.position[1] + 5 * self.players[playerId].units.index(i)]
+            i.land(planet, position)
+        del landingZone.LandedShip.units[:]
 
     #Trade entre joueurs
     def setTradeFlag(self, item, playerId2, quantite):
@@ -579,7 +596,7 @@ class Game():
                                 if clickedObj.finished == False:
                                     self.resumeBuildingFlag(clickedObj)
                     if isinstance(clickedObj, w.LandingZone):
-                        self.setLoadFlag(unit, clickedObj)
+                        self.setLoadFlag(self.players[self.playerId].selectedObjects, clickedObj)
                 else:
                     self.setGroundMovingFlag(pos[0], pos[1])
                 
