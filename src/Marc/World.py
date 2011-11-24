@@ -455,3 +455,15 @@ class LandingZone(PlayerObject):
             if position[1] > self.position[1]-self.HEIGHT/2 and position[1] < self.position[1]+self.HEIGHT/2:
                 return self
         return None
+
+    def takeDammage(self, amount, players):
+        if self.LandedShip != None:
+            if self.LandedShip.takeDammage(amount, game):
+               killedOwner = self.ownerId
+               index = players[self.ownerId].index(self.LandedShip)
+               players[self.ownerId].killUnit(index, killedOwner, False)
+        else:
+            self.hitpoints -= amount
+            if self.hitpoints <= 0:
+                return True
+        return False

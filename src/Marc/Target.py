@@ -35,7 +35,7 @@ class PlayerObject(Target):
     def getFlag(self):
         return self.flag
 
-    def takeDammage(self, amount):
+    def takeDammage(self, amount, game):
         self.hitpoints -= amount
         if self.hitpoints <= 0:
             return True
