@@ -148,17 +148,13 @@ class Player():
 
     def getShipToUnload (self):
         planet = self.currentPlanet
-        print(planet)
         if planet != None:
             zone = planet.getLandingSpot(self.id)
-            print(zone)
             if zone != None:
                 if zone in self.selectedObjects:
                     ship = zone.LandedShip
-                    print(ship)
                     if ship != None:
                         return zone
-                        print(zone)
         return None
         
     def rightClic(self, pos, playerId):
