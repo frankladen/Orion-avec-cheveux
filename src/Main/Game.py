@@ -557,7 +557,8 @@ class Game():
                     elif unit.type == unit.SCOUT:
                         if isinstance(clickedObj, Waypoint):
                             if clickedObj.owner == self.playerId:
-                                self.resumeBuildingFlag(clickedObj)
+                                if clickedObj.finished == False:
+                                    self.resumeBuildingFlag(clickedObj)
                 else:
                     self.setMovingFlag(pos[0], pos[1])
         else:
@@ -572,6 +573,11 @@ class Game():
                         if isinstance(clickedObj, u.Unit) or isinstance(clickedObj, Building):
                             if clickedObj.owner != self.playerId:
                                 self.setAttackFlag(clickedObj)
+                    elif unit.type == unit.GROUND_BUILDER_UNIT:
+                        if isinstance(clickedObj, Building):
+                            if clickedObj.owner == self.playerId:
+                                if clickedObj.finished == False:
+                                    self.resumeBuildingFlag(clickedObj)
                     if isinstance(clickedObj, w.LandingZone):
                         self.setLoadFlag(unit, clickedObj)
                 else:
