@@ -95,7 +95,15 @@ class Player():
 
     def selectObject(self, playerObj, multi):
         if playerObj != None and playerObj not in self.selectedObjects:
-            if playerObj.owner == self.id:
+            #Si on selectionne une unité
+            if isinstance(playerObj, u.Unit):
+                if playerObj.owner == self.id:
+                    if not multi:
+                        self.selectedObjects = [playerObj]
+                    else:
+                        self.selectedObjects.append(playerObj)
+            #Sinon, si on selectionne autre chose
+            else:
                 if not multi:
                     self.selectedObjects = [playerObj]
                 else:
