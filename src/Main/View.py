@@ -84,6 +84,7 @@ class View():
         self.gifTriangle = PhotoImage(file='images/icones/iconeFormationTriangle.gif')
         self.gifSquare = PhotoImage(file='images/icones/iconeFormationCarre.gif')
         self.gifReturn = PhotoImage(file='images/icones/return.gif')
+        self.laserColors = ['#ff7733','#ee0022','#1144ff','#009911','#ffff00','#993300','#ffffff','#cc00cc']
         #fenetres
         self.mainMenu = self.fMainMenu()
         self.mainMenu.pack()
@@ -842,7 +843,7 @@ class View():
         elif isinstance(unit, GroundAttackUnit):
             if unit.attackcount <= 5 and unit.flag.flagState == FlagState.ATTACK:
                 d2 = self.game.players[self.game.playerId].camera.calcDistance(unit.flag.finalTarget.position)
-                self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='deletable')
+                self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill=self.laserColors[color], tag='deletable')
             self.gameArea.create_image(distance[0], distance[1], image=self.gifGroundAttackUnit[color], tag='deletable')
         elif isinstance(unit, GroundBuilderUnit):
             self.gameArea.create_image(distance[0], distance[1], image=self.groundBuilders[color], tag='deletable')
@@ -1057,7 +1058,7 @@ class View():
                 if unit.type == unit.ATTACK_SHIP: 
                     if unit.attackcount <= 5 and unit.flag.flagState == FlagState.ATTACK:
                         d2 = self.game.players[self.game.playerId].camera.calcDistance(unit.flag.finalTarget.position)
-                        self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='deletable')
+                        self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill=self.laserColors[player.colorId], tag='deletable')
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0], distance[1], image=self.attackShips[player.colorId], tag='deletable')#On prend l'image dependamment du joueur que nous sommes

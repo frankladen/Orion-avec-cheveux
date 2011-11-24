@@ -494,10 +494,10 @@ class Game():
     def attackEnemyInRange(self, unit, unitToAttack):
         killedIndex = unit.attack(self.players, unitToAttack)
         if unit.attackcount <= 5:
-            print("attaque")
             distance = self.players[self.playerId].camera.calcDistance(unit.position)
             d2 = self.players[self.playerId].camera.calcDistance(unitToAttack.position)
-            self.parent.view.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='enemyRange')
+            color = self.parent.view.laserColors[self.players[unit.owner].colorId]
+            self.parent.view.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill=color, tag='enemyRange')
         if killedIndex[0] > -1:
             self.players[killedIndex[1]].killUnit(killedIndex)
     
