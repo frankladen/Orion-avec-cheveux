@@ -10,6 +10,7 @@ class Building(t.PlayerObject):
     BARRACK=2
     FARM=3
     TURRET=4
+    NAME = ("Point ralliement", "Raffinerie", "Barraque", "Ferme", "Tourette")
     SIZE =((30,30),(0,0),(0,0),(75,59),(32,32))
     INSPACE = (True,False,False,False,True)
     COST = ((50,50),(0,0),(0,0),(50,50),(50,50))
@@ -17,8 +18,8 @@ class Building(t.PlayerObject):
     MAX_HP = (150,0,0,200,200)
     VIEW_RANGE=(200, 0, 0, 100, 250)
     
-    def __init__(self, name,type, position, owner):
-        t.PlayerObject.__init__(self, name,type, position, owner)
+    def __init__(self,type, position, owner):
+        t.PlayerObject.__init__(self, self.NAME[type], type, position, owner)
         self.buildingTimer = 0
         self.hitpoints = self.MAX_HP[type]
         self.finished = False
@@ -30,17 +31,24 @@ class Building(t.PlayerObject):
                     return self
         return None
 
+    def selectIcon(self, startPos, endPos):
+        if self.isAlive:
+            if self.position[0] > startPos[0] - self.SIZE[self.type][0]/2 and self.position[0] < endPos[0] + self.SIZE[self.type][0]/2:
+                if self.position[1] > startPos[1] - self.SIZE[self.type][1]/2 and  self.position[1] < endPos[1] + self.SIZE[self.type][1]/2:
+                    return self
+        return None
+
 class SpaceBuilding(Building):
-    def __init__(self, name, type, position, owner):
-        Building.__init__(self, name, type, position, owner)
+    def __init__(self, type, position, owner):
+        Building.__init__(self, type, position, owner)
 
 class Waypoint(Building):
-    def __init__(self, name, type, position, owner):
-        SpaceBuilding.__init__(self, name, type, position, owner)
+    def __init__(self, type, position, owner):
+        SpaceBuilding.__init__(self, type, position, owner)
         
 class Turret(Building):
-    def __init__(self, name, type, position, owner):
-        SpaceBuilding.__init__(self, name, type, position, owner)
+    def __init__(self, type, position, owner):
+        SpaceBuilding.__init__(self, type, position, owner)
         self.range=200
         self.AttackSpeed=12
         self.AttackDamage=6
@@ -77,14 +85,14 @@ class Turret(Building):
             return (-1, -1, isBuilding)
 
 class GroundBuilding(Building):
-    def __init__(self, name, type, position, owner, sunId, planetId):
-        Building.__init__(self, name, type, position, owner)
+    def __init__(self, type, position, owner, sunId, planetId):
+        Building.__init__(self, type, position, owner)
         self.sunId = sunId
         self.planetId = planetId
 
 class Farm(Building):
-    def __init__(self, name, type, position, owner, sunId, planetId):
-        GroundBuilding.__init__(self, name, type, position, owner, sunId, planetId)
+    def __init__(self, type, position, owner, sunId, planetId):
+        GroundBuilding.__init__(self, type, position, owner, sunId, planetId)
         
         
         

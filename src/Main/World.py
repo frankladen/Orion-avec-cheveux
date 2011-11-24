@@ -179,6 +179,22 @@ class SolarSystem():
                             break
             self.asteroids.append(AstronomicalObject('asteroid', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY),i,self))
 
+    def over(self, positionStart, positionEnd):
+        if positionEnd[0] > self.sunPosition[0] - self.SUN_WIDTH/2 and positionStart[0] < self.sunPosition[0] + self.SUN_WIDTH/2:
+            if positionEnd[1] > self.sunPosition[1] - self.SUN_HEIGHT/2 and positionStart[1] < self.sunPosition[1] + self.SUN_HEIGHT/2:
+                return True
+        for i in self.planets:
+            if i.over(positionStart, positionEnd):
+                return True
+        for i in self.nebulas:
+            if i.overNebula(positionStart, positionEnd):
+                return True
+        for i in self.asteroids:
+            if i.overAsteroid(positionStart, positionEnd):
+                return True
+        return False
+            
+    
     def select(self, position):
         clickedObj = None
         for i in self.planets:
@@ -219,6 +235,16 @@ class AstronomicalObject(Target):
         elif type == 'asteroid':
             self.mineralQte = random.randrange(self.MAX_MINERALS/2, self.MAX_MINERALS)
             self.gazQte = 0 
+
+    def overNebula(self, positionStart, positionEnd):
+        if positionEnd[0] > self.position[0] - self.NEBULA_WIDTH/2 and positionStart[0] < self.position[0] + self.NEBULA_WIDTH/2:
+            if positionEnd[1] > self.position[1] - self.NEBULA_HEIGHT/2 and positionStart[1] < self.position[1] + self.NEBULA_HEIGHT/2:
+                return True
+
+    def overAsteroid(self, positionStart, positionEnd):
+        if positionEnd[0] > self.position[0] - self.ASTEROID_WIDTH/2 and positionStart[0] < self.position[0] + self.ASTEROID_WIDTH/2:
+            if positionEnd[1] > self.position[1] - self.ASTEROID_HEIGHT/2 and positionStart[1] < self.position[1] + self.ASTEROID_HEIGHT/2:
+                return True
             
     def selectNebula(self, position):
         if position[0] >= self.position[0]-self.NEBULA_WIDTH/2 and position[0] <= self.position[0]+self.NEBULA_WIDTH/2:
@@ -362,6 +388,27 @@ class Planet(Target):
                 return self
         return None
     
+    def over(self, positionStart, positionEnd):
+        if positionEnd[0] > self.position[0] - self.IMAGE_WIDTH/2 and positionStart[0] < self.position[0] + self.IMAGE_WIDTH/2:
+            if positionEnd[1] > self.position[1] - self.IMAGE_HEIGHT/2 and positionStart[1] < self.position[1] + self.IMAGE_HEIGHT/2:
+                return True
+        return False
+
+    def groundOver(self, positionStart, positionEnd):
+        for i in self.minerals:
+            if i.over(positionStart, positionEnd):
+                return True
+        for i in self.gaz:
+            if i.over(positionStart, positionEnd):
+                return True
+        for i in self.landingZones:
+            if i.over(positionStart, positionEnd):
+                return True
+        if self.nuclearSite != None:
+            if self.nuclearSite.over(positionStart, positionEnd):
+                return True
+        return False
+
     def groundSelect(self, position):
         for i in self.landingZones:
             landing = i.select(position)
@@ -399,6 +446,12 @@ class MineralStack(Target):
         self.id = id
         self.planetId = planetId
         self.sunId = sunId
+
+    def over(self, positionStart, positionEnd):
+        if positionEnd[0] > self.position[0] - self.WIDTH/2 and positionStart[0] < self.position[0] + self.WIDTH/2:
+            if positionEnd[1] > self.position[1] - self.HEIGHT/2 and positionStart[1] < self.position[1] + self.HEIGHT/2:
+                return True
+        return False
         
     def select(self, position):
         if position[0] > self.position[0] - self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:
@@ -418,6 +471,12 @@ class GazStack(Target):
         self.sunId = sunId
         self.state = 0
 
+    def over(self, positionStart, positionEnd):
+        if positionEnd[0] > self.position[0] - self.WIDTH/2 and positionStart[0] < self.position[0] + self.WIDTH/2:
+            if positionEnd[1] > self.position[1] - self.HEIGHT/2 and positionStart[1] < self.position[1] + self.HEIGHT/2:
+                return True
+        return False
+
     def select(self, position):
         if position[0] > self.position[0]-self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:
             if position[1] > self.position[1]-self.HEIGHT/2 and position[1] < self.position[1]+self.HEIGHT/2:
@@ -432,6 +491,12 @@ class NuclearSite(Target):
         self.nbRessource = 1
         self.planetId = planetId
         self.sunId = sunId
+
+    def over(self, positionStart, positionEnd):
+        if positionEnd[0] > self.position[0] - self.WIDTH/2 and positionStart[0] < self.position[0] + self.WIDTH/2:
+            if positionEnd[1] > self.position[1] - self.HEIGHT/2 and positionStart[1] < self.position[1] + self.HEIGHT/2:
+                return True
+        return False
 
     def select(self, position):
         if self.position[0] > position[0] - self.WIDTH/2 and self.position[0] < position[0] + self.WIDTH/2:
@@ -450,8 +515,26 @@ class LandingZone(PlayerObject):
         self.planetId = planetId
         self.sunId = sunId
 
+    def over(self, positionStart, positionEnd):
+        if positionEnd[0] > self.position[0] - self.WIDTH/2 and positionStart[0] < self.position[0] + self.WIDTH/2:
+            if positionEnd[1] > self.position[1] - self.HEIGHT/2 and positionStart[1] < self.position[1] + self.HEIGHT/2:
+                return True
+        return False
+
     def select(self, position):
         if position[0] > self.position[0]-self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:
             if position[1] > self.position[1]-self.HEIGHT/2 and position[1] < self.position[1]+self.HEIGHT/2:
                 return self
         return None
+
+    def takeDammage(self, amount, players):
+        if self.LandedShip != None:
+            if self.LandedShip.takeDammage(amount, game):
+               killedOwner = self.ownerId
+               index = players[self.ownerId].index(self.LandedShip)
+               players[self.ownerId].killUnit(index, killedOwner, False)
+        else:
+            self.hitpoints -= amount
+            if self.hitpoints <= 0:
+                return True
+        return False

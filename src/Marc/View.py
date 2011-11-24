@@ -84,6 +84,7 @@ class View():
         self.gifTriangle = PhotoImage(file='images/icones/iconeFormationTriangle.gif')
         self.gifSquare = PhotoImage(file='images/icones/iconeFormationCarre.gif')
         self.gifReturn = PhotoImage(file='images/icones/return.gif')
+        self.laserColors = ['#ff7733','#ee0022','#1144ff','#009911','#ffff00','#993300','#ffffff','#cc00cc']
         #fenetres
         self.mainMenu = self.fMainMenu()
         self.mainMenu.pack()
@@ -608,6 +609,7 @@ class View():
             self.drawFirstLine = ""
             self.drawSecondLine = ""
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le lieu où la construction du bâtiment va s'effectuer.",anchor = NW, fill = 'white', width = 200)
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.TECHNOLOGY_TREE_MENU):
             self.drawFirstLine = ""
             self.drawSecondLine = ""
@@ -869,11 +871,11 @@ class View():
         elif isinstance(unit, GroundAttackUnit):
             if unit.attackcount <= 5 and unit.flag.flagState == FlagState.ATTACK:
                 d2 = self.game.players[self.game.playerId].camera.calcDistance(unit.flag.finalTarget.position)
-                self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='deletable')
+                self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill=self.laserColors[color], tag='deletable')
             self.gameArea.create_image(distance[0], distance[1], image=self.gifGroundAttackUnit[color], tag='deletable')
         elif isinstance(unit, GroundBuilderUnit):
             self.gameArea.create_image(distance[0], distance[1], image=self.groundBuilders[color], tag='deletable')
-        if unit.hitpoints <= 5:
+        if unit.hitpoints <= 15:
             self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
 
     def drawBuildingGround(self, building, color):
@@ -885,7 +887,7 @@ class View():
                 self.gameArea.create_image(distance[0], distance[1], image=self.gifFarm[color], tag='deletable')
             else:
                 self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifConstruction,tag='deletable')
-        if building.hitpoints <= 5:
+        if building.hitpoints <= 15:
             self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
 
     def drawPlanetBackground(self):
@@ -1050,7 +1052,7 @@ class View():
                         self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifTurret[player.colorId],tag='deletable')
                 if building in player.selectedObjects:
                     self.gameArea.create_rectangle(distance[0]-(building.SIZE[building.type][0]/2),distance[1]-(building.SIZE[building.type][1]/2),distance[0]+(building.SIZE[building.type][0]/2),distance[1]+(building.SIZE[building.type][1]/2), outline="green", tag='deletable') 
-                if building.hitpoints <= 5:
+                if building.hitpoints <= 15:
                     self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
                 if self.hpBars:
                     self.drawHPBars(distance, building)
@@ -1061,14 +1063,16 @@ class View():
         buildingPos = self.game.players[self.game.playerId].camera.calcPointInWorld(self.positionMouse[0], self.positionMouse[1])
         distance = self.game.players[self.game.playerId].camera.calcDistance(buildingPos)
         building = self.buildingToBuild
+        if self.game.checkIfCanBuild(buildingPos, building):
+            color = "green"
+        else:
+            color = "red"
+        self.gameArea.create_rectangle(distance[0]-b.Building.SIZE[building][0]/2, distance[1]-b.Building.SIZE[building][1]/2, distance[0]+b.Building.SIZE[building][0]/2, distance[1]+b.Building.SIZE[building][1]/2, fill=color, outline="lightgray", tag='deletable')
         if building == b.Building.WAYPOINT:
-            self.gameArea.create_rectangle(distance[0]-b.Building.SIZE[building][0]/2, distance[1]-b.Building.SIZE[building][1]/2, distance[0]+b.Building.SIZE[building][0]/2, distance[1]+b.Building.SIZE[building][1]/2, fill='green', tag='deletable')
             self.gameArea.create_image(distance[0], distance[1], image=self.waypoints[self.game.players[self.game.playerId].colorId], tag='deletable')
         elif building == b.Building.TURRET:
-            self.gameArea.create_rectangle(distance[0]-b.Building.SIZE[building][0]/2, distance[1]-b.Building.SIZE[building][1]/2, distance[0]+b.Building.SIZE[building][0]/2, distance[1]+b.Building.SIZE[building][1]/2, fill='green', tag='deletable')
             self.gameArea.create_image(distance[0], distance[1], image=self.gifTurret[self.game.players[self.game.playerId].colorId], tag='deletable')
         elif building == b.Building.FARM:
-            self.gameArea.create_rectangle(distance[0]-b.Building.SIZE[building][0]/2, distance[1]-b.Building.SIZE[building][1]/2, distance[0]+b.Building.SIZE[building][0]/2, distance[1]+b.Building.SIZE[building][1]/2, fill='green', tag='deletable')
             self.gameArea.create_image(distance[0], distance[1], image=self.gifFarm[self.game.players[self.game.playerId].colorId], tag='deletable')
  
 	#pour dessiner un vaisseau        
@@ -1084,7 +1088,7 @@ class View():
                 if unit.type == unit.ATTACK_SHIP: 
                     if unit.attackcount <= 5 and unit.flag.flagState == FlagState.ATTACK:
                         d2 = self.game.players[self.game.playerId].camera.calcDistance(unit.flag.finalTarget.position)
-                        self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='deletable')
+                        self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill=self.laserColors[player.colorId], tag='deletable')
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0], distance[1], image=self.attackShips[player.colorId], tag='deletable')#On prend l'image dependamment du joueur que nous sommes
@@ -1101,7 +1105,7 @@ class View():
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0], distance[1], image = self.gatherShips[player.colorId], tag='deletable')
-                if unit.hitpoints <= 5:
+                if unit.hitpoints <= 15:
                     self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
                 if self.hpBars:
                     self.drawHPBars(distance, unit)
@@ -1238,6 +1242,8 @@ class View():
                 self.drawMiniLandingZone(i, planet)
             for i in planet.units:
                 self.drawMiniGroundUnit(i, planet)
+            for i in planet.buildings:
+                self.drawMiniGroundBuilding(i, planet)
             if planet.nuclearSite != None:
                 self.drawMiniNuclear(planet.nuclearSite, planet)
         self.drawMiniFOV()
@@ -1344,9 +1350,12 @@ class View():
         x = int(zone.position[0] * 200 / planet.WIDTH)
         y = int(zone.position[1] * 200 / planet.HEIGHT)
         if zone.ownerId == self.game.playerId:
-            self.minimap.create_rectangle(x-zone.WIDTH/8, y-zone.HEIGHT/8, x+zone.WIDTH/8, y+zone.HEIGHT/8, fill='WHITE')
+                color = 'WHITE'
+        elif self.game.players[self.game.playerId].isAlly(zone.ownerId):
+            color ='YELLOW'
         else:
-            self.minimap.create_rectangle(x-zone.WIDTH/8, y-zone.HEIGHT/8, x+zone.WIDTH/8, y+zone.HEIGHT/8, fill='RED')
+            color ='RED'
+        self.minimap.create_rectangle(x-zone.WIDTH/8, y-zone.HEIGHT/8, x+zone.WIDTH/8, y+zone.HEIGHT/8, fill=color)
 
     def drawMiniNuclear(self, site, planet):
         if site.nbRessource > 0:
@@ -1359,9 +1368,24 @@ class View():
             x = int(unit.position[0] * 200 / planet.WIDTH)
             y = int(unit.position[1] * 200 / planet.HEIGHT)
             if unit.owner == self.game.playerId:
-                self.minimap.create_oval(x-unit.SIZE[unit.type][0]/8, y-unit.SIZE[unit.type][1]/8, x+unit.SIZE[unit.type][0]/8, y+unit.SIZE[unit.type][1]/8, fill='WHITE', outline='black', tag='deletable')
+                color = 'WHITE'
+            elif self.game.players[self.game.playerId].isAlly(unit.owner):
+                color ='YELLOW'
             else:
-                self.minimap.create_oval(x-unit.SIZE[unit.type][0]/8, y-unit.SIZE[unit.type][1]/8, x+unit.SIZE[unit.type][0]/8, y+unit.SIZE[unit.type][1]/8, fill='RED', outline='black', tag='deletable')
+                color ='RED'
+            self.minimap.create_oval(x-unit.SIZE[unit.type][0]/8, y-unit.SIZE[unit.type][1]/8, x+unit.SIZE[unit.type][0]/8, y+unit.SIZE[unit.type][1]/8, fill=color, outline='black', tag='deletable')
+
+    def drawMiniGroundBuilding(self, building, planet):
+        if building.isAlive:
+            x = int(building.position[0] * 200 / planet.WIDTH)
+            y = int(building.position[1] * 200 / planet.HEIGHT)
+            if building.owner == self.game.playerId:
+                color = 'WHITE'
+            elif self.game.players[self.game.playerId].isAlly(building.owner):
+                color ='YELLOW'
+            else:
+                color ='RED'
+            self.minimap.create_oval(x-building.SIZE[building.type][0]/8, y-building.SIZE[building.type][1]/8, x+building.SIZE[building.type][0]/8, y+building.SIZE[building.type][1]/8, fill=color, outline='black', tag='deletable')
 
     #Dessine la boite de selection lors du clic-drag	
     def drawSelectionBox(self):
@@ -1613,6 +1637,9 @@ class View():
                     if i in self.game.players[self.game.playerId].selectedObjects:
                         self.game.setTakeOffFlag(i.LandedShip, planet)
 
+    def unload(self, eve):
+        self.game.unload()
+
     def clickActionMenu(self,eve):
         bp = (eve.widget.gettags(eve.widget.find_withtag('current')))
         if bp != ():
@@ -1662,6 +1689,11 @@ class View():
                 self.actionMenuType = self.TECHTREE_MOTHERSHIP_MENU
             elif (Button_pressed == "Button_Return"):
                 self.actionMenuType = self.MAIN_MENU
+                self.isSettingPatrolPosition = False
+                self.isSettingRallyPointPosition = False
+                self.isSettingMovePosition = False
+                self.isSettingAttackPosition = False
+                self.isSettingBuildingPosition = False
             elif (Button_pressed == "Button_Build_Scout"):
                 self.game.addUnit(Unit.SCOUT)
             elif (Button_pressed == "Button_Build_Attack"):
@@ -1749,6 +1781,8 @@ class View():
         self.gameArea.bind("c", self.selectAll)
         self.gameArea.bind("t", self.takeOff)
         self.gameArea.bind("T", self.takeOff)
+        self.gameArea.bind("u", self.unload)
+        self.gameArea.bind("U", self.unload)
         self.gameArea.bind("<KeyRelease-c>", self.unSelectAll)
         self.gameArea.bind("1", self.checkMotherShip)
         self.gameArea.bind("<Control_L>",self.ctrlPressed)

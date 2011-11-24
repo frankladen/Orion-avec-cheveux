@@ -260,6 +260,9 @@ class Controller():
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag[2])+"/"+str(flag[0])+","+str(flag[1])
             else:
                 actionString = str(self.game.playerId)+"/"+playerObject+"/"+flag[0]+"/"+flag[1]
+        elif isinstance(flag, str):
+            if flag == 'UNLOAD':
+                actionString = str(self.game.playerId)+"/"+str(playerObject.id)+"/"+flag+"/"+str(playerObject.planetId)+","+str(playerObject.sunId)
         self.server.addChange(actionString)
     
     def pullChange(self):
@@ -332,11 +335,13 @@ class Controller():
                 cam.placeOverPlanet()
                 self.view.changeBackground('GALAXY')
 
+        elif action == 'UNLOAD':
+            target = target.split(',')
+            self.game.makeZoneUnload(int(unitIndex[0]), actionPlayerId, int(target[0]), int(target[1]))
+
         elif action == str(FlagState.LOAD):
             target = target.split(',')
-            unit = self.game.players[actionPlayerId].units[int(unitIndex[0])]
-            planet = self.game.galaxy.solarSystemList[int(target[2])].planets[int(target[1])]
-            self.game.loadUnit(unit, planet, actionPlayerId)
+            self.game.loadUnit(unitIndex, int(target[1]), int(target[2]), actionPlayerId)
                 
         elif action == str(FlagState.GATHER):
             target = target.split(',')
