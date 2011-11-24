@@ -19,7 +19,7 @@ class Building(t.PlayerObject):
     VIEW_RANGE=(200, 0, 0, 100, 250)
     
     def __init__(self,type, position, owner):
-        t.PlayerObject.__init__(self,type, position, owner)
+        t.PlayerObject.__init__(self, self.NAME[type], type, position, owner)
         self.buildingTimer = 0
         self.hitpoints = self.MAX_HP[type]
         self.finished = False
@@ -28,6 +28,13 @@ class Building(t.PlayerObject):
         if self.isAlive:
             if self.position[0] >= position[0] - self.SIZE[self.type][0]/2 and self.position[0] <= position[0] + self.SIZE[self.type][0]/2:
                 if self.position[1] >= position[1] - self.SIZE[self.type][1]/2 and self.position[1] <= position[1] + self.SIZE[self.type][1]/2:
+                    return self
+        return None
+
+    def selectIcon(self, startPos, endPos):
+        if self.isAlive:
+            if self.position[0] > startPos[0] - self.SIZE[self.type][0]/2 and self.position[0] < endPos[0] + self.SIZE[self.type][0]/2:
+                if self.position[1] > startPos[1] - self.SIZE[self.type][1]/2 and  self.position[1] < endPos[1] + self.SIZE[self.type][1]/2:
                     return self
         return None
 

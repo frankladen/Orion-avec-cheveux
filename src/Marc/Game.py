@@ -55,22 +55,23 @@ class Game():
     def buildBuilding(self, playerId, target, flag, unitIndex, type, sunId=0, planetId=0):
         #Condition de construction
         wp = None
-        if self.players[playerId].ressources[0] >= Building.COST[type][0] and self.players[playerId].ressources[1] >= Building.COST[type][1]:
-            self.players[playerId].ressources[0] -= Building.COST[type][0]
-            self.players[playerId].ressources[1] -= Building.COST[type][1]
-            if type == Building.WAYPOINT:
-                wp = Waypoint('Waypoint', Building.WAYPOINT, [target[0],target[1],0], playerId)
-            elif type == Building.TURRET:
-                wp = Turret('Turret', Building.TURRET, [target[0],target[1],0], playerId)
-            elif type == Building.FARM:
-                wp = Farm('Farm', Building.FARM, [target[0],target[1],0], playerId, sunId, planetId)
-                wp.planet = self.galaxy.solarSystemList[sunId].planets[planetId]
-                self.galaxy.solarSystemList[sunId].planets[planetId].buildings.append(wp)
-        if wp != None:
-            self.players[playerId].buildings.append(wp)
-            for i in unitIndex:
-                if i != '':
-                    self.players[playerId].units[int(i)].changeFlag(wp,flag)
+        if self.checkIfCanBuild((target[0], target[1],0), type):
+            if self.players[playerId].ressources[0] >= Building.COST[type][0] and self.players[playerId].ressources[1] >= Building.COST[type][1]:
+                self.players[playerId].ressources[0] -= Building.COST[type][0]
+                self.players[playerId].ressources[1] -= Building.COST[type][1]
+                if type == Building.WAYPOINT:
+                    wp = Waypoint(Building.WAYPOINT, [target[0],target[1],0], playerId)
+                elif type == Building.TURRET:
+                    wp = Turret(Building.TURRET, [target[0],target[1],0], playerId)
+                elif type == Building.FARM:
+                    wp = Farm(Building.FARM, [target[0],target[1],0], playerId, sunId, planetId)
+                    wp.planet = self.galaxy.solarSystemList[sunId].planets[planetId]
+                    self.galaxy.solarSystemList[sunId].planets[planetId].buildings.append(wp)
+            if wp != None:
+                self.players[playerId].buildings.append(wp)
+                for i in unitIndex:
+                    if i != '':
+                        self.players[playerId].units[int(i)].changeFlag(wp,flag)
 
     def resumeBuildingFlag(self,building):
         units = ''
@@ -509,7 +510,30 @@ class Game():
                         break
                                         
     def attackEnemyInRange(self, unit, unitToAttack):
-        unit.changeFlag(unitToAttack, FlagState.ATTACK)
+        killedIndex = unit.attack(self.players, unitToAttack)
+        if unit.attackcount <= 5:
+            print("attaque")
+            distance = self.players[self.playerId].camera.calcDistance(unit.position)
+            d2 = self.players[self.playerId].camera.calcDistance(unitToAttack.position)
+            self.parent.view.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='enemyRange')
+        if killedIndex[0] > -1:
+            self.players[killedIndex[1]].killUnit(killedIndex)
+
+    def checkIfCanBuild(self, position, type):
+        start = (position[0]-(Building.SIZE[type][0]/2),position[1]-(Building.SIZE[type][1]/2),0)
+        end = (position[0]+(Building.SIZE[type][0]/2),position[1]+(Building.SIZE[type][1]/2),0)
+        for p in self.players:
+            for b in p.buildings:
+                if b.selectIcon(start, end) != None:
+                    return False
+        if self.getCurrentPlanet() == None:
+            for i in self.galaxy.solarSystemList:
+                if i.over(start, end):
+                    return False
+        else:
+            if self.getCurrentPlanet().groundOver(start, end):
+                return False
+        return True
     
     def selectUnitByType(self, typeId):
         self.players[self.playerId].selectUnitsByType(typeId)
