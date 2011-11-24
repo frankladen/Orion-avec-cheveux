@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 import Pyro4
 import socket
+import sys
 from time import time
 
 class ControleurServeur(object):
@@ -10,15 +11,19 @@ class ControleurServeur(object):
         self.gameIsStarted = False
         self.isStopped = True
         self.seed = int(time())
-        self.mess = ['Système de chat de Orion']
-        self.changeList = [] 
-        
+        self.mess = [[-1, 'Choisissez la couleur de votre battalion',False],[-1, '________________________________________________________________',False],[-1, 'Le but est détruire le vaisseau mère des autres équipes',False],[-1, 'en bâtissant votre propre battalion et en dominant.',False],[-1, '________________________________________________________________',False]]
+        self.changeList = []
+        self.readyPlayers = []
+        self.choiceColors = [["Orange", False], ["Rouge", False], ["Bleu", False], ["Vert", False], ["Jaune", False], ["Brun", False], ["Blanc", False], ["Rose", False]]
     
     def getSeed(self):
         return self.seed;
     
     def getSockets(self):
         return self.sockets
+
+    def getColorChoices(self):
+        return self.choiceColors
 
     def isGameStopped(self):
         return self.isStopped
@@ -31,74 +36,91 @@ class ControleurServeur(object):
         self.gameIsStarted = True
         self.isStopped = False
         #J'initie mon tableau de changements et de refreshes
-        #print("nombres de joueurs: "+str(self.getNumberOfPlayers()))
         for i in range(0, self.getNumberOfPlayers()):
             self.changeList.append([])
-            #print("changeList:"+self.changeList[i])
             self.refreshes.append(0)
+            self.readyPlayers.append(False)
     
-    def removePlayer(self, ip, login, playerId):
-        #self.sockets.remove([ip, login])
+    def removePlayer(self, login, playerId):
+        self.sockets[playerId][2] = True
         if playerId == 0:
-                self.isStopped = True
-                self.gameIsStarted = False
-                self.refreshes = []
-                self.changeList = []
-                self.mess = ['Système de chat de Orion']
-        #print(len(self.sockets))
+            self.isStopped = True
+            self.gameIsStarted = False
+            self.refreshes = []
+            self.changeList = []
+            self.sockets = []
+            self.readyPlayers = []
+            self.choiceColors = [["Orange", False], ["Rouge", False], ["Bleu", False], ["Vert", False], ["Jaune", False], ["Brun", False], ["Blanc", False], ["Rose", False]]
+            self.mess = [[-1, 'Choisissez la couleur de votre battalion',False],[-1, '________________________________________________________________',False],[-1, 'Le but est détruire le vaisseau mère des autres équipes',False],[-1, 'en bâtissant votre propre battalion et en dominant.',False],[-1, '________________________________________________________________',False]]
     
-    def addMessage(self, text, name):
-        self.mess.append(name+': '+text)
+    def addMessage(self, text, name, idPlayer, allies):
+        self.mess.append([idPlayer ,name+" : "+text,allies])
     
     def getMessage(self):
         return self.mess
         
     def addChange(self, change):
         #décider à quel frame effectuer l'action
+        #playerId = int(change.split("/")[0])
         change = change+'/'+str(self.decideActionRefresh())
         for ch in self.changeList:
             ch.append(change)
+  
+    def isThisColorChosen(self, colorName, playerId):
+        for i in range(0,len(self.choiceColors)):
+            if colorName == self.choiceColors[i][0]:
+                colorId = i
+        if self.choiceColors[colorId][1]:
+            return True
+        else:
+            if self.sockets[playerId][3] != -1:
+                self.choiceColors[self.sockets[playerId][3]][1] = False
+            self.sockets[playerId][3]=colorId
+            self.choiceColors[colorId][1] = True
+            return False
+
+    def firstColorNotChosen(self, playerId):
+        for i in self.choiceColors:
+            if i[1] == False:
+                i[1] = True
+                self.sockets[playerId][3] = self.choiceColors.index(i)
+                break
+        
+    def refreshPlayer(self, playerId, refresh):
+        self.refreshes[playerId] = refresh
     
     def decideActionRefresh(self):
         #décide à quel refresh les clients doivent effectuer la prochaine action
-        maxRefresh = max(self.refreshes)
-        return maxRefresh+5
+        return (max(self.refreshes)+2)
 
     def frameDifference(self):
         frameList = []
-        for player in self.sockets :
-            frameList.append(player.getRefresh)
-        
+        for refresh in self.refreshes :
+            frameList.append(refresh)
         #Je détermine le frame maximum et le frame minimum de tout les clients
         frameMax = max(frameList)
         frameMin = min(frameList)
-        
         return (frameMax-frameMin)
     
-    
     # Méthode qui détermine et isole les joueurs dont le frame courant est trop élevé par apport aux autres
-    #def playersTooDamnHigh(self):
-        #frameList = []
-        #for player in self.sockets :
-        #    frameList.append(player.getCurrentframe)
-        
-        #Je détermine le frame maximum et le frame minimum de tout les clients
-        #frameMax = max(frameList)
-        #frameMin = min(frameList)
-        
+    def amITooHigh(self, playerId):
+        refresh = []
+        #Je détermine le frame minimum de tout les clients
+        for r in range(len(self.refreshes)):
+            if self.sockets[r][2] != True:
+                refresh.append(self.refreshes[r])
+        frameMin = min(refresh)
         #Détermine si l'écart entre les joueurs est trop grand (15 étant une valeur arbitraire, destinée à être modifié)
-        #if frameMax - frameMin > 15:
-        #    playerMax = []
-            
-            #Je recherche et j'isole toute les occurences des joueurs ayant les frames les plus élevés
-        #   if frameList.count(frameMax > 1):
-        #       for i in frameList:
-        #           if i == frameMax:
-        #               playerMax.append(i)
-         
-        #   return playerMax
-        
-        # return 0
+        if self.refreshes[playerId] - frameMin > 5:
+            return (self.refreshes[playerId] - frameMin)*50
+        return 50
+
+    def isEveryoneReady(self, playerId):
+        self.readyPlayers[playerId]=True
+        for i in self.readyPlayers:
+            if i==False:
+                return False
+        return True
                 
     def getNumberOfPlayers(self):
         return len(self.sockets)
@@ -111,33 +133,32 @@ class ControleurServeur(object):
         #if self.playersTooDamnHigh().count(num) > 0 :
         #    change.append("*",self.frameDifference())
         return changes
-    
        
     def getNumSocket(self, login, ip):
-        n=0
-        for i in range(0,len(self.sockets)):
-            if self.sockets[i][0] == ip:
-                print('a trouver le meme socket que le precedent')
-                self.sockets[i]=(ip,login)
-                return i
-            n=n+1
-        print('ajoute le socket a la fin')
-        self.sockets.append((ip,login))
-        return n
+        if len(self.sockets) < 8:
+            for s in self.sockets:
+                if s[1].upper() == login.upper():
+                    return -1
+            self.sockets.append([ip,login,False, -1])
+            return len(self.sockets)-1
           
 
-# le processus qui ecoute les messages des clients
-adresse=socket.gethostbyname(socket.getfqdn())
-daemon = Pyro4.core.Daemon(host=adresse,port=54440) 
-# un objet ControleurServeur() dont les methodes peuvent etre invoquees, 
-# connu sous le nom de controleurServeur
-daemon.register(ControleurServeur(), "controleurServeur")  
- 
-# juste pour voir quelque chose sur la console du serveur
-print("Serveur Pyro actif sous le nom \'controleurServeur\' avec l'adresse "+adresse)
-
-#on demarre l'ecoute des requetes
-daemon.requestLoop()
+if len(sys.argv) > 1:
+    adresse = sys.argv[1]
+else:
+    adresse=socket.gethostbyname(socket.getfqdn())
+try:
+    daemon = Pyro4.core.Daemon(host=adresse,port=54400) 
+    # un objet ControleurServeur() dont les methodes peuvent etre invoquees, 
+    daemon.register(ControleurServeur(), "ServeurOrion")  
+     
+    # juste pour voir quelque chose sur la console du serveur
+    print("Serveur Pyro actif sous le nom \'ServeurOrion\' avec l'adresse "+adresse)
+    #on demarre l'ecoute des requetes
+    daemon.requestLoop()
+except socket.error:
+    print("erreur dans le serveur")
+    sys.exit(1)
 
 
         
