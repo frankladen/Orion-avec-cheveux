@@ -850,7 +850,7 @@ class View():
     def drawBuildingGround(self, building, color):
         distance = self.game.players[self.game.playerId].camera.calcDistance(building.position)
         if building in self.game.players[self.game.playerId].selectedObjects:
-            self.gameArea.create_oval(distance[0]-(building.SIZE[building.type][0]/2+3), distance[1]-(building.SIZE[building.type][1]/2+3), distance[0]+(building.SIZE[building.type][0]/2+3),distance[1]+(building.SIZE[building.type][1]/2+3),outline='green', tag='deletable')
+            self.gameArea.create_rectangle(distance[0]-(building.SIZE[building.type][0]/2+3), distance[1]-(building.SIZE[building.type][1]/2+3), distance[0]+(building.SIZE[building.type][0]/2+3),distance[1]+(building.SIZE[building.type][1]/2+3),outline='green', tag='deletable')
         if isinstance(building, b.Farm):
             if building.finished == True:
                 self.gameArea.create_image(distance[0], distance[1], image=self.gifFarm[color], tag='deletable')
