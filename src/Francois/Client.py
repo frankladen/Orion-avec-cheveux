@@ -199,7 +199,8 @@ class Controller():
                 buildingId = self.game.players[flag.finalTarget.owner].buildings.index(flag.finalTarget)
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(buildingId)   
             elif flag.flagState == FlagState.BUILD:
-                flag.finalTarget.position.append(flag.initialTarget)
+                for i in flag.initialTarget:
+                    flag.finalTarget.position.append(i)
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             elif flag.flagState == FlagState.CREATE:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState) + "/" + str(flag.finalTarget)
@@ -221,6 +222,11 @@ class Controller():
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget)
             elif flag.flagState == FlagState.BUY_TECH:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.initialTarget)
+            elif flag.flagState == FlagState.LOAD:
+                planetId = flag.finalTarget.planetId
+                solarId = flag.finalTarget.sunId
+                zoneId = flag.finalTarget.id
+                actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(zoneId)+","+str(planetId)+","+str(solarId)
             elif flag.flagState == FlagState.GATHER:
                 if isinstance(flag.finalTarget, w.AstronomicalObject):
                     if flag.finalTarget.type == 'nebula':
@@ -302,7 +308,10 @@ class Controller():
             
         elif action == str(FlagState.BUILD):
             target = self.changeToInt(self.stripAndSplit(target))
-            self.game.buildBuilding(actionPlayerId, target, int(action), unitIndex, int(target[3]))
+            if len(target) == 5:
+                self.game.buildBuilding(actionPlayerId, target, int(action), unitIndex, int(target[3]))
+            else:
+                self.game.buildBuilding(actionPlayerId, target, int(action), unitIndex, int(target[3]), int(target[4]), int(target[5]))
                         
         elif action == str(FlagState.ATTACK):
             target = target.split(",")
@@ -322,6 +331,12 @@ class Controller():
                 cam.position = [unit.position[0], unit.position[1]]
                 cam.placeOverPlanet()
                 self.view.changeBackground('GALAXY')
+
+        elif action == str(FlagState.LOAD):
+            target = target.split(',')
+            unit = self.game.players[actionPlayerId].units[int(unitIndex[0])]
+            planet = self.game.galaxy.solarSystemList[int(target[2])].planets[int(target[1])]
+            self.game.loadUnit(unit, planet, actionPlayerId)
                 
         elif action == str(FlagState.GATHER):
             target = target.split(',')
@@ -370,8 +385,11 @@ class Controller():
         self.view.root.destroy()
 
     def sendKillPlayer(self):
-        playerId = self.game.playerId
-        self.pushChange(playerId, Flag(playerId,playerId,FlagState.DESTROY_ALL))
+        if self.server:
+            playerId = self.game.playerId
+            self.pushChange(playerId, Flag(playerId,playerId,FlagState.DESTROY_ALL))
+        else:
+            self.view.root.destroy()
 
     #Enleve le joueur courant de la partie ainsi que ses units
     def removePlayer(self):

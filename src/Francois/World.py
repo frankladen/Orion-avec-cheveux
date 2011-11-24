@@ -2,6 +2,7 @@
 import random
 from Target import *
 import Unit as u
+import Building as b
 import math
 
 #Classe qui represente la galaxie en entier.
@@ -52,9 +53,9 @@ class Galaxy():
             x =(random.random()*self.width)-self.width/2
             y = (random.random()*self.height)-self.height/2
             find = True
-            if x < (self.width/2*-1)+u.Unit.SIZE[u.Unit.MOTHERSHIP][0] or x > self.width/2-u.Unit.SIZE[u.Unit.MOTHERSHIP][0]:
+            if x < (self.width/2*-1)+b.Building.SIZE[b.Building.MOTHERSHIP][0] or x > self.width/2-b.Building.SIZE[b.Building.MOTHERSHIP][0]:
                 find = False
-            if y < (self.height/2*-1)+u.Unit.SIZE[u.Unit.MOTHERSHIP][1] or y > self.height/2-u.Unit.SIZE[u.Unit.MOTHERSHIP][1]:
+            if y < (self.height/2*-1)+b.Building.SIZE[b.Building.MOTHERSHIP][1] or y > self.height/2-b.Building.SIZE[b.Building.MOTHERSHIP][1]:
                 find = False
             if find == True:
                 for i in self.solarSystemList:
@@ -254,6 +255,7 @@ class Planet(Target):
         self.nGazStack = nGazStack + 1
         self.landingZones = []
         self.units = []
+        self.buildings = []
         self.id = id
         self.solarSystem = solarSystem
         for i in range(0, self.nMineralStack):
@@ -362,28 +364,31 @@ class Planet(Target):
         return None
     
     def groundSelect(self, position):
-        clickedObj = None
         for i in self.landingZones:
             landing = i.select(position)
-            if landing != None and clickedObj == None:
-                clickedObj = landing
+            if landing != None:
+                return landing
         for i in self.minerals:
             mineral = i.select(position)
-            if mineral != None and clickedObj == None:
-                clickedObj = mineral
+            if mineral != None:
+                return mineral
         for i in self.gaz:
             gaz = i.select(position)
-            if gaz != None and clickedObj == None:
-                clickedObj = gaz
+            if gaz != None:
+                return gaz
         if self.nuclearSite != None:
             site = self.nuclearSite.select(position)
-            if site != None and clickedObj == None:
-                clickedObj = site
+            if site != None:
+                return site
         for i in self.units:
             unit = i.select(position)
-            if unit != None and clickedObj == None:
-                clickedObj = unit
-        return clickedObj
+            if unit != None:
+                return unit
+        for i in self.buildings:
+            building = i.select(position)
+            if building != None:
+                return building
+        return None
 
 class MineralStack(Target):
     WIDTH = 48
@@ -397,8 +402,8 @@ class MineralStack(Target):
         self.sunId = sunId
         
     def select(self, position):
-        if self.position[0] > position[0] - self.WIDTH/2 and self.position[0] < position[0]+self.WIDTH/2:
-            if self.position[1] > position[1] -self.HEIGHT/2 and self.position[1] < position[1]+self.HEIGHT/2:
+        if position[0] > self.position[0] - self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:
+            if position[1] > self.position[1] -self.HEIGHT/2 and position[1] < self.position[1]+self.HEIGHT/2:
                 return self
         return None
     
@@ -416,7 +421,7 @@ class GazStack(Target):
 
     def select(self, position):
         if position[0] > self.position[0]-self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:
-            if position[1] > self.position[1]-self.HEIGHT/2 and self.position[1] < position[1]+self.HEIGHT/2:
+            if position[1] > self.position[1]-self.HEIGHT/2 and position[1] < self.position[1]+self.HEIGHT/2:
                 return self
         return None
 
@@ -435,18 +440,3 @@ class NuclearSite(Target):
                 return self
         return None
 
-class LandingZone(PlayerObject):
-    WIDTH = 75
-    HEIGHT = 75
-    def __init__(self, position, ownerId, landingShip, id, planetId, sunId):
-        PlayerObject.__init__(self, u.Unit.LANDING_ZONE, position, ownerId)
-        self.ownerId = ownerId
-        self.LandedShip = landingShip
-        self.id = id
-        self.planetId = planetId
-        self.sunId = sunId
-
-    def select(self, position):
-        if position[0] > self.position[0]-self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:
-            if position[1] > self.position[1]-self.HEIGHT/2 and position[1] < self.position[1]+self.HEIGHT/2:
-                return self
