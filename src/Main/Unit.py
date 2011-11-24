@@ -167,6 +167,30 @@ class GroundUnit(Unit):
         self.sunId = -1
         self.planet = None
 
+    def action(self, parent):
+        if self.flag.flagState == FlagState.LOAD:
+            self.load(parent.game)
+        else:
+            Unit.action(self, parent)
+
+    def load(self, game):
+        landingZone = self.flag.finalTarget
+        planet = game.galaxy.solarSystemList[landingZone.sunId].planets[landingZone.planetId]
+        arrived = True
+        if self.position[0] < landingZone.position[0] or self.position[0] > landingZone.position[0]:
+            if self.position[1] < landingZone.position[1] or self.position[1] > landingZone.position[1]:
+                arrived = False
+                self.move()
+        if arrived and landingZone.LandedShip != None:
+            self.planet = None
+            self.position = [-100000, -100000]
+            self.planetId = -1
+            self.sunId = -1
+            planet.units.pop(planet.units.index(self))
+            landingZone.LandedShip.units.append(self)
+            if self in game.players[self.owner].selectedObjects:
+                game.players[self.owner].selectedObjects.pop(game.players[self.owner].selectedObjects.index(self))
+            self.flag.flagState = FlagState.STANDBY
 class GroundBuilderUnit(GroundUnit):
     def __init__(self, name, type, position, owner, planetId, sunId, isLanded = False):
         GroundUnit.__init__(self, name, type, position, owner, planetId, sunId, isLanded)

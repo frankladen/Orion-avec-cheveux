@@ -95,10 +95,11 @@ class Player():
 
     def selectObject(self, playerObj, multi):
         if playerObj != None and playerObj not in self.selectedObjects:
-            if not multi:
-                self.selectedObjects = [playerObj]
-            else:
-                self.selectedObjects.append(playerObj)
+            if playerObj.owner == self.id:
+                if not multi:
+                    self.selectedObjects = [playerObj]
+                else:
+                    self.selectedObjects.append(playerObj)
     
     def selectObjectFromMenu(self, unitId):
         self.selectedObjects = [self.selectedObjects[unitId]]
