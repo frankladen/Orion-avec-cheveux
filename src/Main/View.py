@@ -846,7 +846,7 @@ class View():
             self.gameArea.create_image(distance[0], distance[1], image=self.gifGroundAttackUnit[color], tag='deletable')
         elif isinstance(unit, GroundBuilderUnit):
             self.gameArea.create_image(distance[0], distance[1], image=self.groundBuilders[color], tag='deletable')
-        if unit.hitpoints <= 5:
+        if unit.hitpoints <= 15:
             self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
 
     def drawBuildingGround(self, building, color):
@@ -858,7 +858,7 @@ class View():
                 self.gameArea.create_image(distance[0], distance[1], image=self.gifFarm[color], tag='deletable')
             else:
                 self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifConstruction,tag='deletable')
-        if building.hitpoints <= 5:
+        if building.hitpoints <= 15:
             self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
 
     def drawPlanetBackground(self):
@@ -1023,7 +1023,7 @@ class View():
                         self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifTurret[player.colorId],tag='deletable')
                 if building in player.selectedObjects:
                     self.gameArea.create_rectangle(distance[0]-(building.SIZE[building.type][0]/2),distance[1]-(building.SIZE[building.type][1]/2),distance[0]+(building.SIZE[building.type][0]/2),distance[1]+(building.SIZE[building.type][1]/2), outline="green", tag='deletable') 
-                if building.hitpoints <= 5:
+                if building.hitpoints <= 15:
                     self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
                 if self.hpBars:
                     self.drawHPBars(distance, building)
@@ -1074,7 +1074,7 @@ class View():
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0], distance[1], image = self.gatherShips[player.colorId], tag='deletable')
-                if unit.hitpoints <= 5:
+                if unit.hitpoints <= 15:
                     self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
                 if self.hpBars:
                     self.drawHPBars(distance, unit)
