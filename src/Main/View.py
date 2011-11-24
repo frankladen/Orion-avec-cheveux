@@ -417,7 +417,7 @@ class View():
             #Ces images seront remplacer par de plus grandes et plus belles ! (aghi on t'attends ! )
 
             if isinstance(unit, u.Mothership) == False :
-                self.menuModes.create_text(20,80, text = 'Type : ' + unit.name, anchor = NW, fill = 'white')
+                self.menuModes.create_text(20,80, text = 'Type : ' + unit.NAME[unit.type], anchor = NW, fill = 'white')
                 self.menuModes.create_text(20,100, text = "HP : " + str(math.trunc(unit.hitpoints)) + "/" + str(unit.maxHP),anchor = NW, fill = 'white')
                 self.menuModes.create_text(20,120, text = "Vitesse de déplacement : " + str(unit.moveSpeed) + " années lumière à l'heure.", anchor = NW, fill = 'white')
                 self.menuModes.create_text(20,140, text = "Champ de vision : " + str(unit.viewRange) + " années lumière", anchor = NW, fill = 'white')
@@ -447,7 +447,7 @@ class View():
                     self.menuModes.create_oval((675, 190,500,10), fill='green', tags = 'arc', outline ='green')
 
             else:
-                self.menuModes.create_text(20,60, text = 'Type : ' + unit.name, anchor = NW, fill = 'white')
+                self.menuModes.create_text(20,60, text = 'Type : ' + unit.NAME[unit.type], anchor = NW, fill = 'white')
                 self.menuModes.create_text(20,80, text = "HP : " + str(math.trunc(unit.hitpoints)) + "/" + str(unit.maxHP),anchor = NW, fill = 'white')
                 self.menuModes.create_text(20,100, text = "Armure : " + str(math.trunc(unit.armor)) + "/" + str(unit.MAX_ARMOR),anchor = NW, fill = 'white')
                 self.menuModes.create_text(20,120, text = "Bouclier : " + str(math.trunc(unit.shield)) + "/" + str(unit.MAX_SHIELD),anchor = NW, fill = 'white')
@@ -790,7 +790,6 @@ class View():
     def drawPlanetGround(self, planet):
         self.gameArea.delete('deletable')
         self.drawPlanetBackground()
-        color = self.game.players[self.game.playerId].colorId
         for i in planet.minerals:
             distance = self.game.players[self.game.playerId].camera.calcDistance(i.position)
             if i in self.game.players[self.game.playerId].selectedObjects:
@@ -811,6 +810,7 @@ class View():
                 self.gameArea.create_oval(distance[0]-(site.WIDTH/2+3), distance[1]-(site.WIDTH/2+3),distance[0]+(site.WIDTH/2+3),distance[1]+(site.WIDTH/2+3), outline='purple', tag='deletable')
             self.gameArea.create_image(distance[0], distance[1], image=self.nuclear, tag='deletable')
         for i in planet.landingZones:
+            color = self.game.players[i.ownerId].colorId
             distance = self.game.players[self.game.playerId].camera.calcDistance(i.position)
             if i in self.game.players[self.game.playerId].selectedObjects:
                 self.gameArea.create_oval(distance[0]-(i.WIDTH/2+3),distance[1]-(i.HEIGHT/2+3),distance[0]+(i.WIDTH/2+3),distance[1]+(i.HEIGHT/2+3), outline='green', tag='deletable')
@@ -818,9 +818,11 @@ class View():
             if i.LandedShip != None:
                 self.gameArea.create_image(distance[0]+1, distance[1], image=self.landedShips[color], tag='deletable')
         for i in planet.buildings:
+            color = self.game.players[i.owner].colorId
             if i.isAlive:
                 self.drawBuildingGround(i, color)
         for i in planet.units:
+            color = self.game.players[i.owner].colorId
             if i.isAlive:
                 self.drawUnitGround(i, color)
         if self.dragging:
@@ -836,9 +838,14 @@ class View():
         if isinstance(unit, GroundGatherUnit):
             self.gameArea.create_image(distance[0], distance[1], image=self.groundUnits[color], tag='deletable')
         elif isinstance(unit, GroundAttackUnit):
+            if unit.attackcount <= 5 and unit.flag.flagState == FlagState.ATTACK:
+                d2 = self.game.players[self.game.playerId].camera.calcDistance(unit.flag.finalTarget.position)
+                self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='deletable')
             self.gameArea.create_image(distance[0], distance[1], image=self.gifGroundAttackUnit[color], tag='deletable')
         elif isinstance(unit, GroundBuilderUnit):
-            self.gameArea.create_image(distance[0], distance[1], image=self.groundBuilders[color], tag='deletable')
+            self.gameArea.create_polygon(distance[0]-unit.SIZE[unit.type][0]/2, distance[1]+unit.SIZE[unit.type][1]/2, distance[0], distance[1]-unit.SIZE[unit.type][1]/2, distance[0]+unit.SIZE[unit.type][0]/2, distance[1]+unit.SIZE[unit.type][1]/2, fill='blue', tag='deletable')
+        if unit.hitpoints <= 5:
+            self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
 
     def drawBuildingGround(self, building, color):
         distance = self.game.players[self.game.playerId].camera.calcDistance(building.position)
@@ -848,7 +855,9 @@ class View():
             if building.finished == True:
                 self.gameArea.create_image(distance[0], distance[1], image=self.gifFarm[color], tag='deletable')
             else:
-                self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifConstruction,tag='deletable')  
+                self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifConstruction,tag='deletable')
+        if building.hitpoints <= 5:
+            self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
 
     def drawPlanetBackground(self):
         self.gameArea.delete('background')
@@ -1699,4 +1708,3 @@ class View():
         self.menuModes.bind("<Button-1>",self.clickMenuModes)
         self.menuModes.bind("<Motion>", self.progressCircleMouseOver)
         self.Actionmenu.bind("<Button-1>", self.clickActionMenu)
-
