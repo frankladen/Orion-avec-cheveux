@@ -825,6 +825,8 @@ class View():
                 self.drawUnitGround(i, color)
         if self.dragging:
             self.drawSelectionBox()
+        if self.isSettingBuildingPosition:
+            self.drawFuturBuilding()
         self.createActionMenu(self.actionMenuType)
 
     def drawUnitGround(self, unit, color):
@@ -932,6 +934,8 @@ class View():
                                 self.drawUnit(j, i, False)
         if self.dragging:
             self.drawSelectionBox()
+        if self.isSettingBuildingPosition:
+            self.drawFuturBuilding()
         self.drawMinimap()
         self.createActionMenu(self.actionMenuType)
         
@@ -1007,15 +1011,29 @@ class View():
                     else:   
                         self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifTurret[player.colorId],tag='deletable')
                 if building in player.selectedObjects:
-                    self.gameArea.create_oval(distance[0]-(building.SIZE[building.type][0]/2),distance[1]-(building.SIZE[building.type][1]/2),distance[0]+(building.SIZE[building.type][0]/2),distance[1]+(building.SIZE[building.type][1]/2), outline="purple", tag='deletable') 
+                    self.gameArea.create_rectangle(distance[0]-(building.SIZE[building.type][0]/2),distance[1]-(building.SIZE[building.type][1]/2),distance[0]+(building.SIZE[building.type][0]/2),distance[1]+(building.SIZE[building.type][1]/2), outline="green", tag='deletable') 
                 if building.hitpoints <= 5:
                     self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
                 if self.hpBars:
                     self.drawHPBars(distance, building)
                 else:
                     self.drawHPHoverUnit(building, distance)
-    
-    #pour dessiner un vaisseau        
+
+    def drawFuturBuilding(self):
+        buildingPos = self.game.players[self.game.playerId].camera.calcPointInWorld(self.positionMouse[0], self.positionMouse[1])
+        distance = self.game.players[self.game.playerId].camera.calcDistance(buildingPos)
+        building = self.buildingToBuild
+        if building == b.Building.WAYPOINT:
+            self.gameArea.create_rectangle(distance[0]-b.Building.SIZE[building][0]/2, distance[1]-b.Building.SIZE[building][1]/2, distance[0]+b.Building.SIZE[building][0]/2, distance[1]+b.Building.SIZE[building][1]/2, fill='green', tag='deletable')
+            self.gameArea.create_image(distance[0], distance[1], image=self.waypoints[self.game.players[self.game.playerId].colorId], tag='deletable')
+        elif building == b.Building.TURRET:
+            self.gameArea.create_rectangle(distance[0]-b.Building.SIZE[building][0]/2, distance[1]-b.Building.SIZE[building][1]/2, distance[0]+b.Building.SIZE[building][0]/2, distance[1]+b.Building.SIZE[building][1]/2, fill='green', tag='deletable')
+            self.gameArea.create_image(distance[0], distance[1], image=self.gifTurret[self.game.players[self.game.playerId].colorId], tag='deletable')
+        elif building == b.Building.FARM:
+            self.gameArea.create_rectangle(distance[0]-b.Building.SIZE[building][0]/2, distance[1]-b.Building.SIZE[building][1]/2, distance[0]+b.Building.SIZE[building][0]/2, distance[1]+b.Building.SIZE[building][1]/2, fill='green', tag='deletable')
+            self.gameArea.create_image(distance[0], distance[1], image=self.gifFarm[self.game.players[self.game.playerId].colorId], tag='deletable')
+ 
+	#pour dessiner un vaisseau        
     def drawUnit(self, unit, player, isInFOW):
         unitPosition = unit.position
         if self.game.players[self.game.playerId].camera.isInFOV(unitPosition):
