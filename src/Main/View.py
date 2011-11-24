@@ -135,6 +135,7 @@ class View():
         self.gifGroundAttackUnit = []
         self.gifTurret = []
         self.gifFarm = []
+        self.groundBuilders = []
         for i in range(0,8):
             self.scoutShips.append(PhotoImage(file='images/Ships/Scoutships/Scoutship'+str(i)+'.gif'))
             self.attackShips.append(PhotoImage(file='images/Ships/Attackships/Attackship'+str(i)+'.gif'))
@@ -148,6 +149,7 @@ class View():
             self.gifGroundAttackUnit.append(PhotoImage(file='images/Planet/Tanks/tank'+str(i)+'.gif'))
             self.gifTurret.append(PhotoImage(file='images/Building/Turrets/turret'+str(i)+'.gif'))
             self.gifFarm.append(PhotoImage(file='images/Building/Farms/farm'+str(i)+'.gif'))
+            self.groundBuilders.append(PhotoImage(file='images/Planet/Robot/robot'+str(i)+'.gif'))
         self.showMinerals = Label(gameFrame, text="Mineraux: "+str(self.game.players[self.game.playerId].ressources[0]), bg="black", fg="white", anchor=NW)
         self.showMinerals.grid(column=1, row=0, columnspan=2)
         self.showGaz = Label(gameFrame, text="Gaz: "+str(self.game.players[self.game.playerId].ressources[1]), bg="black", fg="white", anchor=NW)
@@ -834,7 +836,7 @@ class View():
         elif isinstance(unit, GroundAttackUnit):
             self.gameArea.create_image(distance[0], distance[1], image=self.gifGroundAttackUnit[color], tag='deletable')
         elif isinstance(unit, GroundBuilderUnit):
-            self.gameArea.create_polygon(distance[0]-unit.SIZE[unit.type][0]/2, distance[1]+unit.SIZE[unit.type][1]/2, distance[0], distance[1]-unit.SIZE[unit.type][1]/2, distance[0]+unit.SIZE[unit.type][0]/2, distance[1]+unit.SIZE[unit.type][1]/2, fill='blue', tag='deletable')
+            self.gameArea.create_image(distance[0], distance[1], image=self.groundBuilders[color], tag='deletable')
 
     def drawBuildingGround(self, building, color):
         distance = self.game.players[self.game.playerId].camera.calcDistance(building.position)
