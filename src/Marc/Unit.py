@@ -19,7 +19,7 @@ class Unit(PlayerObject):
     SPECIAL_GATHER = 8
     GROUND_ATTACK = 9
     GROUND_BUILDER_UNIT = 10
-    NAME = ('Unité', 'Vaisseau mère','Scout', "Vaisseau d'attaque", "Vaisseau de Transport", "Cargo", 'Unité terrestre', 'Unité de collecte', '', 'Unité d\'attaque', 'Unité de construction')
+    NAME = ('Unité', 'Vaisseau mère','Scout', "Vaisseau d'attaque", "Vaisseau transport", "Cargo", 'Unité terrestre', 'Unité de collecte', '', 'Unité d\'attaque', 'Unité de construction')
     MINERAL=0
     GAS=1
     FOOD=2

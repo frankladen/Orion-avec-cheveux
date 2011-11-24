@@ -195,9 +195,9 @@ class Player():
                     if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
                         return True
                     
-        for i in range(len(self.diplomacies)):
-            if self.isAlly(i) and i != self.id:
-                for i in self.game.players[i].units:
+        for p in range(len(self.diplomacies)):
+            if self.isAlly(p) and i != self.id:
+                for i in self.game.players[p].units:
                     if i.isAlive and not isinstance(i, u.GroundUnit):
                         if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
                             if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
@@ -206,7 +206,7 @@ class Player():
                                         return True
                                 else:
                                     return True
-                for i in self.game.players[i].buildings:
+                for i in self.game.players[p].buildings:
                     if i.isAlive and i.finished:
                         if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
                             if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
