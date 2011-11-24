@@ -9,9 +9,8 @@ class Target():
 
 #Represente un objet pouvant appartenir a un joueur
 class PlayerObject(Target):
-    def __init__(self, name, type, position, owner):
+    def __init__(self, type, position, owner):
         Target.__init__(self, position)
-        self.name = name
         self.type = type
         self.flag = Flag(Target([0,0,0]), Target([0,0,0]), FlagState.STANDBY)
         self.owner = owner
@@ -25,12 +24,17 @@ class PlayerObject(Target):
             self.maxHP=self.hitpoints
             self.buildTime = u.Unit.BUILD_TIME[type]
             self.buildCost = u.Unit.BUILD_COST[type]
+            self.name = u.Unit.NAME[type]
         else:
             self.viewRange = u.Unit.VIEW_RANGE[u.Unit.DEFAULT]
             self.hitpoints = u.Unit.MAX_HP[u.Unit.DEFAULT]
             self.maxHP=self.hitpoints
             self.buildTime = u.Unit.BUILD_TIME[u.Unit.DEFAULT]
             self.buildCost = u.Unit.BUILD_COST[u.Unit.DEFAULT]
+            self.name = u.Unit.NAME[u.Unit.DEFAULT]
+        if type == u.Unit.LANDING_ZONE:
+            self.name = u.Unit.NAME[u.Unit.DEFAULT]
+
 
     def getFlag(self):
         return self.flag

@@ -362,8 +362,7 @@ class View():
                     elif isinstance(i, u.GroundGatherUnit):
                         self.menuModes.create_image(x,y, image = self.groundUnits[self.game.players[self.game.playerId].colorId], tags =  ('selected_unit',unitList.index(i)), anchor = NW)
                     elif isinstance(i, u.GroundAttackUnit):
-                        self.menuModes.create_image(x, y, image = self.gifGroundAttackUnit, tags = ('selected_unit',unitList.index(i)), anchor = NW)           
-                        
+                        self.menuModes.create_image(x, y, image = self.gifGroundAttackUnit, tags = ('selected_unit',unitList.index(i)), anchor = NW)               
                     elif isinstance(i, u.Unit):
                         self.menuModes.create_image(x,y, image = self.gifUnit, tags = ('selected_unit',unitList.index(i)), anchor = NW)     
                     self.menuModes.create_rectangle(x,y+46,x + (i.hitpoints/i.maxHP) * 52,y+51, fill = 'green')
@@ -402,14 +401,15 @@ class View():
                         y+=46
 
     def showInfo(self, unit):
-        if isinstance(unit, Planet) == False and isinstance(unit, AstronomicalObject) == False and isinstance(unit, Unit):
+        if (isinstance(unit, Planet) == False and isinstance(unit, AstronomicalObject) == False and isinstance(unit, Unit)) or isinstance(unit,LandingZone) :
             #Ces images seront remplacer par de plus grandes et plus belles ! (aghi on t'attends ! )
+            self.menuModes.create_text(20,80, text = 'Type : ' + unit.name, anchor = NW, fill = 'white')
+            self.menuModes.create_text(20,100, text = "HP : " + str(math.trunc(unit.hitpoints)) + "/" + str(unit.maxHP),anchor = NW, fill = 'white')
+            self.menuModes.create_text(20,140, text = "Champ de vision : " + str(unit.viewRange) + " années lumière", anchor = NW, fill = 'white')
 
             if isinstance(unit, u.Mothership) == False :
-                self.menuModes.create_text(20,80, text = 'Type : ' + unit.name, anchor = NW, fill = 'white')
-                self.menuModes.create_text(20,100, text = "HP : " + str(math.trunc(unit.hitpoints)) + "/" + str(unit.maxHP),anchor = NW, fill = 'white')
+                
                 self.menuModes.create_text(20,120, text = "Vitesse de déplacement : " + str(unit.moveSpeed) + " années lumière à l'heure.", anchor = NW, fill = 'white')
-                self.menuModes.create_text(20,140, text = "Champ de vision : " + str(unit.viewRange) + " années lumière", anchor = NW, fill = 'white')
                 if isinstance(unit, u.SpaceAttackUnit) or isinstance(unit, u.GroundAttackUnit):
                     if isinstance(unit, u.GatherShip):
                         self.menuModes.create_image(20, 50, image = self.gifAttackUnit)
@@ -436,17 +436,13 @@ class View():
                     self.menuModes.create_oval((675, 190,500,10), fill='green', tags = 'arc', outline ='green')
 
             else:
-                self.menuModes.create_text(20,60, text = 'Type : ' + unit.name, anchor = NW, fill = 'white')
-                self.menuModes.create_text(20,80, text = "HP : " + str(math.trunc(unit.hitpoints)) + "/" + str(unit.maxHP),anchor = NW, fill = 'white')
                 self.menuModes.create_text(20,100, text = "Armure : " + str(math.trunc(unit.armor)) + "/" + str(unit.MAX_ARMOR),anchor = NW, fill = 'white')
                 self.menuModes.create_text(20,120, text = "Bouclier : " + str(math.trunc(unit.shield)) + "/" + str(unit.MAX_SHIELD),anchor = NW, fill = 'white')
-                self.menuModes.create_text(20,140, text = "Vitesse de déplacement : " + str(unit.moveSpeed) + " années lumière à l'heure.", anchor = NW, fill = 'white')
-                self.menuModes.create_text(20,160, text = "Champ de vision : " + str(unit.viewRange) + " années lumière", anchor = NW, fill = 'white')
                 if len(self.game.players[self.game.playerId].motherShip.unitBeingConstruct) > 0:
-                    self.menuModes.create_text(20,180, text = str(len(self.game.players[self.game.playerId].motherShip.unitBeingConstruct)) + " unités actuellement en contruction", anchor = NW, fill = 'white')
+                    self.menuModes.create_text(20,160, text = str(len(self.game.players[self.game.playerId].motherShip.unitBeingConstruct)) + " unités actuellement en contruction", anchor = NW, fill = 'white')
                     self.createUnitsConstructionMenu()
                 else:
-                    self.menuModes.create_text(20,180, text = "Aucune unité n'est actuellement en contruction", anchor = NW, fill = 'white')
+                    self.menuModes.create_text(20,160, text = "Aucune unité n'est actuellement en contruction", anchor = NW, fill = 'white')
                     if unit.shield != unit.MAX_SHIELD:
                         self.menuModes.create_arc((675, 190, 500, 10), start=0, extent= (unit.shield / unit.MAX_SHIELD)*359.99999999 , fill='blue', tags = 'arc')
                     else:
@@ -459,7 +455,7 @@ class View():
                         self.menuModes.create_arc((650, 165,525,35), start=0, extent= (unit.hitpoints / unit.maxHP)*359.99999999 , fill='green', tags = 'arc')
                     else:
                         self.menuModes.create_oval((650, 165,525,35), fill='green', tags = 'arc', outline ='green')
-
+                
     def refreshGame(self, isOnPlanet):
         self.showMinerals.config(text="Mineraux: "+str(self.game.players[self.game.playerId].ressources[0]))
         self.showGaz.config(text="Gaz: "+str(self.game.players[self.game.playerId].ressources[1]))
@@ -1624,9 +1620,9 @@ class View():
         self.gameArea.bind("<KeyRelease-Control_L>",self.ctrlDepressed)
         self.gameArea.bind("<Tab>",self.enterChat)
         #Bindings des boutons de la souris
-        self.gameArea.bind("<Button-3>", self.rightclic)
-        self.gameArea.bind("<B3-Motion>", self.rightclic)
-        self.minimap.bind("<Button-3>", self.rightclic)
+        self.gameArea.bind("<Button-2>", self.rightclic)
+        self.gameArea.bind("<B2-Motion>", self.rightclic)
+        self.minimap.bind("<Button-2>", self.rightclic)
         self.gameArea.bind("<Button-1>", self.leftclic)
         self.minimap.bind("<B1-Motion>",self.leftclic)
         self.minimap.bind("<Button-1>",self.leftclic)

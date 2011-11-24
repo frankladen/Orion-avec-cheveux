@@ -18,7 +18,8 @@ class Unit(PlayerObject):
     GROUND_GATHER = 7
     SPECIAL_GATHER = 8
     GROUND_ATTACK = 9
-    FRENCHNAME = ('Unité', 'Vaisseau mère','Scout', "Vaisseau d'attaque", "Vaisseau de Transport", "Cargo", 'Unité terrestre', 'Unité de collecte', '', 'Unité d\'attaque')
+    LANDING_ZONE = 10
+    NAME = ('Unité', 'Vaisseau mère','Scout', "Vaisseau d'attaque", "Vaisseau de Transport", "Cargo", 'Unité terrestre', 'Unité de collecte', 'Unité de collecte nucléaire', "Unité d'attaque", "Zone d'aterissage")
     MINERAL=0
     GAS=1
     FOOD=2
@@ -32,8 +33,8 @@ class Unit(PlayerObject):
     BUILD_COST=((50,50,1), (0,0,0), (50,0,1), (150,100,1), (75,20,1), (50,10,1), (50,10,1),(50,10,1), (50,15,1), (60,60,1))
     VIEW_RANGE=(150, 400, 200, 150, 175, 175,200, 200, 200, 200)
     
-    def __init__(self, name, type, position, owner):
-        PlayerObject.__init__(self, name, type, position, owner)
+    def __init__(self, type, position, owner):
+        PlayerObject.__init__(self, type, position, owner)
         if type <= self.GROUND_ATTACK:
             self.moveSpeed=self.MOVE_SPEED[type]
         else:
@@ -140,12 +141,12 @@ class Unit(PlayerObject):
         return self.flag
               
 class SpaceUnit(Unit):
-    def __init__(self, name, type, position, owner):
-        Unit.__init__(self, name, type, position, owner)
+    def __init__(self, type, position, owner):
+        Unit.__init__(self,  type, position, owner)
 
 class GroundUnit(Unit):
-    def __init__(self, name, type, position, owner, planetId, sunId, isLanded = False):
-        Unit.__init__(self, name, type, position, owner)
+    def __init__(self,  type, position, owner, planetId, sunId, isLanded = False):
+        Unit.__init__(self,  type, position, owner)
         self.sunId = sunId
         self.planetId = planetId
         self.planet = None
@@ -173,8 +174,8 @@ class GroundUnit(Unit):
         self.planet = None
 
 class GroundGatherUnit(GroundUnit):
-    def __init__(self, name, type, position, owner, planetId, sunId, isLanded = False):
-        GroundUnit.__init__(self, name, type, position, owner, planetId, sunId, isLanded)
+    def __init__(self,  type, position, owner, planetId, sunId, isLanded = False):
+        GroundUnit.__init__(self,  type, position, owner, planetId, sunId, isLanded)
         self.maxGather = 50
         self.gatherSpeed = 20
         self.container = [0,0]
@@ -252,8 +253,8 @@ class GroundGatherUnit(GroundUnit):
                     self.flag.flagState = FlagState.STANDBY
  
 class GroundAttackUnit(GroundUnit):
-    def __init__(self, name, type, position, owner, planetId, sunId):
-        GroundUnit.__init__(self, name, type, position, owner, planetId, sunId)
+    def __init__(self,  type, position, owner, planetId, sunId):
+        GroundUnit.__init__(self,  type, position, owner, planetId, sunId)
         self.range=self.ATTACK_RANGE[type]
         self.AttackSpeed=self.ATTACK_SPEED[type]
         self.AttackDamage=self.ATTACK_DAMAGE[type]
@@ -310,8 +311,8 @@ class Mothership(Unit):
     MAX_SHIELD = 1500
     MAX_ARMOR = 2000
     
-    def __init__(self, name, type, position, owner):
-        Unit.__init__(self, name, type, position, owner)
+    def __init__(self,  type, position, owner):
+        Unit.__init__(self,  type, position, owner)
         self.flag.finalTarget = t.Target(position)
         self.unitBeingConstruct = []
         self.rallyPoint = [position[0],position[1]+(self.SIZE[type][1]/2)+5,0]
@@ -378,13 +379,13 @@ class Mothership(Unit):
     def addUnitToQueue(self, unitType):
         p = [self.position[0], self.position[1], 0]
         if unitType == self.SCOUT:
-            self.unitBeingConstruct.append(Unit('Scout', self.SCOUT, p, self.owner))
+            self.unitBeingConstruct.append(Unit(self.SCOUT, p, self.owner))
         elif unitType == self.ATTACK_SHIP:
-            self.unitBeingConstruct.append(SpaceAttackUnit('Attack ship', self.ATTACK_SHIP, p, self.owner))
+            self.unitBeingConstruct.append(SpaceAttackUnit(self.ATTACK_SHIP, p, self.owner))
         elif unitType == self.CARGO:
-            self.unitBeingConstruct.append(GatherShip('Cargo', self.CARGO, p, self.owner))
+            self.unitBeingConstruct.append(GatherShip(self.CARGO, p, self.owner))
         elif unitType == self.TRANSPORT:
-            self.unitBeingConstruct.append(TransportShip('Transport', self.TRANSPORT, p, self.owner))
+            self.unitBeingConstruct.append(TransportShip(self.TRANSPORT, p, self.owner))
     
     def isUnitFinished(self):
         if len(self.unitBeingConstruct) > 0:
@@ -450,8 +451,8 @@ class Mothership(Unit):
         return self.unitBeingConstruct[index]
         
 class SpaceAttackUnit(SpaceUnit):
-    def __init__(self, name, type, position, owner):
-        SpaceUnit.__init__(self, name, type, position, owner)
+    def __init__(self, type, position, owner):
+        SpaceUnit.__init__(self,  type, position, owner)
         self.range=self.ATTACK_RANGE[type]
         self.AttackSpeed=self.ATTACK_SPEED[type]
         self.AttackDamage=self.ATTACK_DAMAGE[type]
@@ -524,8 +525,8 @@ class SpaceAttackUnit(SpaceUnit):
         Mothership.applyBonuses(self,bonuses)
 
 class TransportShip(SpaceUnit):
-    def __init__(self, name, type, position, owner):
-        SpaceUnit.__init__(self, name, type, position, owner)
+    def __init__(self,  type, position, owner):
+        SpaceUnit.__init__(self,  type, position, owner)
         self.landed = False
         self.capacity = 10
         self.units = []
@@ -632,8 +633,8 @@ class TransportShip(SpaceUnit):
 
 class GatherShip(SpaceUnit):
     GATHERTIME=20
-    def __init__(self, name, type, position, owner):
-        SpaceUnit.__init__(self, name, type, position, owner)
+    def __init__(self,  type, position, owner):
+        SpaceUnit.__init__(self, type, position, owner)
         self.maxGather = 50
         self.gatherSpeed = 20
         self.container = [0,0]

@@ -439,7 +439,7 @@ class LandingZone(PlayerObject):
     WIDTH = 75
     HEIGHT = 75
     def __init__(self, position, ownerId, landingShip, id, planetId, sunId):
-        PlayerObject.__init__(self, 'Zone d\'atterissage', 0, position, ownerId)
+        PlayerObject.__init__(self, u.Unit.LANDING_ZONE, position, ownerId)
         self.ownerId = ownerId
         self.LandedShip = landingShip
         self.id = id

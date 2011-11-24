@@ -56,10 +56,10 @@ class Player():
         self.selectedObjects = units
             
     def addBaseUnits(self, startPos):
-        self.units.append(u.Mothership('Mothership', u.Unit.MOTHERSHIP,startPos, self.id))
+        self.units.append(u.Mothership(u.Unit.MOTHERSHIP,startPos, self.id))
         self.motherShip = self.units[0]
-        self.units.append(u.Unit('Scout', u.Unit.SCOUT,[startPos[0] + 20, startPos[1] + 20 ,0], self.id))
-        self.units.append(u.GatherShip('Gather ship', u.Unit.CARGO,[startPos[0] + 40, startPos[1]+40], self.id))
+        self.units.append(u.Unit(u.Unit.SCOUT,[startPos[0] + 20, startPos[1] + 20 ,0], self.id))
+        self.units.append(u.GatherShip(u.Unit.CARGO,[startPos[0] + 40, startPos[1]+40], self.id))
         
     #Ajoute une camera au joueur seulement quand la partie commence    
     def addCamera(self, galaxy, taille):
@@ -173,7 +173,7 @@ class Player():
             if i.isAlive and not isinstance(i, u.GroundUnit):
                 if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
                     if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
-                        if i.name == 'Transport':
+                        if i.type == u.TransportShip:
                             if not i.landed:
                                 return True
                         else:
@@ -190,7 +190,7 @@ class Player():
                     if i.isAlive and not isinstance(i, u.GroundUnit):
                         if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
                             if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
-                                if i.name == 'Transport':
+                                if i.type == u.TransportShip:
                                     if not i.landed:
                                         return True
                                 else:
@@ -255,8 +255,8 @@ class Player():
         unit = self.motherShip.unitBeingConstruct.pop(0)
         unit.applyBonuses(self.BONUS)
         if unit.type == u.Unit.TRANSPORT:
-            pilot = u.GroundGatherUnit('Collector', u.Unit.GROUND_GATHER, [-10000,-10000,-10000], self.id, -1, -1)
-            attacker = u.GroundAttackUnit('Attacker', u.Unit.GROUND_ATTACK, [-10000,-10000,-10000], self.id, -1, -1)
+            pilot = u.GroundGatherUnit(u.Unit.GROUND_GATHER, [-10000,-10000,-10000], self.id, -1, -1)
+            attacker = u.GroundAttackUnit(u.Unit.GROUND_ATTACK, [-10000,-10000,-10000], self.id, -1, -1)
             unit.units.append(pilot)
             unit.units.append(attacker)
             self.units.append(pilot)
