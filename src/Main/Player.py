@@ -38,7 +38,7 @@ class Player():
         self.motherShip = None
         self.formation="carre"
         self.currentPlanet = None
-        self.ressources = [100,100,2]
+        self.ressources = [500,500,2]
         self.isAlive = True
 
     def action(self):
@@ -241,12 +241,20 @@ class Player():
         return nearestBuilding
 
     def checkIfIsAttacking(self, killedIndexes):
-        unitToAttack = self.game.players[killedIndexes[1]].units[killedIndexes[0]]
+        if killedIndexes[2] == True:
+            unitToAttack = self.game.players[killedIndexes[1]].buildings[killedIndexes[0]]
+        else:
+            unitToAttack = self.game.players[killedIndexes[1]].units[killedIndexes[0]]
         for i in self.units:
             if i.isAlive:
                 if i.flag.finalTarget == unitToAttack:
                     i.flag = Flag(t.Target(i.position), t.Target(i.position), FlagState.STANDBY)
                     i.attackcount=i.AttackSpeed
+        for b in self.buildings:
+            if b.isAlive:
+                if b.flag.finalTarget == unitToAttack:
+                    b.flag = Flag(t.Target(i.position), t.Target(i.position), FlagState.STANDBY)
+                    b.attackcount=i.AttackSpeed
 
     def killUnit(self, killedIndexes):
         if killedIndexes[1] == self.id:
@@ -270,9 +278,14 @@ class Player():
         unitInRange = None
         for un in self.units:
             if un.isAlive:
-                unitInRange = un.isInRange(position, range, onPlanet = False, planetId = -1, solarSystemId = -1)
+                unitInRange = un.isInRange(position, range, onPlanet, planetId, solarSystemId)
                 if unitInRange != None:
                     return unitInRange
+        for bd in self.buildings:
+            if bd.isAlive:
+                buildingInRange = bd.isInRange(position, range, onPlanet, planetId, solarSystemId)
+                if buildingInRange != None:
+                    return buildingInRange
 
     def buildUnit(self):
         unit = self.motherShip.unitBeingConstruct.pop(0)

@@ -363,28 +363,31 @@ class Planet(Target):
         return None
     
     def groundSelect(self, position):
-        clickedObj = None
         for i in self.landingZones:
             landing = i.select(position)
-            if landing != None and clickedObj == None:
-                clickedObj = landing
+            if landing != None:
+                return landing
         for i in self.minerals:
             mineral = i.select(position)
-            if mineral != None and clickedObj == None:
-                clickedObj = mineral
+            if mineral != None:
+                return mineral
         for i in self.gaz:
             gaz = i.select(position)
-            if gaz != None and clickedObj == None:
-                clickedObj = gaz
+            if gaz != None:
+                return gaz
         if self.nuclearSite != None:
             site = self.nuclearSite.select(position)
-            if site != None and clickedObj == None:
-                clickedObj = site
+            if site != None:
+                return site
         for i in self.units:
             unit = i.select(position)
-            if unit != None and clickedObj == None:
-                clickedObj = unit
-        return clickedObj
+            if unit != None:
+                return unit
+        for i in self.buildings:
+            building = i.select(position)
+            if building != None:
+                return building
+        return None
 
 class MineralStack(Target):
     WIDTH = 48
@@ -398,8 +401,8 @@ class MineralStack(Target):
         self.sunId = sunId
         
     def select(self, position):
-        if self.position[0] > position[0] - self.WIDTH/2 and self.position[0] < position[0]+self.WIDTH/2:
-            if self.position[1] > position[1] -self.HEIGHT/2 and self.position[1] < position[1]+self.HEIGHT/2:
+        if position[0] > self.position[0] - self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:
+            if position[1] > self.position[1] -self.HEIGHT/2 and position[1] < self.position[1]+self.HEIGHT/2:
                 return self
         return None
     
@@ -417,7 +420,7 @@ class GazStack(Target):
 
     def select(self, position):
         if position[0] > self.position[0]-self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:
-            if position[1] > self.position[1]-self.HEIGHT/2 and self.position[1] < position[1]+self.HEIGHT/2:
+            if position[1] > self.position[1]-self.HEIGHT/2 and position[1] < self.position[1]+self.HEIGHT/2:
                 return self
         return None
 
@@ -451,3 +454,4 @@ class LandingZone(PlayerObject):
         if position[0] > self.position[0]-self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:
             if position[1] > self.position[1]-self.HEIGHT/2 and position[1] < self.position[1]+self.HEIGHT/2:
                 return self
+        return None
