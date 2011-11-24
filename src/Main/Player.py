@@ -12,6 +12,7 @@ class Player():
     MINERAL = 0
     GAS = 1
     FOOD = 2
+    NUCLEAR = 3
     #[AttaqueDamage,AttaqueSpeed,MoveSpeed,AttackRange]
     ATTACK_DAMAGE_BONUS = 0
     ATTACK_SPEED_BONUS = 1
@@ -38,7 +39,7 @@ class Player():
         self.motherShip = None
         self.formation="carre"
         self.currentPlanet = None
-        self.ressources = [500,500,2]
+        self.ressources = [500,500,2,0]
         self.isAlive = True
 
     def action(self):

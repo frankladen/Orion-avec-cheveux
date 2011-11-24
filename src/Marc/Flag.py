@@ -25,6 +25,7 @@ class FlagState():
     BUY_TECH = 1048576
     GROUND_ATTACK = 2097152
     LOAD = 4194304
+    UNLOAD = 11
 
 #Represente un flag
 class Flag():
