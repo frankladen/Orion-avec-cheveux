@@ -19,7 +19,7 @@ class PlayerObject(Target):
         self.maxHP = 50
         self.isAlive = True
         self.constructionProgress = 0
-        if type <= u.Unit.GROUND_ATTACK:
+        if type <= u.Unit.GROUND_BUILDER_UNIT:
             self.viewRange = u.Unit.VIEW_RANGE[type]
             self.hitpoints = u.Unit.MAX_HP[type]
             self.maxHP=self.hitpoints
@@ -36,12 +36,17 @@ class PlayerObject(Target):
         return self.flag
 
     def takeDammage(self, amount):
-        self.hitpoints-=amount
+        self.hitpoints -= amount
         if self.hitpoints <= 0:
             return True
         else:
             return False
-        
+
+    def isInRange(self, position, range, onPlanet = False, planetId = -1, solarSystemId = -1):
+        if self.position[0] > position[0]-range and self.position[0] < position[0]+range:
+            if self.position[1] > position[1]-range and self.position[1] < position[1]+range:
+                return self
+        return None
     
     def kill(self):
         self.isAlive = False        
