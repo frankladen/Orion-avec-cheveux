@@ -62,7 +62,7 @@ class Unit(PlayerObject):
         if Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1]) <= self.moveSpeed:
             endPos = [self.flag.finalTarget.position[0],self.flag.finalTarget.position[1]]
             self.position = endPos
-            if self.flag.flagState == FlagState.MOVE:
+            if self.flag.flagState == FlagState.MOVE or self.flag.flagState == FlagState.GROUND_MOVE:
                 self.flag.flagState = FlagState.STANDBY
             elif self.flag.flagState == FlagState.MOVE+FlagState.ATTACK:
                 self.flag.flagState = FlagState.ATTACK
@@ -147,10 +147,11 @@ class GroundUnit(Unit):
         self.isLanded = isLanded
 
     def isInRange(self, position, range, onPlanet = False, planetId = -1, solarSystemId = -1):
-        if self.sunId == solarSystemId and self.planetId == planetId:
-            if self.position[0] > position[0]-range and self.position[0] < position[0]+range:
-                if self.position[1] > position[1]-range and self.position[1] < position[1]+range:
-                    return self
+        if self.isLanded and onPlanet:
+            if self.sunId == solarSystemId and self.planetId == planetId:
+                if self.position[0] > position[0]-range and self.position[0] < position[0]+range:
+                    if self.position[1] > position[1]-range and self.position[1] < position[1]+range:
+                        return self
         return None
 
     def land(self, planet, position):
@@ -327,6 +328,7 @@ class GroundAttackUnit(GroundUnit):
         self.killCount = 0
 
     def action(self, parent):
+        print(self.flag.flagState)
         if self.isLanded:
             if self.flag.flagState == FlagState.ATTACK:
                 killedIndex = self.attack(parent.game.players)
@@ -334,7 +336,7 @@ class GroundAttackUnit(GroundUnit):
                     parent.killUnit(killedIndex)
             elif self.flag.flagState == FlagState.PATROL:
                 self.patrol(parent.game.players)
-                parent.game.checkIfEnemyInRange(self, )
+                parent.game.checkIfEnemyInRange(self, True, self.planetId, self.sunId)
             elif self.flag.flagState == FlagState.STANDBY:
                 parent.game.checkIfEnemyInRange(self, True, self.planetId, self.sunId)
             else:
