@@ -1212,6 +1212,8 @@ class View():
                 self.drawMiniLandingZone(i, planet)
             for i in planet.units:
                 self.drawMiniGroundUnit(i, planet)
+            for i in planet.buildings:
+                self.drawMiniGroundBuilding(i, planet)
             if planet.nuclearSite != None:
                 self.drawMiniNuclear(planet.nuclearSite, planet)
         self.drawMiniFOV()
@@ -1318,9 +1320,12 @@ class View():
         x = int(zone.position[0] * 200 / planet.WIDTH)
         y = int(zone.position[1] * 200 / planet.HEIGHT)
         if zone.ownerId == self.game.playerId:
-            self.minimap.create_rectangle(x-zone.WIDTH/8, y-zone.HEIGHT/8, x+zone.WIDTH/8, y+zone.HEIGHT/8, fill='WHITE')
+                color = 'WHITE'
+        elif self.game.players[self.game.playerId].isAlly(zone.ownerId):
+            color ='YELLOW'
         else:
-            self.minimap.create_rectangle(x-zone.WIDTH/8, y-zone.HEIGHT/8, x+zone.WIDTH/8, y+zone.HEIGHT/8, fill='RED')
+            color ='RED'
+        self.minimap.create_rectangle(x-zone.WIDTH/8, y-zone.HEIGHT/8, x+zone.WIDTH/8, y+zone.HEIGHT/8, fill=color)
 
     def drawMiniNuclear(self, site, planet):
         if site.nbRessource > 0:
@@ -1333,9 +1338,24 @@ class View():
             x = int(unit.position[0] * 200 / planet.WIDTH)
             y = int(unit.position[1] * 200 / planet.HEIGHT)
             if unit.owner == self.game.playerId:
-                self.minimap.create_oval(x-unit.SIZE[unit.type][0]/8, y-unit.SIZE[unit.type][1]/8, x+unit.SIZE[unit.type][0]/8, y+unit.SIZE[unit.type][1]/8, fill='WHITE', outline='black', tag='deletable')
+                color = 'WHITE'
+            elif self.game.players[self.game.playerId].isAlly(unit.owner):
+                color ='YELLOW'
             else:
-                self.minimap.create_oval(x-unit.SIZE[unit.type][0]/8, y-unit.SIZE[unit.type][1]/8, x+unit.SIZE[unit.type][0]/8, y+unit.SIZE[unit.type][1]/8, fill='RED', outline='black', tag='deletable')
+                color ='RED'
+            self.minimap.create_oval(x-unit.SIZE[unit.type][0]/8, y-unit.SIZE[unit.type][1]/8, x+unit.SIZE[unit.type][0]/8, y+unit.SIZE[unit.type][1]/8, fill=color, outline='black', tag='deletable')
+
+    def drawMiniGroundBuilding(self, building, planet):
+        if building.isAlive:
+            x = int(building.position[0] * 200 / planet.WIDTH)
+            y = int(building.position[1] * 200 / planet.HEIGHT)
+            if building.owner == self.game.playerId:
+                color = 'WHITE'
+            elif self.game.players[self.game.playerId].isAlly(building.owner):
+                color ='YELLOW'
+            else:
+                color ='RED'
+            self.minimap.create_oval(x-building.SIZE[building.type][0]/8, y-building.SIZE[building.type][1]/8, x+building.SIZE[building.type][0]/8, y+building.SIZE[building.type][1]/8, fill=color, outline='black', tag='deletable')
 
     #Dessine la boite de selection lors du clic-drag	
     def drawSelectionBox(self):

@@ -207,19 +207,19 @@ class Player():
                     
         for i in range(len(self.diplomacies)):
             if self.isAlly(i) and i != self.id:
-                for i in self.game.players[i].units:
-                    if i.isAlive and not isinstance(i, u.GroundUnit):
-                        if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
-                            if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
-                                if i.name == 'Transport':
-                                    if not i.landed:
+                for un in self.game.players[i].units:
+                    if un.isAlive and not isinstance(un, u.GroundUnit):
+                        if x > un.position[0]-un.viewRange and x < un.position[0]+un.viewRange:
+                            if y > un.position[1]-un.viewRange and y < un.position[1]+un.viewRange:
+                                if un.name == 'Transport':
+                                    if not un.landed:
                                         return True
                                 else:
                                     return True
-                for i in self.game.players[i].buildings:
-                    if i.isAlive and i.finished:
-                        if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
-                            if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
+                for bu in self.game.players[i].buildings:
+                    if bu.isAlive and bu.finished:
+                        if x > bu.position[0]-bu.viewRange and x < bu.position[0]+bu.viewRange:
+                            if y > bu.position[1]-bu.viewRange and y < bu.position[1]+bu.viewRange:
                                 return True
         return False
     

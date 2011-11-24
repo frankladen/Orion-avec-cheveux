@@ -509,14 +509,7 @@ class Game():
                         break
                                         
     def attackEnemyInRange(self, unit, unitToAttack):
-        killedIndex = unit.attack(self.players, unitToAttack)
-        if unit.attackcount <= 5:
-            distance = self.players[self.playerId].camera.calcDistance(unit.position)
-            d2 = self.players[self.playerId].camera.calcDistance(unitToAttack.position)
-            color = self.parent.view.laserColors[self.players[unit.owner].colorId]
-            self.parent.view.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill=color, tag='enemyRange')
-        if killedIndex[0] > -1:
-            self.players[killedIndex[1]].killUnit(killedIndex)
+        unit.changeFlag(unitToAttack, FlagState.ATTACK)
     
     def selectUnitByType(self, typeId):
         self.players[self.playerId].selectUnitsByType(typeId)
@@ -588,7 +581,7 @@ class Game():
                             self.setGroundGatherFlag(unit, clickedObj)
                     elif unit.type == unit.GROUND_ATTACK:
                         if isinstance(clickedObj, u.Unit) or isinstance(clickedObj, Building):
-                            if clickedObj.owner != self.playerId:
+                            if clickedObj.owner != self.playerId and not self.players[self.playerId].isAlly(clickedObj.owner):
                                 self.setAttackFlag(clickedObj)
                     elif unit.type == unit.GROUND_BUILDER_UNIT:
                         if isinstance(clickedObj, Building):
@@ -596,7 +589,8 @@ class Game():
                                 if clickedObj.finished == False:
                                     self.resumeBuildingFlag(clickedObj)
                     if isinstance(clickedObj, w.LandingZone):
-                        self.setLoadFlag(self.players[self.playerId].selectedObjects, clickedObj)
+                        if clickedObj.ownerId == self.playerId:
+                            self.setLoadFlag(unit, clickedObj)
                 else:
                     self.setGroundMovingFlag(pos[0], pos[1])
                 

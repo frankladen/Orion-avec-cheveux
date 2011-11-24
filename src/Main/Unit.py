@@ -353,7 +353,7 @@ class GroundAttackUnit(GroundUnit):
             else:
                 self.attackcount = self.attackcount - 1
                 if self.attackcount == 0:
-                    if unitToAttack.takeDammage(self.AttackDamage):
+                    if unitToAttack.takeDammage(self.AttackDamage, players):
                         if isinstance(unitToAttack, b.Building) == False:
                             index = players[unitToAttack.owner].units.index(unitToAttack)
                         else:
@@ -461,7 +461,7 @@ class Mothership(Unit):
         self.AttackDamage = self.ATTACK_DAMAGE[self.type]+bonuses[p.Player.ATTACK_DAMAGE_BONUS]
         self.range = self.ATTACK_RANGE[self.type]+bonuses[p.Player.ATTACK_RANGE_BONUS]
 
-    def takeDammage(self, amount):
+    def takeDammage(self, amount, players):
         self.shieldRegenCount = self.REGEN_WAIT_TIME
         self.shieldRegenAfterAttack = self.REGEN_WAIT_TIME_AFTER_ATTACK
         if self.shield > 0:
@@ -496,7 +496,7 @@ class Mothership(Unit):
                 else:
                     self.attackcount = self.attackcount - 1
                     if self.attackcount == 0:
-                        if unitToAttack.takeDammage(self.AttackDamage):
+                        if unitToAttack.takeDammage(self.AttackDamage, players):
                             if isinstance(unitToAttack, b.Building) == False:
                                 index = players[unitToAttack.owner].units.index(unitToAttack)
                             else:
@@ -557,7 +557,7 @@ class SpaceAttackUnit(SpaceUnit):
             else:
                 self.attackcount = self.attackcount - 1
                 if self.attackcount == 0:
-                    if unitToAttack.takeDammage(self.AttackDamage):
+                    if unitToAttack.takeDammage(self.AttackDamage, players):
                         if isinstance(unitToAttack, b.Building) == False:
                             index = players[unitToAttack.owner].units.index(unitToAttack)
                         else:
@@ -693,6 +693,11 @@ class TransportShip(SpaceUnit):
         for i in planet.landingZones:
             if i.ownerId == self.owner:
                 i.LandedShip = None
+
+    def kill(self):
+        self.isAlive = False
+        if self.planet != None:
+            self.takeOff(self.planet)
 
     def load(self, unit):
         unit.flag = Flag(unit.position, unit.landingZone, FlagState.LOAD)
