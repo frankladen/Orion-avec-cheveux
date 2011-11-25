@@ -199,8 +199,8 @@ class View():
         #Fenetre Team
         self.menuModes.listAllies = Listbox(gameFrame, width=40, height=7, background='black', fg='white', relief='raised', selectmode=BROWSE)
         self.menuModes.listEnnemies = Listbox(gameFrame, width=40, height=7, background='black', fg='white', relief='raised', selectmode=BROWSE)
-        self.menuModes.labelAlly = Label(gameFrame, background='black', fg='Green', text="Alliés", font="Arial 12 bold")
-        self.menuModes.labelEnnemy = Label(gameFrame, background='black', fg='Red', text="Ennemis", font="Arial 12 bold")
+        self.menuModes.labelAlly = Label(gameFrame, background='black', fg='Green', text="Alliés", font="Arial 9 bold")
+        self.menuModes.labelEnnemy = Label(gameFrame, background='black', fg='Red', text="Ennemis", font="Arial 9 bold")
         self.menuModes.toAllyButton = Button(gameFrame, text="<", command=self.changeToAlly)
         self.menuModes.toEnnemyButton = Button(gameFrame, text=">", command=self.changeToEnnemy)
         self.menuModes.create_image(0,0,image=self.gifChat,anchor = NW,tag='bouton_chat')
@@ -498,8 +498,8 @@ class View():
     def ongletChat(self,gameFrame):
         self.menuModesOnlets()
         self.selectedOnglet = self.SELECTED_CHAT
-        self.menuModes.chat.grid(row=3, column=3, columnspan=3)
-        self.menuModes.entryMess.grid(row=4, column=3, columnspan=3)
+        self.menuModes.chat.grid(row=4, column=3, columnspan=3)
+        self.menuModes.entryMess.grid(row=5, column=3, columnspan=3)
         self.menuModes.entryMess.bind("<Return>",self.enter)
         self.parent.refreshMessages(self.menuModes.chat)
         
@@ -1310,7 +1310,7 @@ class View():
         notifPosX = (notifPos[0]+self.game.galaxy.width/2)/self.game.galaxy.width * (self.taille/6)     
         notifPosY = (notifPos[1]+self.game.galaxy.height/2)/self.game.galaxy.height * (self.taille/6)
         self.minimap.create_oval(notifPosX-3,notifPosY-3,notifPosX+3,notifPosY+3, fill='RED', tag = 'deletable')
-        self.gameArea.create_text(600, y, text=notification.name, fill="white",tag = 'deletable') 
+        self.gameArea.create_text(600, y, text=notification.name, fill=notification.color,tag = 'deletable') 
         notification.refreshSeen -= 1
         if notification.refreshSeen <= 0:
             self.game.players[self.game.playerId].notifications.remove(notification)
