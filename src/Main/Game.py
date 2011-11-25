@@ -161,6 +161,11 @@ class Game():
                     self.parent.pushChange((str(self.players[self.playerId].units.index(i)) + ","), Flag(i,t.Target([attackedUnit.position[0],attackedUnit.position[1],0]),FlagState.MOVE))
             if units != "":
                 self.parent.pushChange(units, Flag(i,attackedUnit,FlagState.ATTACK))
+                if isinstance(attackedUnit,u.Unit):
+                    self.parent.pushChange(None, Flag(None,[attackedUnit.owner,self.players[attackedUnit.owner].units.index(attackedUnit), t.Notification.ATTACKED_UNIT],FlagState.NOTIFICATION))
+                else:
+                    self.parent.pushChange(None, Flag(None,[attackedUnit.owner,self.players[attackedUnit.owner].buildings.index(attackedUnit), t.Notification.ATTACKED_BUILDING],FlagState.NOTIFICATION))
+
 
     def setAnAttackFlag(self, attackedUnit, unit):
         units = ""
@@ -464,9 +469,9 @@ class Game():
         if otherPlayerId == self.playerId:
             #Dire au joueur que quelqu'un a changé de diplomacie avec toi (système de notifications)
             if newStatus == "Ally":
-                print(self.players[playerId].name + " veut être mon ami")
+                self.players[self.playerId].notifications.append(t.Notification((-10000,-10000,-10000),t.Notification.ALLIANCE_ALLY,self.players[playerId].name))
             else:
-                print(self.players[playerId].name + " ne veut plus être mon ami")
+                self.players[self.playerId].notifications.append(t.Notification((-10000,-10000,-10000),t.Notification.ALLIANCE_ENNEMY,self.players[playerId].name))
 
     def getPlayerId(self, player):
         for i in self.players:
@@ -512,7 +517,6 @@ class Game():
     def attackEnemyInRange(self, unit, unitToAttack):
         killedIndex = unit.attack(self.players, unitToAttack)
         if unit.attackcount <= 5:
-            print("attaque")
             distance = self.players[self.playerId].camera.calcDistance(unit.position)
             d2 = self.players[self.playerId].camera.calcDistance(unitToAttack.position)
             self.parent.view.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='enemyRange')

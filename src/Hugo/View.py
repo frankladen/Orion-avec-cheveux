@@ -1240,11 +1240,9 @@ class View():
                 self.minimap.create_oval(asteroidX-1, asteroidY-1, asteroidX+1, asteroidY+1, fill='CYAN')
         
     def drawMiniNotification(self,notification, y):
-        notifPos = self.game.players[self.game.playerId].camera.calcPointMinimap(notification.position[0],notification.position[1])
-        notifPosX = notifPos[0]
-        notifPosY = notifPos[1]
-        #notifPosX = (notifPos[0]+self.game.galaxy.width/2)/self.game.galaxy.width * (self.taille/6)     
-        #notifPosY = (notifPos[1]+self.game.galaxy.height/2)/self.game.galaxy.height * (self.taille/6)
+        notifPos = notification.position
+        notifPosX = (notifPos[0]+self.game.galaxy.width/2)/self.game.galaxy.width * (self.taille/6)     
+        notifPosY = (notifPos[1]+self.game.galaxy.height/2)/self.game.galaxy.height * (self.taille/6)
         self.minimap.create_oval(notifPosX-3,notifPosY-3,notifPosX+3,notifPosY+3, fill='RED', tag = 'deletable')
         self.gameArea.create_text(600, y, text=notification.name, fill="white",tag = 'deletable') 
         notification.refreshSeen -= 1

@@ -49,4 +49,19 @@ class PlayerObject(Target):
         return None
     
     def kill(self):
-        self.isAlive = False        
+        self.isAlive = False
+           
+class Notification(Target):
+    ATTACKED_UNIT = 0
+    ATTACKED_BUILDING = 1
+    ALLIANCE_ALLY = 2
+    ALLIANCE_ENNEMY = 3
+    NAME = ("Un de vos vaisseaux se fait attaquer par ", "Un de vos bâtiments se fait attaquer par ", "Vous êtes maintenant l'allié de ", "Vous êtes maintenant l'allié de ")
+    def __init__(self,position,type, actionPlayerName = None):
+        self.position=position
+        self.type=type
+        self.refreshSeen = 60
+        self.name = self.NAME[type]
+        if actionPlayerName != None:
+            self.name += actionPlayerName
+                  

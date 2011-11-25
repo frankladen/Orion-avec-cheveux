@@ -490,6 +490,10 @@ class View():
         else:
             self.drawPlanetGround(self.game.getCurrentPlanet())
             self.redrawMinimap()
+        y=580
+        for k in self.game.players[self.game.playerId].notifications:
+            self.drawMiniNotification(k, y)
+            y-=20
         
     def ongletChat(self,gameFrame):
         self.menuModesOnlets()
@@ -1300,6 +1304,17 @@ class View():
             asteroidY = (asteroidPosition[1] + self.game.galaxy.height/2) / self.game.galaxy.height * (self.taille/6)
             if asteroid.discovered:
                 self.minimap.create_oval(asteroidX-1, asteroidY-1, asteroidX+1, asteroidY+1, fill='CYAN')
+        
+    def drawMiniNotification(self,notification, y):
+        notifPos = notification.position
+        notifPosX = (notifPos[0]+self.game.galaxy.width/2)/self.game.galaxy.width * (self.taille/6)     
+        notifPosY = (notifPos[1]+self.game.galaxy.height/2)/self.game.galaxy.height * (self.taille/6)
+        self.minimap.create_oval(notifPosX-3,notifPosY-3,notifPosX+3,notifPosY+3, fill='RED', tag = 'deletable')
+        self.gameArea.create_text(600, y, text=notification.name, fill="white",tag = 'deletable') 
+        notification.refreshSeen -= 1
+        if notification.refreshSeen <= 0:
+            self.game.players[self.game.playerId].notifications.remove(notification)
+        
         
     #Dessine une unite dans la minimap        
     def drawMiniUnit(self, unit):

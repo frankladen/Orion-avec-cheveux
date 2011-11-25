@@ -30,6 +30,7 @@ class Player():
         self.selectedObjects = [] #Liste des unites selectionnes
         self.units = [] #Liste de toute les unites
         self.buildings = [] #Liste de tous les buildings
+        self.notifications = [] #Liste de toutes les notifications
         self.id = id #Numero du joueur dans la liste de joueur
         self.diplomacies=[]
         for i in range(8):
