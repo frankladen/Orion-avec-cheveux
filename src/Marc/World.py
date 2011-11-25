@@ -355,15 +355,20 @@ class Planet(Target):
                 placeFound = False
             if position[1] < LandingZone.HEIGHT/2 or position[1] > self.HEIGHT-LandingZone.HEIGHT/2:
                 placeFound = False
+            for i in self.landingZones:
+                if position[0] > i.position[0]-i.WIDTH-100 and position[0] < i.position[0]+i.WIDTH+100:
+                    if position[1] > i.position[1]-i.HEIGHT-100 and position[1] < i.position[1]+i.HEIGHT+100:
+                        placeFound = False
+                        break
             for i in self.minerals:
-                if position[0] > i.position[0]-i.WIDTH and position[0] < i.position[0]+i.WIDTH:
-                    if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
-                        posFound = False
+                if position[0] > i.position[0]-i.WIDTH-10 and position[0] < i.position[0]+i.WIDTH+10:
+                    if position[1] > i.position[1]-i.HEIGHT-10 and position[1] < i.position[1]+i.HEIGHT+10:
+                        placeFound = False
                         break
             for i in self.gaz:
-                if position[0] > i.position[0]-i.WIDTH and position[0] < i.position[0]+i.WIDTH:
-                    if position[1] > i.position[1]-i.HEIGHT and position[1] < i.position[1]+i.HEIGHT:
-                        posFound = False
+                if position[0] > i.position[0]-i.WIDTH-10 and position[0] < i.position[0]+i.WIDTH+10:
+                    if position[1] > i.position[1]-i.HEIGHT-10 and position[1] < i.position[1]+i.HEIGHT+10:
+                        placeFound = False
                         break
         id = len(self.landingZones)
         newSpot = LandingZone(position, playerid, landingShip, id, self.id, self.solarSystem.sunId)
@@ -434,6 +439,13 @@ class Planet(Target):
             building = i.select(position)
             if building != None:
                 return building
+        return None
+
+    def hasZoneInRange(self, position, range):
+        for i in self.landingZones:
+            zoneInRange = i.isInRange(position, range)
+            if zoneInRange != None:
+                return zoneInRange
         return None
 
 class MineralStack(Target):
@@ -529,10 +541,11 @@ class LandingZone(PlayerObject):
 
     def takeDammage(self, amount, players):
         if self.LandedShip != None:
-            if self.LandedShip.takeDammage(amount, game):
+            if self.LandedShip.takeDammage(amount, players):
                killedOwner = self.ownerId
-               index = players[self.ownerId].index(self.LandedShip)
-               players[self.ownerId].killUnit(index, killedOwner, False)
+               index = players[self.ownerId].units.index(self.LandedShip)
+               self.LandedShip = None
+               players[self.ownerId].killUnit((index, killedOwner, False))
         else:
             self.hitpoints -= amount
             if self.hitpoints <= 0:

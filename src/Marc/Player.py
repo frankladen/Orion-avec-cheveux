@@ -652,5 +652,3 @@ class Camera():
                     self.position[1]+=20
                 else:
                     self.position[1] = planet.HEIGHT - self.screenCenter[1]
-
-

@@ -307,6 +307,7 @@ class Controller():
             for i in unitIndex:
                 if i != '':
                     self.game.players[actionPlayerId].units[int(i)].changeFlag(t.Target([int(target[0]),int(target[1]),int(target[2])]),int(action))
+            self.game.makeFormation(actionPlayerId, unitIndex, target, action)
         
         elif action == str(FlagState.FINISH_BUILD):
             self.game.resumeBuilding(actionPlayerId, int(target), unitIndex)
