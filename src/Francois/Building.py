@@ -13,16 +13,18 @@ class Building(t.PlayerObject):
     FARM=3
     TURRET=4
     MOTHERSHIP = 5
-    SIZE =((30,30),(0,0),(0,0),(75,59),(32,32),(125,125))
-    INSPACE = (True,False,False,False,True,True)
-    COST = ((50,50),(0,0),(0,0),(50,50),(50,50),(0,0))
-    TIME = (60,0,0,75,75,0)
-    MAX_HP = (150,0,0,200,200,1500)
-    VIEW_RANGE=(200, 0, 0, 100, 250, 400)
+    LANDING_ZONE = 6
+    NAME = ('Benne à ressource', 'Rafinerie', 'Caserne', 'Ferme', 'Tour de défense', 'Vaisseau mère', "Point d'aterissage")
+    SIZE =((30,30),(0,0),(0,0),(75,59),(32,32),(125,125), (32,32))
+    INSPACE = (True,False,False,False,True,True,False)
+    COST = ((50,50),(0,0),(0,0),(50,50),(50,50),(0,0),(0,0))
+    TIME = (60,0,0,75,75,0,0)
+    MAX_HP = (150,0,0,200,200,1500,100)
+    VIEW_RANGE=(200, 0, 0, 100, 250, 400, 200)
     
 
     
-    def __init__(self, name,type, position, owner):
+    def __init__(self, type, position, owner):
         t.PlayerObject.__init__(self, type, position, owner)
         self.buildingTimer = 0   
         self.viewRange = self.VIEW_RANGE[type]
@@ -30,10 +32,9 @@ class Building(t.PlayerObject):
         self.maxHP=self.hitpoints
         self.buildTime = self.TIME[type]
         self.buildCost = self.COST[type]
-        self.name = u.Unit.NAME[type]
-        
+        self.name = self.NAME[type]    
         self.finished = False
-        self.name = name
+
 
     def select(self, position):
         if self.isAlive:
@@ -43,16 +44,16 @@ class Building(t.PlayerObject):
         return None
 
 class SpaceBuilding(Building):
-    def __init__(self, name, type, position, owner):
-        Building.__init__(self, name, type, position, owner)
+    def __init__(self,  type, position, owner):
+        Building.__init__(self,  type, position, owner)
 
 class Waypoint(Building):
-    def __init__(self, name,type, position, owner):
-        SpaceBuilding.__init__(self,name,  type, position, owner)
+    def __init__(self, type, position, owner):
+        SpaceBuilding.__init__(self,  type, position, owner)
         
 class Turret(Building):
-    def __init__(self, name, type, position, owner):
-        SpaceBuilding.__init__(self, name, type, position, owner)
+    def __init__(self,  type, position, owner):
+        SpaceBuilding.__init__(self, type, position, owner)
         self.range=200
         self.AttackSpeed=12
         self.AttackDamage=6
@@ -89,19 +90,19 @@ class Turret(Building):
             return (-1, -1, isBuilding)
 
 class GroundBuilding(Building):
-    def __init__(self, name, type, position, owner, sunId, planetId):
+    def __init__(self, type, position, owner, sunId, planetId):
         Building.__init__(self, name, type, position, owner)
         self.sunId = sunId
         self.planetId = planetId
 
 class Farm(Building):
-    def __init__(self, name, type, position, owner, sunId, planetId):
+    def __init__(self,  type, position, owner, sunId, planetId):
         GroundBuilding.__init__(self, name, type, position, owner, sunId, planetId)
 
 
 class ConstructionBuilding(Building):
     def __init__(self, type, position, owner):
-        Building.__init__(self, 'Vaisseau mère', type, position, owner)
+        Building.__init__(self, type, position, owner)
         self.unitBeingConstruct = []
         self.rallyPoint = [position[0],position[1]+(self.SIZE[type][1]/2)+5,0]
         
@@ -270,7 +271,7 @@ class LandingZone(ConstructionBuilding):
     WIDTH = 75
     HEIGHT = 75
     def __init__(self, position, ownerId, landingShip, id, planetId, sunId):
-        PlayerObject.__init__(self, 0, position, ownerId)
+        ConstructionBuilding.__init__(self, self.LANDING_ZONE, position, ownerId)
         self.ownerId = ownerId
         self.LandedShip = landingShip
         self.id = id
