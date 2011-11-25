@@ -25,6 +25,9 @@ class Building(t.PlayerObject):
         self.hitpoints = self.MAX_HP[type]
         self.finished = False
 
+    def action(self, parent):
+        i=1
+
     def select(self, position):
         if self.isAlive:
             if self.position[0] >= position[0] - self.SIZE[self.type][0]/2 and self.position[0] <= position[0] + self.SIZE[self.type][0]/2:
@@ -56,6 +59,15 @@ class Turret(Building):
         self.attackcount=self.AttackSpeed
         self.killCount = 0
 
+    def action(self, parent):
+        if self.finished:
+            if self.flag.flagState == fl.FlagState.ATTACK:
+                killedIndexes = self.attack(parent.game.players)
+                if killedIndexes[0] > -1:
+                    parent.killUnit(killedIndexes)
+            else:
+                parent.game.checkIfEnemyInRange(self)
+
     def attack(self, players, unitToAttack=None):
         if unitToAttack == None:
             unitToAttack = self.flag.finalTarget
@@ -81,10 +93,20 @@ class Turret(Building):
                                     i.attackcount=i.AttackSpeed
                         self.killCount +=1
                     self.attackcount=self.AttackSpeed
+            else:
+                self.flag = fl.Flag(t.Target(self.position), t.Target(self.position), fl.FlagState.STANDBY)
             return (index, killedOwner, isBuilding)
         except ValueError:
-            self.flag = Flag(t.Target(self.position), t.Target(self.position), fl.FlagState.STANDBY)
+            self.flag = fl.Flag(t.Target(self.position), t.Target(self.position), fl.FlagState.STANDBY)
             return (-1, -1, isBuilding)
+
+    #Change le flag pour une nouvelle destination et un nouvel etat
+    def changeFlag(self, finalTarget, state):
+        #On doit vérifier si l'unité est encore vivante
+        if self.isAlive:
+            self.flag.initialTarget = t.Target([self.position[0],self.position[1],0])
+            self.flag.finalTarget = finalTarget
+            self.flag.flagState = state
 
 class GroundBuilding(Building):
     def __init__(self, type, position, owner, sunId, planetId):

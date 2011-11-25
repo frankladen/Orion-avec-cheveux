@@ -407,10 +407,7 @@ class Mothership(Unit):
         if self.isAlive:
             p = [self.position[0], self.position[1], 0]
 
-            if self.flag.flagState == FlagState.BUILD_UNIT:
-                self.progressUnitsConstruction()
-
-            elif self.flag.flagState == FlagState.CANCEL_UNIT:
+            if self.flag.flagState == FlagState.CANCEL_UNIT:
                 self.unitBeingConstruct.pop(self.flag.finalTarget)
                 self.flag.flagState = FlagState.BUILD_UNIT
 
@@ -419,7 +416,13 @@ class Mothership(Unit):
                 self.rallyPoint = [target[0], target[1], 0]
                 self.flag.flagState = FlagState.BUILD_UNIT
 
+            elif self.flag.flagState == FlagState.ATTACK:
+                killedIndex = self.attack(parent.game.players)
+                if killedIndex[0] > -1:
+                    parent.killUnit(killedIndex)
+
             self.regenShield()
+            self.progressUnitsConstruction()
             parent.game.checkIfEnemyInRange(self)
 
             if len(self.unitBeingConstruct) > 0:

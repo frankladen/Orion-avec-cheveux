@@ -48,9 +48,8 @@ class Player():
             if i.isAlive:
                 i.action(self)
         for i in self.buildings:
-            if i.type == b.Building.TURRET:
-                if i.finished and i.isAlive:
-                    self.game.checkIfEnemyInRange(i)
+            i.action(self)
+            
     def selectUnitsByType(self, unitType):
         units = []
         for i in self.selectedObjects:
@@ -276,7 +275,7 @@ class Player():
             if b.isAlive:
                 if b.flag.finalTarget == unitToAttack:
                     b.flag = Flag(t.Target(i.position), t.Target(i.position), FlagState.STANDBY)
-                    b.attackcount=i.AttackSpeed
+                    b.attackcount=b.AttackSpeed
 
     def killUnit(self, killedIndexes):
         if killedIndexes[1] == self.id:
