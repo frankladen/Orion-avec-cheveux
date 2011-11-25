@@ -67,7 +67,7 @@ class Turret(Building):
             if distance <= self.range:
                 self.attackcount = self.attackcount - 1
                 if self.attackcount == 0:
-                    if unitToAttack.takeDammage(self.AttackDamage, players)
+                    if unitToAttack.takeDammage(self.AttackDamage, players):
                         if isinstance(unitToAttack, Building) == False:
                             index = players[unitToAttack.owner].units.index(unitToAttack)
                         else:
