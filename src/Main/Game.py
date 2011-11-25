@@ -248,6 +248,10 @@ class Game():
                 player.BONUS[player.ATTACK_RANGE_BONUS] = tech.add
             elif tech.effect == 'VR':
                 player.BONUS[player.VIEW_RANGE_BONUS] = tech.add
+            elif tech.effect == 'BM':
+                player.motherShip.MAX_SHIELD = 1500
+                player.motherShip.shield = player.motherShip.MAX_SHIELD
+                
             player.changeBonuses()
         
     def setGatherFlag(self,ship,ressource):
@@ -548,15 +552,14 @@ class Game():
                     if enemyUnit != None:
                         self.attackEnemyInRange(unit, enemyUnit)
                         break
+        if onPlanet:
+            planet = self.galaxy.solarSystemList[solarSystemId].planets[planetId]
+            enemyZone = planet.hasZoneInRange(unit.position, unit.range)
+            if enemyZone != None and enemyZone.ownerId != unit.owner and not self.players[unit.owner].isAlly(enemyZone.ownerId):
+                self.attackEnemyInRange(unit, enemyZone)
                                         
     def attackEnemyInRange(self, unit, unitToAttack):
-        killedIndex = unit.attack(self.players, unitToAttack)
-        if unit.attackcount <= 5:
-            distance = self.players[self.playerId].camera.calcDistance(unit.position)
-            d2 = self.players[self.playerId].camera.calcDistance(unitToAttack.position)
-            self.parent.view.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill=self.parent.view.laserColors[unit.owner], tag='enemyRange')
-        if killedIndex[0] > -1:
-            self.players[killedIndex[1]].killUnit(killedIndex)
+        unit.changeFlag(unitToAttack, FlagState.ATTACK)
 
     def checkIfCanBuild(self, position, type):
         start = (position[0]-(Building.SIZE[type][0]/2),position[1]-(Building.SIZE[type][1]/2),0)

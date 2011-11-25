@@ -23,7 +23,7 @@ class Unit(PlayerObject):
     MINERAL=0
     GAS=1
     FOOD=2
-    SIZE=((0,0), (125,125), (18,15), (28,32), (32,29), (20,30),(24,24),(20,38), (0,0), (36,33), (32,32))
+    SIZE=((0,0), (125,125), (18,15), (28,32), (32,29), (20,30),(24,24),(20,38), (32,32), (36,33), (23,37))
     MAX_HP = (50,1500, 50, 100,125, 75, 100, 100, 100, 100, 100)
     MOVE_SPEED=(1.0, 0.0, 4.0, 2.0, 3.0, 3.0, 5.0, 5.0, 3.0, 3.5, 4.0)
     ATTACK_SPEED=(0,8,0,10,0,0,0,0,0,15,0)
@@ -371,7 +371,7 @@ class GroundAttackUnit(GroundUnit):
 class Mothership(Unit):
     REGEN_WAIT_TIME = 30
     REGEN_WAIT_TIME_AFTER_ATTACK = 60
-    MAX_SHIELD = 1500
+    MAX_SHIELD = 0
     MAX_ARMOR = 2000
     
     def __init__(self, name, type, position, owner):
@@ -407,10 +407,7 @@ class Mothership(Unit):
         if self.isAlive:
             p = [self.position[0], self.position[1], 0]
 
-            if self.flag.flagState == FlagState.BUILD_UNIT:
-                self.progressUnitsConstruction()
-
-            elif self.flag.flagState == FlagState.CANCEL_UNIT:
+            if self.flag.flagState == FlagState.CANCEL_UNIT:
                 self.unitBeingConstruct.pop(self.flag.finalTarget)
                 self.flag.flagState = FlagState.BUILD_UNIT
 
@@ -419,8 +416,14 @@ class Mothership(Unit):
                 self.rallyPoint = [target[0], target[1], 0]
                 self.flag.flagState = FlagState.BUILD_UNIT
 
+            elif self.flag.flagState == FlagState.ATTACK:
+                killedIndex = self.attack(parent.game.players)
+                if killedIndex[0] > -1:
+                    parent.killUnit(killedIndex)
+
             self.regenShield()
-            #parent.game.checkIfEnemyInRange(self)
+            self.progressUnitsConstruction()
+            parent.game.checkIfEnemyInRange(self)
 
             if len(self.unitBeingConstruct) > 0:
                     if(self.isUnitFinished()):
@@ -660,9 +663,11 @@ class TransportShip(SpaceUnit):
                     if playerId == game.playerId:
                         cam = game.players[playerId].camera
                         cam.placeOnLanding(landingZone)
+                    x=40
                     for i in self.units:
-                        position = [landingZone.position[0] + 40, landingZone.position[1] + 5 * self.units.index(i)]
+                        position = [landingZone.position[0] + x, landingZone.position[1] + 5 * self.units.index(i)]
                         i.land(planet, position)
+                        x+=25
                     del self.units[:]
                     if self in game.players[game.playerId].selectedObjects:
                         game.players[game.playerId].selectedObjects.pop(game.players[game.playerId].selectedObjects.index(self))
@@ -678,9 +683,11 @@ class TransportShip(SpaceUnit):
                     if playerId == game.playerId:
                         cam = game.players[playerId].camera
                         cam.placeOnLanding(landingZone)
+                    x=40
                     for i in self.units:
-                        position = [landingZone.position[0] + 40, landingZone.position[1] + 5 * self.units.index(i)]
+                        position = [landingZone.position[0] + x, landingZone.position[1] + 5 * self.units.index(i)]
                         i.land(planet, position)
+                        x+=25
                     del self.units[:]
                     landingZone.LandedShip = self
             if playerId == game.playerId:
@@ -696,8 +703,6 @@ class TransportShip(SpaceUnit):
 
     def kill(self):
         self.isAlive = False
-        if self.planet != None:
-            self.takeOff(self.planet)
 
     def load(self, unit):
         unit.flag = Flag(unit.position, unit.landingZone, FlagState.LOAD)

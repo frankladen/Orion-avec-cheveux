@@ -18,12 +18,14 @@ class Building(t.PlayerObject):
     TIME = (60,0,0,75,75)
     MAX_HP = (150,0,0,200,200)
     VIEW_RANGE=(200, 0, 0, 100, 250)
+    MAX_SHIELD=(0,0,0,0,0)
     
     def __init__(self,type, position, owner):
         t.PlayerObject.__init__(self, self.NAME[type], type, position, owner)
         self.buildingTimer = 0
         self.hitpoints = self.MAX_HP[type]
         self.finished = False
+        self.shield = self.MAX_SHIELD[type]
 
     def action(self, parent):
         i=1

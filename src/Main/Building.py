@@ -2,6 +2,7 @@
 import Target as t
 import World as w
 import Player as p
+import Flag as fl
 from Helper import *
 
 class Building(t.PlayerObject):
@@ -17,12 +18,17 @@ class Building(t.PlayerObject):
     TIME = (60,0,0,75,75)
     MAX_HP = (150,0,0,200,200)
     VIEW_RANGE=(200, 0, 0, 100, 250)
+    MAX_SHIELD=(0,0,0,0,0)
     
     def __init__(self,type, position, owner):
         t.PlayerObject.__init__(self, self.NAME[type], type, position, owner)
         self.buildingTimer = 0
         self.hitpoints = self.MAX_HP[type]
         self.finished = False
+        self.shield = self.MAX_SHIELD[type]
+
+    def action(self, parent):
+        i=1
 
     def select(self, position):
         if self.isAlive:
@@ -55,7 +61,18 @@ class Turret(Building):
         self.attackcount=self.AttackSpeed
         self.killCount = 0
 
-    def attack(self, players, unitToAttack):
+    def action(self, parent):
+        if self.finished:
+            if self.flag.flagState == fl.FlagState.ATTACK:
+                killedIndexes = self.attack(parent.game.players)
+                if killedIndexes[0] > -1:
+                    parent.killUnit(killedIndexes)
+            else:
+                parent.game.checkIfEnemyInRange(self)
+
+    def attack(self, players, unitToAttack=None):
+        if unitToAttack == None:
+            unitToAttack = self.flag.finalTarget
         index = -1
         killedOwner = -1
         isBuilding = False
@@ -64,8 +81,7 @@ class Turret(Building):
             if distance <= self.range:
                 self.attackcount = self.attackcount - 1
                 if self.attackcount == 0:
-                    unitToAttack.hitpoints-=self.AttackDamage
-                    if unitToAttack.hitpoints <= 0:
+                    if unitToAttack.takeDammage(self.AttackDamage, players):
                         if isinstance(unitToAttack, Building) == False:
                             index = players[unitToAttack.owner].units.index(unitToAttack)
                         else:
@@ -75,14 +91,24 @@ class Turret(Building):
                         for i in players[self.owner].units:
                             if i.isAlive:
                                 if i.flag.finalTarget == unitToAttack:
-                                    i.flag = Flag(t.Target(i.position), t.Target(i.position), FlagState.STANDBY)
+                                    i.flag = fl.Flag(t.Target(i.position), t.Target(i.position), fl.FlagState.STANDBY)
                                     i.attackcount=i.AttackSpeed
                         self.killCount +=1
                     self.attackcount=self.AttackSpeed
+            else:
+                self.flag = fl.Flag(t.Target(self.position), t.Target(self.position), fl.FlagState.STANDBY)
             return (index, killedOwner, isBuilding)
         except ValueError:
-            self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.STANDBY)
+            self.flag = fl.Flag(t.Target(self.position), t.Target(self.position), fl.FlagState.STANDBY)
             return (-1, -1, isBuilding)
+
+    #Change le flag pour une nouvelle destination et un nouvel etat
+    def changeFlag(self, finalTarget, state):
+        #On doit vérifier si l'unité est encore vivante
+        if self.isAlive:
+            self.flag.initialTarget = t.Target([self.position[0],self.position[1],0])
+            self.flag.finalTarget = finalTarget
+            self.flag.flagState = state
 
 class GroundBuilding(Building):
     def __init__(self, type, position, owner, sunId, planetId):

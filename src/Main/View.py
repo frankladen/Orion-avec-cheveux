@@ -69,7 +69,7 @@ class View():
         self.gifAttackUnit = PhotoImage(file='images/icones/attackUnit.gif')
         self.gifRallyPoint = PhotoImage(file='images/icones/flag.gif')
         self.gifBuild = PhotoImage(file = 'images/icones/build.gif')
-        self.gifTechTree = PhotoImage(file = 'images/icones/delete.gif')
+        self.gifTechTree = PhotoImage(file = 'images/icones/techUpgrade.gif')
         self.gifConstruction = PhotoImage(file='images/Building/construction.gif')        
         self.gifCadreMenuAction = PhotoImage(file = 'images/Menus/cadreMenuAction.gif')
         self.iconCancel = PhotoImage(file = 'images/icones/cancelUnit.gif')
@@ -84,6 +84,16 @@ class View():
         self.gifTriangle = PhotoImage(file='images/icones/iconeFormationTriangle.gif')
         self.gifSquare = PhotoImage(file='images/icones/iconeFormationCarre.gif')
         self.gifReturn = PhotoImage(file='images/icones/return.gif')
+        self.gifTank = PhotoImage(file='images/icones/iconeTank.gif')
+        self.gifFarm = PhotoImage(file='images/icones/iconeFarm.gif')
+        self.gifGroundBuilder = PhotoImage(file='images/icones/iconeGroundBuilder.gif')
+        self.gifGroundGather = PhotoImage(file='images/icones/iconeGroundGather.gif')
+        self.gifGroundSpecial = PhotoImage(file='images/icones/iconeSpecial.gif')
+        self.gifTurret = PhotoImage(file='images/icones/iconeTurret.gif')
+        self.gifWaypoint = PhotoImage(file='images/icones/iconeWaypoint.gif')
+        self.gifupB = PhotoImage(file='images/icones/upB.gif')
+        self.gifupM = PhotoImage(file='images/icones/upM.gif')
+        self.gifupU = PhotoImage(file='images/icones/upU.gif')
         self.laserColors = ['#ff7733','#ee0022','#1144ff','#009911','#ffff00','#993300','#ffffff','#cc00cc']
         #fenetres
         self.mainMenu = self.fMainMenu()
@@ -135,9 +145,9 @@ class View():
         self.waypoints = []
         self.landingZones = []
         self.groundUnits = []
-        self.gifGroundAttackUnit = []
-        self.gifTurret = []
-        self.gifFarm = []
+        self.groundAttackUnits = []
+        self.turrets = []
+        self.farms = []
         self.groundBuilders = []
         for i in range(0,8):
             self.scoutShips.append(PhotoImage(file='images/Ships/Scoutships/Scoutship'+str(i)+'.gif'))
@@ -149,10 +159,10 @@ class View():
             self.landingZones.append(PhotoImage(file='images/Planet/LandingZones/landing'+str(i)+'.gif'))
             self.waypoints.append(PhotoImage(file='images/Building/Waypoints/waypoint'+str(i)+'.gif'))
             self.groundUnits.append(PhotoImage(file='images/Planet/GroundUnit/ground'+str(i)+'.gif'))
-            self.gifGroundAttackUnit.append(PhotoImage(file='images/Planet/Tanks/tank'+str(i)+'.gif'))
-            self.gifTurret.append(PhotoImage(file='images/Building/Turrets/turret'+str(i)+'.gif'))
-            self.gifFarm.append(PhotoImage(file='images/Building/Farms/farm'+str(i)+'.gif'))
-            self.groundBuilders.append(PhotoImage(file='images/Planet/Robot/robot'+str(i)+'.gif'))
+            self.groundAttackUnits.append(PhotoImage(file='images/Planet/Tanks/tank'+str(i)+'.gif'))
+            self.turrets.append(PhotoImage(file='images/Building/Turrets/turret'+str(i)+'.gif'))
+            self.farms.append(PhotoImage(file='images/Building/Farms/farm'+str(i)+'.gif'))
+            self.groundBuilders.append(PhotoImage(file='images/Planet/Special/special'+str(i)+'.gif'))
         self.ressourcesFrame = LabelFrame(gameFrame, text="Ressources", width=600, bg="black", fg="white", relief=RAISED)
         self.showMinerals = Label(self.ressourcesFrame, text="Minéraux: "+str(self.game.players[self.game.playerId].ressources[0]), width=20, bg="black", fg="white", anchor=NW)
         self.showMinerals.grid(column=0, row=0)
@@ -380,7 +390,7 @@ class View():
                     elif isinstance(i, u.GroundGatherUnit):
                         self.menuModes.create_image(x,y, image = self.groundUnits[self.game.players[self.game.playerId].colorId], tags =  ('selected_unit',unitList.index(i)), anchor = NW)
                     elif isinstance(i, u.GroundAttackUnit):
-                        self.menuModes.create_image(x, y, image = self.gifGroundAttackUnit[self.game.players[self.game.playerId].colorId], tags = ('selected_unit',unitList.index(i)), anchor = NW)           
+                        self.menuModes.create_image(x, y, image = self.groundAttackUnits[self.game.players[self.game.playerId].colorId], tags = ('selected_unit',unitList.index(i)), anchor = NW)           
                         
                     elif isinstance(i, u.Unit):
                         self.menuModes.create_image(x,y, image = self.gifUnit, tags = ('selected_unit',unitList.index(i)), anchor = NW)     
@@ -420,33 +430,48 @@ class View():
                         y+=46
 
     def showInfo(self, unit):
-        if isinstance(unit, Planet) == False and isinstance(unit, AstronomicalObject) == False and isinstance(unit, Unit):
+        if isinstance(unit, b.Building) or isinstance(unit, Unit):
             #Ces images seront remplacer par de plus grandes et plus belles ! (aghi on t'attends ! )
 
             if isinstance(unit, u.Mothership) == False :
                 self.menuModes.create_text(20,80, text = 'Type : ' + unit.NAME[unit.type], anchor = NW, fill = 'white')
                 self.menuModes.create_text(20,100, text = "HP : " + str(math.trunc(unit.hitpoints)) + "/" + str(unit.maxHP),anchor = NW, fill = 'white')
-                self.menuModes.create_text(20,120, text = "Vitesse de déplacement : " + str(unit.moveSpeed) + " années lumière à l'heure.", anchor = NW, fill = 'white')
-                self.menuModes.create_text(20,140, text = "Champ de vision : " + str(unit.viewRange) + " années lumière", anchor = NW, fill = 'white')
-                if isinstance(unit, u.SpaceAttackUnit) or isinstance(unit, u.GroundAttackUnit):
-                    if isinstance(unit, u.GatherShip):
-                        self.menuModes.create_image(20, 50, image = self.gifAttackUnit)
+                self.menuModes.create_text(20,120, text = "Champ de vision : " + str(unit.viewRange) + " années lumière", anchor = NW, fill = 'white')
+                
+                if isinstance(unit, u.Unit):
+                    self.menuModes.create_text(20,140, text = "Vitesse de déplacement : " + str(unit.moveSpeed) + " années lumière à l'heure.", anchor = NW, fill = 'white')
+                    if isinstance(unit, u.SpaceAttackUnit) or isinstance(unit, u.GroundAttackUnit):
+                        if isinstance(unit, u.SpaceAttackUnit):
+                            self.menuModes.create_image(20, 50, image = self.gifAttackUnit)
+                        else:
+                            self.menuModes.create_image(20, 50, image = self.gifTank)
+                        self.menuModes.create_text(20,160, text = "Vitesse d'attaque : " + str(unit.AttackSpeed),anchor = NW, fill = 'white')
+                        self.menuModes.create_text(20,180, text = "Force d'attaque : " + str(unit.AttackDamage),anchor = NW, fill = 'white')
+                    elif isinstance(unit, u.GatherShip) or isinstance(unit, u.GroundGatherUnit):
+                        if isinstance(unit, u.GatherShip):
+                            self.menuModes.create_image(20,50, image = self.gifCargo)
+                        else:
+                            self.menuModes.create_image(20,50, image = self.gifGroundGather)
+                        self.menuModes.create_text(20,160, text = "Chargement : gaz = " + str(unit.container[1]) + " mineral = " + str(unit.container[0]), anchor = NW, fill = 'white')
+                        self.menuModes.create_text(20,180, text = "Taille du réservoir : " + str(unit.maxGather), anchor = NW, fill = 'white')
+                        self.menuModes.create_text(20,200, text = "Vitesse de minage : " + str(unit.gatherSpeed), anchor = NW, fill = 'white')
+                    elif isinstance(unit, u.TransportShip):
+                        self.menuModes.create_image(20,50, image = self.gifTransport)
+                    elif isinstance(unit, u.GroundBuilderUnit):
+                        self.menuModes.create_image(20,50, image = self.gifGroundBuilder)
                     else:
-                        self.menuModes.create_image(20, 50, image = self.gifGroundAttackUnit[self.game.players[self.game.playerId].colorId])
-                    self.menuModes.create_text(20,160, text = "Vitesse d'attaque : " + str(unit.AttackSpeed),anchor = NW, fill = 'white')
-                    self.menuModes.create_text(20,180, text = "Force d'attaque : " + str(unit.AttackDamage),anchor = NW, fill = 'white')
-                elif isinstance(unit, u.GatherShip) or isinstance(unit, u.GroundGatherUnit):
-                    if isinstance(unit, u.GatherShip):
-                        self.menuModes.create_image(20,50, image = self.gifCargo)
-                    else:
-                        self.menuModes.create_image(20,50, image = self.groundUnits[self.game.players[self.game.playerId].colorId])
-                    self.menuModes.create_text(20,160, text = "Chargement : gaz = " + str(unit.container[1]) + " mineral = " + str(unit.container[0]), anchor = NW, fill = 'white')
-                    self.menuModes.create_text(20,180, text = "Taille du réservoir : " + str(unit.maxGather), anchor = NW, fill = 'white')
-                    self.menuModes.create_text(20,200, text = "Vitesse de minage : " + str(unit.gatherSpeed), anchor = NW, fill = 'white')
-                elif isinstance(unit, u.TransportShip):
-                    self.menuModes.create_image(20,50, image = self.gifTransport)
-                elif isinstance(unit, u.Unit):
-                    self.menuModes.create_image(20,50, image = self.gifUnit)
+                        self.menuModes.create_image(20,50, image = self.gifUnit)
+                        
+                elif isinstance(unit, b.Building):
+                    if isinstance(unit, b.Waypoint):
+                        self.menuModes.create_image(20,50, image = self.gifWaypoint)
+                    elif isinstance(unit, b.Farm):
+                        self.menuModes.create_image(20,50, image = self.gifFarm)
+                    elif isinstance(unit, b.Turret):
+                        self.menuModes.create_image(20,50, image = self.gifTurret)
+                        self.menuModes.create_text(20,140, text = "Bouclier : " + str(math.trunc(unit.shield)) + "/" + str(unit.MAX_SHIELD),anchor = NW, fill = 'white')
+                        self.menuModes.create_text(20,160, text = "Vitesse d'attaque : " + str(unit.AttackSpeed),anchor = NW, fill = 'white')
+                        self.menuModes.create_text(20,180, text = "Force d'attaque : " + str(unit.AttackDamage),anchor = NW, fill = 'white')
 
                 if unit.hitpoints != unit.maxHP:
                     self.menuModes.create_arc((675, 190,500,10), start=0, extent= (unit.hitpoints / unit.maxHP)*359.99999999 , fill='green', tags = 'arc', outline ='green')
@@ -454,21 +479,23 @@ class View():
                     self.menuModes.create_oval((675, 190,500,10), fill='green', tags = 'arc', outline ='green')
 
             else:
-                self.menuModes.create_text(20,60, text = 'Type : ' + unit.NAME[unit.type], anchor = NW, fill = 'white')
-                self.menuModes.create_text(20,80, text = "HP : " + str(math.trunc(unit.hitpoints)) + "/" + str(unit.maxHP),anchor = NW, fill = 'white')
+                self.menuModes.create_text(20,40, text = 'Type : ' + unit.NAME[unit.type], anchor = NW, fill = 'white')
+                self.menuModes.create_text(20,60, text = "HP : " + str(math.trunc(unit.hitpoints)) + "/" + str(unit.maxHP),anchor = NW, fill = 'white')
+                self.menuModes.create_text(20,80, text = "Champ de vision : " + str(unit.viewRange) + " années lumière", anchor = NW, fill = 'white')
                 self.menuModes.create_text(20,100, text = "Armure : " + str(math.trunc(unit.armor)) + "/" + str(unit.MAX_ARMOR),anchor = NW, fill = 'white')
                 self.menuModes.create_text(20,120, text = "Bouclier : " + str(math.trunc(unit.shield)) + "/" + str(unit.MAX_SHIELD),anchor = NW, fill = 'white')
-                self.menuModes.create_text(20,140, text = "Vitesse de déplacement : " + str(unit.moveSpeed) + " années lumière à l'heure.", anchor = NW, fill = 'white')
-                self.menuModes.create_text(20,160, text = "Champ de vision : " + str(unit.viewRange) + " années lumière", anchor = NW, fill = 'white')
+                self.menuModes.create_text(20,140, text = "Vitesse d'attaque : " + str(unit.AttackSpeed),anchor = NW, fill = 'white')
+                self.menuModes.create_text(20,160, text = "Force d'attaque : " + str(unit.AttackDamage),anchor = NW, fill = 'white')
                 if len(self.game.players[self.game.playerId].motherShip.unitBeingConstruct) > 0:
                     self.menuModes.create_text(20,180, text = str(len(self.game.players[self.game.playerId].motherShip.unitBeingConstruct)) + " unités actuellement en contruction", anchor = NW, fill = 'white')
                     self.createUnitsConstructionMenu()
                 else:
                     self.menuModes.create_text(20,180, text = "Aucune unité n'est actuellement en contruction", anchor = NW, fill = 'white')
-                    if unit.shield != unit.MAX_SHIELD:
-                        self.menuModes.create_arc((675, 190, 500, 10), start=0, extent= (unit.shield / unit.MAX_SHIELD)*359.99999999 , fill='blue', tags = 'arc')
-                    else:
-                        self.menuModes.create_oval((675, 190, 500, 10), fill='blue', tags = 'arc', outline ='blue')
+                    if unit.shield > 0:
+                        if unit.shield != unit.MAX_SHIELD:
+                            self.menuModes.create_arc((675, 190, 500, 10), start=0, extent= (unit.shield / unit.MAX_SHIELD)*359.99999999 , fill='blue', tags = 'arc')
+                        else:
+                            self.menuModes.create_oval((675, 190, 500, 10), fill='blue', tags = 'arc', outline ='blue')
                     if unit.armor != unit.MAX_ARMOR:
                         self.menuModes.create_arc((662, 177, 515, 22), start=0, extent= (unit.armor / unit.MAX_ARMOR)*359.99999999 , fill='red', tags = 'arc')
                     else:
@@ -574,21 +601,21 @@ class View():
             self.Actionmenu.create_image(140,35,image = self.gifCargo, anchor = NW, tags = 'Button_Build_Gather')
             self.Actionmenu.create_image(13,89,image = self.gifTransport, anchor = NW, tags = 'Button_Build_Transport')
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
-            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white")
-            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white")
+            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
+            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
         elif(type == self.SPACE_BUILDINGS_MENU):
             self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
-            self.Actionmenu.create_image(13,35,image = self.gifUnit, anchor = NW, tags = 'Button_Build_Waypoint')
-            self.Actionmenu.create_image(76,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Build_Turret')
+            self.Actionmenu.create_image(13,35,image = self.gifWaypoint, anchor = NW, tags = 'Button_Build_Waypoint')
+            self.Actionmenu.create_image(76,35,image = self.gifTurret, anchor = NW, tags = 'Button_Build_Turret')
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
-            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white")
-            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white")
+            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
+            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
         elif(type == self.GROUND_BUILDINGS_MENU):
             self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
-            self.Actionmenu.create_image(13,35,image = self.gifUnit, anchor = NW, tags = 'Button_Build_Farm')
+            self.Actionmenu.create_image(13,35,image = self.gifFarm, anchor = NW, tags = 'Button_Build_Farm')
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
-            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white")
-            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white")
+            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
+            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
         elif(type == self.WAITING_FOR_RALLY_POINT_MENU):
             self.drawFirstLine = ""
             self.drawSecondLine = ""
@@ -615,14 +642,16 @@ class View():
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le lieu où la construction du bâtiment va s'effectuer.",anchor = NW, fill = 'white', width = 200)
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.TECHNOLOGY_TREE_MENU):
+            self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
+            self.Actionmenu.create_image(13,35,image = self.gifupU, anchor = NW, tags = 'Button_Tech_Units')
+            self.Actionmenu.create_image(76,35,image = self.gifupB, anchor = NW, tags = 'Button_Tech_Buildings')
+            self.Actionmenu.create_image(140,35,image = self.gifupM, anchor = NW, tags = 'Button_Tech_Mothership')
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
+            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
+            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
+        elif(type == self.TECHTREE_UNIT_MENU):
             self.drawFirstLine = ""
             self.drawSecondLine = ""
-            self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
-            self.Actionmenu.create_image(13,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Tech_Units')
-            self.Actionmenu.create_image(76,35,image = self.gifUnit, anchor = NW, tags = 'Button_Tech_Buildings')
-            self.Actionmenu.create_image(140,35,image = self.gifTransport, anchor = NW, tags = 'Button_Tech_Mothership')
-            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
-        elif(type == self.TECHTREE_UNIT_MENU):
             techTree = self.game.players[self.game.playerId].techTree
             techs = techTree.getTechs(techTree.UNITS)
             y=5
@@ -876,7 +905,7 @@ class View():
             if unit.attackcount <= 5 and unit.flag.flagState == FlagState.ATTACK:
                 d2 = self.game.players[self.game.playerId].camera.calcDistance(unit.flag.finalTarget.position)
                 self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill=self.laserColors[color], tag='deletable')
-            self.gameArea.create_image(distance[0], distance[1], image=self.gifGroundAttackUnit[color], tag='deletable')
+            self.gameArea.create_image(distance[0], distance[1], image=self.groundAttackUnits[color], tag='deletable')
         elif isinstance(unit, GroundBuilderUnit):
             self.gameArea.create_image(distance[0], distance[1], image=self.groundBuilders[color], tag='deletable')
         if unit.hitpoints <= 15:
@@ -888,7 +917,7 @@ class View():
             self.gameArea.create_rectangle(distance[0]-(building.SIZE[building.type][0]/2+3), distance[1]-(building.SIZE[building.type][1]/2+3), distance[0]+(building.SIZE[building.type][0]/2+3),distance[1]+(building.SIZE[building.type][1]/2+3),outline='green', tag='deletable')
         if isinstance(building, b.Farm):
             if building.finished == True:
-                self.gameArea.create_image(distance[0], distance[1], image=self.gifFarm[color], tag='deletable')
+                self.gameArea.create_image(distance[0], distance[1], image=self.farms[color], tag='deletable')
             else:
                 self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifConstruction,tag='deletable')
         if building.hitpoints <= 15:
@@ -1052,8 +1081,11 @@ class View():
                 elif building.type == b.Building.TURRET:
                     if building.buildingTimer < building.TIME[building.type]:
                         self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifConstruction,tag='deletable')  
-                    else:   
-                        self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifTurret[player.colorId],tag='deletable')
+                    else:
+                        self.gameArea.create_image(distance[0]+1, distance[1], image=self.turrets[player.colorId],tag='deletable')
+                        if building.attackcount <= 5 and building.flag.flagState == FlagState.ATTACK:
+                            d2 = self.game.players[self.game.playerId].camera.calcDistance(building.flag.finalTarget.position)
+                            self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill=self.laserColors[player.colorId], tag='deletable')
                 if building in player.selectedObjects:
                     self.gameArea.create_rectangle(distance[0]-(building.SIZE[building.type][0]/2),distance[1]-(building.SIZE[building.type][1]/2),distance[0]+(building.SIZE[building.type][0]/2),distance[1]+(building.SIZE[building.type][1]/2), outline="green", tag='deletable') 
                 if building.hitpoints <= 15:
@@ -1075,9 +1107,9 @@ class View():
         if building == b.Building.WAYPOINT:
             self.gameArea.create_image(distance[0], distance[1], image=self.waypoints[self.game.players[self.game.playerId].colorId], tag='deletable')
         elif building == b.Building.TURRET:
-            self.gameArea.create_image(distance[0], distance[1], image=self.gifTurret[self.game.players[self.game.playerId].colorId], tag='deletable')
+            self.gameArea.create_image(distance[0], distance[1], image=self.turrets[self.game.players[self.game.playerId].colorId], tag='deletable')
         elif building == b.Building.FARM:
-            self.gameArea.create_image(distance[0], distance[1], image=self.gifFarm[self.game.players[self.game.playerId].colorId], tag='deletable')
+            self.gameArea.create_image(distance[0], distance[1], image=self.farms[self.game.players[self.game.playerId].colorId], tag='deletable')
  
 	#pour dessiner un vaisseau        
     def drawUnit(self, unit, player, isInFOW):
@@ -1097,6 +1129,9 @@ class View():
                         self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0], distance[1], image=self.attackShips[player.colorId], tag='deletable')#On prend l'image dependamment du joueur que nous sommes
                 elif unit.type == unit.MOTHERSHIP:
+                    if unit.attackcount <= 5 and unit.flag.flagState == FlagState.ATTACK:
+                        d2 = self.game.players[self.game.playerId].camera.calcDistance(unit.flag.finalTarget.position)
+                        self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill=self.laserColors[player.colorId], tag='deletable')
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0], distance[1], image = self.motherShips[player.colorId], tag='deletable')
@@ -1763,6 +1798,18 @@ class View():
             elif (Button_pressed == "Button_Build_Farm"):
                 self.drawFirstLine=str(b.Building.NAME[b.Building.FARM])
                 self.drawSecondLine=str(b.Building.COST[b.Building.FARM][0])+" mine | "+str(b.Building.COST[b.Building.FARM][1])+" gaz"
+            elif (Button_pressed == "Button_Tech_Units"):
+                self.drawFirstLine="Technologies"
+                self.drawSecondLine="Unités"
+            elif (Button_pressed == "Button_Tech_Buildings"):
+                self.drawFirstLine="Technologies"
+                self.drawSecondLine="Bâtiments"
+            elif (Button_pressed == "Button_Tech_Mothership"):
+                self.drawFirstLine="Technologies"
+                self.drawSecondLine="Vaisseau mère"
+            elif (Button_pressed == "Button_Return"):
+                self.drawFirstLine="Retour"
+                self.drawSecondLine="Menu Principal"
             else:
                 self.drawFirstLine=""
                 self.drawSecondLine=""
