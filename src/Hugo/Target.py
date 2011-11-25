@@ -47,11 +47,15 @@ class PlayerObject(Target):
         self.isAlive = False
            
 class Notification(Target):
-    ATTACKED = 0
-    ALLIANCE = 1
-    NAME = ("Un de vos vaisseaux se fait attaqué", "Une demande d'alliance est en cours.")
-    def __init__(self,position,type):
+    ATTACKED_UNIT = 0
+    ATTACK_BUILDING = 1
+    ALLIANCE = 2
+    NAME = ("Un de vos vaisseaux se fait attaquer par ", "Un de vos bâtiments se fait attaquer par ", "Une demande d'alliance est en cours.")
+    def __init__(self,position,type, actionPlayerName = None):
         self.position=position
         self.type=type
+        self.refreshSeen = 60
         self.name = self.NAME[type]
+        if actionPlayerName != None:
+            self.name += actionPlayerName+"!"
                   

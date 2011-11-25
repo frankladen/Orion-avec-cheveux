@@ -159,9 +159,9 @@ class Game():
             if units != "":
                 self.parent.pushChange(units, Flag(i,attackedUnit,FlagState.ATTACK))
                 if isinstance(attackedUnit,u.Unit):
-                    self.parent.pushChange("1,", Flag(None,[attackedUnit.owner,self.players[attackedUnit.owner].units.index(attackedUnit),t.Notification.ATTACKED],FlagState.NOTIFICATION))
+                    self.parent.pushChange(None, Flag(None,[attackedUnit.owner,self.players[attackedUnit.owner].units.index(attackedUnit), t.Notification.ATTACKED_UNIT],FlagState.NOTIFICATION))
                 else:
-                    self.parent.pushChange("0,", Flag(None,[attackedUnit.owner,self.players[attackedUnit.owner].buildings.index(attackedUnit), t.Notification.ATTACKED],FlagState.NOTIFICATION))
+                    self.parent.pushChange(None, Flag(None,[attackedUnit.owner,self.players[attackedUnit.owner].buildings.index(attackedUnit), t.Notification.ATTACKED_BUILDING],FlagState.NOTIFICATION))
 
 
     def setAnAttackFlag(self, attackedUnit, unit):
