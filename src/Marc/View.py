@@ -738,7 +738,7 @@ class View():
         return createServerFrame
 
     def startServer(self, connect):
-        if len(self.entryCreateLogin.get()) >= 3:
+        if len(self.entryCreateLogin.get()) >= 3 and len(self.entryCreateLogin.get()) <= 12:
             serverAddress = self.entryCreateServer.get()
             userName = self.entryCreateLogin.get()
             self.parent.startServer(serverAddress, connect, userName)
@@ -798,7 +798,7 @@ class View():
         mb.showinfo('Erreur de connection', 'Le nom que vous avez choisi a déjà été choisi par quelqu\'un dans le lobby')
      
     def showTooDamnShortName(self):
-        mb.showinfo('Erreur de connection', 'Votre nom est trop petit, entrez-en un d\'au minimum 3 caractères.')
+        mb.showinfo('Erreur de connection', 'Votre nom est trop petit, entrez-en un d\'au minimum 3 caractères. Il est peut-être aussi OVER 9000 CHARACTERS?! Maximum 12 caractères.')
         
     def loginFailed(self):
         mb.showinfo('Erreur de connection', 'Le serveur est introuvable. Veuillez reessayer.')
@@ -1592,7 +1592,7 @@ class View():
         if login=="" and server=="":
             login = self.entryLogin.get()
             server = self.entryServer.get()
-        if len(login) >= 3:
+        if len(login) >= 3 and len(login) <= 12:
             self.parent.connectServer(login,server)
         else:
             self.showTooDamnShortName()
