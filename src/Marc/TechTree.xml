@@ -74,7 +74,7 @@
 	<Buildings>
 		<Tech>
 			<Name>Bouclier</Name>
-			<Effect>B</Effect>
+			<Effect>BB</Effect>
 			<Add>300</Add>
 			<CostMine>1200</CostMine>
 			<CostGaz>1200</CostGaz>
@@ -97,7 +97,7 @@
 		</Tech>
 		<Tech>
 			<Name>Bouclier</Name>
-			<Effect>B</Effect>
+			<Effect>BM</Effect>
 			<Add>300</Add>
 			<CostMine>1200</CostMine>
 			<CostGaz>1200</CostGaz>

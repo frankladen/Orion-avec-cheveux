@@ -248,6 +248,10 @@ class Game():
                 player.BONUS[player.ATTACK_RANGE_BONUS] = tech.add
             elif tech.effect == 'VR':
                 player.BONUS[player.VIEW_RANGE_BONUS] = tech.add
+            elif tech.effect == 'BM':
+                player.motherShip.MAX_SHIELD = 1500
+                player.motherShip.shield = player.motherShip.MAX_SHIELD
+                
             player.changeBonuses()
         
     def setGatherFlag(self,ship,ressource):

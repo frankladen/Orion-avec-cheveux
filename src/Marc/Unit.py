@@ -371,7 +371,7 @@ class GroundAttackUnit(GroundUnit):
 class Mothership(Unit):
     REGEN_WAIT_TIME = 30
     REGEN_WAIT_TIME_AFTER_ATTACK = 60
-    MAX_SHIELD = 1500
+    MAX_SHIELD = 0
     MAX_ARMOR = 2000
     
     def __init__(self, name, type, position, owner):
@@ -660,9 +660,11 @@ class TransportShip(SpaceUnit):
                     if playerId == game.playerId:
                         cam = game.players[playerId].camera
                         cam.placeOnLanding(landingZone)
+                    x=40
                     for i in self.units:
-                        position = [landingZone.position[0] + 40, landingZone.position[1] + 5 * self.units.index(i)]
+                        position = [landingZone.position[0] + x, landingZone.position[1] + 5 * self.units.index(i)]
                         i.land(planet, position)
+                        x+=25
                     del self.units[:]
                     if self in game.players[game.playerId].selectedObjects:
                         game.players[game.playerId].selectedObjects.pop(game.players[game.playerId].selectedObjects.index(self))
@@ -678,9 +680,11 @@ class TransportShip(SpaceUnit):
                     if playerId == game.playerId:
                         cam = game.players[playerId].camera
                         cam.placeOnLanding(landingZone)
+                    x=40
                     for i in self.units:
-                        position = [landingZone.position[0] + 40, landingZone.position[1] + 5 * self.units.index(i)]
+                        position = [landingZone.position[0] + x, landingZone.position[1] + 5 * self.units.index(i)]
                         i.land(planet, position)
+                        x+=25
                     del self.units[:]
                     landingZone.LandedShip = self
             if playerId == game.playerId:

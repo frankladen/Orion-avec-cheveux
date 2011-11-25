@@ -465,10 +465,11 @@ class View():
                     self.createUnitsConstructionMenu()
                 else:
                     self.menuModes.create_text(20,180, text = "Aucune unité n'est actuellement en contruction", anchor = NW, fill = 'white')
-                    if unit.shield != unit.MAX_SHIELD:
-                        self.menuModes.create_arc((675, 190, 500, 10), start=0, extent= (unit.shield / unit.MAX_SHIELD)*359.99999999 , fill='blue', tags = 'arc')
-                    else:
-                        self.menuModes.create_oval((675, 190, 500, 10), fill='blue', tags = 'arc', outline ='blue')
+                    if unit.shield > 0:
+                        if unit.shield != unit.MAX_SHIELD:
+                            self.menuModes.create_arc((675, 190, 500, 10), start=0, extent= (unit.shield / unit.MAX_SHIELD)*359.99999999 , fill='blue', tags = 'arc')
+                        else:
+                            self.menuModes.create_oval((675, 190, 500, 10), fill='blue', tags = 'arc', outline ='blue')
                     if unit.armor != unit.MAX_ARMOR:
                         self.menuModes.create_arc((662, 177, 515, 22), start=0, extent= (unit.armor / unit.MAX_ARMOR)*359.99999999 , fill='red', tags = 'arc')
                     else:
@@ -574,21 +575,21 @@ class View():
             self.Actionmenu.create_image(140,35,image = self.gifCargo, anchor = NW, tags = 'Button_Build_Gather')
             self.Actionmenu.create_image(13,89,image = self.gifTransport, anchor = NW, tags = 'Button_Build_Transport')
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
-            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white")
-            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white")
+            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
+            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
         elif(type == self.SPACE_BUILDINGS_MENU):
             self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
             self.Actionmenu.create_image(13,35,image = self.gifUnit, anchor = NW, tags = 'Button_Build_Waypoint')
             self.Actionmenu.create_image(76,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Build_Turret')
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
-            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white")
-            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white")
+            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
+            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
         elif(type == self.GROUND_BUILDINGS_MENU):
             self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
             self.Actionmenu.create_image(13,35,image = self.gifUnit, anchor = NW, tags = 'Button_Build_Farm')
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
-            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white")
-            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white")
+            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
+            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
         elif(type == self.WAITING_FOR_RALLY_POINT_MENU):
             self.drawFirstLine = ""
             self.drawSecondLine = ""
@@ -615,14 +616,16 @@ class View():
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le lieu où la construction du bâtiment va s'effectuer.",anchor = NW, fill = 'white', width = 200)
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.TECHNOLOGY_TREE_MENU):
-            self.drawFirstLine = ""
-            self.drawSecondLine = ""
             self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
             self.Actionmenu.create_image(13,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Tech_Units')
             self.Actionmenu.create_image(76,35,image = self.gifUnit, anchor = NW, tags = 'Button_Tech_Buildings')
             self.Actionmenu.create_image(140,35,image = self.gifTransport, anchor = NW, tags = 'Button_Tech_Mothership')
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
+            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
+            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
         elif(type == self.TECHTREE_UNIT_MENU):
+            self.drawFirstLine = ""
+            self.drawSecondLine = ""
             techTree = self.game.players[self.game.playerId].techTree
             techs = techTree.getTechs(techTree.UNITS)
             y=5
@@ -1763,6 +1766,18 @@ class View():
             elif (Button_pressed == "Button_Build_Farm"):
                 self.drawFirstLine=str(b.Building.NAME[b.Building.FARM])
                 self.drawSecondLine=str(b.Building.COST[b.Building.FARM][0])+" mine | "+str(b.Building.COST[b.Building.FARM][1])+" gaz"
+            elif (Button_pressed == "Button_Tech_Units"):
+                self.drawFirstLine="Technologies"
+                self.drawSecondLine="Unités"
+            elif (Button_pressed == "Button_Tech_Buildings"):
+                self.drawFirstLine="Technologies"
+                self.drawSecondLine="Bâtiments"
+            elif (Button_pressed == "Button_Tech_Mothership"):
+                self.drawFirstLine="Technologies"
+                self.drawSecondLine="Vaisseau mère"
+            elif (Button_pressed == "Button_Return"):
+                self.drawFirstLine="Retour"
+                self.drawSecondLine="Menu Principal"
             else:
                 self.drawFirstLine=""
                 self.drawSecondLine=""
