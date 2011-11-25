@@ -94,8 +94,6 @@ class Game():
             if isinstance(i, u.Unit):             
                 units += str(self.players[self.playerId].units.index(i)) + ","
                 send = True
-            elif isinstance(i, Mothership):
-                self.setMotherShipRallyPoint([x,y,0])
         if send:
             self.parent.pushChange(units, Flag(i,t.Target([x,y,0]),FlagState.MOVE))
             
@@ -359,7 +357,7 @@ class Game():
         self.players[playerId].makeUnitLand(unitId, planet)
 
     def setMotherShipRallyPoint(self, pos):
-        self.parent.pushChange(0, Flag(finalTarget = pos, flagState = FlagState.CHANGE_RALLY_POINT))
+        self.parent.pushChange(self.players[self.playerId].getSelectedBuildingIndex(), Flag(finalTarget = pos, flagState = FlagState.CHANGE_RALLY_POINT))
 
     def setChangeFormationFlag(self, formation):
         units = ""
@@ -388,31 +386,27 @@ class Game():
         if landingZone != None:
             self.players[playerId].makeUnitLoad(unit, landingZone)
 
-    #Trade entre joueurs
-    def setTradeFlag(self, item, playerId2, quantite):
-        for i in items:
-            self.parent.pushChange(playerId2, Flag(i, quantite[items.index(i)], FlagState.TRADE))
-
     #Pour ajouter une unit
     def addUnit(self, unitType):
+        print (u.Unit.NAME[unitType])
         mineralCost = u.Unit.BUILD_COST[unitType][0]
         gazCost = u.Unit.BUILD_COST[unitType][1]
         foodCost = u.Unit.BUILD_COST[unitType][2]
         if self.players[self.playerId].canAfford(mineralCost, gazCost, foodCost):
-            self.parent.pushChange(Flag(initialTarget = self.players[self.playerId].getSelectedBuildingIndex(), finalTarget = unitType, flagState = FlagState.CREATE))
+            self.parent.pushChange(self.players[self.playerId].getSelectedBuildingIndex(),Flag(finalTarget = unitType, flagState = FlagState.CREATE))
 
-    def createUnit(self, player, unitType):
+    def createUnit(self, player,constructionUnit, unitType):
         mineralCost = u.Unit.BUILD_COST[unitType][0]
         gazCost = u.Unit.BUILD_COST[unitType][1]
         foodCost = u.Unit.BUILD_COST[unitType][2]
         if self.players[player].canAfford(mineralCost, gazCost, foodCost):
-            self.players[player].createUnit(unitType)
+            self.players[player].createUnit(unitType, constructionUnit)
 
     def sendCancelUnit(self, unit):
-        self.parent.pushChange(0, Flag(finalTarget = unit, flagState = FlagState.CANCEL_UNIT))
+        self.parent.pushChange(self.players[self.playerId].getSelectedBuildingIndex(), Flag(finalTarget = unit, flagState = FlagState.CANCEL_UNIT))
 
-    def cancelUnit(self, player, unit):
-        self.players[player].cancelUnit(unit)
+    def cancelUnit(self, player, unit, constructionBuilding):
+        self.players[player].cancelUnit(unit, constructionBuilding)
     
     #Pour effacer un Unit
     def eraseUnit(self):

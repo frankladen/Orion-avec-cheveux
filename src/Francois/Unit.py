@@ -34,10 +34,13 @@ class Unit(PlayerObject):
     
     def __init__(self, type, position, owner):
         PlayerObject.__init__(self, type, position, owner)
-        if type <= self.GROUND_BUILDER_UNIT:
-            self.moveSpeed=self.MOVE_SPEED[type]
-        else:
-            self.moveSpeed=self.MOVE_SPEED[self.DEFAULT]
+        self.viewRange = self.VIEW_RANGE[type]
+        self.hitpoints = self.MAX_HP[type]
+        self.maxHP=self.hitpoints
+        self.buildTime = self.BUILD_TIME[type]
+        self.buildCost = self.BUILD_COST[type]
+        self.name = self.NAME[type]
+        self.moveSpeed = self.MOVE_SPEED[type]
 
     def action(self, parent):
         if self.flag.flagState == FlagState.MOVE or self.flag.flagState == FlagState.GROUND_MOVE:
@@ -310,8 +313,8 @@ class GroundGatherUnit(GroundUnit):
                     self.flag.flagState = FlagState.STANDBY
  
 class GroundAttackUnit(GroundUnit):
-    def __init__(self,  type, position, owner, planetId, sunId):
-        GroundUnit.__init__(self,  type, position, owner, planetId, sunId)
+    def __init__(self,  type, position, owner, planetId, sunId, isLanded = False):
+        GroundUnit.__init__(self,  type, position, owner, planetId, sunId, isLanded)
         self.range=self.ATTACK_RANGE[type]
         self.AttackSpeed=self.ATTACK_SPEED[type]
         self.AttackDamage=self.ATTACK_DAMAGE[type]
@@ -480,6 +483,7 @@ class TransportShip(SpaceUnit):
     
     def land(self, game):
         playerId = self.owner
+
         galaxy = game.galaxy
         planet = self.flag.finalTarget
         planetId = 0
@@ -505,6 +509,7 @@ class TransportShip(SpaceUnit):
                 if len(planet.landingZones) < 4:
                     landingZone = planet.addLandingZone(playerId, self)
                     player.buildings.append(landingZone)
+                    player.selectedObjects = []
                     self.landed = True
                     self.planetId = planetId
                     self.sunId = sunId

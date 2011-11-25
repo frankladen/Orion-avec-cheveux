@@ -12,25 +12,12 @@ class PlayerObject(Target):
     def __init__(self, type, position, owner):
         Target.__init__(self, position)
         self.type = type
-        print (type)
         self.flag = Flag(Target([0,0,0]), Target([0,0,0]), FlagState.STANDBY)
         self.owner = owner
         self.isAlive = True
         self.constructionProgress = 0
-        if isinstance(self, u.Unit):
-            if type <= u.Unit.GROUND_BUILDER_UNIT:
-                self.viewRange = self.VIEW_RANGE[type]
-                self.hitpoints = u.Unit.MAX_HP[type]
-                self.maxHP=self.hitpoints
-                self.buildTime = u.Unit.BUILD_TIME[type]
-                self.buildCost = u.Unit.BUILD_COST[type]
-                self.name = u.Unit.NAME[type]
-            else:
-                self.viewRange = u.Unit.VIEW_RANGE[u.Unit.DEFAULT]
-                self.hitpoints = u.Unit.MAX_HP[u.Unit.DEFAULT]
-                self.maxHP=self.hitpoints
-                self.buildTime = u.Unit.BUILD_TIME[u.Unit.DEFAULT]
-                self.buildCost = u.Unit.BUILD_COST[u.Unit.DEFAULT]
+
+
             
 
 

@@ -551,6 +551,7 @@ class View():
                     elif isinstance(units[0], GroundBuilderUnit):
                         self.Actionmenu.create_image(13,89,image=self.gifBuild,anchor = NW, tags = 'Button_Ground_Buildings')
                 elif isinstance(units[0], b.LandingZone):
+                    self.Actionmenu.create_image(13,35,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
                     self.Actionmenu.create_image(76,35,image = self.gifBuild, anchor = NW, tags = 'Button_BuildGroundUnit')
                 if len(self.game.players[self.game.playerId].selectedObjects) > 1:
                     self.Actionmenu.create_image(76,143,image=self.gifTriangle,anchor = NW, tags = 'Button_Triangle')
@@ -622,7 +623,7 @@ class View():
         elif(type == self.LANDING_SPOT_BUILD_MENU):
             self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
             self.Actionmenu.create_image(13,35,image = self.gifGroundAttackUnit[self.game.players[self.game.playerId].colorId], anchor = NW, tags = 'Button_Build_GroundAttack')
-            self.Actionmenu.create_image(76,35,image = self.groundUnits[self.game.players[self.game.playerId].colorId], anchor = NW, tags = 'Button_GroundGather')
+            self.Actionmenu.create_image(76,35,image = self.groundUnits[self.game.players[self.game.playerId].colorId], anchor = NW, tags = 'Button_Build_GroundGather')
             self.Actionmenu.create_image(140,35,image = self.groundBuilders[self.game.players[self.game.playerId].colorId], anchor = NW, tags = 'Button_Build_GroundBuild')
 
     def createUnitsConstructionMenu(self, unit):
@@ -1701,9 +1702,9 @@ class View():
         self.gameArea.bind("<KeyRelease-Control_L>",self.ctrlDepressed)
         self.gameArea.bind("<Tab>",self.enterChat)
         #Bindings des boutons de la souris
-        self.gameArea.bind("<Button-2>", self.rightclic)
-        self.gameArea.bind("<B2-Motion>", self.rightclic)
-        self.minimap.bind("<Button-2>", self.rightclic)
+        self.gameArea.bind("<Button-3>", self.rightclic)
+        self.gameArea.bind("<B3-Motion>", self.rightclic)
+        self.minimap.bind("<Button-3>", self.rightclic)
         self.gameArea.bind("<Button-1>", self.leftclic)
         self.minimap.bind("<B1-Motion>",self.leftclic)
         self.minimap.bind("<Button-1>",self.leftclic)

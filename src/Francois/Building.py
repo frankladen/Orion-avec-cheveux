@@ -91,13 +91,13 @@ class Turret(Building):
 
 class GroundBuilding(Building):
     def __init__(self, type, position, owner, sunId, planetId):
-        Building.__init__(self, name, type, position, owner)
+        Building.__init__(self, type, position, owner)
         self.sunId = sunId
         self.planetId = planetId
 
 class Farm(Building):
     def __init__(self,  type, position, owner, sunId, planetId):
-        GroundBuilding.__init__(self, name, type, position, owner, sunId, planetId)
+        GroundBuilding.__init__(self, type, position, owner, sunId, planetId)
 
 
 class ConstructionBuilding(Building):
@@ -124,7 +124,15 @@ class ConstructionBuilding(Building):
             self.unitBeingConstruct.append(u.GatherShip( u.Unit.CARGO, p, self.owner))
         elif unitType == u.Unit.TRANSPORT:
             self.unitBeingConstruct.append(u.TransportShip( u.Unit.TRANSPORT, p, self.owner))
-    
+        elif unitType == u.Unit.GROUND_GATHER:
+            self.unitBeingConstruct.append(u.GroundGatherUnit( u.Unit.GROUND_GATHER, p, self.owner, self.planetId, self.sunId,True))
+        elif unitType == u.Unit.GROUND_ATTACK:
+            self.unitBeingConstruct.append(u.GroundAttackUnit( u.Unit.GROUND_ATTACK, p, self.owner, self.planetId, self.sunId,True))
+        elif unitType == u.Unit.GROUND_BUILDER_UNIT:
+            self.unitBeingConstruct.append(u.GroundBuilderUnit( u.Unit.GROUND_BUILDER_UNIT, p, self.owner, self.planetId, self.sunId,True))
+
+    def getUnitBeingConstructAt(self, unitId):
+        return self.unitBeingConstruct[unitId]
     
     def isUnitFinished(self):
         if len(self.unitBeingConstruct) > 0:
@@ -137,9 +145,6 @@ class ConstructionBuilding(Building):
             if self.flag.flagState == FlagState.BUILD_UNIT:
                 self.progressUnitsConstruction()
 
-            elif self.flag.flagState == FlagState.CANCEL_UNIT:
-                self.unitBeingConstruct.pop(self.flag.finalTarget)
-                self.flag.flagState = FlagState.BUILD_UNIT
 
             elif self.flag.flagState == FlagState.CHANGE_RALLY_POINT:
                 target = self.flag.finalTarget
@@ -161,7 +166,7 @@ class ConstructionBuilding(Building):
             
             if len(self.unitBeingConstruct) > 0:
                 if(self.isUnitFinished()):
-                    parent.buildUnit()
+                    parent.buildUnit(self)
             
             if isinstance(self, Mothership):
                 self.regenShield()
@@ -267,7 +272,7 @@ class Mothership(ConstructionBuilding):
                 return (-1, -1)
             
             
-class LandingZone(ConstructionBuilding):
+class LandingZone(ConstructionBuilding,GroundBuilding):
     WIDTH = 75
     HEIGHT = 75
     def __init__(self, position, ownerId, landingShip, id, planetId, sunId):
