@@ -39,6 +39,33 @@ class Game():
             i.addBaseUnits(startPos) 
         self.players[self.playerId].addCamera(self.galaxy, taille)
 
+    # Pour créer une notification qui vient du serveur
+    def makeNotification(actionPlayerId, target):
+        #target[0] = c'est le id du joueur qui doit recevoir la notification
+        #target[1] = c'est le id du unit/building qui va faire l'action
+        #target[2] = c'est le type de l'action (ATTACKED_UNIT, ATTACKED_BUILDING, ALLIANCE,...)
+        #self.parent.pushChange(None, Flag(None,[attackedUnit.owner,self.players[attackedUnit.owner].units.index(attackedUnit), t.Notification.ATTACKED_UNIT],FlagState.NOTIFICATION))
+        #pushChange= (None, Flag(None,[idJoueurQuiDoitLeRecevoir,idUnitQuiEstVisé,FlagDeLaNotification],FlagState.NOTIFICATION)
+        player = self.game.players[target[0]]
+        actionPlayerName = self.players[actionPlayerId].name
+        addIt = True
+        if target[2] == t.Notification.ATTACKED_UNIT:
+            for i in player.notifications:
+                if i.position == player.units[target[1]].position and i.actionPlayerName == actionPlayerName:
+                    addIt = False
+            if addIt:
+                #Tu ajoutes seulement le 4e paramètre si tu en as besoin, le nom de l'autre joueur
+                notif = t.Notification(player.units[target[1]].position, target[2], actionPlayerName)
+        elif target[2] == t.Notification.ATTACKED_BUILDING:
+            for i in player.notifications:
+                if i.position == player.buildings[target[1]].position and i.actionPlayerName == actionPlayerName:
+                    addIt = False
+            if addIt:
+                notif = t.Notification(player.buildings[target[1]].position, target[2], actionPlayerName)
+        elif target[2] == t.Notification.ALLIANCE:
+            notif = t.Notification((-1000,-1000,-1000),target[2])
+        player.notifications.append(notif)
+
     # Pour changer le flag des unités selectionne pour la construction        
     def setBuildingFlag(self,x,y, type, sunId=0, planetId=0):
         units = ''

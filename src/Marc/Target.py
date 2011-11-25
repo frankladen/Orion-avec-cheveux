@@ -63,5 +63,6 @@ class Notification(Target):
         self.refreshSeen = 60
         self.name = self.NAME[type]
         if actionPlayerName != None:
+            self.actionPlayerName = actionPlayerName
             self.name += actionPlayerName
                   

@@ -342,23 +342,8 @@ class Controller():
             self.game.makeZoneUnload(int(unitIndex[0]), actionPlayerId, int(target[0]), int(target[1]))
 
         elif action == str(FlagState.NOTIFICATION):
-            #unitIndex[0] = si c'est un unit(1), building(0), sinon c'est juste de l'affichage (else)
-            #target[0] = c'est le id du joueur qui doit recevoir la notification
-            #target[1] = c'est le id du unit/building qui va faire l'action
-            #target[2] = c'est le type de l'action (ATTACKED_UNIT, ATTACKED_BUILDING, ALLIANCE,...)
-            #self.parent.pushChange(None, Flag(None,[attackedUnit.owner,self.players[attackedUnit.owner].units.index(attackedUnit), t.Notification.ATTACKED_UNIT],FlagState.NOTIFICATION))
-            #pushChange= (None, Flag(None,[idJoueurQuiDoitLeRecevoir,idUnitQuiEstVisé,FlagDeLaNotification],FlagState.NOTIFICATION)
             target = self.changeToInt(self.stripAndSplit(target))
-            player = self.game.players[target[0]]
-            actionPlayerName = self.game.players[actionPlayerId].name
-            if target[2] == t.Notification.ATTACKED_UNIT:
-                #Tu ajoutes seulement le 4e paramètre si tu en as besoin, le nom de l'autre joueur
-                notif = t.Notification(player.units[target[1]].position, target[2], actionPlayerName)
-            elif target[2] == t.Notification.ATTACKED_BUILDING:
-                notif = t.Notification(player.buildings[target[1]].position, target[2], actionPlayerName)
-            elif target[2] == t.Notification.ALLIANCE:
-                notif = t.Notification((-1000,-1000,-1000),target[2])
-            player.notifications.append(notif)
+            self.game.makeNotification(actionPlayerId, target)
 
         elif action == str(FlagState.LOAD):
             target = target.split(',')
