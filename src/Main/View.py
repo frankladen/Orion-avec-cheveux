@@ -166,9 +166,9 @@ class View():
         self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille/2, background='Black', relief='ridge')
         self.gameArea.grid(column=0,row=1, columnspan=24)#place(relx=0, rely=0,width=taille,height=taille)
         self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
-        self.minimap.grid(column=0,row=2, rowspan=5)
+        self.minimap.grid(column=0,row=2, rowspan=7)
         self.menuModes=Canvas(gameFrame, width=800, height=200, background='black', relief='ridge')
-        self.menuModes.grid(row=2,column=2, rowspan=5, columnspan=5)
+        self.menuModes.grid(row=2,column=2, rowspan=7, columnspan=5)
         #OngletChat
         self.menuModes.chat = Label(gameFrame, anchor=W, justify=LEFT, width=75, background='black', fg='white', relief='raised')
         self.menuModes.entryMess = Entry(gameFrame, width=60)
@@ -209,7 +209,7 @@ class View():
         self.menuModes.create_image(227,0,image=self.gifSelectedUnit,anchor = NW,tag='bouton_selectedUnit')
         #ActionMenu
         self.Actionmenu = Canvas(gameFrame,width=200,height=200,background='black')
-        self.Actionmenu.grid(column=7,row=2, rowspan=5)
+        self.Actionmenu.grid(column=7,row=2, rowspan=7)
         self.changeBackground('GALAXY')
         self.drawWorld()
         self.createActionMenu(self.MAIN_MENU)
@@ -220,12 +220,12 @@ class View():
     def ongletTeam(self):
         self.menuModesOnlets()
         self.selectedOnglet = self.SELECTED_TEAM
-        self.menuModes.labelAlly.grid(row=3, column=3)
-        self.menuModes.labelEnnemy.grid(row=3, column=5)
-        self.menuModes.listAllies.grid(row=4, rowspan=2, column=3)
-        self.menuModes.listEnnemies.grid(row=4, rowspan=2, column=5)
-        self.menuModes.toAllyButton.grid(row=4, column=4)
-        self.menuModes.toEnnemyButton.grid(row=5, column=4)
+        self.menuModes.labelAlly.grid(row=5, column=3)
+        self.menuModes.labelEnnemy.grid(row=5, column=5)
+        self.menuModes.listAllies.grid(row=6, rowspan=2, column=3)
+        self.menuModes.listEnnemies.grid(row=6, rowspan=2, column=5)
+        self.menuModes.toAllyButton.grid(row=6, column=4)
+        self.menuModes.toEnnemyButton.grid(row=7, column=4)
         self.fillListsAllies()
                     
     def fillListsAllies(self):
@@ -278,7 +278,7 @@ class View():
         for i in allies:
             self.menuModes.tradeChoice['menu'].add_command(label=i, command=lambda temp = i: self.menuModes.tradeChoice.setvar(self.menuModes.tradeChoice.cget("textvariable"), value = temp))
         self.menuModes.variableTrade.trace('w',self.game.askTrade)
-        self.menuModes.tradeChoice.grid(row=3, column=2)
+        self.menuModes.tradeChoice.grid(row=5, column=2)
 
     def ongletTradeWaiting(self):
         self.menuModesOnlets()
@@ -301,10 +301,10 @@ class View():
         self.selectedOnglet = self.SELECTED_TEAM
 
         self.answerId = id1
-        self.menuModes.create_text(5,50,text='Voulez-vous accepter la demande d\'échange avec '+self.game.players[id1].name+'?',fill='white', anchor=NW)
-        self.menuModes.yesButton.grid(row=4,column=2)
-        self.menuModes.noButton.grid(row=4,column=3)
-        self.menuModes.stopTrade.grid(row=5,column=5)
+        self.menuModes.create_text(5,40,text='Voulez-vous accepter la demande d\'échange avec '+self.game.players[id1].name+'?',fill='white', anchor=NW)
+        self.menuModes.yesButton.grid(row=5,column=2)
+        self.menuModes.noButton.grid(row=5,column=3)
+        self.menuModes.stopTrade.grid(row=6,column=5)
 
     def ongletTradeCancel(self):
         self.menuModesOnlets()
@@ -319,10 +319,10 @@ class View():
         self.menuModes.create_text(5,65,text='contre '+min2+' unités de vos minéraux et '+gaz2+' unités de votre gaz',fill='white', anchor=NW)
         self.menuModes.yesButtonConfirm.config(command=lambda:self.game.confirmTrade(True, self.answerId, min1, min2, gaz1, gaz2))
         self.menuModes.noButtonConfirm.config(command=lambda:self.game.confirmTrade(False, self.answerId, min1, min2, gaz1, gaz2))
-        self.menuModes.yesButtonConfirm.grid(row=4,column=2)
-        self.menuModes.noButtonConfirm.grid(row=4,column=3)
-        self.menuModes.modifyButtonConfirm.grid(row=4,column=4)
-        self.menuModes.stopTrade.grid(row=5,column=5)
+        self.menuModes.yesButtonConfirm.grid(row=6,column=2)
+        self.menuModes.noButtonConfirm.grid(row=6,column=3)
+        self.menuModes.modifyButtonConfirm.grid(row=6,column=4)
+        self.menuModes.stopTrade.grid(row=7,column=5)
 
     def ongletTrade(self, id1, id2):
         self.menuModesOnlets()
@@ -498,8 +498,8 @@ class View():
     def ongletChat(self,gameFrame):
         self.menuModesOnlets()
         self.selectedOnglet = self.SELECTED_CHAT
-        self.menuModes.chat.grid(row=4, column=3, columnspan=3)
-        self.menuModes.entryMess.grid(row=5, column=3, columnspan=3)
+        self.menuModes.chat.grid(row=5, column=3, columnspan=3)
+        self.menuModes.entryMess.grid(row=6, column=3, columnspan=3)
         self.menuModes.entryMess.bind("<Return>",self.enter)
         self.parent.refreshMessages(self.menuModes.chat)
         

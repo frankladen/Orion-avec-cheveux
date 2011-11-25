@@ -554,7 +554,7 @@ class Game():
         if unit.attackcount <= 5:
             distance = self.players[self.playerId].camera.calcDistance(unit.position)
             d2 = self.players[self.playerId].camera.calcDistance(unitToAttack.position)
-            self.parent.view.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill="yellow", tag='enemyRange')
+            self.parent.view.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill=self.parent.view.laserColors[unit.owner], tag='enemyRange')
         if killedIndex[0] > -1:
             self.players[killedIndex[1]].killUnit(killedIndex)
 
