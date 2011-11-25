@@ -347,7 +347,7 @@ class Controller():
             self.game.makeGroundUnitsGather(actionPlayerId, unitIndex, int(target[0]),int(target[1]),int(target[2]),int(target[3]))
         
         elif action == str(FlagState.CREATE):
-            self.game.createUnit( actionPlayerId, int(target))
+            self.game.createUnit( actionPlayerId, unitIndex, int(target))
         
         elif action == str(FlagState.CHANGE_RALLY_POINT):
             target = self.changeToInt(self.stripAndSplit(target))

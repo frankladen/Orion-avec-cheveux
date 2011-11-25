@@ -18,13 +18,12 @@ class Unit(PlayerObject):
     SPECIAL_GATHER = 7
     GROUND_ATTACK = 8
     GROUND_BUILDER_UNIT = 9
-    LANDING_ZONE = 10
-    NAME = ('Unité','Scout', "Vaisseau d'attaque", "Vaisseau de Transport", "Cargo", 'Unité terrestre', 'Unité de collecte', '', 'Unité d\'attaque', 'Unité de construction', "Zone d'atterissage")
+    NAME = ('Unité','Scout', "Vaisseau d'attaque", "Vaisseau de Transport", "Cargo", 'Unité terrestre', 'Unité de collecte', '', 'Unité d\'attaque', 'Unité de construction')
     MINERAL=0
     GAS=1
     FOOD=2
-    SIZE=((0,0),  (18,15), (28,32), (32,29), (20,30),(24,24),(20,38), (0,0), (36,33), (32,32))
-    MAX_HP = (50, 50, 100,125, 75, 100, 100, 100, 100, 100)
+    SIZE=((0,0),  (18,15), (28,32), (32,29), (20,30),(24,24),(20,38), (0,0), (36,33),(20,20))
+    MAX_HP = (50, 50, 100,125, 75, 100, 100, 100, 100,100)
     MOVE_SPEED=(1.0,  4.0, 2.0, 3.0, 3.0, 5.0, 5.0, 3.0, 3.5, 4.0)
     ATTACK_SPEED=(0,0,10,0,0,0,0,0,15,0)
     ATTACK_DAMAGE=(0,0,5,0,0,0,0,0,12,0)
@@ -505,6 +504,7 @@ class TransportShip(SpaceUnit):
             if not alreadyLanded:
                 if len(planet.landingZones) < 4:
                     landingZone = planet.addLandingZone(playerId, self)
+                    player.buildings.append(landingZone)
                     self.landed = True
                     self.planetId = planetId
                     self.sunId = sunId

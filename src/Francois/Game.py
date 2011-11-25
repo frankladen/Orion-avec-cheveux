@@ -59,11 +59,11 @@ class Game():
             self.players[playerId].ressources[0] -= Building.COST[type][0]
             self.players[playerId].ressources[1] -= Building.COST[type][1]
             if type == Building.WAYPOINT:
-                wp = Waypoint('Waypoint', Building.WAYPOINT, [target[0],target[1],0], playerId)
+                wp = Waypoint(Building.WAYPOINT, [target[0],target[1],0], playerId)
             elif type == Building.TURRET:
-                wp = Turret('Turret', Building.TURRET, [target[0],target[1],0], playerId)
+                wp = Turret(Building.TURRET, [target[0],target[1],0], playerId)
             elif type == Building.FARM:
-                wp = Farm('Farm', Building.FARM, [target[0],target[1],0], playerId, sunId, planetId)
+                wp = Farm(Building.FARM, [target[0],target[1],0], playerId, sunId, planetId)
                 wp.planet = self.galaxy.solarSystemList[sunId].planets[planetId]
                 self.galaxy.solarSystemList[sunId].planets[planetId].buildings.append(wp)
         if wp != None:
@@ -399,7 +399,7 @@ class Game():
         gazCost = u.Unit.BUILD_COST[unitType][1]
         foodCost = u.Unit.BUILD_COST[unitType][2]
         if self.players[self.playerId].canAfford(mineralCost, gazCost, foodCost):
-            self.parent.pushChange(0, Flag(finalTarget = unitType, flagState = FlagState.CREATE))
+            self.parent.pushChange(Flag(initialTarget = self.players[self.playerId].getSelectedBuildingIndex(), finalTarget = unitType, flagState = FlagState.CREATE))
 
     def createUnit(self, player, unitType):
         mineralCost = u.Unit.BUILD_COST[unitType][0]
@@ -567,7 +567,7 @@ class Game():
             if unit != None:
                 if clickedObj != None:
                     if unit.type == unit.GROUND_GATHER:
-                        if isinstance(clickedObj, w.MineralStack) or isinstance(clickedObj, w.GazStack) or isinstance(clickedObj, w.LandingZone):
+                        if isinstance(clickedObj, w.MineralStack) or isinstance(clickedObj, w.GazStack) or isinstance(clickedObj, b.LandingZone):
                             self.setGroundGatherFlag(unit, clickedObj)
                     elif unit.type == unit.GROUND_ATTACK:
                         if isinstance(clickedObj, u.Unit) or isinstance(clickedObj, Building):
@@ -578,7 +578,7 @@ class Game():
                             if clickedObj.owner == self.playerId:
                                 if clickedObj.finished == False:
                                     self.resumeBuildingFlag(clickedObj)
-                    if isinstance(clickedObj, w.LandingZone):
+                    if isinstance(clickedObj, b.LandingZone):
                         self.setLoadFlag(unit, clickedObj)
                 else:
                     self.setGroundMovingFlag(pos[0], pos[1])

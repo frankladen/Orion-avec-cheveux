@@ -12,6 +12,7 @@ class PlayerObject(Target):
     def __init__(self, type, position, owner):
         Target.__init__(self, position)
         self.type = type
+        print (type)
         self.flag = Flag(Target([0,0,0]), Target([0,0,0]), FlagState.STANDBY)
         self.owner = owner
         self.isAlive = True

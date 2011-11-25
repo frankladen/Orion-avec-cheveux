@@ -40,7 +40,10 @@ class Player():
         self.currentPlanet = None
         self.ressources = [500,500,2]
         self.isAlive = True
-
+        
+    def getSelectedBuildingIndex(self):
+        return self.buildings.index(self.selectedObject[0])
+    
     def action(self):
         for i in self.units:
             if i.isAlive:
@@ -346,13 +349,13 @@ class Player():
     def canAfford(self, minerals, gas, food):
         return self.ressources[0] >= minerals and self.ressources[0] >= gas and self.ressources[2]+food <= self.MAX_FOOD
 
-    def createUnit(self, unitType):
+    def createUnit(self, constructionBuilding, unitType):
         if self.ressources[self.MINERAL] >= u.Unit.BUILD_COST[unitType][u.Unit.MINERAL] and self.ressources[self.GAS] >= u.Unit.BUILD_COST[unitType][u.Unit.GAS]:
-            self.motherShip.addUnitToQueue(unitType)
+            self.buildings[constructionBuilding].addUnitToQueue(unitType)
             self.ressources[self.MINERAL] -= u.Unit.BUILD_COST[unitType][u.Unit.MINERAL]
             self.ressources[self.GAS] -= u.Unit.BUILD_COST[unitType][u.Unit.GAS]
             self.ressources[self.FOOD] += u.Unit.BUILD_COST[unitType][u.Unit.FOOD]
-            self.motherShip.flag.flagState = FlagState.BUILD_UNIT
+            self.buildings[constructionBuilding].flag.flagState = FlagState.BUILD_UNIT
 
     def makeUnitsAttack(self, units, targetPlayer, targetUnit, type):
         for i in units:

@@ -326,9 +326,9 @@ class Planet(Target):
         while not placeFound:
             placeFound = True
             position = [random.random()*Planet.WIDTH, random.random()*Planet.HEIGHT]
-            if position[0] < LandingZone.WIDTH/2 or position[0] > self.WIDTH-LandingZone.WIDTH/2:
+            if position[0] < b.LandingZone.WIDTH/2 or position[0] > self.WIDTH-b.LandingZone.WIDTH/2:
                 placeFound = False
-            if position[1] < LandingZone.HEIGHT/2 or position[1] > self.HEIGHT-LandingZone.HEIGHT/2:
+            if position[1] < b.LandingZone.HEIGHT/2 or position[1] > self.HEIGHT-b.LandingZone.HEIGHT/2:
                 placeFound = False
             for i in self.minerals:
                 if position[0] > i.position[0]-i.WIDTH and position[0] < i.position[0]+i.WIDTH:
@@ -341,7 +341,8 @@ class Planet(Target):
                         posFound = False
                         break
         id = len(self.landingZones)
-        newSpot = LandingZone(position, playerid, landingShip, id, self.id, self.solarSystem.sunId)
+        newSpot = b.LandingZone(position, playerid, landingShip, id, self.id, self.solarSystem.sunId)
+        
         self.landingZones.append(newSpot)
         return newSpot
 
