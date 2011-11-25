@@ -420,7 +420,7 @@ class Mothership(Unit):
                 self.flag.flagState = FlagState.BUILD_UNIT
 
             self.regenShield()
-            #parent.game.checkIfEnemyInRange(self)
+            parent.game.checkIfEnemyInRange(self)
 
             if len(self.unitBeingConstruct) > 0:
                     if(self.isUnitFinished()):
@@ -700,8 +700,6 @@ class TransportShip(SpaceUnit):
 
     def kill(self):
         self.isAlive = False
-        if self.planet != None:
-            self.takeOff(self.planet)
 
     def load(self, unit):
         unit.flag = Flag(unit.position, unit.landingZone, FlagState.LOAD)

@@ -2,6 +2,7 @@
 import Target as t
 import World as w
 import Player as p
+import Flag as fl
 from Helper import *
 
 class Building(t.PlayerObject):
@@ -55,7 +56,9 @@ class Turret(Building):
         self.attackcount=self.AttackSpeed
         self.killCount = 0
 
-    def attack(self, players, unitToAttack):
+    def attack(self, players, unitToAttack=None):
+        if unitToAttack == None:
+            unitToAttack = self.flag.finalTarget
         index = -1
         killedOwner = -1
         isBuilding = False
@@ -64,8 +67,7 @@ class Turret(Building):
             if distance <= self.range:
                 self.attackcount = self.attackcount - 1
                 if self.attackcount == 0:
-                    unitToAttack.hitpoints-=self.AttackDamage
-                    if unitToAttack.hitpoints <= 0:
+                    if unitToAttack.takeDammage(self.AttackDamage, players)
                         if isinstance(unitToAttack, Building) == False:
                             index = players[unitToAttack.owner].units.index(unitToAttack)
                         else:
@@ -75,13 +77,13 @@ class Turret(Building):
                         for i in players[self.owner].units:
                             if i.isAlive:
                                 if i.flag.finalTarget == unitToAttack:
-                                    i.flag = Flag(t.Target(i.position), t.Target(i.position), FlagState.STANDBY)
+                                    i.flag = fl.Flag(t.Target(i.position), t.Target(i.position), fl.FlagState.STANDBY)
                                     i.attackcount=i.AttackSpeed
                         self.killCount +=1
                     self.attackcount=self.AttackSpeed
             return (index, killedOwner, isBuilding)
         except ValueError:
-            self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.STANDBY)
+            self.flag = Flag(t.Target(self.position), t.Target(self.position), fl.FlagState.STANDBY)
             return (-1, -1, isBuilding)
 
 class GroundBuilding(Building):
