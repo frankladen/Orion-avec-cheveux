@@ -388,9 +388,11 @@ class View():
                     elif isinstance(i, u.TransportShip):
                         self.menuModes.create_image(x,y, image = self.gifTransport, tags =  ('selected_unit',unitList.index(i)), anchor = NW)
                     elif isinstance(i, u.GroundGatherUnit):
-                        self.menuModes.create_image(x,y, image = self.groundUnits[self.game.players[self.game.playerId].colorId], tags =  ('selected_unit',unitList.index(i)), anchor = NW)
+                        self.menuModes.create_image(x,y, image = self.gifGroundGather, tags =  ('selected_unit',unitList.index(i)), anchor = NW)
                     elif isinstance(i, u.GroundAttackUnit):
-                        self.menuModes.create_image(x, y, image = self.groundAttackUnits[self.game.players[self.game.playerId].colorId], tags = ('selected_unit',unitList.index(i)), anchor = NW)           
+                        self.menuModes.create_image(x, y, image = self.gifTank, tags = ('selected_unit',unitList.index(i)), anchor = NW)
+                    elif isinstance(i, u.GroundBuilderUnit):
+                        self.menuModes.create_image(x, y, image = self.gifGroundBuilder, tags = ('selected_unit',unitList.index(i)), anchor = NW)
                         
                     elif isinstance(i, u.Unit):
                         self.menuModes.create_image(x,y, image = self.gifUnit, tags = ('selected_unit',unitList.index(i)), anchor = NW)     
@@ -419,13 +421,13 @@ class View():
                         elif i == Unit.ATTACK_SHIP: 
                             self.menuModes.create_image(800,y, anchor = NE,image = self.gifAttackUnit,tags = ('selected_all_units',i))
                         elif i == Unit.GROUND_GATHER:
-                            self.menuModes.create_image(800,y, anchor = NE,image = self.groundUnits[self.game.players[self.game.playerId].colorId],tags = ('selected_all_units',i))
+                            self.menuModes.create_image(800,y, anchor = NE,image = self.gifGroundGather,tags = ('selected_all_units',i))
                         elif i == Unit.GROUND_ATTACK:
-                            self.menuModes.create_image(800,y, anchor = NE,image = self.gifAttackUnit,tags = ('selected_all_units',i))
+                            self.menuModes.create_image(800,y, anchor = NE,image = self.gifTank,tags = ('selected_all_units',i))
+                        elif i == Unit.GROUND_BUILDER_UNIT:
+                            self.menuModes.create_image(800,y, anchor = NE,image = self.gifGroundBuilder,tags = ('selected_all_units',i))
                         elif i == Unit.DEFAULT:
                             self.menuModes.create_image(800,y, anchor = NE, image = self.gifUnit,tags = ('selected_all_units',i))
-                        elif i == Unit.GROUND_UNIT:
-                            self.menuModes.create_image(800,y, anchor = NE,image = self.groundUnits[self.game.players[self.game.playerId].colorId],tags = ('selected_all_units',i))
 
                         y+=46
 
@@ -476,7 +478,7 @@ class View():
                 if unit.hitpoints != unit.maxHP:
                     self.menuModes.create_arc((675, 190,500,10), start=0, extent= (unit.hitpoints / unit.maxHP)*359.99999999 , fill='green', tags = 'arc', outline ='green')
                 else:
-                    self.menuModes.create_oval((675, 190,500,10), fill='green', tags = 'arc', outline ='green')
+                    self.menuModes.create_oval((675, 190,500,10), fill='green', tags = 'arc', outline ='black')
 
             else:
                 self.menuModes.create_text(20,40, text = 'Type : ' + unit.NAME[unit.type], anchor = NW, fill = 'white')
@@ -495,15 +497,15 @@ class View():
                         if unit.shield != unit.MAX_SHIELD:
                             self.menuModes.create_arc((675, 190, 500, 10), start=0, extent= (unit.shield / unit.MAX_SHIELD)*359.99999999 , fill='blue', tags = 'arc')
                         else:
-                            self.menuModes.create_oval((675, 190, 500, 10), fill='blue', tags = 'arc', outline ='blue')
+                            self.menuModes.create_oval((675, 190, 500, 10), fill='blue', tags = 'arc', outline ='black')
                     if unit.armor != unit.MAX_ARMOR:
                         self.menuModes.create_arc((662, 177, 515, 22), start=0, extent= (unit.armor / unit.MAX_ARMOR)*359.99999999 , fill='red', tags = 'arc')
                     else:
-                        self.menuModes.create_oval((662, 177, 515, 22), fill='red', tags = 'arc', outline ='red')
+                        self.menuModes.create_oval((662, 177, 515, 22), fill='red', tags = 'arc', outline ='black')
                     if unit.hitpoints != unit.maxHP:
                         self.menuModes.create_arc((650, 165,525,35), start=0, extent= (unit.hitpoints / unit.maxHP)*359.99999999 , fill='green', tags = 'arc')
                     else:
-                        self.menuModes.create_oval((650, 165,525,35), fill='green', tags = 'arc', outline ='green')
+                        self.menuModes.create_oval((650, 165,525,35), fill='green', tags = 'arc', outline ='black')
 
     def refreshGame(self, isOnPlanet):
         self.showMinerals.config(text="Minéraux: "+str(self.game.players[self.game.playerId].ressources[0]))
@@ -570,9 +572,9 @@ class View():
     def createActionMenu(self, type):
         self.Actionmenu.delete(ALL)
         if(type == self.MAIN_MENU):
-            self.drawFirstLine = ""
-            self.drawSecondLine = ""
             self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
+            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
+            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
             units = self.game.players[self.game.playerId].selectedObjects 
             if len(units) > 0:
                 if isinstance(units[0], Mothership):
@@ -592,8 +594,10 @@ class View():
                 elif isinstance(units[0], LandingZone):
                     self.Actionmenu.create_image(76,35,image = self.gifBuild, anchor = NW, tags = 'Button_Build')
                 if len(self.game.players[self.game.playerId].selectedObjects) > 1:
-                    self.Actionmenu.create_image(76,143,image=self.gifTriangle,anchor = NW, tags = 'Button_Triangle')
-                    self.Actionmenu.create_image(140,143,image=self.gifSquare,anchor = NW, tags = 'Button_Square')
+                    if self.game.players[self.game.playerId].formation == "carre":
+                        self.Actionmenu.create_image(140,143,image=self.gifTriangle,anchor = NW, tags = 'Button_Triangle')
+                    else:
+                        self.Actionmenu.create_image(140,143,image=self.gifSquare,anchor = NW, tags = 'Button_Square')
         elif(type == self.MOTHERSHIP_BUILD_MENU):
             self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
             self.Actionmenu.create_image(13,35,image = self.gifUnit, anchor = NW, tags = 'Button_Build_Scout')
@@ -1808,8 +1812,35 @@ class View():
                 self.drawFirstLine="Technologies"
                 self.drawSecondLine="Vaisseau mère"
             elif (Button_pressed == "Button_Return"):
-                self.drawFirstLine="Retour"
-                self.drawSecondLine="Menu Principal"
+                self.drawFirstLine=""
+                self.drawSecondLine="Retour"
+            elif (Button_pressed == "Button_RallyPoint"):
+                self.drawFirstLine="Placer votre"
+                self.drawSecondLine="point de ralliement"
+            elif (Button_pressed in ("Button_Build", "Button_Space_Buildings", "Button_Ground_Buildings")):
+                self.drawFirstLine=""
+                self.drawSecondLine="Construction"
+            elif (Button_pressed == "Button_Patrol"):
+                self.drawFirstLine=""
+                self.drawSecondLine="Patrouille"
+            elif (Button_pressed == "Button_Stop"):
+                self.drawFirstLine=""
+                self.drawSecondLine="Stop"
+            elif (Button_pressed == "Button_Attack"):
+                self.drawFirstLine=""
+                self.drawSecondLine="Attaque"
+            elif (Button_pressed == "Button_Move"):
+                self.drawFirstLine=""
+                self.drawSecondLine="Déplacement"
+            elif (Button_pressed == "Button_Tech"):
+                self.drawFirstLine=""
+                self.drawSecondLine="Technologies"
+            elif (Button_pressed == "Button_Triangle"):
+                self.drawFirstLine=""
+                self.drawSecondLine="Formation triangle"
+            elif (Button_pressed == "Button_Square"):
+                self.drawFirstLine=""
+                self.drawSecondLine="Formation carrée"
             else:
                 self.drawFirstLine=""
                 self.drawSecondLine=""

@@ -116,9 +116,16 @@ class GroundBuilding(Building):
         self.sunId = sunId
         self.planetId = planetId
 
+    def isInRange(self, position, range, onPlanet = False, sunId = -1, planetId = -1):
+        if self.isLanded and onPlanet:
+            if self.sunId == sunId and self.planetId == planetId:
+                if self.position[0] > position[0]-range and self.position[0] < position[0]+range:
+                    if self.position[1] > position[1]-range and self.position[1] < position[1]+range:
+                        return self
+        return None
+
 class Farm(Building):
     def __init__(self, type, position, owner, sunId, planetId):
         GroundBuilding.__init__(self, type, position, owner, sunId, planetId)
-        
         
         

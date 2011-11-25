@@ -268,7 +268,7 @@ class Player():
             unitToAttack = self.game.players[killedIndexes[1]].units[killedIndexes[0]]
         for i in self.units:
             if i.isAlive:
-                if i.flag.finalTarget == unitToAttack:
+                if i.flag.finalTarget == unitToAttack and i.flag.flagState == FlagState.ATTACK:
                     i.flag = Flag(t.Target(i.position), t.Target(i.position), FlagState.STANDBY)
                     i.attackcount=i.AttackSpeed
         for b in self.buildings:

@@ -63,8 +63,6 @@ class Game():
                     addIt = False
             if addIt:
                 notif = t.Notification(player.buildings[target[1]].position, target[2], actionPlayerName)
-        elif target[2] == t.Notification.ALLIANCE:
-            notif = t.Notification((-1000,-1000,-1000),target[2])
         if notif != None:
             player.notifications.append(notif)
 
@@ -119,6 +117,8 @@ class Game():
     def setMovingFlag(self,x,y):
         units = ''
         send = False
+        if y > self.galaxy.height/2:
+            y = self.galaxy.height/2-15
         #Si plusieurs unités sont sélectionnées, on les ajoute toutes dans le changement à envoyer
         for i in self.players[self.playerId].selectedObjects:
             if isinstance(i, u.Unit) and i.type != i.MOTHERSHIP:              
@@ -656,7 +656,7 @@ class Game():
                                     self.resumeBuildingFlag(clickedObj)
                     if isinstance(clickedObj, w.LandingZone):
                         if clickedObj.ownerId == self.playerId:
-                            self.setLoadFlag(unit, clickedObj)
+                            self.setLoadFlag(self.players[self.playerId].selectedObjects, clickedObj)
                 else:
                     self.setGroundMovingFlag(pos[0], pos[1])
                 
