@@ -608,7 +608,7 @@ class View():
                     self.Actionmenu.create_image(140,35,image=self.gifPatrol,anchor = NW, tags = 'Button_Patrol')
                     if units[0].type == units[0].SCOUT:
                         self.Actionmenu.create_image(13,89,image=self.gifBuild,anchor = NW, tags = 'Button_Space_Buildings')
-                    elif isinstance(units[0], SpaceAttackUnit):
+                    elif isinstance(units[0], SpaceAttackUnit) or isinstance(units[0], GroundAttackUnit):
                         self.Actionmenu.create_image(13,89,image=self.gifAttack,anchor = NW, tags = 'Button_Attack')
                     elif isinstance(units[0], GroundBuilderUnit):
                         self.Actionmenu.create_image(13,89,image=self.gifBuild,anchor = NW, tags = 'Button_Ground_Buildings')
@@ -709,6 +709,8 @@ class View():
             self.Actionmenu.create_image(13,35,image = self.gifTank, anchor = NW, tags = 'Button_Build_GroundAttack')
             self.Actionmenu.create_image(76,35,image = self.gifGroundGather, anchor = NW, tags = 'Button_Build_GroundGather')
             self.Actionmenu.create_image(140,35,image = self.gifGroundBuilder, anchor = NW, tags = 'Button_Build_GroundBuild')
+            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
+            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
 
     def createUnitsConstructionMenu(self, unit):
         y = 35;
@@ -1826,6 +1828,15 @@ class View():
             elif (Button_pressed == "Button_Build_Farm"):
                 self.drawFirstLine=str(b.Building.NAME[b.Building.FARM])
                 self.drawSecondLine=str(b.Building.COST[b.Building.FARM][0])+" mine | "+str(b.Building.COST[b.Building.FARM][1])+" gaz"
+            elif (Button_pressed == "Button_Build_GroundAttack"):
+                self.drawFirstLine=str(Unit.NAME[Unit.GROUND_ATTACK])
+                self.drawSecondLine=str(Unit.BUILD_COST[Unit.GROUND_ATTACK][0])+" mine | "+str(Unit.BUILD_COST[Unit.GROUND_ATTACK][1])+" gaz"
+            elif (Button_pressed == "Button_Build_GroundGather"):
+                self.drawFirstLine=str(Unit.NAME[Unit.GROUND_GATHER])
+                self.drawSecondLine=str(Unit.BUILD_COST[Unit.GROUND_GATHER][0])+" mine | "+str(Unit.BUILD_COST[Unit.GROUND_GATHER][1])+" gaz"
+            elif (Button_pressed == "Button_Build_GroundBuild"):
+                self.drawFirstLine=str(Unit.NAME[Unit.GROUND_BUILDER_UNIT])
+                self.drawSecondLine=str(Unit.BUILD_COST[Unit.GROUND_BUILDER_UNIT][0])+" mine | "+str(Unit.BUILD_COST[Unit.GROUND_BUILDER_UNIT][1])+" gaz"
             elif (Button_pressed == "Button_Tech_Units"):
                 self.drawFirstLine="Technologies"
                 self.drawSecondLine="Unités"
@@ -1841,7 +1852,7 @@ class View():
             elif (Button_pressed == "Button_RallyPoint"):
                 self.drawFirstLine="Placer votre"
                 self.drawSecondLine="point de ralliement"
-            elif (Button_pressed in ("Button_Build", "Button_Space_Buildings", "Button_Ground_Buildings")):
+            elif (Button_pressed in ("Button_Build", "Button_Space_Buildings", "Button_Ground_Buildings", "Button_BuildGroundUnit")):
                 self.drawFirstLine=""
                 self.drawSecondLine="Construction"
             elif (Button_pressed == "Button_Patrol"):

@@ -100,7 +100,7 @@ class Player():
                 self.selectedObjects.append(unit)
 
     def selectObject(self, playerObj, multi):
-        if playerObj != None and playerObj not in self.selectedObjects:
+        if playerObj != None:
             #Si on selectionne une unité
             if isinstance(playerObj, u.Unit):
                 if playerObj.owner == self.id:
