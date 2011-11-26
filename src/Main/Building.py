@@ -211,8 +211,6 @@ class ConstructionBuilding(Building):
         if self.finished:
             p = [self.position[0], self.position[1], 0]
             
-            self.progressUnitsConstruction()
-            
             if self.flag.flagState == FlagState.CHANGE_RALLY_POINT:
                 target = self.flag.finalTarget
                 self.rallyPoint = [target[0], target[1], 0]
@@ -220,6 +218,8 @@ class ConstructionBuilding(Building):
                 
             if self.flag.flagState != FlagState.ATTACK and self.flag.flagState != FlagState.BUILD_UNIT:
                 self.flag.flagState = FlagState.STANDBY
+
+            self.progressUnitsConstruction()
             
             if len(self.unitBeingConstruct) > 0:
                 if(self.isUnitFinished()):

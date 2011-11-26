@@ -349,10 +349,8 @@ class GroundAttackUnit(GroundUnit):
                 if self.attackcount == 0:
                     if unitToAttack.takeDammage(self.AttackDamage, players):
                         if isinstance(unitToAttack, b.Building) == False:
-                            print("C'est un unit que je tue")
                             index = players[unitToAttack.owner].units.index(unitToAttack)
                         else:
-                            print("C'est un building que je tue")
                             index = players[unitToAttack.owner].buildings.index(unitToAttack)
                             isBuilding = True
                         killedOwner = unitToAttack.owner

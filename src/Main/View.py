@@ -699,9 +699,9 @@ class View():
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.LANDING_SPOT_BUILD_MENU):
             self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
-            self.Actionmenu.create_image(13,35,image = self.gifGroundAttackUnit[self.game.players[self.game.playerId].colorId], anchor = NW, tags = 'Button_Build_GroundAttack')
-            self.Actionmenu.create_image(76,35,image = self.groundUnits[self.game.players[self.game.playerId].colorId], anchor = NW, tags = 'Button_Build_GroundGather')
-            self.Actionmenu.create_image(140,35,image = self.groundBuilders[self.game.players[self.game.playerId].colorId], anchor = NW, tags = 'Button_Build_GroundBuild')
+            self.Actionmenu.create_image(13,35,image = self.gifTank, anchor = NW, tags = 'Button_Build_GroundAttack')
+            self.Actionmenu.create_image(76,35,image = self.gifGroundGather, anchor = NW, tags = 'Button_Build_GroundGather')
+            self.Actionmenu.create_image(140,35,image = self.gifGroundBuilder, anchor = NW, tags = 'Button_Build_GroundBuild')
 
     def createUnitsConstructionMenu(self, unit):
         y = 35;
@@ -1219,15 +1219,14 @@ class View():
                     for j in i.buildings:
                         if j.isAlive and not isinstance(j, b.GroundBuilding):
                             if j.finished:
-                                #if players[self.game.playerId].inViewRange(j.position):
                                 self.drawMiniBuilding(j)
                 else:
                     for j in i.units:
-                        if j.isAlive:
+                        if j.isAlive and not isinstance(j, GroundUnit):
                             if players[self.game.playerId].inViewRange(j.position):
                                 self.drawMiniUnit(j)
                     for j in i.buildings:
-                        if j.isAlive:
+                        if j.isAlive and not isinstance(j, b.GroundBuilding):
                             if j.finished:
                                 if players[self.game.playerId].inViewRange(j.position):
                                     self.drawMiniBuilding(j)
@@ -1268,15 +1267,14 @@ class View():
                     for j in i.buildings:
                         if j.isAlive:
                             if j.finished and not isinstance(j, b.GroundBuilding):
-                                #if players[self.game.playerId].inViewRange(j.position):
                                 self.drawMiniBuilding(j)
                 else:
                     for j in i.units:
-                        if j.isAlive:
+                        if j.isAlive and not isinstance(j, GroundUnit):
                             if players[self.game.playerId].inViewRange(j.position):
                                 self.drawMiniUnit(j)
                     for j in i.buildings:
-                        if j.isAlive:
+                        if j.isAlive and not isinstance(j, b.GroundBuilding):
                             if j.finished:
                                 if players[self.game.playerId].inViewRange(j.position):
                                     self.drawMiniBuilding(j)

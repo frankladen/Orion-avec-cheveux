@@ -652,7 +652,10 @@ class Game():
                                 if clickedObj.finished == False:
                                     self.resumeBuildingFlag(clickedObj)
                 else:
-                    self.setMovingFlag(pos[0], pos[1])
+                    if unit.type == Building.MOTHERSHIP:
+                        self.setMotherShipRallyPoint(pos)
+                    else:
+                        self.setMovingFlag(pos[0], pos[1])
         else:
             unit = self.players[self.playerId].getFirstUnit()
             clickedObj = self.getCurrentPlanet().groundSelect(pos)
@@ -670,10 +673,13 @@ class Game():
                             if clickedObj.owner == self.playerId:
                                 if clickedObj.finished == False:
                                     self.resumeBuildingFlag(clickedObj)
-                    if isinstance(clickedObj, b.LandingZone):
-                        self.setLoadFlag(unit, clickedObj)
+                    if isinstance(clickedObj, b.LandingZone) and clickedObj.owner == self.playerId:
+                        self.setLoadFlag(self.players[self.playerId].selectedObjects, clickedObj)
                 else:
-                    self.setGroundMovingFlag(pos[0], pos[1])
+                    if unit.type == Building.LANDING_ZONE:
+                        self.setMotherShipRallyPoint(pos)
+                    else:
+                        self.setGroundMovingFlag(pos[0], pos[1])
                 
     #Selection avec le clic-drag
     def boxSelect(self, selectStart, selectEnd):

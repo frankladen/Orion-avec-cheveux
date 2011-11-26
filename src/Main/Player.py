@@ -46,6 +46,7 @@ class Player():
         self.camera = None
         
     def getSelectedBuildingIndex(self):
+        print(self.selectedObjects[0].type)
         return self.buildings.index(self.selectedObjects[0])
     
     def action(self):
@@ -146,7 +147,7 @@ class Player():
                             
     def getFirstUnit(self):
         if len(self.selectedObjects) > 0:
-            if isinstance(self.selectedObjects[0], u.Unit):
+            if isinstance(self.selectedObjects[0], u.Unit) or isinstance(self.selectedObjects[0], b.ConstructionBuilding):
                 return self.selectedObjects[0]
         return None
 
