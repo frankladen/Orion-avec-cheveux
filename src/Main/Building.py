@@ -158,8 +158,8 @@ class GroundBuilding(Building):
         self.sunId = sunId
         self.planetId = planetId
 
-    def isInRange(self, position, range, onPlanet = False, sunId = -1, planetId = -1):
-        if onPlanet:
+    def isInRange(self, position, range, onPlanet = False, planetId = -1, sunId = -1):
+        if onPlanet and self.finished:
             if self.sunId == sunId and self.planetId == planetId:
                 if self.position[0] > position[0]-range and self.position[0] < position[0]+range:
                     if self.position[1] > position[1]-range and self.position[1] < position[1]+range:
@@ -348,6 +348,14 @@ class LandingZone(ConstructionBuilding,GroundBuilding):
         if position[0] > self.position[0]-self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:
             if position[1] > self.position[1]-self.HEIGHT/2 and position[1] < self.position[1]+self.HEIGHT/2:
                 return self
+        return None
+
+    def isInRange(self, position, range, onPlanet = False, planetId = -1, sunId = -1):
+        if onPlanet:
+            if self.sunId == sunId and self.planetId == planetId:
+                if self.position[0] > position[0]-range and self.position[0] < position[0]+range:
+                    if self.position[1] > position[1]-range and self.position[1] < position[1]+range:
+                        return self
         return None
 
     def takeDammage(self, amount, players):

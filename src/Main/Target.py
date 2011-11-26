@@ -37,9 +37,10 @@ class PlayerObject(Target):
             return False
 
     def isInRange(self, position, range, onPlanet = False, planetId = -1, solarSystemId = -1):
-        if self.position[0] > position[0]-range and self.position[0] < position[0]+range:
-            if self.position[1] > position[1]-range and self.position[1] < position[1]+range:
-                return self
+        if onPlanet == False:
+            if self.position[0] > position[0]-range and self.position[0] < position[0]+range:
+                if self.position[1] > position[1]-range and self.position[1] < position[1]+range:
+                    return self
         return None
     
     def kill(self):

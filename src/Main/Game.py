@@ -168,7 +168,7 @@ class Game():
         send = False
         #Si plusieurs unités sont sélectionnées, on les ajoute toutes dans le changement à envoyer
         for i in self.players[self.playerId].selectedObjects:
-            if isinstance(i, u.Unit) and i.type != i.MOTHERSHIP:
+            if isinstance(i, u.Unit):
                 units += str(self.players[self.playerId].units.index(i)) + ","
                 send = True
         if send:
@@ -563,7 +563,7 @@ class Game():
     def checkIfEnemyInRange(self, unit, onPlanet = False, planetId = -1, solarSystemId = -1):
         for pl in self.players:
             if pl.isAlive:
-                if pl.id != unit.owner and not self.players[unit.owner].isAlly(pl.id):
+                if pl.id != unit.owner and self.players[unit.owner].isAlly(pl.id) == False:
                     enemyUnit = pl.hasUnitInRange(unit.position, unit.range, onPlanet, planetId, solarSystemId)
                     if enemyUnit != None:
                         self.attackEnemyInRange(unit, enemyUnit)

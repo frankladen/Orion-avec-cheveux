@@ -516,6 +516,13 @@ class View():
                             self.menuModes.create_arc((662, 177, 515, 22), start=0, extent= (unit.armor / unit.MAX_ARMOR)*359.99999999 , fill='red', tags = 'arc')
                         else:
                             self.menuModes.create_oval((662, 177, 515, 22), fill='red', tags = 'arc', outline ='black')
+                    else:
+                        if unit.LandedShip != None:
+                            self.menuModes.create_text(680,100, text = unit.LandedShip.name, anchor = NW, fill = 'white')
+                            if unit.LandedShip.hitpoints != unit.LandedShip.maxHP:
+                                self.menuModes.create_arc((755, 190,695,130), start=0, extent= (unit.LandedShip.hitpoints / unit.LandedShip.maxHP)*359.99999999 , fill='green', tags = 'arc', outline ='green')
+                            else:
+                                self.menuModes.create_oval((755, 190,695,130), fill='green', tags = 'arc', outline ='black')
                     if unit.hitpoints != unit.maxHP:
                         self.menuModes.create_arc((650, 165,525,35), start=0, extent= (unit.hitpoints / unit.maxHP)*359.99999999 , fill='green', tags = 'arc')
                     else:

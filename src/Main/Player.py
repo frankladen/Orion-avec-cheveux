@@ -46,7 +46,6 @@ class Player():
         self.camera = None
         
     def getSelectedBuildingIndex(self):
-        print(self.selectedObjects[0].type)
         return self.buildings.index(self.selectedObjects[0])
     
     def action(self):
@@ -109,6 +108,9 @@ class Player():
                         self.selectedObjects = [playerObj]
                     else:
                         self.selectedObjects.append(playerObj)
+            elif isinstance(playerObj, b.LandingZone):
+                if playerObj.owner == self.id:
+                    self.selectedObjects = [playerObj]
             #Sinon, si on selectionne autre chose
             else:
                 if not multi:

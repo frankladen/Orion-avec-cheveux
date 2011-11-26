@@ -53,9 +53,7 @@ class Unit(PlayerObject):
             if killedIndex[0] > -1:
                 parent.killUnit(killedIndex)
         elif self.flag.flagState == FlagState.PATROL:
-            unit = self.patrol()
-            if unit != None:
-                parent.game.checkIfEnemyInRange(self)
+            self.patrol()
         elif self.flag.flagState == FlagState.BUILD:
             self.build(self.flag.finalTarget)
     
@@ -326,7 +324,7 @@ class GroundAttackUnit(GroundUnit):
                 if killedIndex[0] > -1:
                     parent.killUnit(killedIndex)
             elif self.flag.flagState == FlagState.PATROL:
-                self.patrol(parent.game.players)
+                self.patrol()
                 parent.game.checkIfEnemyInRange(self, True, self.planetId, self.sunId)
             elif self.flag.flagState == FlagState.STANDBY:
                 parent.game.checkIfEnemyInRange(self, True, self.planetId, self.sunId)
@@ -380,7 +378,7 @@ class SpaceAttackUnit(SpaceUnit):
                 if killedIndex[0] > -1:
                     parent.killUnit(killedIndex)
         elif self.flag.flagState == FlagState.PATROL:
-            self.patrol(parent.game.players)
+            self.patrol()
             parent.game.checkIfEnemyInRange(self)
         elif self.flag.flagState == FlagState.STANDBY:
             parent.game.checkIfEnemyInRange(self)
@@ -419,7 +417,7 @@ class SpaceAttackUnit(SpaceUnit):
             self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.STANDBY)
             return (-1, -1)
 
-    def patrol(self, players):
+    def patrol(self):
         arrived = True
         if self.position[0] < self.flag.finalTarget.position[0] or self.position[0] > self.flag.finalTarget.position[0]:
                 if self.position[1] < self.flag.finalTarget.position[1] or self.position[1] > self.flag.finalTarget.position[1]:
@@ -442,6 +440,7 @@ class TransportShip(SpaceUnit):
         self.units = []
         self.planetId = -1
         self.sunId = -1
+        self.planet = None
         #self.units.append(GroundUnit('Builder', self.GROUND_UNIT, [0,0,0], self.owner,-1,-1))
 
     def action(self, parent):
@@ -452,13 +451,8 @@ class TransportShip(SpaceUnit):
 
 
     def isInRange(self, position, range, onPlanet = False, planetId = -1, solarSystemId = -1):
-        if self.landed == onPlanet:
-            if not onPlanet:
-                return Unit.isInRange(self, position, range)
-            elif planetId == self.planetId and solarSystemId == self.sunId:
-                if self.position[0] > position[0]-range and self.position[0] < position[0]+range:
-                    if self.position[1] > position[1]-range and self.position[1] < position[1]+range:
-                        return self
+        if self.landed == onPlanet and onPlanet == False:
+            return Unit.isInRange(self, position, range)
         return None
 
     def select(self, position):
@@ -506,6 +500,7 @@ class TransportShip(SpaceUnit):
                     self.landed = True
                     self.planetId = planetId
                     self.sunId = sunId
+                    self.planet = planet
                     if playerId == game.playerId:
                         cam = game.players[playerId].camera
                         cam.placeOnLanding(landingZone)
@@ -526,6 +521,7 @@ class TransportShip(SpaceUnit):
                     self.landed = True
                     self.planetId = planetId
                     self.sunId = sunId
+                    self.planet = planet
                     if playerId == game.playerId:
                         cam = game.players[playerId].camera
                         cam.placeOnLanding(landingZone)
