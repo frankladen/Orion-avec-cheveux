@@ -84,13 +84,15 @@ class Player():
 
     def selectUnit(self, position):
         for i in self.units:
-            unit = i.select(position)
-            if unit != None:
-                self.selectedObjects = [unit]
+            if not isinstance(i, u.GroundUnit):
+                unit = i.select(position)
+                if unit != None:
+                    self.selectedObjects = [unit]
         for i in self.buildings:
-            building = i.select(position)
-            if building != None:
-                self.selectedObjects = [building]
+            if not isinstance(i, b.GroundBuilding):
+                building = i.select(position)
+                if building != None:
+                    self.selectedObjects = [building]
 
     def multiSelectUnit(self, position):
         for i in self.units:
@@ -121,11 +123,12 @@ class Player():
         first = True
         if self.currentPlanet == None:
             for i in self.units:
-                unit = i.boxSelect(selectStart, selectEnd)
-                if first:
-                    self.selectedObjects = []
-                    first = False
-                self.selectObject(unit, True)
+                if not isinstance(i, u.GroundUnit):
+                    unit = i.boxSelect(selectStart, selectEnd)
+                    if first:
+                        self.selectedObjects = []
+                        first = False
+                    self.selectObject(unit, True)
         else:
             for i in self.currentPlanet.units:
                 unit = i.boxSelect(selectStart, selectEnd)

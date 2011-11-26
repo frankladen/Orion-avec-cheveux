@@ -1187,6 +1187,7 @@ class View():
                     if int(unit.hitpoints) != int(unit.MAX_HP[unit.type]):
                         self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLost,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="red", tag='deletable')
         else:
+            if self.game.players[self.game.playerId].currentPlanet == None and (not isinstance(unit, b.GroundBuilding) or not isinstance(unit, b.LandingZone)):
                 hpLeft=((unit.hitpoints/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
                 hpLost=(hpLeft+(((unit.MAX_HP[unit.type]-unit.hitpoints)/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0])))
                 self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="green", tag='deletable')
@@ -1217,7 +1218,7 @@ class View():
                         if j.isAlive and not isinstance(j, GroundUnit):
                                 self.drawMiniUnit(j)
                     for j in i.buildings:
-                        if j.isAlive and not isinstance(j, b.GroundBuilding):
+                        if j.isAlive and (not isinstance(j, b.GroundBuilding) or not isinstance(j, b.LandingZone)):
                             if j.finished:
                                 self.drawMiniBuilding(j)
                 else:
@@ -1226,7 +1227,7 @@ class View():
                             if players[self.game.playerId].inViewRange(j.position):
                                 self.drawMiniUnit(j)
                     for j in i.buildings:
-                        if j.isAlive and not isinstance(j, b.GroundBuilding):
+                        if j.isAlive and (not isinstance(j, b.GroundBuilding) or not isinstance(j, b.LandingZone)):
                             if j.finished:
                                 if players[self.game.playerId].inViewRange(j.position):
                                     self.drawMiniBuilding(j)
@@ -1266,7 +1267,7 @@ class View():
                             self.drawMiniUnit(j)
                     for j in i.buildings:
                         if j.isAlive:
-                            if j.finished and not isinstance(j, b.GroundBuilding):
+                            if j.finished and (not isinstance(j, b.GroundBuilding) or not isinstance(j, b.LandingZone)):
                                 self.drawMiniBuilding(j)
                 else:
                     for j in i.units:
@@ -1274,7 +1275,7 @@ class View():
                             if players[self.game.playerId].inViewRange(j.position):
                                 self.drawMiniUnit(j)
                     for j in i.buildings:
-                        if j.isAlive and not isinstance(j, b.GroundBuilding):
+                        if j.isAlive and (not isinstance(j, b.GroundBuilding) or not isinstance(j, b.LandingZone)):
                             if j.finished:
                                 if players[self.game.playerId].inViewRange(j.position):
                                     self.drawMiniBuilding(j)

@@ -32,7 +32,8 @@ class Controller():
             if self.server.isGameStopped() == False:
                 if self.refresh > 0:
                     if self.game.action():
-                        self.refreshMessages(self.view.menuModes.chat)
+                        if self.refresh % 20 == 0:
+                            self.refreshMessages(self.view.menuModes.chat)
                         #À chaque itération je demande les nouvelles infos au serveur
                         self.pullChange()
                         self.view.refreshGame(self.game.isOnPlanet())
@@ -205,7 +206,7 @@ class Controller():
             elif flag.flagState == FlagState.CREATE:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.CHANGE_RALLY_POINT:
-                actionString = str(self.game.playerId) + "/" + "0" + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
+                actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.NOTIFICATION:
                 actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.DESTROY:

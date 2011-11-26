@@ -413,7 +413,7 @@ class Game():
         planet = self.galaxy.solarSystemList[solarSystemId].planets[planetId]
         self.players[playerId].makeUnitLand(unitId, planet)
 
-    def setMotherShipRallyPoint(self, pos):
+    def setRallyPointPosition(self, pos):
         self.parent.pushChange(self.players[self.playerId].getSelectedBuildingIndex(), Flag(finalTarget = pos, flagState = FlagState.CHANGE_RALLY_POINT))
 
     def setChangeFormationFlag(self, formation):
@@ -582,8 +582,10 @@ class Game():
         end = (position[0]+(Building.SIZE[type][0]/2),position[1]+(Building.SIZE[type][1]/2),0)
         for p in self.players:
             for b in p.buildings:
-                if b.selectIcon(start, end) != None:
-                    return False
+                if isinstance(b, GroundBuilding):
+                    if self.players[self.playerId].selectedObjects[0].planet == b.planet:
+                        if b.selectIcon(start, end) != None:
+                            return False
         if self.getCurrentPlanet() == None:
             for i in self.galaxy.solarSystemList:
                 if i.over(start, end):
@@ -652,8 +654,8 @@ class Game():
                                 if clickedObj.finished == False:
                                     self.resumeBuildingFlag(clickedObj)
                 else:
-                    if unit.type == Building.MOTHERSHIP:
-                        self.setMotherShipRallyPoint(pos)
+                    if isinstance(unit, Mothership) or isinstance(unit, LandingZone):
+                        self.setRallyPointPosition(pos)
                     else:
                         self.setMovingFlag(pos[0], pos[1])
         else:
@@ -676,8 +678,8 @@ class Game():
                     if isinstance(clickedObj, b.LandingZone) and clickedObj.owner == self.playerId:
                         self.setLoadFlag(self.players[self.playerId].selectedObjects, clickedObj)
                 else:
-                    if unit.type == Building.LANDING_ZONE:
-                        self.setMotherShipRallyPoint(pos)
+                    if isinstance(unit, LandingZone):
+                        self.setRallyPointPosition(pos)
                     else:
                         self.setGroundMovingFlag(pos[0], pos[1])
                 
