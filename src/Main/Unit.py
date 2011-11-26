@@ -22,7 +22,7 @@ class Unit(PlayerObject):
     MINERAL=0
     GAS=1
     FOOD=2
-    SIZE=((0,0),  (18,15), (28,32), (32,29), (20,30),(24,24),(20,38), (0,0), (36,33),(20,20))
+    SIZE=((0,0),  (18,15), (28,32), (32,29), (20,30),(24,24),(23,37), (0,0), (36,33),(20,20))
     MAX_HP = (50, 50, 100,125, 75, 100, 100, 100, 100,100)
     MOVE_SPEED=(1.0,  4.0, 2.0, 3.0, 3.0, 5.0, 5.0, 3.0, 3.5, 4.0)
     ATTACK_SPEED=(0,0,10,0,0,0,0,0,15,0)
@@ -64,7 +64,7 @@ class Unit(PlayerObject):
         if Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1]) <= self.moveSpeed:
             endPos = [self.flag.finalTarget.position[0],self.flag.finalTarget.position[1]]
             self.position = endPos
-            if self.flag.flagState == FlagState.MOVE:
+            if self.flag.flagState == FlagState.MOVE or self.flag.flagState == FlagState.GROUND_MOVE:
                 self.flag.flagState = FlagState.STANDBY
             elif self.flag.flagState == FlagState.MOVE+FlagState.ATTACK:
                 self.flag.flagState = FlagState.ATTACK
@@ -349,8 +349,10 @@ class GroundAttackUnit(GroundUnit):
                 if self.attackcount == 0:
                     if unitToAttack.takeDammage(self.AttackDamage, players):
                         if isinstance(unitToAttack, b.Building) == False:
+                            print("C'est un unit que je tue")
                             index = players[unitToAttack.owner].units.index(unitToAttack)
                         else:
+                            print("C'est un building que je tue")
                             index = players[unitToAttack.owner].buildings.index(unitToAttack)
                             isBuilding = True
                         killedOwner = unitToAttack.owner
@@ -433,7 +435,6 @@ class SpaceAttackUnit(SpaceUnit):
     #Applique les bonus du Unit selon les upgrades
     def applyBonuses(self, bonuses):
         Unit.applyBonuses(self, bonuses)
-        Mothership.applyBonuses(self,bonuses)
 
 class TransportShip(SpaceUnit):
     def __init__(self, type, position, owner):
@@ -501,7 +502,7 @@ class TransportShip(SpaceUnit):
                     alreadyLanded = True
             if not alreadyLanded:
                 if len(planet.landingZones) < 4:
-                    landingZone = planet.addLandingZone(playerId, self)
+                    landingZone = planet.addLandingZone(playerId, self, game.players[playerId])
                     player.buildings.append(landingZone)
                     player.selectedObjects = []
                     self.landed = True

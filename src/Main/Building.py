@@ -21,7 +21,9 @@ class Building(t.PlayerObject):
     TIME = (60,0,0,75,75,0,0)
     MAX_HP = (150,0,0,200,200,1500,100)
     VIEW_RANGE=(200, 0, 0, 100, 250, 400, 200)
-    MAX_SHIELD=(0,0,0,0,0,0,0)
+    MAX_SHIELD=0
+    REGEN_WAIT_TIME = 30
+    REGEN_WAIT_TIME_AFTER_ATTACK = 60
     
     def __init__(self,type, position, owner):
         t.PlayerObject.__init__(self, type, position, owner)
@@ -33,10 +35,42 @@ class Building(t.PlayerObject):
         self.buildCost = self.COST[type]
         self.name = self.NAME[type]    
         self.finished = False
-        self.shield = self.MAX_SHIELD[type]
+        self.shield = self.MAX_SHIELD
+        self.shieldRegenCount = self.REGEN_WAIT_TIME
+        self.shieldRegenAfterAttack = 0
 
     def action(self, parent):
-        i=1
+        if self.finished:
+            self.regenShield()
+
+    def regenShield(self):
+        if self.shield >= 0:
+            if self.shieldRegenAfterAttack > 0:
+                self.shieldRegenAfterAttack -= 1
+            elif self.shieldRegenCount > 0:
+                self.shieldRegenCount -= 1
+            else:
+                if self.shield > self.MAX_SHIELD-5:
+                    self.shield = self.MAX_SHIELD
+                else:
+                    self.shield += 5
+                    self.shieldRegenCount = self.REGEN_WAIT_TIME
+                    
+    def takeDammage(self, amount, players):
+        self.shieldRegenCount = self.REGEN_WAIT_TIME
+        self.shieldRegenAfterAttack = self.REGEN_WAIT_TIME_AFTER_ATTACK
+        if self.shield > 0:
+            if self.shield < amount:
+                self.shield = 0
+            else:
+                self.shield -= amount
+        else:
+            if self.hitpoints <= amount:
+                self.hitpoints = 0
+                return True
+            else:
+                self.hitpoints -= amount
+        return False
 
     def select(self, position):
         if self.isAlive:
@@ -125,7 +159,7 @@ class GroundBuilding(Building):
         self.planetId = planetId
 
     def isInRange(self, position, range, onPlanet = False, sunId = -1, planetId = -1):
-        if self.isLanded and onPlanet:
+        if onPlanet:
             if self.sunId == sunId and self.planetId == planetId:
                 if self.position[0] > position[0]-range and self.position[0] < position[0]+range:
                     if self.position[1] > position[1]-range and self.position[1] < position[1]+range:
@@ -135,7 +169,6 @@ class GroundBuilding(Building):
 class Farm(Building):
     def __init__(self, type, position, owner, sunId, planetId):
         GroundBuilding.__init__(self, type, position, owner, sunId, planetId)
-
 
 class ConstructionBuilding(Building):
     def __init__(self, type, position, owner):
@@ -151,7 +184,6 @@ class ConstructionBuilding(Building):
             self.flag.flagState = FlagState.STANDBY
                
     def addUnitToQueue(self, unitType):
-
         p = [self.position[0], self.position[1], 0]
         if unitType == u.Unit.SCOUT:
             self.unitBeingConstruct.append(u.Unit( u.Unit.SCOUT, p, self.owner))
@@ -176,53 +208,29 @@ class ConstructionBuilding(Building):
             return self.unitBeingConstruct[0].constructionProgress >= self.unitBeingConstruct[0].buildTime
         
     def action(self, parent):
-
-        if self.isAlive:
+        if self.finished:
             p = [self.position[0], self.position[1], 0]
-            if self.flag.flagState == FlagState.BUILD_UNIT:
-                self.progressUnitsConstruction()
-
-
-            elif self.flag.flagState == FlagState.CHANGE_RALLY_POINT:
+            
+            self.progressUnitsConstruction()
+            
+            if self.flag.flagState == FlagState.CHANGE_RALLY_POINT:
                 target = self.flag.finalTarget
                 self.rallyPoint = [target[0], target[1], 0]
                 self.flag.flagState = FlagState.BUILD_UNIT
-
-
-                    
-            elif self.flag.flagState == FlagState.ATTACK:
-                if isinstance(self.flag.finalTarget, TransportShip):
-                    if self.flag.finalTarget.landed:
-                        parent.game.setAStandByFlag(self)
-                killedIndex = self.attack(parent.game.players)
-                if killedIndex[0] > -1:
-                    parent.killUnit(killedIndex)
-                    
+                
             if self.flag.flagState != FlagState.ATTACK and self.flag.flagState != FlagState.BUILD_UNIT:
                 self.flag.flagState = FlagState.STANDBY
             
             if len(self.unitBeingConstruct) > 0:
                 if(self.isUnitFinished()):
                     parent.buildUnit(self)
-            
-            if isinstance(self, Mothership):
-                self.regenShield()
-            
-        else:
-            self.unitBeingConstruct = []
-            self.isAlive = False
-        
-        
         
 class Mothership(ConstructionBuilding):
-    REGEN_WAIT_TIME = 30
-    REGEN_WAIT_TIME_AFTER_ATTACK = 60
     MAX_ARMOR = 2000
+    MAX_SHIELD = 0
     ATTACK_RANGE = 250
-    ATTACK_SPEED = 8
-    ATTACK_DAMAGE = 5
-    
-     
+    ATTACK_SPEED = 25
+    ATTACK_DAMAGE = 15     
     
     def __init__(self,  type, position, owner):
         ConstructionBuilding.__init__(self, type, position, owner)
@@ -232,23 +240,20 @@ class Mothership(ConstructionBuilding):
         self.AttackSpeed=self.ATTACK_SPEED
         self.AttackDamage=self.ATTACK_DAMAGE
         self.attackcount=self.AttackSpeed
-        self.shieldRegenCount = self.REGEN_WAIT_TIME
-        self.shieldRegenAfterAttack = 0
         self.armor = self.MAX_ARMOR
         self.killCount = 0
+        self.finished = True
 
-    def regenShield(self):
-        if self.shield >= 0:
-            if self.shieldRegenAfterAttack > 0:
-                self.shieldRegenAfterAttack -= 1
-            elif self.shieldRegenCount > 0:
-                self.shieldRegenCount -= 1
-            else:
-                if self.shield > self.MAX_SHIELD[self.type]-5:
-                    self.shield = self.MAX_SHIELD[self.type]
-                else:
-                    self.shield += 5
-                    self.shieldRegenCount = self.REGEN_WAIT_TIME
+    def action(self, parent):
+        parent.game.checkIfEnemyInRange(self)
+        if self.flag.flagState == FlagState.ATTACK:
+            if isinstance(self.flag.finalTarget, u.TransportShip):
+                if self.flag.finalTarget.landed:
+                    parent.game.setAStandByFlag(self)
+            killedIndex = self.attack(parent.game.players)
+            if killedIndex[0] > -1:
+                parent.killUnit(killedIndex)
+        ConstructionBuilding.action(self, parent)
 
     #Applique les bonus du Unit selon les upgrades
     def applyBonuses(self, bonuses):
@@ -257,7 +262,20 @@ class Mothership(ConstructionBuilding):
         self.AttackDamage = self.ATTACK_DAMAGE[self.type]+bonuses[p.Player.ATTACK_DAMAGE_BONUS]
         self.range = self.ATTACK_RANGE[self.type]+bonuses[p.Player.ATTACK_RANGE_BONUS]
 
-    def takeDammage(self, amount):
+    def regenShield(self):
+        if self.shield >= 0:
+            if self.shieldRegenAfterAttack > 0:
+                self.shieldRegenAfterAttack -= 1
+            elif self.shieldRegenCount > 0:
+                self.shieldRegenCount -= 1
+            else:
+                if self.shield > self.MAX_SHIELD-5:
+                    self.shield = self.MAX_SHIELD
+                else:
+                    self.shield += 5
+                    self.shieldRegenCount = self.REGEN_WAIT_TIME
+
+    def takeDammage(self, amount, players):
         self.shieldRegenCount = self.REGEN_WAIT_TIME
         self.shieldRegenAfterAttack = self.REGEN_WAIT_TIME_AFTER_ATTACK
         if self.shield > 0:
@@ -281,7 +299,7 @@ class Mothership(ConstructionBuilding):
     def attack(self, players, unitToAttack=None):
         if unitToAttack == None:
             unitToAttack = self.flag.finalTarget
-        if not isinstance(unitToAttack, GroundUnit):
+        if not isinstance(unitToAttack, u.GroundUnit):
             index = -1
             killedOwner = -1
             isBuilding = False
@@ -292,8 +310,8 @@ class Mothership(ConstructionBuilding):
                 else:
                     self.attackcount = self.attackcount - 1
                     if self.attackcount == 0:
-                        if unitToAttack.takeDammage(self.AttackDamage):
-                            if isinstance(unitToAttack, b.Building) == False:
+                        if unitToAttack.takeDammage(self.AttackDamage, players):
+                            if isinstance(unitToAttack, Building) == False:
                                 index = players[unitToAttack.owner].units.index(unitToAttack)
                             else:
                                 index = players[unitToAttack.owner].buildings.index(unitToAttack)
@@ -317,6 +335,7 @@ class LandingZone(ConstructionBuilding,GroundBuilding):
         self.id = id
         self.planetId = planetId
         self.sunId = sunId
+        self.finished = True
 
     def over(self, positionStart, positionEnd):
         if positionEnd[0] > self.position[0] - self.WIDTH/2 and positionStart[0] < self.position[0] + self.WIDTH/2:
@@ -342,6 +361,4 @@ class LandingZone(ConstructionBuilding,GroundBuilding):
             if self.hitpoints <= 0:
                 return True
         return False       
-        
-                                                                                                                                                    
-        
+                                                                                                                                            

@@ -83,15 +83,22 @@ class Game():
         #Condition de construction
         wp = None
         if self.checkIfCanBuild((target[0], target[1],0), type):
-            if self.players[playerId].ressources[0] >= Building.COST[type][0] and self.players[playerId].ressources[1] >= Building.COST[type][1]:
-                self.players[playerId].ressources[0] -= Building.COST[type][0]
-                self.players[playerId].ressources[1] -= Building.COST[type][1]
+            player = self.players[playerId]
+            if player.ressources[0] >= Building.COST[type][0] and player.ressources[1] >= Building.COST[type][1]:
+                player.ressources[0] -= Building.COST[type][0]
+                player.ressources[1] -= Building.COST[type][1]
                 if type == Building.WAYPOINT:
                     wp = Waypoint(Building.WAYPOINT, [target[0],target[1],0], playerId)
+                    wp.MAX_SHIELD = player.BONUS[player.BUILDING_SHIELD_BONUS]
+                    wp.shield = wp.MAX_SHIELD
                 elif type == Building.TURRET:
                     wp = Turret(Building.TURRET, [target[0],target[1],0], playerId)
+                    wp.MAX_SHIELD = player.BONUS[player.BUILDING_SHIELD_BONUS]
+                    wp.shield = wp.MAX_SHIELD
                 elif type == Building.FARM:
                     wp = Farm(Building.FARM, [target[0],target[1],0], playerId, sunId, planetId)
+                    wp.MAX_SHIELD = player.BONUS[player.BUILDING_SHIELD_BONUS]
+                    wp.shield = wp.MAX_SHIELD
                     wp.planet = self.galaxy.solarSystemList[sunId].planets[planetId]
                     self.galaxy.solarSystemList[sunId].planets[planetId].buildings.append(wp)
             if wp != None:
@@ -215,6 +222,11 @@ class Game():
         for play in self.players:
             play.checkIfIsAttacking(killedIndexes)
 
+    def removeLandingZoneFromPlanet(self, landingZone):
+        planet = self.galaxy.solarSystemList[landingZone.sunId].planets[landingZone.planetId]
+        if landingZone in planet.landingZones:
+            planet.landingZones.remove(landingZone)
+
     def setBuyTech(self, techType, index):
         self.parent.pushChange(index, Flag(techType,0,FlagState.BUY_TECH))
 
@@ -246,8 +258,14 @@ class Game():
                 player.BONUS[player.ATTACK_RANGE_BONUS] = tech.add
             elif tech.effect == 'VR':
                 player.BONUS[player.VIEW_RANGE_BONUS] = tech.add
+            elif tech.effect == 'BB':
+                player.BONUS[player.BUILDING_SHIELD_BONUS] = tech.add
+                for b in player.buildings:
+                    if not isinstance(b, Mothership):
+                        b.MAX_SHIELD = tech.add
+                        b.shield = tech.add
             elif tech.effect == 'BM':
-                player.motherShip.MAX_SHIELD = 1500
+                player.motherShip.MAX_SHIELD = tech.add
                 player.motherShip.shield = player.motherShip.MAX_SHIELD
                 
             player.changeBonuses()
@@ -545,7 +563,7 @@ class Game():
     def checkIfEnemyInRange(self, unit, onPlanet = False, planetId = -1, solarSystemId = -1):
         for pl in self.players:
             if pl.isAlive:
-                if pl.id != unit.owner and self.players[unit.owner].isAlly(pl.id) == False:
+                if pl.id != unit.owner and not self.players[unit.owner].isAlly(pl.id):
                     enemyUnit = pl.hasUnitInRange(unit.position, unit.range, onPlanet, planetId, solarSystemId)
                     if enemyUnit != None:
                         self.attackEnemyInRange(unit, enemyUnit)
@@ -621,7 +639,7 @@ class Game():
                     elif unit.type == unit.CARGO:
                         if isinstance(clickedObj, w.AstronomicalObject):
                             self.setGatherFlag(unit, clickedObj)
-                        elif isinstance(clickedObj, u.Mothership) or isinstance(clickedObj, Waypoint):
+                        elif isinstance(clickedObj, Mothership) or isinstance(clickedObj, Waypoint):
                             if clickedObj.owner == self.playerId:
                                 self.setGatherFlag(unit, clickedObj)
                     elif unit.type == unit.ATTACK_SHIP:

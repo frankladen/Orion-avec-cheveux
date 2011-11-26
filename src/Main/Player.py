@@ -19,7 +19,8 @@ class Player():
     MOVE_SPEED_BONUS = 2
     ATTACK_RANGE_BONUS = 3
     VIEW_RANGE_BONUS = 4
-    BONUS = [0,0,0,0,0]
+    BUILDING_SHIELD_BONUS = 5
+    BONUS = [0,0,0,0,0,0]
     MAX_FOOD = 10
     
     def __init__(self, name, game, id , colorId):
@@ -52,7 +53,8 @@ class Player():
             if i.isAlive:
                 i.action(self)
         for i in self.buildings:
-            i.action(self)
+            if i.isAlive:
+                i.action(self)
             
     def selectUnitsByType(self, unitType):
         units = []
@@ -296,6 +298,8 @@ class Player():
                 self.buildings[killedIndexes[0]].kill()
                 if self.buildings[killedIndexes[0]].type == b.Building.FARM:
                     self.MAX_FOOD -= 5
+                elif self.buildings[killedIndexes[0]].type == b.Building.LANDING_ZONE:
+                    self.game.removeLandingZoneFromPlanet(self.buildings[killedIndexes[0]])
             self.game.killUnit(killedIndexes, False)
         else:
             self.game.killUnit(killedIndexes, True)
@@ -313,6 +317,7 @@ class Player():
                 buildingInRange = bd.isInRange(position, range, onPlanet, planetId, solarSystemId)
                 if buildingInRange != None:
                     return buildingInRange
+        return None
 
     def buildUnit(self, constructionUnit):
         unit = constructionUnit.unitBeingConstruct.pop(0)

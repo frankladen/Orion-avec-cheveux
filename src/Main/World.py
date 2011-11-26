@@ -347,7 +347,7 @@ class Planet(Target):
         for i in self.gaz:
             self.gazQte += i.nbGaz
 
-    def addLandingZone(self, playerid, landingShip):
+    def addLandingZone(self, playerid, landingShip, player):
         placeFound = False
         while not placeFound:
             placeFound = True
@@ -373,7 +373,8 @@ class Planet(Target):
                         break
         id = len(self.landingZones)
         newSpot = b.LandingZone(position, playerid, landingShip, id, self.id, self.solarSystem.sunId)
-        
+        newSpot.MAX_SHIELD = player.BONUS[player.BUILDING_SHIELD_BONUS]
+        newSpot.shield = newSpot.MAX_SHIELD
         self.landingZones.append(newSpot)
         return newSpot
 

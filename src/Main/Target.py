@@ -29,7 +29,7 @@ class PlayerObject(Target):
             self.flag.flagState = state
     
     
-    def takeDammage(self, amount):
+    def takeDammage(self, amount, players):
         self.hitpoints -= amount
         if self.hitpoints <= 0:
             return True

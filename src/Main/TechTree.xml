@@ -85,7 +85,7 @@
 			<Add>300</Add>
 			<CostMine>1200</CostMine>
 			<CostGaz>1200</CostGaz>
-			<CostNuclear>2</CostNuclear>
+			<CostNuclear>1</CostNuclear>
 		</Tech>
 	</Buildings>
 	<Mothership>
@@ -107,7 +107,7 @@
 		<Tech>
 			<Name>Bouclier</Name>
 			<Effect>BM</Effect>
-			<Add>300</Add>
+			<Add>500</Add>
 			<CostMine>1200</CostMine>
 			<CostGaz>1200</CostGaz>
 			<CostNuclear>2</CostNuclear>
