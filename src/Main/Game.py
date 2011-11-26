@@ -121,11 +121,9 @@ class Game():
             y = self.galaxy.height/2-15
         #Si plusieurs unités sont sélectionnées, on les ajoute toutes dans le changement à envoyer
         for i in self.players[self.playerId].selectedObjects:
-            if isinstance(i, u.Unit) and i.type != i.MOTHERSHIP:              
+            if isinstance(i, u.Unit):              
                 units += str(self.players[self.playerId].units.index(i)) + ","
                 send = True
-            elif isinstance(i, u.Mothership):
-                self.setMotherShipRallyPoint([x,y,0])
         if send:
             self.parent.pushChange(units, Flag(i,t.Target([x,y,0]),FlagState.MOVE))
             
@@ -398,7 +396,7 @@ class Game():
         self.players[playerId].makeUnitLand(unitId, planet)
 
     def setMotherShipRallyPoint(self, pos):
-        self.parent.pushChange(0, Flag(finalTarget = pos, flagState = FlagState.CHANGE_RALLY_POINT))
+        self.parent.pushChange(self.players[self.playerId].getSelectedBuildingIndex(), Flag(finalTarget = pos, flagState = FlagState.CHANGE_RALLY_POINT))
 
     def setChangeFormationFlag(self, formation):
         units = ""
@@ -455,20 +453,20 @@ class Game():
         gazCost = u.Unit.BUILD_COST[unitType][1]
         foodCost = u.Unit.BUILD_COST[unitType][2]
         if self.players[self.playerId].canAfford(mineralCost, gazCost, foodCost):
-            self.parent.pushChange(0, Flag(finalTarget = unitType, flagState = FlagState.CREATE))
+            self.parent.pushChange(self.players[self.playerId].getSelectedBuildingIndex(),Flag(finalTarget = unitType, flagState = FlagState.CREATE))
 
-    def createUnit(self, player, unitType):
+    def createUnit(self, player,constructionUnit, unitType):
         mineralCost = u.Unit.BUILD_COST[unitType][0]
         gazCost = u.Unit.BUILD_COST[unitType][1]
         foodCost = u.Unit.BUILD_COST[unitType][2]
         if self.players[player].canAfford(mineralCost, gazCost, foodCost):
-            self.players[player].createUnit(unitType)
+            self.players[player].createUnit(unitType, constructionUnit)
 
     def sendCancelUnit(self, unit):
-        self.parent.pushChange(0, Flag(finalTarget = unit, flagState = FlagState.CANCEL_UNIT))
+        self.parent.pushChange(self.players[self.playerId].getSelectedBuildingIndex(), Flag(finalTarget = unit, flagState = FlagState.CANCEL_UNIT))
 
-    def cancelUnit(self, player, unit):
-        self.players[player].cancelUnit(unit)
+    def cancelUnit(self, player, unit, constructionBuilding):
+        self.players[player].cancelUnit(unit, constructionBuilding)
     
     #Pour effacer un Unit
     def eraseUnit(self):
@@ -643,7 +641,7 @@ class Game():
             if unit != None:
                 if clickedObj != None:
                     if unit.type == unit.GROUND_GATHER:
-                        if isinstance(clickedObj, w.MineralStack) or isinstance(clickedObj, w.GazStack) or isinstance(clickedObj, w.LandingZone):
+                        if isinstance(clickedObj, w.MineralStack) or isinstance(clickedObj, w.GazStack) or isinstance(clickedObj, b.LandingZone):
                             self.setGroundGatherFlag(unit, clickedObj)
                     elif unit.type == unit.GROUND_ATTACK:
                         if isinstance(clickedObj, u.Unit) or isinstance(clickedObj, Building):
@@ -654,9 +652,8 @@ class Game():
                             if clickedObj.owner == self.playerId:
                                 if clickedObj.finished == False:
                                     self.resumeBuildingFlag(clickedObj)
-                    if isinstance(clickedObj, w.LandingZone):
-                        if clickedObj.ownerId == self.playerId:
-                            self.setLoadFlag(self.players[self.playerId].selectedObjects, clickedObj)
+                    if isinstance(clickedObj, b.LandingZone):
+                        self.setLoadFlag(unit, clickedObj)
                 else:
                     self.setGroundMovingFlag(pos[0], pos[1])
                 

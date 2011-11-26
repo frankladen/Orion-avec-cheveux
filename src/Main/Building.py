@@ -1,9 +1,10 @@
-# -*- coding: UTF-8 -*-
+ï»¿# -*- coding: UTF-8 -*-
 import Target as t
 import World as w
 import Player as p
-import Flag as fl
+from Flag import *
 from Helper import *
+from Unit import  *
 
 class Building(t.PlayerObject):
     WAYPOINT=0
@@ -13,7 +14,7 @@ class Building(t.PlayerObject):
     TURRET=4
     MOTHERSHIP=5
     LANDING_ZONE=6
-    NAME = ("Point ralliement", "Raffinerie", "Barraque", "Ferme", "Tourette", "Vaisseau mre", "Zone d'aterrissage")
+    NAME = ("Point ralliement", "Raffinerie", "Barraque", "Ferme", "Tourette", "Vaisseau mere", "Zone d'aterrissage")
     SIZE =((30,30),(0,0),(0,0),(75,59),(32,32),(125,125),(32,32))
     INSPACE = (True,False,False,False,True,True,False)
     COST = ((50,50),(0,0),(0,0),(50,50),(50,50),(0,0),(0,0))
@@ -70,7 +71,7 @@ class Turret(Building):
 
     def action(self, parent):
         if self.finished:
-            if self.flag.flagState == fl.FlagState.ATTACK:
+            if self.flag.flagState == FlagState.ATTACK:
                 killedIndexes = self.attack(parent.game.players)
                 if killedIndexes[0] > -1:
                     parent.killUnit(killedIndexes)
@@ -98,15 +99,15 @@ class Turret(Building):
                         for i in players[self.owner].units:
                             if i.isAlive:
                                 if i.flag.finalTarget == unitToAttack:
-                                    i.flag = fl.Flag(t.Target(i.position), t.Target(i.position), fl.FlagState.STANDBY)
+                                    i.flag = Flag(t.Target(i.position), t.Target(i.position), FlagState.STANDBY)
                                     i.attackcount=i.AttackSpeed
                         self.killCount +=1
                     self.attackcount=self.AttackSpeed
             else:
-                self.flag = fl.Flag(t.Target(self.position), t.Target(self.position), fl.FlagState.STANDBY)
+                self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.STANDBY)
             return (index, killedOwner, isBuilding)
         except ValueError:
-            self.flag = fl.Flag(t.Target(self.position), t.Target(self.position), fl.FlagState.STANDBY)
+            self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.STANDBY)
             return (-1, -1, isBuilding)
 
     #Change le flag pour une nouvelle destination et un nouvel etat
@@ -141,8 +142,8 @@ class ConstructionBuilding(Building):
         Building.__init__(self, type, position, owner)
         self.unitBeingConstruct = []
         self.rallyPoint = [position[0],position[1]+(self.SIZE[type][1]/2)+5,0]
-        
-  def progressUnitsConstruction(self):
+  
+    def progressUnitsConstruction(self):
         if len(self.unitBeingConstruct) > 0:
             self.flag.flagState = FlagState.BUILD_UNIT
             self.unitBeingConstruct[0].constructionProgress = self.unitBeingConstruct[0].constructionProgress + 1
@@ -216,7 +217,6 @@ class ConstructionBuilding(Building):
 class Mothership(ConstructionBuilding):
     REGEN_WAIT_TIME = 30
     REGEN_WAIT_TIME_AFTER_ATTACK = 60
-    MAX_SHIELD = 1500
     MAX_ARMOR = 2000
     ATTACK_RANGE = 250
     ATTACK_SPEED = 8
@@ -232,7 +232,6 @@ class Mothership(ConstructionBuilding):
         self.AttackSpeed=self.ATTACK_SPEED
         self.AttackDamage=self.ATTACK_DAMAGE
         self.attackcount=self.AttackSpeed
-        self.shield = self.MAX_SHIELD
         self.shieldRegenCount = self.REGEN_WAIT_TIME
         self.shieldRegenAfterAttack = 0
         self.armor = self.MAX_ARMOR
@@ -245,8 +244,8 @@ class Mothership(ConstructionBuilding):
             elif self.shieldRegenCount > 0:
                 self.shieldRegenCount -= 1
             else:
-                if self.shield > self.MAX_SHIELD-5:
-                    self.shield = self.MAX_SHIELD
+                if self.shield > self.MAX_SHIELD[self.type]-5:
+                    self.shield = self.MAX_SHIELD[self.type]
                 else:
                     self.shield += 5
                     self.shieldRegenCount = self.REGEN_WAIT_TIME
@@ -318,7 +317,12 @@ class LandingZone(ConstructionBuilding,GroundBuilding):
         self.id = id
         self.planetId = planetId
         self.sunId = sunId
-        
+
+    def over(self, positionStart, positionEnd):
+        if positionEnd[0] > self.position[0] - self.WIDTH/2 and positionStart[0] < self.position[0] + self.WIDTH/2:
+            if positionEnd[1] > self.position[1] - self.HEIGHT/2 and positionStart[1] < self.position[1] + self.HEIGHT/2:
+                return True
+        return False
 
     def select(self, position):
         if position[0] > self.position[0]-self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:
@@ -326,8 +330,18 @@ class LandingZone(ConstructionBuilding,GroundBuilding):
                 return self
         return None
 
-
-       
+    def takeDammage(self, amount, players):
+        if self.LandedShip != None:
+            if self.LandedShip.takeDammage(amount, players):
+               killedOwner = self.ownerId
+               index = players[self.ownerId].units.index(self.LandedShip)
+               self.LandedShip = None
+               players[self.ownerId].killUnit((index, killedOwner, False))
+        else:
+            self.hitpoints -= amount
+            if self.hitpoints <= 0:
+                return True
+        return False       
         
                                                                                                                                                     
         

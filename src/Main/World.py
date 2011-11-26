@@ -2,6 +2,7 @@
 import random
 from Target import *
 import Unit as u
+import Building as b
 import math
 
 #Classe qui represente la galaxie en entier.
@@ -52,9 +53,9 @@ class Galaxy():
             x =(random.random()*self.width)-self.width/2
             y = (random.random()*self.height)-self.height/2
             find = True
-            if x < (self.width/2*-1)+u.Unit.SIZE[u.Unit.MOTHERSHIP][0] or x > self.width/2-u.Unit.SIZE[u.Unit.MOTHERSHIP][0]:
+            if x < (self.width/2*-1)+b.Building.SIZE[b.Building.MOTHERSHIP][0] or x > self.width/2-b.Building.SIZE[b.Building.MOTHERSHIP][0]:
                 find = False
-            if y < (self.height/2*-1)+u.Unit.SIZE[u.Unit.MOTHERSHIP][1] or y > self.height/2-u.Unit.SIZE[u.Unit.MOTHERSHIP][1]:
+            if y < (self.height/2*-1)+b.Building.SIZE[b.Building.MOTHERSHIP][1] or y > self.height/2-b.Building.SIZE[b.Building.MOTHERSHIP][1]:
                 find = False
             if find == True:
                 for i in self.solarSystemList:
@@ -351,9 +352,9 @@ class Planet(Target):
         while not placeFound:
             placeFound = True
             position = [random.random()*Planet.WIDTH, random.random()*Planet.HEIGHT]
-            if position[0] < LandingZone.WIDTH/2 or position[0] > self.WIDTH-LandingZone.WIDTH/2:
+            if position[0] < b.LandingZone.WIDTH/2 or position[0] > self.WIDTH-b.LandingZone.WIDTH/2:
                 placeFound = False
-            if position[1] < LandingZone.HEIGHT/2 or position[1] > self.HEIGHT-LandingZone.HEIGHT/2:
+            if position[1] < b.LandingZone.HEIGHT/2 or position[1] > self.HEIGHT-b.LandingZone.HEIGHT/2:
                 placeFound = False
             for i in self.landingZones:
                 if position[0] > i.position[0]-i.WIDTH-100 and position[0] < i.position[0]+i.WIDTH+100:
@@ -371,7 +372,8 @@ class Planet(Target):
                         placeFound = False
                         break
         id = len(self.landingZones)
-        newSpot = LandingZone(position, playerid, landingShip, id, self.id, self.solarSystem.sunId)
+        newSpot = b.LandingZone(position, playerid, landingShip, id, self.id, self.solarSystem.sunId)
+        
         self.landingZones.append(newSpot)
         return newSpot
 
@@ -515,39 +517,3 @@ class NuclearSite(Target):
             if self.position[1] > position[1] - self.HEIGHT/2 and self.position[1] < self.position[1] + self.HEIGHT/2:
                 return self
         return None
-
-class LandingZone(PlayerObject):
-    WIDTH = 75
-    HEIGHT = 75
-    def __init__(self, position, ownerId, landingShip, id, planetId, sunId):
-        PlayerObject.__init__(self, 'Zone d\'atterissage', 0, position, ownerId)
-        self.ownerId = ownerId
-        self.LandedShip = landingShip
-        self.id = id
-        self.planetId = planetId
-        self.sunId = sunId
-
-    def over(self, positionStart, positionEnd):
-        if positionEnd[0] > self.position[0] - self.WIDTH/2 and positionStart[0] < self.position[0] + self.WIDTH/2:
-            if positionEnd[1] > self.position[1] - self.HEIGHT/2 and positionStart[1] < self.position[1] + self.HEIGHT/2:
-                return True
-        return False
-
-    def select(self, position):
-        if position[0] > self.position[0]-self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:
-            if position[1] > self.position[1]-self.HEIGHT/2 and position[1] < self.position[1]+self.HEIGHT/2:
-                return self
-        return None
-
-    def takeDammage(self, amount, players):
-        if self.LandedShip != None:
-            if self.LandedShip.takeDammage(amount, players):
-               killedOwner = self.ownerId
-               index = players[self.ownerId].units.index(self.LandedShip)
-               self.LandedShip = None
-               players[self.ownerId].killUnit((index, killedOwner, False))
-        else:
-            self.hitpoints -= amount
-            if self.hitpoints <= 0:
-                return True
-        return False

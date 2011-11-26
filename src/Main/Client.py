@@ -211,7 +211,7 @@ class Controller():
             elif flag.flagState == FlagState.DESTROY:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/0"
             elif flag.flagState == FlagState.CANCEL_UNIT:
-                actionString = str(self.game.playerId) + "/" + "0" + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
+                actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.PATROL:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             elif flag.flagState == FlagState.CHANGE_FORMATION:
@@ -241,10 +241,7 @@ class Controller():
                         type = w.AstronomicalObject.ASTEROID
                     actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(astroId)+","+str(solarId)+","+str(type)
                 else:
-                    if isinstance(flag.finalTarget, u.Mothership):
-                        actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/0,0,92"
-                    else:
-                        actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(self.game.players[self.game.playerId].buildings.index(flag.finalTarget))+",0," + str(flag.finalTarget.type)
+                    actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(self.game.players[self.game.playerId].buildings.index(flag.finalTarget))+",0," + str(flag.finalTarget.type)
             elif flag.flagState == FlagState.GROUND_GATHER:
                 sunId = flag.finalTarget.sunId
                 planetId = flag.finalTarget.planetId
@@ -359,14 +356,14 @@ class Controller():
             self.game.makeGroundUnitsGather(actionPlayerId, unitIndex, int(target[0]),int(target[1]),int(target[2]),int(target[3]))
         
         elif action == str(FlagState.CREATE):
-            self.game.createUnit( actionPlayerId, int(target))
+            self.game.createUnit( actionPlayerId, int(unitIndex[0]), int(target))
         
         elif action == str(FlagState.CHANGE_RALLY_POINT):
             target = self.changeToInt(self.stripAndSplit(target))
-            self.game.players[actionPlayerId].motherShip.changeFlag(target,int(action))
+            self.game.players[actionPlayerId].buildings[int(unitIndex[0])].changeFlag(target,int(action))
         
         elif action == str(FlagState.CANCEL_UNIT):
-            self.game.cancelUnit(actionPlayerId, int(target))
+            self.game.cancelUnit(actionPlayerId, int(target), int(unitIndex[0]))
 
         elif action == str(FlagState.DESTROY):
             self.game.killUnit((int(unitIndex[0]),actionPlayerId,False))
