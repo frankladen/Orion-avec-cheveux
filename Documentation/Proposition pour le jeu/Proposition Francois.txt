@@ -1,31 +1,28 @@
-﻿Intelligence artificiel (un peu utopique mais bon…)
-	mettre des sons avec pygame
 faire un installeur afin que l'on puisse commencer à jouer avec "un clic" sur n'importe quel ordinateur.
-
-Tester, tester, tester, tester et tester pour balancer et BUG FIX
-Se réunir et faire quelque parties à plusieurs (genre 4 et +) et ensuite ajuster différente constante 
-afin de rendre le jeu plus le fun..
-
-Jerome:
-Attaque sur le sol
-Shield + Armor pour le mothership
-
-Étienne et si absent, Marc-Antoine:
-Terminer les buildings comme du monde (minimap, viewRange, prix, qu'on peut les sélectionner et les attaquer)
-Fermes
-Building pour les techs --> sur les planètes
-Turrets
-
-	différents types d'attack unit, autant spatiale que terrestre
-Repair Units
-Pouvoir construire des units sur les planètes
-Fix le landing
-Gestion de la ressource nucléaire
-Faire fonctionner les transports ships (load, unload)
-
-Hugo:
-NOTIFICATIONS
-
-
 rendre la fenetre de jeu vraiment badass graphiquement, genre avec des bordures fucktop pis tt..
 L’interface en elle-même
+
+Tout le monde:
+TESTER, BUGMASTAFLEX COME AT US!
+
+Aghi et Karim:
+Implanter l'intelligence articielle
+
+François:
+Minimotherships
+
+Marc:
+Murailles spatiales
+
+Émile:
+Nuclear Gathering
+
+Hugo:
+Ajouter les notifications manquantes
+
+Étienne:
+Faire les buildings de technologie
+
+Jérôme:
+Créer de nouveaux units dans l'espace? Ou des barraques qui construirait des vaisseaux d'attaque seulement, ça ferait
+que le plus gros Mothership serait utiliser seulement pour les scouts et les Gathership.
