@@ -18,19 +18,20 @@ class Unit(PlayerObject):
     SPECIAL_GATHER = 7
     GROUND_ATTACK = 8
     GROUND_BUILDER_UNIT = 9
-    NAME = ('Unité','Scout', "Vaisseau d'attaque", "Vaisseau de Transport", "Cargo", 'Unité terrestre', 'Unité de collecte', '', 'Unité d\'attaque', 'Unité de construction')
+    HEALING_UNIT = 10
+    NAME = ('Unité','Scout', "Vaisseau d'attaque", "Vaisseau de Transport", "Cargo", 'Unité terrestre', 'Unité de collecte', '', 'Unité d\'attaque', 'Unité de construction', 'Ambulance')
     MINERAL=0
     GAS=1
     FOOD=2
-    SIZE=((0,0),  (18,15), (28,32), (32,29), (20,30),(24,24),(20,38), (0,0), (36,33),(20,20))
-    MAX_HP = (50, 50, 100,125, 75, 100, 100, 100, 100,100)
-    MOVE_SPEED=(1.0,  4.0, 2.0, 3.0, 3.0, 5.0, 5.0, 3.0, 3.5, 4.0)
-    ATTACK_SPEED=(0,0,10,0,0,0,0,0,15,0)
-    ATTACK_DAMAGE=(0,0,5,0,0,0,0,0,12,0)
-    ATTACK_RANGE=(0,0,150,0,0,0,0,0,150,0)
-    BUILD_TIME=(300,  200, 400, 300, 250, 200, 200, 200, 200, 200)
-    BUILD_COST=((50,50,1),  (50,0,1), (150,100,1), (75,20,1), (50,10,1), (50,10,1),(50,10,1), (50,15,1), (60,60,1), (30,25,1))
-    VIEW_RANGE=(150,  200, 150, 175, 175,200, 200, 200, 200, 200)
+    SIZE=((0,0),  (18,15), (28,32), (32,29), (20,30),(24,24),(23,37), (0,0), (36,33),(20,20), (18,15))
+    MAX_HP = (50, 50, 100,125, 75, 100, 100, 100, 100,100, 50)
+    MOVE_SPEED=(1.0,  4.0, 2.0, 3.0, 3.0, 5.0, 5.0, 3.0, 3.5, 4.0, 4.0)
+    ATTACK_SPEED=(0,0,10,0,0,0,0,0,15,0,0)
+    ATTACK_DAMAGE=(0,0,5,0,0,0,0,0,12,0,0)
+    ATTACK_RANGE=(0,0,150,0,0,0,0,0,150,0,0)
+    BUILD_TIME=(300,  200, 400, 300, 250, 200, 200, 200, 200, 200,200)
+    BUILD_COST=((50,50,1),  (50,0,1), (150,100,1), (75,20,1), (50,10,1), (50,10,1),(50,10,1), (50,15,1), (60,60,1), (30,25,1),(50,0,1))
+    VIEW_RANGE=(150,  200, 150, 175, 175,200, 200, 200, 200, 200,200)
     
     def __init__(self, type, position, owner):
         PlayerObject.__init__(self, type, position, owner)
@@ -45,6 +46,7 @@ class Unit(PlayerObject):
     def action(self, parent):
         if self.flag.flagState == FlagState.MOVE or self.flag.flagState == FlagState.GROUND_MOVE:
             self.move()
+            print(6)
         elif self.flag.flagState == FlagState.ATTACK:
             if isinstance(self.flag.finalTarget, TransportShip):
                 if self.flag.finalTarget.landed:
@@ -53,9 +55,7 @@ class Unit(PlayerObject):
             if killedIndex[0] > -1:
                 parent.killUnit(killedIndex)
         elif self.flag.flagState == FlagState.PATROL:
-            unit = self.patrol()
-            if unit != None:
-                parent.game.checkIfEnemyInRange(self)
+            self.patrol()
         elif self.flag.flagState == FlagState.BUILD:
             self.build(self.flag.finalTarget)
     
@@ -64,7 +64,7 @@ class Unit(PlayerObject):
         if Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1]) <= self.moveSpeed:
             endPos = [self.flag.finalTarget.position[0],self.flag.finalTarget.position[1]]
             self.position = endPos
-            if self.flag.flagState == FlagState.MOVE:
+            if self.flag.flagState == FlagState.MOVE or self.flag.flagState == FlagState.GROUND_MOVE:
                 self.flag.flagState = FlagState.STANDBY
             elif self.flag.flagState == FlagState.MOVE+FlagState.ATTACK:
                 self.flag.flagState = FlagState.ATTACK
@@ -123,8 +123,7 @@ class Unit(PlayerObject):
     def applyBonuses(self, bonuses):
         self.moveSpeed = self.MOVE_SPEED[self.type]+bonuses[p.Player.MOVE_SPEED_BONUS]
         self.viewRange = self.VIEW_RANGE[self.type]+bonuses[p.Player.VIEW_RANGE_BONUS]
-
-            
+        
     #Retourne le flag de la unit    
     def getFlag(self):
         return self.flag
@@ -142,10 +141,11 @@ class GroundUnit(Unit):
         self.isLanded = isLanded
 
     def isInRange(self, position, range, onPlanet = False, planetId = -1, solarSystemId = -1):
-        if self.sunId == solarSystemId and self.planetId == planetId:
-            if self.position[0] > position[0]-range and self.position[0] < position[0]+range:
-                if self.position[1] > position[1]-range and self.position[1] < position[1]+range:
-                    return self
+        if self.isLanded and onPlanet:
+            if self.sunId == solarSystemId and self.planetId == planetId:
+                if self.position[0] > position[0]-range and self.position[0] < position[0]+range:
+                    if self.position[1] > position[1]-range and self.position[1] < position[1]+range:
+                        return self
         return None
 
     def land(self, planet, position):
@@ -186,18 +186,16 @@ class GroundUnit(Unit):
             if self in game.players[self.owner].selectedObjects:
                 game.players[self.owner].selectedObjects.pop(game.players[self.owner].selectedObjects.index(self))
             self.flag.flagState = FlagState.STANDBY
+
 class GroundBuilderUnit(GroundUnit):
     def __init__(self,  type, position, owner, planetId, sunId, isLanded = False):
         GroundUnit.__init__(self,  type, position, owner, planetId, sunId, isLanded)
 
     def action(self, parent):
-        if self.isLanded:
-            if self.flag.flagState == FlagState.MOVE or self.flag.flagState == FlagState.GROUND_MOVE:
-                self.move()
-            elif self.flag.flagState == FlagState.PATROL:
-                unit = self.patrol()
-            elif self.flag.flagState == FlagState.BUILD:
-                self.build(self.flag.finalTarget, parent)
+        if self.flag.flagState == FlagState.BUILD:
+            self.build(self.flag.finalTarget, parent)
+        else:
+            GroundUnit.action(self, parent)
 
     def build(self, building, player):
         if Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1]) >= self.moveSpeed:
@@ -311,7 +309,23 @@ class GroundGatherUnit(GroundUnit):
                 else:
                     self.flag.finalTarget = self.position
                     self.flag.flagState = FlagState.STANDBY
- 
+
+class HealingUnit(SpaceUnit):
+
+        def __init__(self, type, position, owner):
+            SpaceUnit.__init__(self,  type, position, owner)
+            self.unitsToHeal = []
+
+        
+        
+        def action(self,parent):
+            if self.flag.flagState == FlagState.HEAL:
+                self.changeFlag(self.unitsToHeal[1].position, FlagState.MOVE)
+                
+            else:
+                SpaceUnit.action(self, parent)
+            
+
 class GroundAttackUnit(GroundUnit):
     def __init__(self,  type, position, owner, planetId, sunId, isLanded = False):
         GroundUnit.__init__(self,  type, position, owner, planetId, sunId, isLanded)
@@ -328,8 +342,8 @@ class GroundAttackUnit(GroundUnit):
                 if killedIndex[0] > -1:
                     parent.killUnit(killedIndex)
             elif self.flag.flagState == FlagState.PATROL:
-                self.patrol(parent.game.players)
-                parent.game.checkIfEnemyInRange(self, )
+                self.patrol()
+                parent.game.checkIfEnemyInRange(self, True, self.planetId, self.sunId)
             elif self.flag.flagState == FlagState.STANDBY:
                 parent.game.checkIfEnemyInRange(self, True, self.planetId, self.sunId)
             else:
@@ -349,7 +363,7 @@ class GroundAttackUnit(GroundUnit):
             else:
                 self.attackcount = self.attackcount - 1
                 if self.attackcount == 0:
-                    if unitToAttack.takeDammage(self.AttackDamage):
+                    if unitToAttack.takeDammage(self.AttackDamage, players):
                         if isinstance(unitToAttack, b.Building) == False:
                             index = players[unitToAttack.owner].units.index(unitToAttack)
                         else:
@@ -362,10 +376,7 @@ class GroundAttackUnit(GroundUnit):
         except ValueError:
             self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.STANDBY)
             return (-1, -1)
-            
-
-
-        
+                    
 class SpaceAttackUnit(SpaceUnit):
     def __init__(self,  type, position, owner):
         SpaceUnit.__init__(self,  type, position, owner)
@@ -385,7 +396,7 @@ class SpaceAttackUnit(SpaceUnit):
                 if killedIndex[0] > -1:
                     parent.killUnit(killedIndex)
         elif self.flag.flagState == FlagState.PATROL:
-            self.patrol(parent.game.players)
+            self.patrol()
             parent.game.checkIfEnemyInRange(self)
         elif self.flag.flagState == FlagState.STANDBY:
             parent.game.checkIfEnemyInRange(self)
@@ -410,7 +421,7 @@ class SpaceAttackUnit(SpaceUnit):
             else:
                 self.attackcount = self.attackcount - 1
                 if self.attackcount == 0:
-                    if unitToAttack.takeDammage(self.AttackDamage):
+                    if unitToAttack.takeDammage(self.AttackDamage, players):
                         if isinstance(unitToAttack, b.Building) == False:
                             index = players[unitToAttack.owner].units.index(unitToAttack)
                         else:
@@ -424,7 +435,7 @@ class SpaceAttackUnit(SpaceUnit):
             self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.STANDBY)
             return (-1, -1)
 
-    def patrol(self, players):
+    def patrol(self):
         arrived = True
         if self.position[0] < self.flag.finalTarget.position[0] or self.position[0] > self.flag.finalTarget.position[0]:
                 if self.position[1] < self.flag.finalTarget.position[1] or self.position[1] > self.flag.finalTarget.position[1]:
@@ -438,7 +449,6 @@ class SpaceAttackUnit(SpaceUnit):
     #Applique les bonus du Unit selon les upgrades
     def applyBonuses(self, bonuses):
         Unit.applyBonuses(self, bonuses)
-        Mothership.applyBonuses(self,bonuses)
 
 class TransportShip(SpaceUnit):
     def __init__(self, type, position, owner):
@@ -448,6 +458,7 @@ class TransportShip(SpaceUnit):
         self.units = []
         self.planetId = -1
         self.sunId = -1
+        self.planet = None
         #self.units.append(GroundUnit('Builder', self.GROUND_UNIT, [0,0,0], self.owner,-1,-1))
 
     def action(self, parent):
@@ -458,13 +469,8 @@ class TransportShip(SpaceUnit):
 
 
     def isInRange(self, position, range, onPlanet = False, planetId = -1, solarSystemId = -1):
-        if self.landed == onPlanet:
-            if not onPlanet:
-                return Unit.isInRange(self, position, range)
-            elif planetId == self.planetId and solarSystemId == self.sunId:
-                if self.position[0] > position[0]-range and self.position[0] < position[0]+range:
-                    if self.position[1] > position[1]-range and self.position[1] < position[1]+range:
-                        return self
+        if self.landed == onPlanet and onPlanet == False:
+            return Unit.isInRange(self, position, range)
         return None
 
     def select(self, position):
@@ -483,7 +489,6 @@ class TransportShip(SpaceUnit):
     
     def land(self, game):
         playerId = self.owner
-
         galaxy = game.galaxy
         planet = self.flag.finalTarget
         planetId = 0
@@ -507,18 +512,21 @@ class TransportShip(SpaceUnit):
                     alreadyLanded = True
             if not alreadyLanded:
                 if len(planet.landingZones) < 4:
-                    landingZone = planet.addLandingZone(playerId, self)
+                    landingZone = planet.addLandingZone(playerId, self, game.players[playerId])
                     player.buildings.append(landingZone)
                     player.selectedObjects = []
                     self.landed = True
                     self.planetId = planetId
                     self.sunId = sunId
+                    self.planet = planet
                     if playerId == game.playerId:
                         cam = game.players[playerId].camera
                         cam.placeOnLanding(landingZone)
+                    x=40
                     for i in self.units:
-                        position = [landingZone.position[0] + 40, landingZone.position[1] + 5 * self.units.index(i)]
+                        position = [landingZone.position[0] + x, landingZone.position[1] + 5 * self.units.index(i)]
                         i.land(planet, position)
+                        x+=25
                     del self.units[:]
                     if self in game.players[game.playerId].selectedObjects:
                         game.players[game.playerId].selectedObjects.pop(game.players[game.playerId].selectedObjects.index(self))
@@ -531,12 +539,15 @@ class TransportShip(SpaceUnit):
                     self.landed = True
                     self.planetId = planetId
                     self.sunId = sunId
+                    self.planet = planet
                     if playerId == game.playerId:
                         cam = game.players[playerId].camera
                         cam.placeOnLanding(landingZone)
+                    x=40
                     for i in self.units:
-                        position = [landingZone.position[0] + 40, landingZone.position[1] + 5 * self.units.index(i)]
+                        position = [landingZone.position[0] + x, landingZone.position[1] + 5 * self.units.index(i)]
                         i.land(planet, position)
+                        x+=25
                     del self.units[:]
                     landingZone.LandedShip = self
             if playerId == game.playerId:
@@ -549,6 +560,9 @@ class TransportShip(SpaceUnit):
         for i in planet.landingZones:
             if i.ownerId == self.owner:
                 i.LandedShip = None
+
+    def kill(self):
+        self.isAlive = False
 
     def load(self, unit):
         unit.flag = Flag(unit.position, unit.landingZone, FlagState.LOAD)

@@ -16,11 +16,6 @@ class PlayerObject(Target):
         self.owner = owner
         self.isAlive = True
         self.constructionProgress = 0
-
-
-            
-
-
     def getFlag(self):
         return self.flag
     
@@ -34,7 +29,7 @@ class PlayerObject(Target):
             self.flag.flagState = state
     
     
-    def takeDammage(self, amount):
+    def takeDammage(self, amount, players):
         self.hitpoints -= amount
         if self.hitpoints <= 0:
             return True
@@ -42,10 +37,30 @@ class PlayerObject(Target):
             return False
 
     def isInRange(self, position, range, onPlanet = False, planetId = -1, solarSystemId = -1):
-        if self.position[0] > position[0]-range and self.position[0] < position[0]+range:
-            if self.position[1] > position[1]-range and self.position[1] < position[1]+range:
-                return self
+        if onPlanet == False:
+            if self.position[0] > position[0]-range and self.position[0] < position[0]+range:
+                if self.position[1] > position[1]-range and self.position[1] < position[1]+range:
+                    return self
         return None
     
     def kill(self):
-        self.isAlive = False        
+        self.isAlive = False
+           
+class Notification(Target):
+    ATTACKED_UNIT = 0
+    ATTACKED_BUILDING = 1
+    ALLIANCE_ALLY = 2
+    ALLIANCE_DEMAND_ALLY = 3
+    ALLIANCE_ENNEMY = 4
+    NAME = ("Un de vos vaisseaux se fait attaquer par ", "Un de vos bâtiments se fait attaquer par ", "Vous êtes maintenant allié avec ", "Vous avez reçu une demande d'alliance de ", "Vous êtes maintenant l'ennemi de ")
+    COLOR = ("RED", "RED", "GREEN", "YELLOW", "RED")
+    def __init__(self,position,type, actionPlayerName = None):
+        self.position=position
+        self.type=type
+        self.refreshSeen = 60
+        self.color = self.COLOR[type]
+        self.name = self.NAME[type]
+        if actionPlayerName != None:
+            self.actionPlayerName = actionPlayerName
+            self.name += actionPlayerName
+                  

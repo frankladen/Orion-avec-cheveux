@@ -32,7 +32,8 @@ class Controller():
             if self.server.isGameStopped() == False:
                 if self.refresh > 0:
                     if self.game.action():
-                        self.refreshMessages(self.view.menuModes.chat)
+                        if self.refresh % 20 == 0:
+                            self.refreshMessages(self.view.menuModes.chat)
                         #À chaque itération je demande les nouvelles infos au serveur
                         self.pullChange()
                         self.view.refreshGame(self.game.isOnPlanet())
@@ -182,6 +183,7 @@ class Controller():
         if isinstance(flag, Flag):
             if flag.flagState in (FlagState.MOVE, FlagState.STANDBY):
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
+                print(4)
             elif flag.flagState == FlagState.GROUND_MOVE:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             elif flag.flagState == FlagState.ATTACK:
@@ -205,6 +207,8 @@ class Controller():
             elif flag.flagState == FlagState.CREATE:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.CHANGE_RALLY_POINT:
+                actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
+            elif flag.flagState == FlagState.NOTIFICATION:
                 actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.DESTROY:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/0"
@@ -257,6 +261,9 @@ class Controller():
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag[2])+"/"+str(flag[0])+","+str(flag[1])
             else:
                 actionString = str(self.game.playerId)+"/"+playerObject+"/"+flag[0]+"/"+flag[1]
+        elif isinstance(flag, str):
+            if flag == 'UNLOAD':
+                actionString = str(self.game.playerId)+"/"+str(playerObject.id)+"/"+flag+"/"+str(playerObject.planetId)+","+str(playerObject.sunId)
         self.server.addChange(actionString)
     
     def pullChange(self):
@@ -292,6 +299,7 @@ class Controller():
         #si l'action est Move, la target sera sous forme de tableau de positions [x,y,z]
         if action in (str(FlagState.MOVE), str(FlagState.STANDBY), str(FlagState.PATROL)):
             target = self.changeToInt(self.stripAndSplit(target))
+            print(5)
             self.game.makeFormation(actionPlayerId, unitIndex, target, action)
             
         elif action == str(FlagState.GROUND_MOVE):
@@ -299,6 +307,7 @@ class Controller():
             for i in unitIndex:
                 if i != '':
                     self.game.players[actionPlayerId].units[int(i)].changeFlag(t.Target([int(target[0]),int(target[1]),int(target[2])]),int(action))
+            self.game.makeFormation(actionPlayerId, unitIndex, target, action)
         
         elif action == str(FlagState.FINISH_BUILD):
             self.game.resumeBuilding(actionPlayerId, int(target), unitIndex)
@@ -329,11 +338,17 @@ class Controller():
                 cam.placeOverPlanet()
                 self.view.changeBackground('GALAXY')
 
+        elif action == 'UNLOAD':
+            target = target.split(',')
+            self.game.makeZoneUnload(int(unitIndex[0]), actionPlayerId, int(target[0]), int(target[1]))
+
+        elif action == str(FlagState.NOTIFICATION):
+            target = self.changeToInt(self.stripAndSplit(target))
+            self.game.makeNotification(actionPlayerId, target)
+
         elif action == str(FlagState.LOAD):
             target = target.split(',')
-            unit = self.game.players[actionPlayerId].units[int(unitIndex[0])]
-            planet = self.game.galaxy.solarSystemList[int(target[2])].planets[int(target[1])]
-            self.game.loadUnit(unit, planet, actionPlayerId)
+            self.game.loadUnit(unitIndex, int(target[1]), int(target[2]), actionPlayerId)
                 
         elif action == str(FlagState.GATHER):
             target = target.split(',')
