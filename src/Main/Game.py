@@ -595,7 +595,7 @@ class Game():
         end = (position[0]+(Building.SIZE[type][0]/2),position[1]+(Building.SIZE[type][1]/2),0)
         for p in self.players:
             for b in p.buildings:
-                if isinstance(b, GroundBuilding):
+                if isinstance(b, GroundBuilding) and isinstance(self.players[self.playerId].selectedObjects[0], u.GroundUnit):
                     if self.players[self.playerId].selectedObjects[0].planet == b.planet:
                         if b.selectIcon(start, end) != None:
                             return False
