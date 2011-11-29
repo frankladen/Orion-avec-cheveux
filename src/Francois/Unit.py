@@ -36,8 +36,8 @@ class Unit(PlayerObject):
     def __init__(self, type, position, owner):
         PlayerObject.__init__(self, type, position, owner)
         self.viewRange = self.VIEW_RANGE[type]
-        self.hitpoints = self.MAX_HP[type]
-        self.maxHP=self.hitpoints
+        self.hitpoints = 15
+        self.maxHP=self.MAX_HP[type]
         self.buildTime = self.BUILD_TIME[type]
         self.buildCost = self.BUILD_COST[type]
         self.name = self.NAME[type]
@@ -328,7 +328,7 @@ class HealingUnit(SpaceUnit):
                     self.move()
                 else:
                     self.ctr+=1
-                    if self.ctr == self.HEALING_SPEED and self.flag.finalTarget.hitpoints <= self.flag.finalTarget.maxHP:
+                    if self.ctr == self.HEALING_SPEED and self.flag.finalTarget.hitpoints <self.flag.finalTarget.maxHP:
                         self.flag.finalTarget.hitpoints += self.HEALING_POWER
                         self.ctr = 0
 

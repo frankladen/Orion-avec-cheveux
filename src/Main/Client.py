@@ -128,13 +128,13 @@ class Controller():
             #self.serverCreated(serverAddress)
             #Si l'usager veut se connecter en créant le serveur, on le fait
             if connect:
-                self.connectServer(userName, serverAddress)
+                self.connectServer(userName, "ServeurOrion")
             else:
                 self.view.changeFrame(self.view.mainMenu)
        
 	#Connection au serveur			
-    def connectServer(self, login, serverIP):
-        self.server=Pyro4.core.Proxy("PYRO:ServeurOrion@"+serverIP+":54400")
+    def connectServer(self, login, ns):
+        self.server=Pyro4.core.Proxy("PYRONAME:"+ns)
         #Je demande au serveur si la partie est démarrée, si oui on le refuse de la partie, cela permet de vérifier
         #en même temps si le serveur existe réellement à cette adresse.
         if self.server.isGameStarted() == True:

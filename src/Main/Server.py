@@ -3,6 +3,7 @@ import Pyro4
 import socket
 import sys
 from time import time
+import subprocess
 
 class ControleurServeur(object):
     def __init__(self):
@@ -148,9 +149,12 @@ if len(sys.argv) > 1:
 else:
     adresse=socket.gethostbyname(socket.getfqdn())
 try:
-    daemon = Pyro4.core.Daemon(host=adresse,port=54400) 
-    # un objet ControleurServeur() dont les methodes peuvent etre invoquees, 
-    daemon.register(ControleurServeur(), "ServeurOrion")  
+    daemon = Pyro4.core.Daemon(host=adresse,port=54400)
+    # un objet ControleurServeur() dont les methodes peuvent etre invoquees,
+    subprocess.Popen("C:\python32\python.exe -Wignore -m Pyro4.naming")
+    uri = daemon.register(ControleurServeur())
+    nameserver = Pyro4.locateNS()
+    nameserver.register("ServeurOrion", uri)
      
     # juste pour voir quelque chose sur la console du serveur
     print("Serveur Pyro actif sous le nom \'ServeurOrion\' avec l'adresse "+adresse)

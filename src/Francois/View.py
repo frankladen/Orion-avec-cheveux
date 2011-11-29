@@ -1600,10 +1600,14 @@ class View():
                     self.game.setBuildingFlag(pos[0],pos[1], self.buildingToBuild, self.sunId, self.planetId)
                 self.isSettingBuildingPosition = False
                 self.actionMenuType = self.MAIN_MENU
+                
+            elif self.isChosingUnitToHeal :
+                self.game.setActionHealUnit(pos)
+                #self.game.healUnits()
+                self.isChosingUnitToHeal = False
+                self.actionMenuType = self.MAIN_MENU
                     
             else:
-                if self.isChosingUnitToHeal :
-                    self.game.setActionHealUnit()
                 if not self.selectAllUnits:
                     self.game.select(pos)
                     self.ongletSelectedUnit()
@@ -1612,9 +1616,8 @@ class View():
                     self.game.selectAll(pos)
                     self.ongletSelectedUnit()
                     self.selectedOnglet = self.SELECTED_UNIT_SELECTED
-                if self.isChosingUnitToHeal :
-                    self.game.healUnits()
-                    self.isChosingUnitToHeal = False
+
+
         elif canva == self.minimap:
             self.game.quickMove(x,y)
 
@@ -1781,6 +1784,9 @@ class View():
             elif (Button_pressed == "Button_Move"):
                 self.actionMenuType = self.WAITING_FOR_MOVE_POINT_MENU
                 self.isSettingMovePosition = True
+            elif (Button_pressed == "Button_Heal"):
+                self.actionMenuType = self.WAITING_FOR_UNIT_TO_HEAL_MENU
+                self.isChosingUnitToHeal = True
             elif (Button_pressed == "Button_Tech"):
                 self.actionMenuType = self.TECHNOLOGY_TREE_MENU
             elif (Button_pressed == "Button_Tech_Units"):
@@ -1820,9 +1826,6 @@ class View():
                 #Si on achète une nouvelle technologie
                 Button_pressed = Button_pressed.split("/")
                 self.game.setBuyTech(Button_pressed[0], Button_pressed[1])
-            elif (Button_pressed == "Button_Heal"):
-                self.actionMenuType = self.WAITING_FOR_UNIT_TO_HEAL_MENU
-                self.isChosingUnitToHeal = True
 
     def detailAction(self, eve):
         bp = (eve.widget.gettags(eve.widget.find_closest(eve.x, eve.y)))

@@ -5,6 +5,7 @@ from World import *
 from Flag import *
 import time
 import Building as b
+import subprocess
 #from winsound import *
 import tkinter.messagebox as mb
 
@@ -1645,12 +1646,13 @@ class View():
         self.gameArea.focus_set()
 
     #Quand on appui sur enter dans le login
-    def lobbyEnter(self, eve, login="", server=""):
-        if login=="" and server=="":
+    def lobbyEnter(self, eve, login="", ns=""):
+        if login=="" and ns=="":
             login = self.entryLogin.get()
-            server = self.entryServer.get()
+            ns = self.entryServer.get()
         if len(login) >= 3 and len(login) <= 12:
-            self.parent.connectServer(login,server)
+            subprocess.Popen("C:\python32\python.exe -Wignore -m Pyro4.naming")
+            self.parent.connectServer(login,ns)
         else:
             self.showTooDamnShortName()
 			
