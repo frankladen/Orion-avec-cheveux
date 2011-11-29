@@ -7,6 +7,8 @@ import Unit as u
 import Game as g
 from Helper import *
 from Flag import *
+import os
+import sys
 import Pyro4
 import socket
 import math
@@ -114,8 +116,18 @@ class Controller():
             self.view.colorAlreadyChosen()
 
     def startServer(self, serverAddress, connect, userName):
+        paths = sys.path
+        temp = None
+        for i in paths:
+            if i.find("\\lib\\") != -1:
+                temp = i.split("\\lib\\")[0]
+                break
+        if temp != None:
+            temp += "\\python.exe"
+        else:
+            temp= "C:\python32\python.exe"
         #Démarre le serveur dans un autre processus avec l'adresse spécifiée
-        child = subprocess.Popen("C:\python32\python.exe server.py " + serverAddress, shell=True)
+        child = subprocess.Popen(temp + " server.py " + serverAddress, shell=True)
         #On doit attendre un peu afin de laisser le temps au serveur de partir et de se terminer si une erreur arrive
         time.sleep(1)
         #On vérifie si le serveur s'est terminé en erreur et si oui, on affiche un message à l'utilisateur
@@ -125,7 +137,6 @@ class Controller():
             else:
                 print("Shnitzel pas managé lors de la création du serveur")
         else:
-            #self.serverCreated(serverAddress)
             #Si l'usager veut se connecter en créant le serveur, on le fait
             if connect:
                 self.connectServer(userName, serverAddress)

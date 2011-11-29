@@ -88,6 +88,7 @@ class Player():
         self.motherShip.finished = True
         self.motherShip.buildingTimer = b.Building.TIME[b.Building.MOTHERSHIP]
         self.motherShip.hitpoints = self.motherShip.maxHP
+        self.motherShip.armor = self.motherShip.MAX_ARMOR
         self.units.append(u.Unit(u.Unit.SCOUT,[startPos[0] + 20, startPos[1] + 20 ,0], self.id))
         self.units.append(u.GatherShip(u.Unit.CARGO,[startPos[0] + 40, startPos[1]+40], self.id))
         
@@ -234,7 +235,7 @@ class Player():
                         else:
                             return True
         for i in self.buildings:
-            if i.isAlive and i.finished:
+            if i.isAlive and i.finished and not isinstance(i, b.GroundBuilding):
                 if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
                     if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
                         return True

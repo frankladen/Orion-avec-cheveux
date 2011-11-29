@@ -166,7 +166,7 @@ class GroundBuilding(Building):
                         return self
         return None
 
-class Farm(Building):
+class Farm(GroundBuilding):
     def __init__(self, type, position, owner, sunId, planetId):
         GroundBuilding.__init__(self, type, position, owner, sunId, planetId)
 

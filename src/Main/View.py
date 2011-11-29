@@ -1242,16 +1242,16 @@ class View():
                         if j.isAlive and not isinstance(j, GroundUnit):
                                 self.drawMiniUnit(j)
                     for j in i.buildings:
-                        if j.isAlive and (not isinstance(j, b.GroundBuilding) or not isinstance(j, b.LandingZone)):
+                        if j.isAlive and not isinstance(j, b.GroundBuilding):
                             if j.finished:
                                 self.drawMiniBuilding(j)
                 else:
                     for j in i.units:
-                        if j.isAlive and not isinstance(j, GroundUnit):
+                        if j.isAlive and isinstance(j, GroundUnit) == False:
                             if players[self.game.playerId].inViewRange(j.position):
                                 self.drawMiniUnit(j)
                     for j in i.buildings:
-                        if j.isAlive and (not isinstance(j, b.GroundBuilding) or not isinstance(j, b.LandingZone)):
+                        if j.isAlive and isinstance(j, b.GroundBuilding) == False:
                             if j.finished:
                                 if players[self.game.playerId].inViewRange(j.position):
                                     self.drawMiniBuilding(j)
@@ -1291,7 +1291,7 @@ class View():
                             self.drawMiniUnit(j)
                     for j in i.buildings:
                         if j.isAlive:
-                            if j.finished and (not isinstance(j, b.GroundBuilding) or not isinstance(j, b.LandingZone)):
+                            if j.finished and isinstance(j, b.GroundBuilding) == False:
                                 self.drawMiniBuilding(j)
                 else:
                     for j in i.units:
@@ -1299,7 +1299,7 @@ class View():
                             if players[self.game.playerId].inViewRange(j.position):
                                 self.drawMiniUnit(j)
                     for j in i.buildings:
-                        if j.isAlive and (not isinstance(j, b.GroundBuilding) or not isinstance(j, b.LandingZone)):
+                        if j.isAlive and isinstance(j, b.GroundBuilding) == False:
                             if j.finished:
                                 if players[self.game.playerId].inViewRange(j.position):
                                     self.drawMiniBuilding(j)
