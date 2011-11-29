@@ -16,6 +16,8 @@ import time
 class Controller():
     def __init__(self):
         self.refresh = 0 #Compteur principal
+        self.waitTime=50
+        self.died = False
         self.mess = []
         self.playerIp = socket.gethostbyname(socket.getfqdn())
         self.server = None
@@ -27,18 +29,21 @@ class Controller():
         self.view.root.mainloop()
 
     #TIMER D'ACTION DU JOUEUR COURANT
-    def action(self, waitTime=50):
+    def action(self):
         if self.view.currentFrame != self.view.pLobby:
             if self.server.isGameStopped() == False:
                 if self.refresh > 0:
-                    if self.game.action():
+                    if self.game.action(): 
                         if self.refresh % 20 == 0:
                             self.refreshMessages(self.view.menuModes.chat)
                         #À chaque itération je demande les nouvelles infos au serveur
                         self.pullChange()
-                        self.view.refreshGame(self.game.isOnPlanet())
-                        self.refresh+=1
-                        waitTime = self.server.amITooHigh(self.game.playerId)
+                        if self.died:
+                            self.view.root.destroy()
+                        else:
+                            self.view.refreshGame(self.game.isOnPlanet())
+                            self.refresh+=1
+                            self.waitTime = self.server.amITooHigh(self.game.playerId)
                     elif self.game.playerId != 0:
                         self.view.deleteAll()
                 else:
@@ -47,15 +52,17 @@ class Controller():
             if self.server.isGameStarted() == True:
                 self.startGame()
             else:
-                waitTime=1000
+                self.waitTime=1000
                 self.refreshMessages(self.view.chatLobby)
                 self.view.redrawLobby(self.view.pLobby)
-        self.view.root.after(waitTime, self.action)
+        if not self.died:
+            self.view.root.after(self.waitTime, self.action)
 
     def checkIfGameStarting(self):
         response = self.server.isEveryoneReady(self.game.playerId)
         if response:
             self.refresh+=1
+            self.waitTime = 50
             if self.game.playerId == 0:
                 self.sendMessage("La partie va maintenant débuter.")
         else:
@@ -391,8 +398,8 @@ class Controller():
 
 
     def endGame(self):
+        self.died = True
         self.view.showGameIsFinished()
-        self.view.root.destroy()
 
     def sendKillPlayer(self):
         if self.server:

@@ -231,6 +231,7 @@ class Game():
                         die = False
                         break
                 if die:
+                    self.parent.died = True
                     self.killPlayer(killedIndexes[1])
         for play in self.players:
             play.checkIfIsAttacking(killedIndexes)

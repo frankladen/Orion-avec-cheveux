@@ -111,6 +111,10 @@ class Unit(PlayerObject):
                 building.hitpoints += (1/building.TIME[building.type])*building.MAX_HP[building.type]
             else:
                 building.finished = True
+                if building.hitpoints >= building.MAX_HP[building.type]-1:
+                    building.hitpoints = building.MAX_HP[building.type]
+                if isinstance(building, b.Mothership):
+                    building.armor = b.Mothership.MAX_ARMOR
                 self.flag.flagState = FlagState.STANDBY
             
     #Efface la unit
@@ -208,6 +212,8 @@ class GroundBuilderUnit(GroundUnit):
                 building.hitpoints += (1/building.TIME[building.type])*building.MAX_HP[building.type]
             else:
                 building.finished = True
+                if building.hitpoints >= building.MAX_HP[building.type]-1:
+                    building.hitpoints = building.MAX_HP[building.type]
                 self.flag.flagState = FlagState.STANDBY
                 if building.type == b.Building.FARM:
                     player.MAX_FOOD +=5
@@ -497,6 +503,7 @@ class TransportShip(SpaceUnit):
             if not alreadyLanded:
                 if len(planet.landingZones) < 4:
                     landingZone = planet.addLandingZone(playerId, self, game.players[playerId])
+                    landingZone.hitpoints = b.Building.MAX_HP[landingZone.type]
                     player.buildings.append(landingZone)
                     player.selectedObjects = []
                     self.landed = True
