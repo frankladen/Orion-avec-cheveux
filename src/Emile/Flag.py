@@ -23,7 +23,10 @@ class FlagState():
     GROUND_GATHER = 262144
     FINISH_BUILD = 524288
     BUY_TECH = 1048576
-    LOAD = 2097152
+    GROUND_ATTACK = 2097152
+    LOAD = 4194304
+    NOTIFICATION = 8388608
+    UNLOAD = 16777216
 
 #Represente un flag
 class Flag():

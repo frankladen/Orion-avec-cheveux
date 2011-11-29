@@ -51,7 +51,7 @@ class ControleurServeur(object):
             self.sockets = []
             self.readyPlayers = []
             self.choiceColors = [["Orange", False], ["Rouge", False], ["Bleu", False], ["Vert", False], ["Jaune", False], ["Brun", False], ["Blanc", False], ["Rose", False]]
-            self.mess = ['Système de chat de Orion']
+            self.mess = [[-1, 'Choisissez la couleur de votre battalion',False],[-1, '________________________________________________________________',False],[-1, 'Le but est détruire le vaisseau mère des autres équipes',False],[-1, 'en bâtissant votre propre battalion et en dominant.',False],[-1, '________________________________________________________________',False]]
     
     def addMessage(self, text, name, idPlayer, allies):
         self.mess.append([idPlayer ,name+" : "+text,allies])
@@ -136,6 +136,9 @@ class ControleurServeur(object):
        
     def getNumSocket(self, login, ip):
         if len(self.sockets) < 8:
+            for s in self.sockets:
+                if s[1].upper() == login.upper():
+                    return -1
             self.sockets.append([ip,login,False, -1])
             return len(self.sockets)-1
           
