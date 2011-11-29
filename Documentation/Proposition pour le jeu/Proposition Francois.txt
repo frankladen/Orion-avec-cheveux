@@ -9,10 +9,7 @@ Aghi et Karim:
 Implanter l'intelligence articielle
 
 François:
-Minimotherships
-
-Marc:
-Murailles spatiales
+Repair Units
 
 Émile:
 Nuclear Gathering
@@ -23,6 +20,6 @@ Ajouter les notifications manquantes
 Étienne:
 Faire les buildings de technologie
 
-Jérôme:
+Jérôme et Marc:
 Créer de nouveaux units dans l'espace? Ou des barraques qui construirait des vaisseaux d'attaque seulement, ça ferait
 que le plus gros Mothership serait utiliser seulement pour les scouts et les Gathership.
