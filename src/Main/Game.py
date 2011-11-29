@@ -101,6 +101,10 @@ class Game():
                     wp.shield = wp.MAX_SHIELD
                     wp.planet = self.galaxy.solarSystemList[sunId].planets[planetId]
                     self.galaxy.solarSystemList[sunId].planets[planetId].buildings.append(wp)
+                elif type == Building.MOTHERSHIP:
+                    wp = Mothership(Building.MOTHERSHIP, [target[0],target[1],0], playerId)
+                    wp.MAX_SHIELD = player.BONUS[player.BUILDING_SHIELD_BONUS]
+                    wp.shield = wp.MAX_SHIELD
             if wp != None:
                 self.players[playerId].buildings.append(wp)
                 for i in unitIndex:
@@ -586,6 +590,9 @@ class Game():
                     if self.players[self.playerId].selectedObjects[0].planet == b.planet:
                         if b.selectIcon(start, end) != None:
                             return False
+                else:
+                    if b.selectIcon(start, end) != None:
+                        return False
         if self.getCurrentPlanet() == None:
             for i in self.galaxy.solarSystemList:
                 if i.over(start, end):
@@ -649,7 +656,7 @@ class Game():
                             if clickedObj.owner != self.playerId:
                                 self.setAttackFlag(clickedObj)
                     elif unit.type == unit.SCOUT:
-                        if isinstance(clickedObj, Waypoint):
+                        if isinstance(clickedObj, Building):
                             if clickedObj.owner == self.playerId:
                                 if clickedObj.finished == False:
                                     self.resumeBuildingFlag(clickedObj)

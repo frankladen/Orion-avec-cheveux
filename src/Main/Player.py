@@ -66,6 +66,9 @@ class Player():
     def addBaseUnits(self, startPos):
         self.buildings.append(b.Mothership( b.Building.MOTHERSHIP,startPos, self.id))
         self.motherShip = self.buildings[0]
+        self.motherShip.finished = True
+        self.motherShip.buildingTimer = b.Building.TIME[b.Building.MOTHERSHIP]
+        self.motherShip.hitpoints = self.motherShip.maxHP
         self.units.append(u.Unit(u.Unit.SCOUT,[startPos[0] + 20, startPos[1] + 20 ,0], self.id))
         self.units.append(u.GatherShip(u.Unit.CARGO,[startPos[0] + 40, startPos[1]+40], self.id))
         
@@ -330,14 +333,8 @@ class Player():
         unit.applyBonuses(self.BONUS)
         if unit.type == u.Unit.TRANSPORT:
             pilot = u.GroundGatherUnit(u.Unit.GROUND_GATHER, [-10000,-10000,-10000], self.id, -1, -1)
-            attacker = u.GroundAttackUnit(u.Unit.GROUND_ATTACK, [-10000,-10000,-10000], self.id, -1, -1)
-            builder = u.GroundBuilderUnit(u.Unit.GROUND_BUILDER_UNIT, [-10000,-10000,-10000], self.id, -1, -1)
             unit.units.append(pilot)
-            unit.units.append(attacker)
-            unit.units.append(builder)
             self.units.append(pilot)
-            self.units.append(attacker)
-            self.units.append(builder)
         unit.changeFlag(t.Target(constructionUnit.rallyPoint), FlagState.MOVE)
         self.units.append(unit)
         

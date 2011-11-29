@@ -633,6 +633,7 @@ class View():
             self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
             self.Actionmenu.create_image(13,35,image = self.gifWaypoint, anchor = NW, tags = 'Button_Build_Waypoint')
             self.Actionmenu.create_image(76,35,image = self.gifTurret, anchor = NW, tags = 'Button_Build_Turret')
+            self.Actionmenu.create_image(140,35,image = self.gifTurret, anchor = NW, tags = 'Button_Build_Mothership')
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
             self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
@@ -954,7 +955,7 @@ class View():
                 self.gameArea.create_image(distance[0], distance[1], image=self.farms[color], tag='deletable')
             else:
                 self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifConstruction,tag='deletable')
-        if building.hitpoints <= 15:
+        if building.hitpoints <= 15 and building.finished:
             self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
 
     def drawPlanetBackground(self):
@@ -1092,29 +1093,26 @@ class View():
         if self.game.players[self.game.playerId].camera.isInFOV(buildingPosition):
             distance = self.game.players[self.game.playerId].camera.calcDistance(buildingPosition)
             if not isInFOW:
-                if building.type == b.Building.WAYPOINT:
-                    if building.buildingTimer < building.TIME[building.type]:
-                        self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifConstruction,tag='deletable')  
-                    else:   
+                if building.buildingTimer < building.TIME[building.type]:
+                    self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifConstruction,tag='deletable')
+                else:
+                    if building.type == b.Building.WAYPOINT:
                         self.gameArea.create_image(distance[0]+1, distance[1], image=self.waypoints[player.colorId],tag='deletable')
-                elif building.type == b.Building.TURRET:
-                    if building.buildingTimer < building.TIME[building.type]:
-                        self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifConstruction,tag='deletable')  
-                    else:
+                    elif building.type == b.Building.TURRET:
                         self.gameArea.create_image(distance[0]+1, distance[1], image=self.turrets[player.colorId],tag='deletable')
                         if building.attackcount <= 5 and building.flag.flagState == FlagState.ATTACK:
                             d2 = self.game.players[self.game.playerId].camera.calcDistance(building.flag.finalTarget.position)
                             self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill=self.laserColors[player.colorId], tag='deletable')
-                elif building.type == b.Building.MOTHERSHIP:
-                    if building in player.selectedObjects:
-                        self.gameArea.create_oval(distance[0]-(building.SIZE[building.type][0]/2+3),distance[1]-(building.SIZE[building.type][1]/2+3),distance[0]+(building.SIZE[building.type][0]/2+3),distance[1]+(building.SIZE[building.type][1]/2+3), outline="green", tag='deletable')
-                    self.gameArea.create_image(distance[0], distance[1], image = self.motherShips[player.colorId], tag='deletable')
-                    if building.attackcount <= 5:
-                        d2 = self.game.players[self.game.playerId].camera.calcDistance(building.flag.finalTarget.position)
-                        self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill=self.laserColors[player.colorId], tag='deletable')
-                if building in player.selectedObjects and not building.type == building.MOTHERSHIP:
-                    self.gameArea.create_rectangle(distance[0]-(building.SIZE[building.type][0]/2),distance[1]-(building.SIZE[building.type][1]/2),distance[0]+(building.SIZE[building.type][0]/2),distance[1]+(building.SIZE[building.type][1]/2), outline="green", tag='deletable') 
-                if building.hitpoints <= 15:
+                    elif building.type == b.Building.MOTHERSHIP:
+                        if building in player.selectedObjects:
+                            self.gameArea.create_oval(distance[0]-(building.SIZE[building.type][0]/2+3),distance[1]-(building.SIZE[building.type][1]/2+3),distance[0]+(building.SIZE[building.type][0]/2+3),distance[1]+(building.SIZE[building.type][1]/2+3), outline="green", tag='deletable')
+                        self.gameArea.create_image(distance[0], distance[1], image = self.motherShips[player.colorId], tag='deletable')
+                        if building.attackcount <= 5:
+                            d2 = self.game.players[self.game.playerId].camera.calcDistance(building.flag.finalTarget.position)
+                            self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill=self.laserColors[player.colorId], tag='deletable')
+                    if building in player.selectedObjects and not building.type == building.MOTHERSHIP:
+                        self.gameArea.create_rectangle(distance[0]-(building.SIZE[building.type][0]/2),distance[1]-(building.SIZE[building.type][1]/2),distance[0]+(building.SIZE[building.type][0]/2),distance[1]+(building.SIZE[building.type][1]/2), outline="green", tag='deletable') 
+                if building.hitpoints <= 15 and building.finished:
                     self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
                 if self.hpBars:
                     self.drawHPBars(distance, building)
@@ -1136,6 +1134,8 @@ class View():
             self.gameArea.create_image(distance[0], distance[1], image=self.turrets[self.game.players[self.game.playerId].colorId], tag='deletable')
         elif building == b.Building.FARM:
             self.gameArea.create_image(distance[0], distance[1], image=self.farms[self.game.players[self.game.playerId].colorId], tag='deletable')
+        elif building == b.Building.MOTHERSHIP:
+            self.gameArea.create_image(distance[0], distance[1], image=self.motherShips[self.game.players[self.game.playerId].colorId], tag='deletable')
  
 	#pour dessiner un vaisseau        
     def drawUnit(self, unit, player, isInFOW):
@@ -1753,6 +1753,10 @@ class View():
                 self.actionMenuType = self.WAITING_FOR_BUILDING_POINT_MENU
                 self.buildingToBuild = b.Building.TURRET
                 self.isSettingBuildingPosition = True;
+            elif (Button_pressed == "Button_Build_Mothership"):
+                self.actionMenuType = self.WAITING_FOR_BUILDING_POINT_MENU
+                self.buildingToBuild = b.Building.MOTHERSHIP
+                self.isSettingBuildingPosition = True;
             elif (Button_pressed == "Button_Build_Farm"):
                 self.actionMenuType = self.WAITING_FOR_BUILDING_POINT_MENU
                 self.buildingToBuild = b.Building.FARM
@@ -1825,6 +1829,9 @@ class View():
             elif (Button_pressed == "Button_Build_Turret"):
                 self.drawFirstLine=str(b.Building.NAME[b.Building.TURRET])
                 self.drawSecondLine=str(b.Building.COST[b.Building.TURRET][0])+" mine | "+str(b.Building.COST[b.Building.TURRET][1])+" gaz"
+            elif (Button_pressed == "Button_Build_Mothership"):
+                self.drawFirstLine=str(b.Building.NAME[b.Building.MOTHERSHIP])
+                self.drawSecondLine=str(b.Building.COST[b.Building.MOTHERSHIP][0])+" mine | "+str(b.Building.COST[b.Building.MOTHERSHIP][1])+" gaz"
             elif (Button_pressed == "Button_Build_Farm"):
                 self.drawFirstLine=str(b.Building.NAME[b.Building.FARM])
                 self.drawSecondLine=str(b.Building.COST[b.Building.FARM][0])+" mine | "+str(b.Building.COST[b.Building.FARM][1])+" gaz"

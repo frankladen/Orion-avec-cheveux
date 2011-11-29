@@ -17,8 +17,8 @@ class Building(t.PlayerObject):
     NAME = ("Point ralliement", "Raffinerie", "Barraque", "Ferme", "Tourette", "Vaisseau mere", "Zone d'aterrissage")
     SIZE =((30,30),(0,0),(0,0),(75,59),(32,32),(125,125),(32,32))
     INSPACE = (True,False,False,False,True,True,False)
-    COST = ((50,50),(0,0),(0,0),(50,50),(50,50),(0,0),(0,0))
-    TIME = (60,0,0,75,75,0,0)
+    COST = ((50,50),(0,0),(0,0),(50,50),(50,50),(750,750),(0,0))
+    TIME = (125,0,0,125,125,1250,0)
     MAX_HP = (150,0,0,200,200,1500,100)
     VIEW_RANGE=(200, 0, 0, 100, 250, 400, 200)
     MAX_SHIELD=0
@@ -29,8 +29,8 @@ class Building(t.PlayerObject):
         t.PlayerObject.__init__(self, type, position, owner)
         self.buildingTimer = 0   
         self.viewRange = self.VIEW_RANGE[type]
-        self.hitpoints = self.MAX_HP[type]
-        self.maxHP=self.hitpoints
+        self.hitpoints = 0
+        self.maxHP=self.MAX_HP[type]
         self.buildTime = self.TIME[type]
         self.buildCost = self.COST[type]
         self.name = self.NAME[type]    
@@ -242,7 +242,6 @@ class Mothership(ConstructionBuilding):
         self.attackcount=self.AttackSpeed
         self.armor = self.MAX_ARMOR
         self.killCount = 0
-        self.finished = True
 
     def action(self, parent):
         parent.game.checkIfEnemyInRange(self)
@@ -323,8 +322,8 @@ class Mothership(ConstructionBuilding):
             except ValueError:
                 self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.BUILD_UNIT)
                 return (-1, -1)
-            
-            
+    
+           
 class LandingZone(ConstructionBuilding,GroundBuilding):
     WIDTH = 75
     HEIGHT = 75

@@ -29,7 +29,7 @@ class Unit(PlayerObject):
     ATTACK_DAMAGE=(0,0,5,0,0,0,0,0,12,0)
     ATTACK_RANGE=(0,0,150,0,0,0,0,0,150,0)
     BUILD_TIME=(300,  200, 400, 300, 250, 200, 200, 200, 200, 200)
-    BUILD_COST=((50,50,1),  (50,0,1), (150,100,1), (75,20,1), (50,10,1), (50,10,1),(50,10,1), (50,15,1), (60,60,1), (30,25,1))
+    BUILD_COST=((50,50,1),  (50,0,1), (150,100,1), (75,20,2), (50,10,1), (50,10,1),(50,10,1), (50,15,1), (60,60,1), (30,25,1))
     VIEW_RANGE=(150,  200, 150, 175, 175,200, 200, 200, 200, 200)
     
     def __init__(self, type, position, owner):
@@ -108,6 +108,7 @@ class Unit(PlayerObject):
             
             if building.buildingTimer < building.TIME[building.type]:
                 building.buildingTimer += 1
+                building.hitpoints = (building.buildingTimer/building.TIME[building.type])*building.MAX_HP[building.type]
             else:
                 building.finished = True
                 self.flag.flagState = FlagState.STANDBY
@@ -204,6 +205,7 @@ class GroundBuilderUnit(GroundUnit):
             
             if building.buildingTimer < building.TIME[building.type]:
                 building.buildingTimer += 1
+                building.hitpoints = (building.buildingTimer/building.TIME[building.type])*building.MAX_HP[building.type]
             else:
                 building.finished = True
                 self.flag.flagState = FlagState.STANDBY
