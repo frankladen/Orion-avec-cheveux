@@ -21,5 +21,4 @@ Ajouter les notifications manquantes
 Faire les buildings de technologie
 
 Jérôme et Marc:
-Créer de nouveaux units dans l'espace? Ou des barraques qui construirait des vaisseaux d'attaque seulement, ça ferait
-que le plus gros Mothership serait utiliser seulement pour les scouts et les Gathership.
+Hmm yeah, gérer la mort des joueurs pour qu'on puisse gagner.
