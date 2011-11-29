@@ -11,7 +11,7 @@ class ControleurServeur(object):
         self.gameIsStarted = False
         self.isStopped = True
         self.seed = int(time())
-        self.mess = ['Système de chat de Orion']
+        self.mess = [[-1, 'Choisissez la couleur de votre battalion',False],[-1, '________________________________________________________________',False],[-1, 'Le but est détruire le vaisseau mère des autres équipes',False],[-1, 'en bâtissant votre propre battalion et en dominant.',False],[-1, '________________________________________________________________',False]]
         self.changeList = []
         self.readyPlayers = []
         self.choiceColors = [["Orange", False], ["Rouge", False], ["Bleu", False], ["Vert", False], ["Jaune", False], ["Brun", False], ["Blanc", False], ["Rose", False]]
@@ -41,7 +41,7 @@ class ControleurServeur(object):
             self.refreshes.append(0)
             self.readyPlayers.append(False)
     
-    def removePlayer(self, ip, login, playerId):
+    def removePlayer(self, login, playerId):
         self.sockets[playerId][2] = True
         if playerId == 0:
             self.isStopped = True
@@ -50,10 +50,11 @@ class ControleurServeur(object):
             self.changeList = []
             self.sockets = []
             self.readyPlayers = []
-            self.mess = ['Système de chat de Orion']
+            self.choiceColors = [["Orange", False], ["Rouge", False], ["Bleu", False], ["Vert", False], ["Jaune", False], ["Brun", False], ["Blanc", False], ["Rose", False]]
+            self.mess = [[-1, 'Choisissez la couleur de votre battalion',False],[-1, '________________________________________________________________',False],[-1, 'Le but est détruire le vaisseau mère des autres équipes',False],[-1, 'en bâtissant votre propre battalion et en dominant.',False],[-1, '________________________________________________________________',False]]
     
-    def addMessage(self, text, name):
-        self.mess.append(name+': '+text)
+    def addMessage(self, text, name, idPlayer, allies):
+        self.mess.append([idPlayer ,name+" : "+text,allies])
     
     def getMessage(self):
         return self.mess
@@ -72,6 +73,8 @@ class ControleurServeur(object):
         if self.choiceColors[colorId][1]:
             return True
         else:
+            if self.sockets[playerId][3] != -1:
+                self.choiceColors[self.sockets[playerId][3]][1] = False
             self.sockets[playerId][3]=colorId
             self.choiceColors[colorId][1] = True
             return False
@@ -82,7 +85,13 @@ class ControleurServeur(object):
                 i[1] = True
                 self.sockets[playerId][3] = self.choiceColors.index(i)
                 break
-        
+      
+    def couleurIA(self, playerId):
+        for i in self.choiceColors:
+            if i[1] == False:
+                i[1] = True
+                return self.choiceColors.index(i)
+              
     def refreshPlayer(self, playerId, refresh):
         self.refreshes[playerId] = refresh
     
@@ -92,8 +101,8 @@ class ControleurServeur(object):
 
     def frameDifference(self):
         frameList = []
-        for player in self.sockets :
-            frameList.append(player.getRefresh)
+        for refresh in self.refreshes :
+            frameList.append(refresh)
         #Je détermine le frame maximum et le frame minimum de tout les clients
         frameMax = max(frameList)
         frameMin = min(frameList)
@@ -132,40 +141,29 @@ class ControleurServeur(object):
         return changes
        
     def getNumSocket(self, login, ip):
-        n=0
-        for i in range(0,len(self.sockets)):
-            if self.sockets[i][0] == ip:
-                print('a trouver le meme socket que le precedent')
-                self.sockets[i]=[ip,login,False, -1]
-                return i
-            n=n+1
-        print('ajoute le socket a la fin')
         if len(self.sockets) < 8:
+            for s in self.sockets:
+                if s[1].upper() == login.upper():
+                    return -1
             self.sockets.append([ip,login,False, -1])
-        return n
+            return len(self.sockets)-1
           
 
 if len(sys.argv) > 1:
     adresse = sys.argv[1]
-    print("adresse: " + adresse)
 else:
     adresse=socket.gethostbyname(socket.getfqdn())
-#adresse="5.146.234.35"
 try:
-    print("va réserver le port")
-    daemon = Pyro4.core.Daemon(host=adresse,port=54440) 
+    daemon = Pyro4.core.Daemon(host=adresse,port=54400) 
     # un objet ControleurServeur() dont les methodes peuvent etre invoquees, 
-    # connu sous le nom de controleurServeur
-    print("va register le serveur")
     daemon.register(ControleurServeur(), "ServeurOrion")  
      
     # juste pour voir quelque chose sur la console du serveur
     print("Serveur Pyro actif sous le nom \'ServeurOrion\' avec l'adresse "+adresse)
-    print("va requester le loop")
     #on demarre l'ecoute des requetes
     daemon.requestLoop()
 except socket.error:
-    print("une erreur est survenue")
+    print("erreur dans le serveur")
     sys.exit(1)
 
 

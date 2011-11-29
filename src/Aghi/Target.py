@@ -1,4 +1,6 @@
+# -*- coding: UTF-8 -*-
 from Flag import *
+import Unit as u
 
 #Represente une position dans l'espace  
 class Target():
@@ -7,27 +9,39 @@ class Target():
 
 #Represente un objet pouvant appartenir a un joueur
 class PlayerObject(Target):
-    def __init__(self, name, position, owner, hitpoints=50):
-        super(PlayerObject, self).__init__(position)
+    def __init__(self, name, type, position, owner):
+        Target.__init__(self, position)
         self.name = name
+        self.type = type
         self.flag = Flag(Target([0,0,0]), Target([0,0,0]), FlagState.STANDBY)
         self.owner = owner
-        self.maxHP=hitpoints
-        self.hitpoints=hitpoints
-        self.isAlive = True;
-        if name == 'Scout':
-            self.viewRange = 200
-        elif name == 'Mothership':
-            self.viewRange = 400
-        elif name =='Attack':
-            self.viewRange = 150
-        elif name == 'Transport':
-            self.viewRange = 175
+        self.hitpoints = 50
+        self.maxHP = 50
+        self.isAlive = True
+        self.constructionProgress = 0
+        if type <= u.Unit.GROUND_ATTACK:
+            self.viewRange = u.Unit.VIEW_RANGE[type]
+            self.hitpoints = u.Unit.MAX_HP[type]
+            self.maxHP=self.hitpoints
+            self.buildTime = u.Unit.BUILD_TIME[type]
+            self.buildCost = u.Unit.BUILD_COST[type]
         else:
-            self.viewRange = 100
-    
+            self.viewRange = u.Unit.VIEW_RANGE[u.Unit.DEFAULT]
+            self.hitpoints = u.Unit.MAX_HP[u.Unit.DEFAULT]
+            self.maxHP=self.hitpoints
+            self.buildTime = u.Unit.BUILD_TIME[u.Unit.DEFAULT]
+            self.buildCost = u.Unit.BUILD_COST[u.Unit.DEFAULT]
+
     def getFlag(self):
         return self.flag
+
+    def takeDammage(self, amount):
+        self.hitpoints-=amount
+        if self.hitpoints <= 0:
+            return True
+        else:
+            return False
+        
     
     def kill(self):
         self.isAlive = False        
