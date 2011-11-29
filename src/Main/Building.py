@@ -17,7 +17,7 @@ class Building(t.PlayerObject):
     NAME = ("Point ralliement", "Raffinerie", "Barraque", "Ferme", "Tourette", "Vaisseau mere", "Zone d'aterrissage")
     SIZE =((30,30),(0,0),(0,0),(75,59),(32,32),(125,125),(32,32))
     INSPACE = (True,False,False,False,True,True,False)
-    COST = ((50,50),(0,0),(0,0),(50,50),(50,50),(750,750),(0,0))
+    COST = ((50,50),(0,0),(0,0),(75,75),(250,200),(1000,1000),(0,0))
     TIME = (125,0,0,125,125,1250,0)
     MAX_HP = (150,0,0,200,200,1500,100)
     VIEW_RANGE=(200, 0, 0, 100, 250, 400, 200)
@@ -240,7 +240,7 @@ class Mothership(ConstructionBuilding):
         self.AttackSpeed=self.ATTACK_SPEED
         self.AttackDamage=self.ATTACK_DAMAGE
         self.attackcount=self.AttackSpeed
-        self.armor = self.MAX_ARMOR
+        self.armor = 0
         self.killCount = 0
 
     def action(self, parent):
