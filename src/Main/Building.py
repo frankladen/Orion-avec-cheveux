@@ -193,6 +193,8 @@ class ConstructionBuilding(Building):
             self.unitBeingConstruct.append(u.GatherShip( u.Unit.CARGO, p, self.owner))
         elif unitType == u.Unit.TRANSPORT:
             self.unitBeingConstruct.append(u.TransportShip( u.Unit.TRANSPORT, p, self.owner))
+        elif unitType == u.Unit.HEALING_UNIT:
+            self.unitBeingConstruct.append(u.HealingUnit(u.Unit.HEALING_UNIT, p, self.owner))
         elif unitType == u.Unit.GROUND_GATHER:
             un = u.GroundGatherUnit( u.Unit.GROUND_GATHER, p, self.owner, self.planetId, self.sunId,True)
             un.planet = galaxy.solarSystemList[self.sunId].planets[self.planetId]

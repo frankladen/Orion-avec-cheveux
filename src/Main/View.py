@@ -27,6 +27,8 @@ class View():
     SPACE_BUILDINGS_MENU = 13
     GROUND_BUILDINGS_MENU = 14
     LANDING_SPOT_BUILD_MENU = 15
+    WAITING_FOR_UNIT_TO_HEAL_MENU = 16
+    HEAL_UNIT_MENU = 17
     MINIMAP_WIDTH=200
     MINIMAP_HEIGHT=200
     SELECTED_TRADE = 20
@@ -93,6 +95,7 @@ class View():
         self.gifGroundSpecial = PhotoImage(file='images/icones/iconeSpecial.gif')
         self.gifTurret = PhotoImage(file='images/icones/iconeTurret.gif')
         self.gifWaypoint = PhotoImage(file='images/icones/iconeWaypoint.gif')
+        self.gifAmbulance = PhotoImage(file='images/Ships/ambulance.gif')
         self.gifupB = PhotoImage(file='images/icones/upB.gif')
         self.gifupM = PhotoImage(file='images/icones/upM.gif')
         self.gifupU = PhotoImage(file='images/icones/upU.gif')
@@ -119,6 +122,7 @@ class View():
         self.isSettingMovePosition = False
         self.isSettingAttackPosition = False
         self.isSettingBuildingPosition = False
+        self.isChosingUnitToHeal = False
         self.dragging = False
         self.hpBars=False
         self.buildingToBuild=-1
@@ -613,6 +617,8 @@ class View():
                         self.Actionmenu.create_image(13,89,image=self.gifAttack,anchor = NW, tags = 'Button_Attack')
                     elif isinstance(units[0], GroundBuilderUnit):
                         self.Actionmenu.create_image(13,89,image=self.gifBuild,anchor = NW, tags = 'Button_Ground_Buildings')
+                    elif units[0].type == u.Unit.HEALING_UNIT:
+                        self.Actionmenu.create_image(13,89,image=self.gifTechTree,anchor = NW, tags = 'Button_Heal')
                 elif isinstance(units[0], b.LandingZone):
                     self.Actionmenu.create_image(13,35,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
                     self.Actionmenu.create_image(76,35,image = self.gifBuild, anchor = NW, tags = 'Button_BuildGroundUnit')
@@ -627,6 +633,7 @@ class View():
             self.Actionmenu.create_image(76,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Build_Attack')
             self.Actionmenu.create_image(140,35,image = self.gifCargo, anchor = NW, tags = 'Button_Build_Gather')
             self.Actionmenu.create_image(13,89,image = self.gifTransport, anchor = NW, tags = 'Button_Build_Transport')
+            self.Actionmenu.create_image(76,89,image = self.gifTransport, anchor = NW, tags = 'Button_Build_Healer')
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
             self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
@@ -713,6 +720,9 @@ class View():
             self.Actionmenu.create_image(140,35,image = self.gifGroundBuilder, anchor = NW, tags = 'Button_Build_GroundBuild')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
             self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
+        elif(type == self.WAITING_FOR_UNIT_TO_HEAL_MENU):
+            self.Actionmenu.create_text(5,5,text = "Sélectionné le ou les unités à soigner",anchor = NW, fill = 'white', width = 200)
+
 
     def createUnitsConstructionMenu(self, unit):
         y = 35;
@@ -1164,6 +1174,10 @@ class View():
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0], distance[1], image = self.gatherShips[player.colorId], tag='deletable')
+                elif unit.type == unit.HEALING_UNIT:
+                    if unit in player.selectedObjects:
+                        self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
+                    self.gameArea.create_image(distance[0], distance[1], image = self.gifAmbulance, tag='deletable')
                 if unit.hitpoints <= 15:
                     self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
                 if self.hpBars:
@@ -1588,6 +1602,11 @@ class View():
                     self.game.setBuildingFlag(pos[0],pos[1], self.buildingToBuild, self.sunId, self.planetId)
                 self.isSettingBuildingPosition = False
                 self.actionMenuType = self.MAIN_MENU
+                
+            elif self.isChosingUnitToHeal :
+                self.game.setActionHealUnit(pos)
+                self.isChosingUnitToHeal = False
+                self.actionMenuType = self.MAIN_MENU
                     
             else:
                 if not self.selectAllUnits:
@@ -1651,7 +1670,6 @@ class View():
             login = self.entryLogin.get()
             ns = self.entryServer.get()
         if len(login) >= 3 and len(login) <= 12:
-            subprocess.Popen("C:\python32\python.exe -Wignore -m Pyro4.naming")
             self.parent.connectServer(login,ns)
         else:
             self.showTooDamnShortName()
@@ -1769,6 +1787,9 @@ class View():
             elif (Button_pressed == "Button_Move"):
                 self.actionMenuType = self.WAITING_FOR_MOVE_POINT_MENU
                 self.isSettingMovePosition = True
+            elif (Button_pressed == "Button_Heal"):
+                self.actionMenuType = self.WAITING_FOR_UNIT_TO_HEAL_MENU
+                self.isChosingUnitToHeal = True
             elif (Button_pressed == "Button_Tech"):
                 self.actionMenuType = self.TECHNOLOGY_TREE_MENU
             elif (Button_pressed == "Button_Tech_Units"):
@@ -1792,6 +1813,8 @@ class View():
                 self.game.addUnit(Unit.TRANSPORT)
             elif (Button_pressed == "Button_Build_Gather"):
                 self.game.addUnit(Unit.CARGO)
+            elif (Button_pressed == 'Button_Build_Healer'):
+                self.game.addUnit(Unit.HEALING_UNIT)
             elif (Button_pressed == 'Button_Build_GroundAttack'):
                 self.game.addUnit(Unit.GROUND_ATTACK)
             elif (Button_pressed == 'Button_Build_GroundGather'):
@@ -1824,7 +1847,10 @@ class View():
                 self.drawSecondLine=str(Unit.BUILD_COST[Unit.TRANSPORT][0])+" mine | "+str(Unit.BUILD_COST[Unit.TRANSPORT][1])+" gaz"
             elif (Button_pressed == "Button_Build_Gather"):
                 self.drawFirstLine=str(Unit.NAME[Unit.CARGO])
-                self.drawSecondLine=str(Unit.BUILD_COST[Unit.TRANSPORT][0])+" mine | "+str(Unit.BUILD_COST[Unit.TRANSPORT][1])+" gaz"
+                self.drawSecondLine=str(Unit.BUILD_COST[Unit.CARGO][0])+" mine | "+str(Unit.BUILD_COST[Unit.CARGO][1])+" gaz"
+            elif (Button_pressed == "Button_Build_Healer"):
+                self.drawFirstLine=str(Unit.NAME[Unit.HEALING_UNIT])
+                self.drawSecondLine=str(Unit.BUILD_COST[Unit.HEALING_UNIT][0])+" mine | "+str(Unit.BUILD_COST[Unit.HEALING_UNIT][1])+" gaz"
             elif (Button_pressed == "Button_Build_Waypoint"):
                 self.drawFirstLine=str(b.Building.NAME[b.Building.WAYPOINT])
                 self.drawSecondLine=str(b.Building.COST[b.Building.WAYPOINT][0])+" mine | "+str(b.Building.COST[b.Building.WAYPOINT][1])+" gaz"
