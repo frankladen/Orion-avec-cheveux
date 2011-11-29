@@ -370,7 +370,7 @@ class Player():
 
     def createUnit(self, unitType, constructionBuilding):
         if self.ressources[self.MINERAL] >= u.Unit.BUILD_COST[unitType][u.Unit.MINERAL] and self.ressources[self.GAS] >= u.Unit.BUILD_COST[unitType][u.Unit.GAS]:
-            self.buildings[constructionBuilding].addUnitToQueue(unitType)
+            self.buildings[constructionBuilding].addUnitToQueue(unitType, self.game.galaxy)
             self.ressources[self.MINERAL] -= u.Unit.BUILD_COST[unitType][u.Unit.MINERAL]
             self.ressources[self.GAS] -= u.Unit.BUILD_COST[unitType][u.Unit.GAS]
             self.ressources[self.FOOD] += u.Unit.BUILD_COST[unitType][u.Unit.FOOD]

@@ -183,7 +183,7 @@ class ConstructionBuilding(Building):
         else:
             self.flag.flagState = FlagState.STANDBY
                
-    def addUnitToQueue(self, unitType):
+    def addUnitToQueue(self, unitType, galaxy=None):
         p = [self.position[0], self.position[1], 0]
         if unitType == u.Unit.SCOUT:
             self.unitBeingConstruct.append(u.Unit( u.Unit.SCOUT, p, self.owner))
@@ -194,12 +194,18 @@ class ConstructionBuilding(Building):
         elif unitType == u.Unit.TRANSPORT:
             self.unitBeingConstruct.append(u.TransportShip( u.Unit.TRANSPORT, p, self.owner))
         elif unitType == u.Unit.GROUND_GATHER:
-            self.unitBeingConstruct.append(u.GroundGatherUnit( u.Unit.GROUND_GATHER, p, self.owner, self.planetId, self.sunId,True))
+            un = u.GroundGatherUnit( u.Unit.GROUND_GATHER, p, self.owner, self.planetId, self.sunId,True)
+            un.planet = galaxy.solarSystemList[self.sunId].planets[self.planetId]
+            self.unitBeingConstruct.append(un)
         elif unitType == u.Unit.GROUND_ATTACK:
-            self.unitBeingConstruct.append(u.GroundAttackUnit( u.Unit.GROUND_ATTACK, p, self.owner, self.planetId, self.sunId,True))
+            un = u.GroundAttackUnit( u.Unit.GROUND_ATTACK, p, self.owner, self.planetId, self.sunId,True)
+            un.planet = galaxy.solarSystemList[self.sunId].planets[self.planetId]
+            self.unitBeingConstruct.append(un)
         elif unitType == u.Unit.GROUND_BUILDER_UNIT:
-            self.unitBeingConstruct.append(u.GroundBuilderUnit( u.Unit.GROUND_BUILDER_UNIT, p, self.owner, self.planetId, self.sunId,True))
-
+            un = u.GroundBuilderUnit( u.Unit.GROUND_BUILDER_UNIT, p, self.owner, self.planetId, self.sunId,True)
+            un.planet = galaxy.solarSystemList[self.sunId].planets[self.planetId]
+            self.unitBeingConstruct.append(un)
+                                           
     def getUnitBeingConstructAt(self, unitId):
         return self.unitBeingConstruct[unitId]
     
