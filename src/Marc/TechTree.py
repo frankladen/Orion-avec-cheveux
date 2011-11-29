@@ -85,6 +85,10 @@ class Tech(TechTree):
         self.costMine = int(element.find("CostMine").text)
         self.costGaz = int(element.find("CostGaz").text)
         self.isAvailable = True
+        if element.find("CostNuclear") != None:
+            self.costNuclear = element.find("CostNuclear")
+        else:
+            self.costNuclear = None
         if element.find("Upgrade") != None:
             self.child = TechUpgrade(self,element.find("Upgrade"))
         else:
