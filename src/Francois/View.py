@@ -120,6 +120,7 @@ class View():
         self.isSettingMovePosition = False
         self.isSettingAttackPosition = False
         self.isSettingBuildingPosition = False
+        self.isChosingUnitToHeal = False
         self.dragging = False
         self.hpBars=False
         self.buildingToBuild=-1
@@ -1601,6 +1602,8 @@ class View():
                 self.actionMenuType = self.MAIN_MENU
                     
             else:
+                if self.isChosingUnitToHeal :
+                    self.game.setActionHealUnit()
                 if not self.selectAllUnits:
                     self.game.select(pos)
                     self.ongletSelectedUnit()
@@ -1609,6 +1612,9 @@ class View():
                     self.game.selectAll(pos)
                     self.ongletSelectedUnit()
                     self.selectedOnglet = self.SELECTED_UNIT_SELECTED
+                if self.isChosingUnitToHeal :
+                    self.game.healUnits()
+                    self.isChosingUnitToHeal = False
         elif canva == self.minimap:
             self.game.quickMove(x,y)
 
@@ -1816,6 +1822,7 @@ class View():
                 self.game.setBuyTech(Button_pressed[0], Button_pressed[1])
             elif (Button_pressed == "Button_Heal"):
                 self.actionMenuType = self.WAITING_FOR_UNIT_TO_HEAL_MENU
+                self.isChosingUnitToHeal = True
 
     def detailAction(self, eve):
         bp = (eve.widget.gettags(eve.widget.find_closest(eve.x, eve.y)))

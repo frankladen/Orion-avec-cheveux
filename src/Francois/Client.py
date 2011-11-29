@@ -183,9 +183,10 @@ class Controller():
         if isinstance(flag, Flag):
             if flag.flagState in (FlagState.MOVE, FlagState.STANDBY):
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
-                print(4)
             elif flag.flagState == FlagState.GROUND_MOVE:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
+            elif flag.flagState == FlagState.HEAL:
+                actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.ATTACK:
                 if isinstance(flag.finalTarget, u.Unit):
                     targetId = self.game.players[flag.finalTarget.owner].units.index(flag.finalTarget)
@@ -299,7 +300,6 @@ class Controller():
         #si l'action est Move, la target sera sous forme de tableau de positions [x,y,z]
         if action in (str(FlagState.MOVE), str(FlagState.STANDBY), str(FlagState.PATROL)):
             target = self.changeToInt(self.stripAndSplit(target))
-            print(5)
             self.game.makeFormation(actionPlayerId, unitIndex, target, action)
             
         elif action == str(FlagState.GROUND_MOVE):
@@ -390,6 +390,8 @@ class Controller():
             #target = le nouveau status de l'alliance entre les deux
             self.game.demandAlliance(actionPlayerId, int(unitIndex[0]), target)
             self.view.refreshAlliances()
+        elif action == str(FlagState.HEAL):
+            self.game.healUnitForReal(actionPlayerId, target, int(unitIndex[0]))
 
 
     def endGame(self):

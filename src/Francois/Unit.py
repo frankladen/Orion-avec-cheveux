@@ -46,7 +46,6 @@ class Unit(PlayerObject):
     def action(self, parent):
         if self.flag.flagState == FlagState.MOVE or self.flag.flagState == FlagState.GROUND_MOVE:
             self.move()
-            print(6)
         elif self.flag.flagState == FlagState.ATTACK:
             if isinstance(self.flag.finalTarget, TransportShip):
                 if self.flag.finalTarget.landed:
@@ -315,15 +314,28 @@ class HealingUnit(SpaceUnit):
         def __init__(self, type, position, owner):
             SpaceUnit.__init__(self,  type, position, owner)
             self.unitsToHeal = []
+            self.HEALING_RANGE = 50
+            self.HEALING_SPEED = 40
+            self.HEALING_POWER = 1
+            self.ctr = 0
 
         
         
         def action(self,parent):
             if self.flag.flagState == FlagState.HEAL:
-                self.changeFlag(self.unitsToHeal[1].position, FlagState.MOVE)
+                target = self.flag.finalTarget
+                if (Helper.calcDistance(self.position[0], self.position[1], target.position[0], target.position[1])) >= self.HEALING_RANGE:
+                    self.move()
+                else:
+                    self.ctr+=1
+                    if self.ctr == self.HEALING_SPEED and self.flag.finalTarget.hitpoints <= self.flag.finalTarget.maxHP:
+                        self.flag.finalTarget.hitpoints += self.HEALING_POWER
+                        self.ctr = 0
+
                 
             else:
                 SpaceUnit.action(self, parent)
+
             
 
 class GroundAttackUnit(GroundUnit):

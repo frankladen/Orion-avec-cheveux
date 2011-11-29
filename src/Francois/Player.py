@@ -23,6 +23,7 @@ class Player():
     BONUS = [0,0,0,0,0,0]
     MAX_FOOD = 10
     
+    
     def __init__(self, name, game, id , colorId):
         self.name = name
         self.game = game
@@ -44,6 +45,13 @@ class Player():
         self.ressources = [500,500,2,0]
         self.isAlive = True
         self.camera = None
+        self.actionHealUnit = None
+    
+    def setSelectedHealUnitIndex(self):
+        if self.selectedObjects[0].type == u.Unit.HEALING_UNIT:
+            self.actionHealUnit =  self.units.index(self.selectedObjects[0])
+        else:
+            self.actionHealUnit = None
         
     def getSelectedBuildingIndex(self):
         return self.buildings.index(self.selectedObjects[0])

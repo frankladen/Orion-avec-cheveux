@@ -22,7 +22,16 @@ class Game():
         self.tradePage=-1
         self.isMasterTrade=False
         self.multiSelect = False
-
+    
+    def healUnitForReal(self, actionPlayerId, target, healUnitIndex):
+        self.players[actionPlayerId].units[healUnitIndex].changeFlag(self.players[self.playerId].units[int(target)],FlagState.HEAL)
+        
+    def healUnits(self):
+        self.parent.pushChange(str(self.players[self.playerId].actionHealUnit), Flag(finalTarget = self.players[self.playerId].units.index(self.players[self.playerId].selectedObjects[0]),flagState = FlagState.HEAL))
+    
+    def setActionHealUnit(self):
+        self.players[self.playerId].setSelectedHealUnitIndex()
+    
     def action(self):
         self.players[self.playerId].camera.move()
         self.parent.view.gameArea.delete('enemyRange')
