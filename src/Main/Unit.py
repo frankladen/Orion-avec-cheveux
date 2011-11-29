@@ -108,7 +108,7 @@ class Unit(PlayerObject):
             
             if building.buildingTimer < building.TIME[building.type]:
                 building.buildingTimer += 1
-                building.hitpoints = (building.buildingTimer/building.TIME[building.type])*building.MAX_HP[building.type]
+                building.hitpoints += (1/building.TIME[building.type])*building.MAX_HP[building.type]
             else:
                 building.finished = True
                 self.flag.flagState = FlagState.STANDBY
@@ -205,7 +205,7 @@ class GroundBuilderUnit(GroundUnit):
             
             if building.buildingTimer < building.TIME[building.type]:
                 building.buildingTimer += 1
-                building.hitpoints = (building.buildingTimer/building.TIME[building.type])*building.MAX_HP[building.type]
+                building.hitpoints += (1/building.TIME[building.type])*building.MAX_HP[building.type]
             else:
                 building.finished = True
                 self.flag.flagState = FlagState.STANDBY

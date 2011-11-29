@@ -223,6 +223,15 @@ class Game():
     def killUnit(self, killedIndexes, hasToKill = True):
         if hasToKill:
             self.players[killedIndexes[1]].killUnit(killedIndexes)
+        if killedIndexes[2] == True:
+            if isinstance(self.players[killedIndexes[1]].buildings[killedIndexes[0]], Mothership):
+                die = True
+                for i in self.players[killedIndexes[1]].buildings:
+                    if isinstance(i, Mothership) and i.isAlive:
+                        die = False
+                        break
+                if die:
+                    self.killPlayer(killedIndexes[1])
         for play in self.players:
             play.checkIfIsAttacking(killedIndexes)
 

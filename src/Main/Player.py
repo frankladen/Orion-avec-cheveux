@@ -90,11 +90,13 @@ class Player():
                 unit = i.select(position)
                 if unit != None:
                     self.selectedObjects = [unit]
+                    return
         for i in self.buildings:
             if not isinstance(i, b.GroundBuilding):
                 building = i.select(position)
                 if building != None:
                     self.selectedObjects = [building]
+                    return
 
     def multiSelectUnit(self, position):
         for i in self.units:
