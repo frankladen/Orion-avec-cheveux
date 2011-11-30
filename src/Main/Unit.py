@@ -682,6 +682,7 @@ class TransportShip(SpaceUnit):
                 if landingZone.LandedShip == None:
                     self.nuclear += landingZone.nuclear
                     landingZone.nuclear = 0
+                    landingZone.hitpoints = 100
                     self.landed = True
                     self.planetId = planetId
                     self.sunId = sunId

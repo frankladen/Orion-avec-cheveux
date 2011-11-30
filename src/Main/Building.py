@@ -207,6 +207,11 @@ class ConstructionBuilding(Building):
             un = u.GroundBuilderUnit( u.Unit.GROUND_BUILDER_UNIT, p, self.owner, self.planetId, self.sunId,True)
             un.planet = galaxy.solarSystemList[self.sunId].planets[self.planetId]
             self.unitBeingConstruct.append(un)
+        elif unitType == u.Unit.SPECIAL_GATHER:
+            un = u.SpecialGather( u.Unit.SPECIAL_GATHER, p, self.owner, self.planetId, self.sunId,True)
+            un.planet = galaxy.solarSystemList[self.sunId].planets[self.planetId]
+            self.unitBeingConstruct.append(un)
+        
                                            
     def getUnitBeingConstructAt(self, unitId):
         return self.unitBeingConstruct[unitId]

@@ -267,7 +267,7 @@ class Game():
             tech = techTree.getTechs(techTree.BUILDINGS)[index]
         elif techType == "Button_Buy_Mothership_Tech":
             tech = techTree.getTechs(techTree.MOTHERSHIP)[index]
-        if player.ressources[0] >= tech.costMine and player.ressources[1] >= tech.costGaz:
+        if player.ressources[0] >= tech.costMine and player.ressources[1] >= tech.costGaz and player.ressources[3] >= tech.costNuclear:
             if techType == "Button_Buy_Unit_Tech":
                 tech = techTree.buyUpgrade(techTree.getTechs(techTree.UNITS)[index].name,techTree.UNITS, tech)
             elif techType == "Button_Buy_Building_Tech":
@@ -276,6 +276,7 @@ class Game():
                 tech = techTree.buyUpgrade(techTree.getTechs(techTree.MOTHERSHIP)[index].name,techTree.MOTHERSHIP, tech)
             player.ressources[0] -= tech.costMine
             player.ressources[1] -= tech.costGaz
+            player.ressources[3] -= tech.costNuclear
             if tech.effect == 'D':
                 player.BONUS[player.ATTACK_DAMAGE_BONUS] = tech.add
             elif tech.effect == 'S':

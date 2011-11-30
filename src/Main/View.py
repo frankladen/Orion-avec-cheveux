@@ -705,7 +705,7 @@ class View():
             y=5
             for i in techs:
                 self.Actionmenu.create_text(5,y,text = i.name,anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
-                self.Actionmenu.create_text(5,y+13,text = "Minéraux: "+str(i.costMine)+"   Gaz: "+str(i.costGaz),anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
+                self.Actionmenu.create_text(5,y+13,text = "Mine: "+str(i.costMine)+"  Gaz: "+str(i.costGaz)+"  Nuke: "+str(i.costNuclear),anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
                 y+=28
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.TECHTREE_BUILDING_MENU):
@@ -714,7 +714,7 @@ class View():
             y=5
             for i in techs:
                 self.Actionmenu.create_text(5,y,text = i.name,anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Building_Tech/'+str(techs.index(i)))
-                self.Actionmenu.create_text(5,y+13,text = "Minéraux: "+str(i.costMine)+"   Gaz: "+str(i.costGaz),anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Building_Tech/'+str(techs.index(i)))
+                self.Actionmenu.create_text(5,y+13,text = "Mine: "+str(i.costMine)+"  Gaz: "+str(i.costGaz)+"  Nuke: "+str(i.costNuclear),anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Building_Tech/'+str(techs.index(i)))
                 y+=28
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.TECHTREE_MOTHERSHIP_MENU):
@@ -723,7 +723,7 @@ class View():
             y=5
             for i in techs:
                 self.Actionmenu.create_text(5,y,text = i.name,anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Mothership_Tech/'+str(techs.index(i)))
-                self.Actionmenu.create_text(5,y+13,text = "Minéraux: "+str(i.costMine)+"   Gaz: "+str(i.costGaz),anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Mothership_Tech/'+str(techs.index(i)))
+                self.Actionmenu.create_text(5,y+13,text = "Mine: "+str(i.costMine)+"  Gaz: "+str(i.costGaz)+"  Nuke: "+str(i.costNuclear),anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Mothership_Tech/'+str(techs.index(i)))
                 y+=28
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.LANDING_SPOT_BUILD_MENU):
@@ -731,6 +731,7 @@ class View():
             self.Actionmenu.create_image(13,35,image = self.gifTank, anchor = NW, tags = 'Button_Build_GroundAttack')
             self.Actionmenu.create_image(76,35,image = self.gifGroundGather, anchor = NW, tags = 'Button_Build_GroundGather')
             self.Actionmenu.create_image(140,35,image = self.gifGroundBuilder, anchor = NW, tags = 'Button_Build_GroundBuild')
+            self.Actionmenu.create_image(13,89,image = self.gifTank, anchor = NW, tags = 'Button_Build_Special')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
             self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
         elif(type == self.WAITING_FOR_UNIT_TO_HEAL_MENU):
@@ -1216,28 +1217,15 @@ class View():
                             
     
     def drawHPBars(self, distance, unit):
-        if isinstance(unit, Unit):
-            if self.game.players[self.game.playerId].currentPlanet == None and not isinstance(unit, GroundUnit):
-                if unit.type == unit.TRANSPORT:
-                    if not unit.landed:
-                        hpLeft=((unit.hitpoints/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
-                        hpLost=(hpLeft+(((unit.MAX_HP[unit.type]-unit.hitpoints)/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0])))
-                        self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="green", tag='deletable')
-                        if int(unit.hitpoints) != int(unit.MAX_HP[unit.type]):
-                            self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLost,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="red", tag='deletable')
-                else:
-                    hpLeft=((unit.hitpoints/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
-                    hpLost=(hpLeft+(((unit.MAX_HP[unit.type]-unit.hitpoints)/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0])))
-                    self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="green", tag='deletable')
-                    if int(unit.hitpoints) != int(unit.MAX_HP[unit.type]):
-                        self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLost,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="red", tag='deletable')
+        if unit.hitpoints/unit.MAX_HP[unit.type] <= 0.2:
+            color = "red"
+        elif unit.hitpoints/unit.MAX_HP[unit.type] <= 0.5:
+            color = "yellow"
         else:
-            if self.game.players[self.game.playerId].currentPlanet == None and (not isinstance(unit, b.GroundBuilding) or not isinstance(unit, b.LandingZone)):
-                hpLeft=((unit.hitpoints/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
-                hpLost=(hpLeft+(((unit.MAX_HP[unit.type]-unit.hitpoints)/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0])))
-                self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="green", tag='deletable')
-                if int(unit.hitpoints) != int(unit.MAX_HP[unit.type]):
-                    self.gameArea.create_rectangle(distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLost,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="red", tag='deletable')
+            color = "green"
+        hpLeft=((unit.hitpoints/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
+        self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+(unit.SIZE[unit.type][0]/2),distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="white", tag='deletable')
+        self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline=color, tag='deletable')
         if unit.owner != self.game.playerId:
             self.gameArea.create_text(distance[0]-(len(self.game.players[unit.owner].name)/2),distance[1]+((unit.SIZE[unit.type][1]/2)+5), text=self.game.players[unit.owner].name, fill="white", tag='deletable')
           
@@ -1602,7 +1590,7 @@ class View():
                 self.actionMenuType = self.MAIN_MENU
                     
             elif self.isSettingRallyPointPosition:
-                self.game.setMotherShipRallyPoint(pos)
+                self.game.setRallyPointPosition(pos)
                 self.isSettingRallyPointPosition = False
                 self.actionMenuType = self.MAIN_MENU
                     
@@ -1834,6 +1822,8 @@ class View():
                 self.game.addUnit(Unit.TRANSPORT)
             elif (Button_pressed == "Button_Build_Gather"):
                 self.game.addUnit(Unit.CARGO)
+            elif (Button_pressed == "Button_Build_Special"):
+                self.game.addUnit(Unit.SPECIAL_GATHER)
             elif (Button_pressed == 'Button_Build_Healer'):
                 self.game.addUnit(Unit.HEALING_UNIT)
             elif (Button_pressed == 'Button_Build_GroundAttack'):
