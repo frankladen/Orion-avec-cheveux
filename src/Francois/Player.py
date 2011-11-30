@@ -23,6 +23,7 @@ class Player():
     BONUS = [0,0,0,0,0,0]
     MAX_FOOD = 10
     
+    
     def __init__(self, name, game, id , colorId):
         self.name = name
         self.game = game
@@ -44,7 +45,26 @@ class Player():
         self.ressources = [500,500,2,0]
         self.isAlive = True
         self.camera = None
-        
+        self.actionHealUnit = None
+    
+    def setSelectedHealUnitIndex(self):
+        if self.selectedObjects[0].type == u.Unit.HEALING_UNIT:
+            return  self.units.index(self.selectedObjects[0])
+        return None
+
+    def selectUnitToHeal(self, position):
+        for i in self.units:
+            if not isinstance(i, u.GroundUnit):
+                unit = i.select(position)
+                if unit != None:
+                    return (self.units.index(unit), 0)
+        for i in self.buildings:
+            if not isinstance(i, b.GroundBuilding):
+                building = i.select(position)
+                if building != None:
+                    return (self.buildings.index(building), 1)
+        return None
+    
     def getSelectedBuildingIndex(self):
         return self.buildings.index(self.selectedObjects[0])
     

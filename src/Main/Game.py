@@ -22,7 +22,21 @@ class Game():
         self.tradePage=-1
         self.isMasterTrade=False
         self.multiSelect = False
-
+    
+    def healUnitForReal(self, actionPlayerId, target, healUnitIndex):
+        if target[1] == 0:
+            self.players[actionPlayerId].units[healUnitIndex].changeFlag(self.players[self.playerId].units[int(target[0])],FlagState.HEAL)
+        else:
+            self.players[actionPlayerId].units[healUnitIndex].changeFlag(self.players[self.playerId].buildings[int(target[0])],FlagState.HEAL)
+            
+    def setActionHealUnit(self, pos):
+        healerUnitIndex = self.players[self.playerId].setSelectedHealUnitIndex()
+        if healerUnitIndex != None:
+            index = self.players[self.playerId].selectUnitToHeal(pos)
+            if index != None:
+                print(index)
+                self.parent.pushChange(str(healerUnitIndex), Flag(finalTarget = t.Target([index[0],index[1],0]),flagState = FlagState.HEAL))
+    
     def action(self):
         self.players[self.playerId].camera.move()
         self.parent.view.gameArea.delete('enemyRange')
@@ -253,7 +267,7 @@ class Game():
             tech = techTree.getTechs(techTree.BUILDINGS)[index]
         elif techType == "Button_Buy_Mothership_Tech":
             tech = techTree.getTechs(techTree.MOTHERSHIP)[index]
-        if player.ressources[0] >= tech.costMine and player.ressources[1] >= tech.costGaz:
+        if player.ressources[0] >= tech.costMine and player.ressources[1] >= tech.costGaz and player.ressources[3] >= tech.costNuclear:
             if techType == "Button_Buy_Unit_Tech":
                 tech = techTree.buyUpgrade(techTree.getTechs(techTree.UNITS)[index].name,techTree.UNITS, tech)
             elif techType == "Button_Buy_Building_Tech":
@@ -262,6 +276,7 @@ class Game():
                 tech = techTree.buyUpgrade(techTree.getTechs(techTree.MOTHERSHIP)[index].name,techTree.MOTHERSHIP, tech)
             player.ressources[0] -= tech.costMine
             player.ressources[1] -= tech.costGaz
+            player.ressources[3] -= tech.costNuclear
             if tech.effect == 'D':
                 player.BONUS[player.ATTACK_DAMAGE_BONUS] = tech.add
             elif tech.effect == 'S':
@@ -308,6 +323,8 @@ class Game():
             ressource = self.galaxy.solarSystemList[sunId].planets[planetId].minerals[ressourceId]
         elif ressourceType == Planet.GAZ:
             ressource = self.galaxy.solarSystemList[sunId].planets[planetId].gaz[ressourceId]
+        elif ressourceType == Planet.NUCLEAR:
+            ressource = self.galaxy.solarSystemList[sunId].planets[planetId].nuclearSite
         else:
             ressource = self.galaxy.solarSystemList[sunId].planets[planetId].landingZones[ressourceId]
         if isinstance(ressource, LandingZone):
@@ -655,6 +672,8 @@ class Game():
                     if unit.type == unit.TRANSPORT:
                         if isinstance(clickedObj, w.Planet):
                             self.setLandingFlag(unit, clickedObj)
+                        elif isinstance(clickedObj, Mothership):
+                            self.setGatherFlag(unit, clickedObj)
                     elif unit.type == unit.CARGO:
                         if isinstance(clickedObj, w.AstronomicalObject):
                             self.setGatherFlag(unit, clickedObj)
@@ -692,6 +711,9 @@ class Game():
                             if clickedObj.owner == self.playerId:
                                 if clickedObj.finished == False:
                                     self.resumeBuildingFlag(clickedObj)
+                    elif unit.type == unit.SPECIAL_GATHER:
+                        if isinstance(clickedObj, NuclearSite):
+                            self.setGroundGatherFlag(unit, clickedObj)
                     if isinstance(clickedObj, b.LandingZone) and clickedObj.owner == self.playerId:
                         self.setLoadFlag(self.players[self.playerId].selectedObjects, clickedObj)
                 else:
