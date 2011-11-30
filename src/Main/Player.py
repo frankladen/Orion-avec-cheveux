@@ -355,8 +355,11 @@ class Player():
         unit.applyBonuses(self.BONUS)
         if unit.type == u.Unit.TRANSPORT:
             pilot = u.GroundGatherUnit(u.Unit.GROUND_GATHER, [-10000,-10000,-10000], self.id, -1, -1)
+            robot = u.SpecialGather(u.Unit.SPECIAL_GATHER, [-10000,-10000,-10000], self.id, -1, -1)
             unit.units.append(pilot)
             self.units.append(pilot)
+            unit.units.append(robot)
+            self.units.append(robot)
         unit.changeFlag(t.Target(constructionUnit.rallyPoint), FlagState.MOVE)
         self.units.append(unit)
         

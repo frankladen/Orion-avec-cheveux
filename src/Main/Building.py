@@ -344,6 +344,7 @@ class LandingZone(ConstructionBuilding,GroundBuilding):
         self.sunId = sunId
         self.finished = True
         self.planet = None
+        self.nuclear = 0
 
     def over(self, positionStart, positionEnd):
         if positionEnd[0] > self.position[0] - self.WIDTH/2 and positionStart[0] < self.position[0] + self.WIDTH/2:

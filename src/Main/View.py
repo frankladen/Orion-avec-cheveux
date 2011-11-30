@@ -155,6 +155,7 @@ class View():
         self.turrets = []
         self.farms = []
         self.groundBuilders = []
+        self.specialGathers = []
         for i in range(0,8):
             self.scoutShips.append(PhotoImage(file='images/Ships/Scoutships/Scoutship'+str(i)+'.gif'))
             self.attackShips.append(PhotoImage(file='images/Ships/Attackships/Attackship'+str(i)+'.gif'))
@@ -169,6 +170,7 @@ class View():
             self.turrets.append(PhotoImage(file='images/Building/Turrets/turret'+str(i)+'.gif'))
             self.farms.append(PhotoImage(file='images/Building/Farms/farm'+str(i)+'.gif'))
             self.groundBuilders.append(PhotoImage(file='images/Planet/Special/special'+str(i)+'.gif'))
+            self.specialGathers.append(PhotoImage(file='images/Planet/Robot/robot'+str(i)+'.gif'))
         self.ressourcesFrame = LabelFrame(gameFrame, text="Ressources", width=600, bg="black", fg="white", relief=RAISED)
         self.showMinerals = Label(self.ressourcesFrame, text="Minéraux: "+str(self.game.players[self.game.playerId].ressources[0]), width=20, bg="black", fg="white", anchor=NW)
         self.showMinerals.grid(column=0, row=0)
@@ -393,6 +395,8 @@ class View():
                         self.menuModes.create_image(x,y, image = self.gifCargo, tags = ('selected_unit',unitList.index(i)), anchor = NW)
                     elif isinstance(i, u.TransportShip):
                         self.menuModes.create_image(x,y, image = self.gifTransport, tags =  ('selected_unit',unitList.index(i)), anchor = NW)
+                    elif isinstance(i, u.SpecialGather):
+                        self.menuModes.create_image(x,y, image = self.gifGroundSpecial, tags =  ('selected_unit',unitList.index(i)), anchor = NW)
                     elif isinstance(i, u.GroundGatherUnit):
                         self.menuModes.create_image(x,y, image = self.gifGroundGather, tags =  ('selected_unit',unitList.index(i)), anchor = NW)
                     elif isinstance(i, u.GroundAttackUnit):
@@ -426,6 +430,8 @@ class View():
                             self.menuModes.create_image(800,y,anchor = NE, image = self.gifTransport,tags = ('selected_all_units',i))                                
                         elif i == Unit.ATTACK_SHIP: 
                             self.menuModes.create_image(800,y, anchor = NE,image = self.gifAttackUnit,tags = ('selected_all_units',i))
+                        elif i == Unit.SPECIAL_GATHER:
+                            self.menuModes.create_image(800,y, anchor = NE,image = self.gifGroundSpecial,tags = ('selected_all_units',i))
                         elif i == Unit.GROUND_GATHER:
                             self.menuModes.create_image(800,y, anchor = NE,image = self.gifGroundGather,tags = ('selected_all_units',i))
                         elif i == Unit.GROUND_ATTACK:
@@ -457,13 +463,20 @@ class View():
                     elif isinstance(unit, u.GatherShip) or isinstance(unit, u.GroundGatherUnit):
                         if isinstance(unit, u.GatherShip):
                             self.menuModes.create_image(20,50, image = self.gifCargo)
+                        elif isinstance(unit, u.SpecialGather):
+                            self.menuModes.create_image(20,50, image = self.gifGroundSpecial)
                         else:
                             self.menuModes.create_image(20,50, image = self.gifGroundGather)
-                        self.menuModes.create_text(20,160, text = "Chargement : gaz = " + str(unit.container[1]) + " mineral = " + str(unit.container[0]), anchor = NW, fill = 'white')
+                        if unit.type != u.Unit.SPECIAL_GATHER:
+                            self.menuModes.create_text(20,160, text = "Chargement : gaz = " + str(unit.container[1]) + " mineral = " + str(unit.container[0]), anchor = NW, fill = 'white')
+                        else:
+                            self.menuModes.create_text(20,160, text="Chargement nucléaire: "+str(unit.container), anchor = NW, fill = 'white')
                         self.menuModes.create_text(20,180, text = "Taille du réservoir : " + str(unit.maxGather), anchor = NW, fill = 'white')
                         self.menuModes.create_text(20,200, text = "Vitesse de minage : " + str(unit.gatherSpeed), anchor = NW, fill = 'white')
                     elif isinstance(unit, u.TransportShip):
                         self.menuModes.create_image(20,50, image = self.gifTransport)
+                        for i in range(0, unit.nuclear):
+                            self.menuModes.create_image(80+i*40,50, image = self.nuclear)
                     elif isinstance(unit, u.GroundBuilderUnit):
                         self.menuModes.create_image(20,50, image = self.gifGroundBuilder)
                     else:
@@ -912,12 +925,13 @@ class View():
                 self.gameArea.create_oval(distance[0]-(i.WIDTH/2+3), distance[1]-(i.HEIGHT/2+3), distance[0]+(i.WIDTH/2+3), distance[1]+(i.HEIGHT/2+3), outline='yellow', tag='deletable')
             self.gameArea.create_image(distance[0], distance[1],image=self.gaz, tag='deletable')
         if planet.nuclearSite != None:
-            site = planet.nuclearSite
-            distance = self.game.players[self.game.playerId].camera.calcDistance(site.position)
-            if site in self.game.players[self.game.playerId].selectedObjects:
-                self.gameArea.create_text(distance[0], distance[1]-(site.HEIGHT/2+10), fill="yellow", text="Nuclear!", tag='deletable')
-                self.gameArea.create_oval(distance[0]-(site.WIDTH/2+3), distance[1]-(site.WIDTH/2+3),distance[0]+(site.WIDTH/2+3),distance[1]+(site.WIDTH/2+3), outline='purple', tag='deletable')
-            self.gameArea.create_image(distance[0], distance[1], image=self.nuclear, tag='deletable')
+            if planet.nuclearSite.nbRessource > 0:
+                site = planet.nuclearSite
+                distance = self.game.players[self.game.playerId].camera.calcDistance(site.position)
+                if site in self.game.players[self.game.playerId].selectedObjects:
+                    self.gameArea.create_text(distance[0], distance[1]-(site.HEIGHT/2+10), fill="yellow", text="Nuclear!", tag='deletable')
+                    self.gameArea.create_oval(distance[0]-(site.WIDTH/2+3), distance[1]-(site.WIDTH/2+3),distance[0]+(site.WIDTH/2+3),distance[1]+(site.WIDTH/2+3), outline='purple', tag='deletable')
+                self.gameArea.create_image(distance[0], distance[1], image=self.nuclear, tag='deletable')
         for i in planet.landingZones:
             if i.isAlive:
                 color = self.game.players[i.ownerId].colorId
@@ -927,6 +941,8 @@ class View():
                 self.gameArea.create_image(distance[0], distance[1], image=self.landingZones[color], tag='deletable')
                 if i.LandedShip != None:
                     self.gameArea.create_image(distance[0]+1, distance[1], image=self.landedShips[color], tag='deletable')
+                if i.nuclear > 0:
+                    self.gameArea.create_image(distance[0], distance[1], image=self.nuclear, tag='deletable')
         for i in planet.buildings:
             color = self.game.players[i.owner].colorId
             if i.isAlive:
@@ -945,14 +961,19 @@ class View():
         distance = self.game.players[self.game.playerId].camera.calcDistance(unit.position)
         if unit in self.game.players[self.game.playerId].selectedObjects:
             self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3), distance[1]-(unit.SIZE[unit.type][1]/2+3), distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3),outline='green', tag='deletable')
-        if isinstance(unit, GroundGatherUnit):
+        if unit.type == Unit.SPECIAL_GATHER:
+            if unit.isGathering and unit in self.game.players[self.game.playerId].selectedObjects:
+                self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0]/2+4), distance[1]-(unit.SIZE[unit.type][1]/2+15),distance[0]+(unit.SIZE[unit.type][0]/2+4), distance[1]-(unit.SIZE[unit.type][1]/2+5), outline='black', fill=None, tag='deletable')
+                self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0]/2+4), distance[1]-(unit.SIZE[unit.type][1]/2+15),distance[0]-(unit.SIZE[unit.type][0]/2+4)+unit.calcProgression(), distance[1]-(unit.SIZE[unit.type][1]/2+5), outline='black', fill=unit.getColorProgression(), tag='deletable')
+            self.gameArea.create_image(distance[0], distance[1], image=self.specialGathers[color], tag='deletable')
+        elif unit.type == Unit.GROUND_GATHER:
             self.gameArea.create_image(distance[0], distance[1], image=self.groundUnits[color], tag='deletable')
-        elif isinstance(unit, GroundAttackUnit):
+        elif unit.type == Unit.GROUND_ATTACK:
             if unit.attackcount <= 5 and unit.flag.flagState == FlagState.ATTACK:
                 d2 = self.game.players[self.game.playerId].camera.calcDistance(unit.flag.finalTarget.position)
                 self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill=self.laserColors[color], tag='deletable')
             self.gameArea.create_image(distance[0], distance[1], image=self.groundAttackUnits[color], tag='deletable')
-        elif isinstance(unit, GroundBuilderUnit):
+        elif unit.type == Unit.GROUND_BUILDER_UNIT:
             self.gameArea.create_image(distance[0], distance[1], image=self.groundBuilders[color], tag='deletable')
         if unit.hitpoints <= 15:
             self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')

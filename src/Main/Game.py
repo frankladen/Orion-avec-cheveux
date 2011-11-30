@@ -322,6 +322,8 @@ class Game():
             ressource = self.galaxy.solarSystemList[sunId].planets[planetId].minerals[ressourceId]
         elif ressourceType == Planet.GAZ:
             ressource = self.galaxy.solarSystemList[sunId].planets[planetId].gaz[ressourceId]
+        elif ressourceType == Planet.NUCLEAR:
+            ressource = self.galaxy.solarSystemList[sunId].planets[planetId].nuclearSite
         else:
             ressource = self.galaxy.solarSystemList[sunId].planets[planetId].landingZones[ressourceId]
         if isinstance(ressource, LandingZone):
@@ -669,6 +671,8 @@ class Game():
                     if unit.type == unit.TRANSPORT:
                         if isinstance(clickedObj, w.Planet):
                             self.setLandingFlag(unit, clickedObj)
+                        elif isinstance(clickedObj, Mothership):
+                            self.setGatherFlag(unit, clickedObj)
                     elif unit.type == unit.CARGO:
                         if isinstance(clickedObj, w.AstronomicalObject):
                             self.setGatherFlag(unit, clickedObj)
@@ -706,6 +710,9 @@ class Game():
                             if clickedObj.owner == self.playerId:
                                 if clickedObj.finished == False:
                                     self.resumeBuildingFlag(clickedObj)
+                    elif unit.type == unit.SPECIAL_GATHER:
+                        if isinstance(clickedObj, NuclearSite):
+                            self.setGroundGatherFlag(unit, clickedObj)
                     if isinstance(clickedObj, b.LandingZone) and clickedObj.owner == self.playerId:
                         self.setLoadFlag(self.players[self.playerId].selectedObjects, clickedObj)
                 else:
