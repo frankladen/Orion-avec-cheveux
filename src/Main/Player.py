@@ -487,14 +487,17 @@ class Player():
                         #Si le Unit n'a pas trouvé sa place, on avance d'une ligne
                         if goodPlace==False:
                             line+=1
-                            if (len(lineTaken)-1)<line:
-                                numberOfSpaces=1+line
-                                thatLine=[]
-                                for a in range(0,numberOfSpaces):
-                                    thatLine.append(False)
-                                lineTaken.append(thatLine)
                     #Lorsqu'il a trouvé sa place, on le fait bouger vers sa nouvelle target
-                    self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
+                    try:
+                        self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
+                    except:
+                        print("carre")
+                        print(target[0])
+                        print(target[1])
+                        print(action)
+                        print(len(units))
+                        print(units[len(units)-1])
+                        print(units[i])
             #Formation en triangle, FUCK YEAH
             elif self.formation == "triangle":
                 #tuple qui contient le nombre de Unit par ligne
@@ -545,7 +548,16 @@ class Player():
                                     thatLine.append(False)
                                 lineTaken.append(thatLine)
                     #Lorsqu'il a trouvé sa place, on le fait bouger à sa nouvelle Target  
-                    self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
+                    try:
+                        self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
+                    except:
+                        print("triangle")
+                        print(target[0])
+                        print(target[1])
+                        print(action)
+                        print(len(units))
+                        print(units[len(units)-1])
+                        print(units[i])
         
 #Represente la camera            
 class Camera():
