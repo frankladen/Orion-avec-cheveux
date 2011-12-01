@@ -1709,6 +1709,18 @@ class View():
         self.redrawMinimap()
         self.ongletSelectedUnit()
 
+    def getOutPlanet(self, eve):
+        if self.game.players[self.game.playerId].currentPlanet != None:
+            planet = self.game.players[self.game.playerId].currentPlanet
+            cam = self.game.players[self.game.playerId].camera
+            cam.position = [planet.position[0], planet.position[1]]
+            planet = self.game.players[self.game.playerId].currentPlanet = None
+            self.game.players[self.game.playerId].selectedObjects = []
+            self.changeBackground('GALAXY')
+            self.drawWorld()
+            self.redrawMinimap()
+            self.ongletSelectedUnit()
+
     def clickMenuModes(self,eve):
         bp = (eve.widget.gettags(eve.widget.find_withtag('current')))
         if bp != ():
@@ -1971,6 +1983,7 @@ class View():
         self.gameArea.bind("U", self.unload)
         self.gameArea.bind("<KeyRelease-c>", self.unSelectAll)
         self.gameArea.bind("1", self.checkMotherShip)
+        self.gameArea.bind("2", self.getOutPlanet)
         self.gameArea.bind("<Control_L>",self.ctrlPressed)
         self.gameArea.bind("<KeyRelease-Control_L>",self.ctrlDepressed)
         self.gameArea.bind("<Tab>",self.enterChat)

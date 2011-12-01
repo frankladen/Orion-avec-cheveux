@@ -657,6 +657,7 @@ class TransportShip(SpaceUnit):
                     landingZone = planet.addLandingZone(playerId, self, game.players[playerId])
                     self.nuclear += landingZone.nuclear
                     landingZone.nuclear = 0
+                    landingZone.hitpoints = 100
                     player.buildings.append(landingZone)
                     player.selectedObjects = []
                     self.landed = True
