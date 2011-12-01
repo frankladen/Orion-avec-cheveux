@@ -734,7 +734,7 @@ class View():
             self.Actionmenu.create_image(13,35,image = self.gifTank, anchor = NW, tags = 'Button_Build_GroundAttack')
             self.Actionmenu.create_image(76,35,image = self.gifGroundGather, anchor = NW, tags = 'Button_Build_GroundGather')
             self.Actionmenu.create_image(140,35,image = self.gifGroundBuilder, anchor = NW, tags = 'Button_Build_GroundBuild')
-            self.Actionmenu.create_image(13,89,image = self.gifTank, anchor = NW, tags = 'Button_Build_Special')
+            self.Actionmenu.create_image(13,89,image = self.gifGroundSpecial, anchor = NW, tags = 'Button_Build_Special')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
             self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
         elif(type == self.WAITING_FOR_UNIT_TO_HEAL_MENU):
@@ -1895,6 +1895,9 @@ class View():
             elif (Button_pressed == "Button_Build_GroundGather"):
                 self.drawFirstLine=str(Unit.NAME[Unit.GROUND_GATHER])
                 self.drawSecondLine=str(Unit.BUILD_COST[Unit.GROUND_GATHER][0])+" mine | "+str(Unit.BUILD_COST[Unit.GROUND_GATHER][1])+" gaz"
+            elif (Button_pressed == "Button_Build_Special"):
+                self.drawFirstLine=str(Unit.NAME[Unit.SPECIAL_GATHER])
+                self.drawSecondLine=str(Unit.BUILD_COST[Unit.SPECIAL_GATHER][0])+" mine | "+str(Unit.BUILD_COST[Unit.SPECIAL_GATHER][1])+" gaz"
             elif (Button_pressed == "Button_Build_GroundBuild"):
                 self.drawFirstLine=str(Unit.NAME[Unit.GROUND_BUILDER_UNIT])
                 self.drawSecondLine=str(Unit.BUILD_COST[Unit.GROUND_BUILDER_UNIT][0])+" mine | "+str(Unit.BUILD_COST[Unit.GROUND_BUILDER_UNIT][1])+" gaz"
