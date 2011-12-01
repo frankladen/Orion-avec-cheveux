@@ -668,7 +668,7 @@ class Game():
                         break
             unit = self.players[self.playerId].getFirstUnit()
             if unit != None:
-                if clickedObj != None:
+                if clickedObj != None and not isinstance(unit, ConstructionBuilding):
                     if unit.type == unit.TRANSPORT:
                         if isinstance(clickedObj, w.Planet):
                             self.setLandingFlag(unit, clickedObj)

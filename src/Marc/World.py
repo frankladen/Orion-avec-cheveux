@@ -322,8 +322,8 @@ class Planet(Target):
                             posFound = False
                             break
             self.gaz.append(GazStack(nGaz, position, i, id, solarSystem.sunId))
-        nuclear = random.random()*3
-        if nuclear > 1:
+        nuclear = random.random()*6
+        if nuclear > 4:
             posFound = False
             while not posFound:
                 posFound = True

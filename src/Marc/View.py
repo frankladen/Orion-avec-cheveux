@@ -1700,6 +1700,7 @@ class View():
 
     def checkMotherShip(self, eve):
         self.game.players[self.game.playerId].currentPlanet = None
+        self.isSettingOff()
         cam = self.game.players[self.game.playerId].camera
         cam.position = [cam.defaultPos[0], cam.defaultPos[1]]
         self.game.players[self.game.playerId].selectedObjects = []
@@ -1712,6 +1713,7 @@ class View():
 
     def getOutPlanet(self, eve):
         if self.game.players[self.game.playerId].currentPlanet != None:
+            self.isSettingOff()
             planet = self.game.players[self.game.playerId].currentPlanet
             cam = self.game.players[self.game.playerId].camera
             cam.position = [planet.position[0], planet.position[1]]
@@ -1726,6 +1728,7 @@ class View():
     def lastPlanet(self, eve):
         player = self.game.players[self.game.playerId]
         if len(player.planets) > 0:
+            self.isSettingOff()
             if self.game.players[self.game.playerId].currentPlanet == None:
                 player.planetCurrent -= 1
                 if player.planetCurrent == -1:
@@ -1748,6 +1751,7 @@ class View():
     def nextPlanet(self, eve):
         player = self.game.players[self.game.playerId]
         if len(player.planets) > 0:
+            self.isSettingOff()
             if self.game.players[self.game.playerId].currentPlanet == None:
                 player.planetCurrent += 1
                 if player.planetCurrent == len(player.planets):
@@ -1766,6 +1770,15 @@ class View():
                 self.game.players[self.game.playerId].currentPlanet = planet
                 self.game.players[self.game.playerId].selectedObjects = []
                 self.actionMenuType = self.MAIN_MENU
+
+    def isSettingOff(self):
+        self.wantToCancelUnitBuild = False
+        self.isSettingPatrolPosition = False
+        self.isSettingRallyPointPosition = False
+        self.isSettingMovePosition = False
+        self.isSettingAttackPosition = False
+        self.isSettingBuildingPosition = False
+        self.isChosingUnitToHeal = False
 
     def clickMenuModes(self,eve):
         bp = (eve.widget.gettags(eve.widget.find_withtag('current')))
