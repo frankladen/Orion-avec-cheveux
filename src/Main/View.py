@@ -95,7 +95,8 @@ class View():
         self.gifGroundSpecial = PhotoImage(file='images/icones/iconeSpecial.gif')
         self.gifTurret = PhotoImage(file='images/icones/iconeTurret.gif')
         self.gifWaypoint = PhotoImage(file='images/icones/iconeWaypoint.gif')
-        self.gifAmbulance = PhotoImage(file='images/Ships/ambulance.gif')
+        self.ambulance = PhotoImage(file='images/Ships/ambulance.gif')
+        self.gifRepair = PhotoImage(file='images/icones/gifRepair.gif')
         self.gifupB = PhotoImage(file='images/icones/upB.gif')
         self.gifupM = PhotoImage(file='images/icones/upM.gif')
         self.gifupU = PhotoImage(file='images/icones/upU.gif')
@@ -479,6 +480,8 @@ class View():
                             self.menuModes.create_image(80+i*40,50, image = self.nuclear)
                     elif isinstance(unit, u.GroundBuilderUnit):
                         self.menuModes.create_image(20,50, image = self.gifGroundBuilder)
+                    elif isinstance(unit, u.HealingUnit):
+                        self.menuModes.create_image(20, 50, image = self.gifRepair)
                     else:
                         self.menuModes.create_image(20,50, image = self.gifUnit)
                     if unit.hitpoints != unit.maxHP:
@@ -631,7 +634,7 @@ class View():
                     elif isinstance(units[0], GroundBuilderUnit):
                         self.Actionmenu.create_image(13,89,image=self.gifBuild,anchor = NW, tags = 'Button_Ground_Buildings')
                     elif units[0].type == u.Unit.HEALING_UNIT:
-                        self.Actionmenu.create_image(13,89,image=self.gifTechTree,anchor = NW, tags = 'Button_Heal')
+                        self.Actionmenu.create_image(13,89,image=self.gifRepair,anchor = NW, tags = 'Button_Heal')
                 elif isinstance(units[0], b.LandingZone):
                     self.Actionmenu.create_image(13,35,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
                     self.Actionmenu.create_image(76,35,image = self.gifBuild, anchor = NW, tags = 'Button_BuildGroundUnit')
@@ -646,7 +649,7 @@ class View():
             self.Actionmenu.create_image(76,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Build_Attack')
             self.Actionmenu.create_image(140,35,image = self.gifCargo, anchor = NW, tags = 'Button_Build_Gather')
             self.Actionmenu.create_image(13,89,image = self.gifTransport, anchor = NW, tags = 'Button_Build_Transport')
-            self.Actionmenu.create_image(76,89,image = self.gifTransport, anchor = NW, tags = 'Button_Build_Healer')
+            self.Actionmenu.create_image(76,89,image = self.gifRepair, anchor = NW, tags = 'Button_Build_Healer')
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
             self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
@@ -1199,7 +1202,7 @@ class View():
                 elif unit.type == unit.HEALING_UNIT:
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
-                    self.gameArea.create_image(distance[0], distance[1], image = self.gifAmbulance, tag='deletable')
+                    self.gameArea.create_image(distance[0], distance[1], image = self.ambulance, tag='deletable')
                 if unit.hitpoints <= 15:
                     self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
                 if self.hpBars:
