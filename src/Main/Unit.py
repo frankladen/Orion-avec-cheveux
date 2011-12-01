@@ -19,7 +19,7 @@ class Unit(PlayerObject):
     GROUND_ATTACK = 8
     GROUND_BUILDER_UNIT = 9
     HEALING_UNIT = 10
-    NAME = ('Unité','Scout', "Vaisseau d'attaque", "Vaisseau de Transport", "Cargo", 'Unité terrestre', 'Unité de collecte', 'Unité spéciale', 'Unité d\'attaque', 'Unité de construction', 'Ambulance')
+    NAME = ('Unité','Scout', "Vaisseau d'attaque", "Vaisseau de Transport", "Cargo", 'Unité terrestre', 'Unité de collecte', 'Unité spéciale', 'Unité d\'attaque', 'Unité de construction', 'Drone de Réparation')
     MINERAL=0
     GAS=1
     FOOD=2
