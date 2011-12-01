@@ -647,13 +647,13 @@ class TransportShip(SpaceUnit):
                 self.move()
         if self.arrived:
             player = game.players[playerId]
-            player.currentPlanet = planet
             alreadyLanded = False
             for i in planet.landingZones:
                 if i.ownerId == playerId:
                     alreadyLanded = True
             if not alreadyLanded:
                 if len(planet.landingZones) < 4:
+                    player.currentPlanet = planet
                     landingZone = planet.addLandingZone(playerId, self, game.players[playerId])
                     self.nuclear += landingZone.nuclear
                     landingZone.nuclear = 0
@@ -675,12 +675,16 @@ class TransportShip(SpaceUnit):
                     del self.units[:]
                     if self in game.players[game.playerId].selectedObjects:
                         game.players[game.playerId].selectedObjects.pop(game.players[game.playerId].selectedObjects.index(self))
+                    if playerId == game.playerId:
+                        game.parent.changeBackground('PLANET')
+                        game.parent.drawPlanetGround(planet)
             else:
                 landingZone = None
                 for i in planet.landingZones:
                     if i.ownerId == playerId:
                         landingZone = i
                 if landingZone.LandedShip == None:
+                    player.currentPlanet = planet
                     self.nuclear += landingZone.nuclear
                     landingZone.nuclear = 0
                     landingZone.hitpoints = 100
@@ -697,10 +701,12 @@ class TransportShip(SpaceUnit):
                         i.land(planet, position)
                         x+=25
                     del self.units[:]
+                    if self in game.players[game.playerId].selectedObjects:
+                        game.players[game.playerId].selectedObjects.pop(game.players[game.playerId].selectedObjects.index(self))
                     landingZone.LandedShip = self
-            if playerId == game.playerId:
-                game.parent.changeBackground('PLANET')
-                game.parent.drawPlanetGround(planet)
+                    if playerId == game.playerId:
+                        game.parent.changeBackground('PLANET')
+                        game.parent.drawPlanetGround(planet)
             self.flag = Flag (self.position, self.position, FlagState.STANDBY)
         
     def takeOff(self, planet):
