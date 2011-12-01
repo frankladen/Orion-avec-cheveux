@@ -7,6 +7,8 @@ import Unit as u
 import Game as g
 from Helper import *
 from Flag import *
+import os
+import sys
 import Pyro4
 import socket
 import math
@@ -114,8 +116,18 @@ class Controller():
             self.view.colorAlreadyChosen()
 
     def startServer(self, serverAddress, connect, userName):
+        paths = sys.path
+        temp = None
+        for i in paths:
+            if i.find("\\lib\\") != -1:
+                temp = i.split("\\lib\\")[0]
+                break
+        if temp != None:
+            temp += "\\python.exe"
+        else:
+            temp= "C:\python32\python.exe"
         #Démarre le serveur dans un autre processus avec l'adresse spécifiée
-        child = subprocess.Popen("C:\python32\python.exe server.py " + serverAddress, shell=True)
+        child = subprocess.Popen(temp + " server.py " + serverAddress, shell=True)
         #On doit attendre un peu afin de laisser le temps au serveur de partir et de se terminer si une erreur arrive
         time.sleep(1)
         #On vérifie si le serveur s'est terminé en erreur et si oui, on affiche un message à l'utilisateur
@@ -125,16 +137,15 @@ class Controller():
             else:
                 print("Shnitzel pas managé lors de la création du serveur")
         else:
-            #self.serverCreated(serverAddress)
             #Si l'usager veut se connecter en créant le serveur, on le fait
             if connect:
-                self.connectServer(userName, "ServeurOrion")
+                self.connectServer(userName, serverAddress)
             else:
                 self.view.changeFrame(self.view.mainMenu)
        
 	#Connection au serveur			
     def connectServer(self, login, ns):
-        self.server=Pyro4.core.Proxy("PYRONAME:"+ns)
+        self.server=Pyro4.core.Proxy("PYRO:ServeurOrion@"+ns+":54400")
         #Je demande au serveur si la partie est démarrée, si oui on le refuse de la partie, cela permet de vérifier
         #en même temps si le serveur existe réellement à cette adresse.
         if self.server.isGameStarted() == True:
@@ -192,6 +203,8 @@ class Controller():
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             elif flag.flagState == FlagState.GROUND_MOVE:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
+            elif flag.flagState == FlagState.HEAL:
+                actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget.position)
             elif flag.flagState == FlagState.ATTACK:
                 if isinstance(flag.finalTarget, u.Unit):
                     targetId = self.game.players[flag.finalTarget.owner].units.index(flag.finalTarget)
@@ -253,11 +266,15 @@ class Controller():
             elif flag.flagState == FlagState.GROUND_GATHER:
                 sunId = flag.finalTarget.sunId
                 planetId = flag.finalTarget.planetId
-                ressourceId = flag.finalTarget.id
+                ressourceId = 0
+                if isinstance(flag.finalTarget, w.NuclearSite) == False:
+                    ressourceId = flag.finalTarget.id
                 if isinstance(flag.finalTarget, w.MineralStack):
                     actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(ressourceId) + "," + str(planetId) + "," + str(sunId) + "," + str(w.Planet.MINERAL)
                 elif isinstance(flag.finalTarget, w.GazStack):
                     actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(ressourceId) + "," + str(planetId) + "," + str(sunId) + "," + str(w.Planet.GAZ)
+                elif isinstance(flag.finalTarget, w.NuclearSite):
+                    actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(ressourceId) + "," + str(planetId) + "," + str(sunId) + "," + str(w.Planet.NUCLEAR)
                 else:
                     actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(ressourceId) + "," + str(planetId) + "," + str(sunId) + "," + str(w.Planet.LANDINGZONE)
         elif isinstance(flag, tuple):
@@ -395,6 +412,10 @@ class Controller():
             #target = le nouveau status de l'alliance entre les deux
             self.game.demandAlliance(actionPlayerId, int(unitIndex[0]), target)
             self.view.refreshAlliances()
+            
+        elif action == str(FlagState.HEAL):
+            target = self.changeToInt(self.stripAndSplit(target))
+            self.game.healUnitForReal(actionPlayerId, target, int(unitIndex[0]))
 
 
     def endGame(self):

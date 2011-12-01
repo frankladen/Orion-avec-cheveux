@@ -17,7 +17,7 @@ class Building(t.PlayerObject):
     NAME = ("Point ralliement", "Raffinerie", "Barraque", "Ferme", "Tourette", "Vaisseau mere", "Zone d'aterrissage")
     SIZE =((30,30),(0,0),(0,0),(75,59),(32,32),(125,125),(32,32))
     INSPACE = (True,False,False,False,True,True,False)
-    COST = ((50,50),(0,0),(0,0),(50,50),(50,50),(750,750),(0,0))
+    COST = ((50,50),(0,0),(0,0),(75,75),(250,200),(1000,1000),(0,0))
     TIME = (125,0,0,125,125,1250,0)
     MAX_HP = (150,0,0,200,200,1500,100)
     VIEW_RANGE=(200, 0, 0, 100, 250, 400, 200)
@@ -166,7 +166,7 @@ class GroundBuilding(Building):
                         return self
         return None
 
-class Farm(Building):
+class Farm(GroundBuilding):
     def __init__(self, type, position, owner, sunId, planetId):
         GroundBuilding.__init__(self, type, position, owner, sunId, planetId)
 
@@ -183,7 +183,7 @@ class ConstructionBuilding(Building):
         else:
             self.flag.flagState = FlagState.STANDBY
                
-    def addUnitToQueue(self, unitType):
+    def addUnitToQueue(self, unitType, galaxy=None):
         p = [self.position[0], self.position[1], 0]
         if unitType == u.Unit.SCOUT:
             self.unitBeingConstruct.append(u.Unit( u.Unit.SCOUT, p, self.owner))
@@ -193,13 +193,26 @@ class ConstructionBuilding(Building):
             self.unitBeingConstruct.append(u.GatherShip( u.Unit.CARGO, p, self.owner))
         elif unitType == u.Unit.TRANSPORT:
             self.unitBeingConstruct.append(u.TransportShip( u.Unit.TRANSPORT, p, self.owner))
+        elif unitType == u.Unit.HEALING_UNIT:
+            self.unitBeingConstruct.append(u.HealingUnit(u.Unit.HEALING_UNIT, p, self.owner))
         elif unitType == u.Unit.GROUND_GATHER:
-            self.unitBeingConstruct.append(u.GroundGatherUnit( u.Unit.GROUND_GATHER, p, self.owner, self.planetId, self.sunId,True))
+            un = u.GroundGatherUnit( u.Unit.GROUND_GATHER, p, self.owner, self.planetId, self.sunId,True)
+            un.planet = galaxy.solarSystemList[self.sunId].planets[self.planetId]
+            self.unitBeingConstruct.append(un)
         elif unitType == u.Unit.GROUND_ATTACK:
-            self.unitBeingConstruct.append(u.GroundAttackUnit( u.Unit.GROUND_ATTACK, p, self.owner, self.planetId, self.sunId,True))
+            un = u.GroundAttackUnit( u.Unit.GROUND_ATTACK, p, self.owner, self.planetId, self.sunId,True)
+            un.planet = galaxy.solarSystemList[self.sunId].planets[self.planetId]
+            self.unitBeingConstruct.append(un)
         elif unitType == u.Unit.GROUND_BUILDER_UNIT:
-            self.unitBeingConstruct.append(u.GroundBuilderUnit( u.Unit.GROUND_BUILDER_UNIT, p, self.owner, self.planetId, self.sunId,True))
-
+            un = u.GroundBuilderUnit( u.Unit.GROUND_BUILDER_UNIT, p, self.owner, self.planetId, self.sunId,True)
+            un.planet = galaxy.solarSystemList[self.sunId].planets[self.planetId]
+            self.unitBeingConstruct.append(un)
+        elif unitType == u.Unit.SPECIAL_GATHER:
+            un = u.SpecialGather( u.Unit.SPECIAL_GATHER, p, self.owner, self.planetId, self.sunId,True)
+            un.planet = galaxy.solarSystemList[self.sunId].planets[self.planetId]
+            self.unitBeingConstruct.append(un)
+        
+                                           
     def getUnitBeingConstructAt(self, unitId):
         return self.unitBeingConstruct[unitId]
     
@@ -240,7 +253,7 @@ class Mothership(ConstructionBuilding):
         self.AttackSpeed=self.ATTACK_SPEED
         self.AttackDamage=self.ATTACK_DAMAGE
         self.attackcount=self.AttackSpeed
-        self.armor = self.MAX_ARMOR
+        self.armor = 0
         self.killCount = 0
 
     def action(self, parent):
@@ -336,6 +349,7 @@ class LandingZone(ConstructionBuilding,GroundBuilding):
         self.sunId = sunId
         self.finished = True
         self.planet = None
+        self.nuclear = 0
 
     def over(self, positionStart, positionEnd):
         if positionEnd[0] > self.position[0] - self.WIDTH/2 and positionStart[0] < self.position[0] + self.WIDTH/2:
