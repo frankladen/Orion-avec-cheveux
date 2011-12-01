@@ -95,7 +95,6 @@ class View():
         self.gifGroundSpecial = PhotoImage(file='images/icones/iconeSpecial.gif')
         self.gifTurret = PhotoImage(file='images/icones/iconeTurret.gif')
         self.gifWaypoint = PhotoImage(file='images/icones/iconeWaypoint.gif')
-        self.ambulance = PhotoImage(file='images/Ships/ambulance.gif')
         self.gifRepair = PhotoImage(file='images/icones/gifRepair.gif')
         self.gifupB = PhotoImage(file='images/icones/upB.gif')
         self.gifupM = PhotoImage(file='images/icones/upM.gif')
@@ -157,6 +156,7 @@ class View():
         self.farms = []
         self.groundBuilders = []
         self.specialGathers = []
+        self.drones = []
         for i in range(0,8):
             self.scoutShips.append(PhotoImage(file='images/Ships/Scoutships/Scoutship'+str(i)+'.gif'))
             self.attackShips.append(PhotoImage(file='images/Ships/Attackships/Attackship'+str(i)+'.gif'))
@@ -172,6 +172,7 @@ class View():
             self.farms.append(PhotoImage(file='images/Building/Farms/farm'+str(i)+'.gif'))
             self.groundBuilders.append(PhotoImage(file='images/Planet/Special/special'+str(i)+'.gif'))
             self.specialGathers.append(PhotoImage(file='images/Planet/Robot/robot'+str(i)+'.gif'))
+            self.drones.append(PhotoImage(file='images/Ships/Drones/drone'+str(i)+'.gif'))
         self.ressourcesFrame = LabelFrame(gameFrame, text="Ressources", width=600, bg="black", fg="white", relief=RAISED)
         self.showMinerals = Label(self.ressourcesFrame, text="Minéraux: "+str(self.game.players[self.game.playerId].ressources[0]), width=20, bg="black", fg="white", anchor=NW)
         self.showMinerals.grid(column=0, row=0)
@@ -1202,7 +1203,7 @@ class View():
                 elif unit.type == unit.HEALING_UNIT:
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
-                    self.gameArea.create_image(distance[0], distance[1], image = self.ambulance, tag='deletable')
+                    self.gameArea.create_image(distance[0], distance[1], image = self.drones[player.colorId], tag='deletable')
                 if unit.hitpoints <= 15:
                     self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
                 if self.hpBars:
