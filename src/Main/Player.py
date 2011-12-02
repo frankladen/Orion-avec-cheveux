@@ -238,7 +238,7 @@ class Player():
                         else:
                             return True
         for i in self.buildings:
-            if i.isAlive and i.finished and not isinstance(i, b.GroundBuilding):
+            if i.isAlive and i.finished and not isinstance(i, b.GroundBuilding) and not isinstance(i, b.LandingZone):
                 if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
                     if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
                         return True
