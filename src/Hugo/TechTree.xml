@@ -12,6 +12,7 @@
 				<Add>2</Add>
 				<CostMine>450</CostMine>
 				<CostGaz>500</CostGaz>
+				<CostNuclear>1</CostNuclear>
 			</Upgrade>
 		</Tech>
 		<Tech>
@@ -26,12 +27,14 @@
 				<Add>2</Add>
 				<CostMine>450</CostMine>
 				<CostGaz>500</CostGaz>
+				<CostNuclear>1</CostNuclear>
 				<Upgrade>
 					<Name>+3 Annee lumiere/l'heure</Name>
 					<Effect>S</Effect>
 					<Add>3</Add>
 					<CostMine>750</CostMine>
 					<CostGaz>600</CostGaz>
+					<CostNuclear>2</CostNuclear>
 				</Upgrade>
 			</Upgrade>
 		</Tech>
@@ -41,6 +44,7 @@
 			<Add>2</Add>
 			<CostMine>400</CostMine>
 			<CostGaz>350</CostGaz>
+			<CostNuclear>1</CostNuclear>
 		</Tech>
 		<Tech>
 			<Name>+25 Vision d'attaque</Name>
@@ -54,6 +58,7 @@
 				<Add>50</Add>
 				<CostMine>750</CostMine>
 				<CostGaz>600</CostGaz>
+				<CostNuclear>1</CostNuclear>
 			</Upgrade>
 		</Tech>
 		<Tech>
@@ -62,22 +67,25 @@
 			<Add>25</Add>
 			<CostMine>375</CostMine>
 			<CostGaz>390</CostGaz>
+			<CostNuclear>1</CostNuclear>
 			<Upgrade>
 				<Name>+50 Vision</Name>
 				<Effect>VR</Effect>
 				<Add>50</Add>
 				<CostMine>750</CostMine>
 				<CostGaz>600</CostGaz>
+				<CostNuclear>2</CostNuclear>
 			</Upgrade>
 		</Tech>
 	</Units>
 	<Buildings>
 		<Tech>
 			<Name>Bouclier</Name>
-			<Effect>B</Effect>
+			<Effect>BB</Effect>
 			<Add>300</Add>
 			<CostMine>1200</CostMine>
 			<CostGaz>1200</CostGaz>
+			<CostNuclear>1</CostNuclear>
 		</Tech>
 	</Buildings>
 	<Mothership>
@@ -93,14 +101,16 @@
 				<Add>2</Add>
 				<CostMine>450</CostMine>
 				<CostGaz>500</CostGaz>
+				<CostNuclear>1</CostNuclear>
 			</Upgrade>
 		</Tech>
 		<Tech>
 			<Name>Bouclier</Name>
-			<Effect>B</Effect>
-			<Add>300</Add>
+			<Effect>BM</Effect>
+			<Add>500</Add>
 			<CostMine>1200</CostMine>
 			<CostGaz>1200</CostGaz>
+			<CostNuclear>2</CostNuclear>
 		</Tech>
 	</Mothership>
 	

@@ -95,7 +95,7 @@ class View():
         self.gifGroundSpecial = PhotoImage(file='images/icones/iconeSpecial.gif')
         self.gifTurret = PhotoImage(file='images/icones/iconeTurret.gif')
         self.gifWaypoint = PhotoImage(file='images/icones/iconeWaypoint.gif')
-        self.ambulance = PhotoImage(file='images/Ships/ambulance.gif')
+        self.gifRally = PhotoImage(file='images/galaxy/rallyFlag.gif')
         self.gifRepair = PhotoImage(file='images/icones/gifRepair.gif')
         self.gifupB = PhotoImage(file='images/icones/upB.gif')
         self.gifupM = PhotoImage(file='images/icones/upM.gif')
@@ -157,6 +157,7 @@ class View():
         self.farms = []
         self.groundBuilders = []
         self.specialGathers = []
+        self.drones = []
         for i in range(0,8):
             self.scoutShips.append(PhotoImage(file='images/Ships/Scoutships/Scoutship'+str(i)+'.gif'))
             self.attackShips.append(PhotoImage(file='images/Ships/Attackships/Attackship'+str(i)+'.gif'))
@@ -172,6 +173,7 @@ class View():
             self.farms.append(PhotoImage(file='images/Building/Farms/farm'+str(i)+'.gif'))
             self.groundBuilders.append(PhotoImage(file='images/Planet/Special/special'+str(i)+'.gif'))
             self.specialGathers.append(PhotoImage(file='images/Planet/Robot/robot'+str(i)+'.gif'))
+            self.drones.append(PhotoImage(file='images/Ships/Drones/drone'+str(i)+'.gif'))
         self.ressourcesFrame = LabelFrame(gameFrame, text="Ressources", width=600, bg="black", fg="white", relief=RAISED)
         self.showMinerals = Label(self.ressourcesFrame, text="Minéraux: "+str(self.game.players[self.game.playerId].ressources[0]), width=20, bg="black", fg="white", anchor=NW)
         self.showMinerals.grid(column=0, row=0)
@@ -404,7 +406,8 @@ class View():
                         self.menuModes.create_image(x, y, image = self.gifTank, tags = ('selected_unit',unitList.index(i)), anchor = NW)
                     elif isinstance(i, u.GroundBuilderUnit):
                         self.menuModes.create_image(x, y, image = self.gifGroundBuilder, tags = ('selected_unit',unitList.index(i)), anchor = NW)
-                        
+                    elif isinstance(i, u.HealingUnit):
+                        self.menuModes.create_image(x, y, image = self.gifRepair,tags = ('selected_all_units',unitList.index(i)), anchor = NW) 
                     elif isinstance(i, u.Unit):
                         self.menuModes.create_image(x,y, image = self.gifUnit, tags = ('selected_unit',unitList.index(i)), anchor = NW)     
                     self.menuModes.create_rectangle(x,y+46,x + (i.hitpoints/i.maxHP) * 52,y+51, fill = 'green')
@@ -413,36 +416,43 @@ class View():
                                
                     #Ca sert à créer une nouvelle ligne lorsque le nombre de units selectionné le requiert
                     x += 52
-                    if x > 600:
+                    if x > 500:
                         x = 0
                         y+= 51
                 
                 y = 0
+                ctr = 0
+                x=800
                 for i in range(0,len(countList)):
                     if countList[i] > 0:
+                        ctr+=1
+                        if ctr > 4:
+                            x = 680
 
-                        self.menuModes.create_text(700,y + 20,text= str(countList[i]) +'X' ,fill='white')
+                        self.menuModes.create_text(x-100,y + 20,text= str(countList[i]) +'X' ,fill='white')
 
                         if i == Unit.SCOUT:
-                            self.menuModes.create_image(800,y, anchor = NE, image = self.gifUnit,tags = ('selected_all_units',i))            
+                            self.menuModes.create_image(x,y, anchor = NE, image = self.gifUnit,tags = ('selected_all_units',i))            
                         elif i == Unit.CARGO: 
-                            self.menuModes.create_image(800,y,anchor = NE, image = self.gifCargo,tags = ('selected_all_units',i))
+                            self.menuModes.create_image(x,y,anchor = NE, image = self.gifCargo,tags = ('selected_all_units',i))
                         elif i == Unit.TRANSPORT: 
-                            self.menuModes.create_image(800,y,anchor = NE, image = self.gifTransport,tags = ('selected_all_units',i))                                
+                            self.menuModes.create_image(x,y,anchor = NE, image = self.gifTransport,tags = ('selected_all_units',i))                                
                         elif i == Unit.ATTACK_SHIP: 
-                            self.menuModes.create_image(800,y, anchor = NE,image = self.gifAttackUnit,tags = ('selected_all_units',i))
+                            self.menuModes.create_image(x,y, anchor = NE,image = self.gifAttackUnit,tags = ('selected_all_units',i))
                         elif i == Unit.SPECIAL_GATHER:
-                            self.menuModes.create_image(800,y, anchor = NE,image = self.gifGroundSpecial,tags = ('selected_all_units',i))
+                            self.menuModes.create_image(x,y, anchor = NE,image = self.gifGroundSpecial,tags = ('selected_all_units',i))
                         elif i == Unit.GROUND_GATHER:
-                            self.menuModes.create_image(800,y, anchor = NE,image = self.gifGroundGather,tags = ('selected_all_units',i))
+                            self.menuModes.create_image(x,y, anchor = NE,image = self.gifGroundGather,tags = ('selected_all_units',i))
                         elif i == Unit.GROUND_ATTACK:
-                            self.menuModes.create_image(800,y, anchor = NE,image = self.gifTank,tags = ('selected_all_units',i))
+                            self.menuModes.create_image(x,y, anchor = NE,image = self.gifTank,tags = ('selected_all_units',i))
                         elif i == Unit.GROUND_BUILDER_UNIT:
-                            self.menuModes.create_image(800,y, anchor = NE,image = self.gifGroundBuilder,tags = ('selected_all_units',i))
+                            self.menuModes.create_image(x,y, anchor = NE,image = self.gifGroundBuilder,tags = ('selected_all_units',i))
+                        elif i == Unit.HEALING_UNIT:
+                            self.menuModes.create_image(x,y, anchor = NE,image = self.gifRepair,tags = ('selected_all_units',i))
                         elif i == Unit.DEFAULT:
-                            self.menuModes.create_image(800,y, anchor = NE, image = self.gifUnit,tags = ('selected_all_units',i))
+                            self.menuModes.create_image(x,y, anchor = NE, image = self.gifUnit,tags = ('selected_all_units',i))
 
-                        y+=46
+                        y = (ctr%4) * 46
 
     def showInfo(self, unit):
         if isinstance(unit, Unit) or isinstance(unit, b.Building):
@@ -478,6 +488,9 @@ class View():
                         self.menuModes.create_image(20,50, image = self.gifTransport)
                         for i in range(0, unit.nuclear):
                             self.menuModes.create_image(80+i*40,50, image = self.nuclear)
+                        self.menuModes.create_text(20,160, text = "Capacité : " + str(len(unit.units))+"/"+str(unit.capacity),anchor = NW, fill = 'white')
+                    elif isinstance(unit, u.HealingUnit):
+                        self.menuModes.create_text(20,160, text = "Vitesse de réparation : " + str(unit.HEALING_POWER) + "hp/seconde", anchor = NW, fill = 'white')
                     elif isinstance(unit, u.GroundBuilderUnit):
                         self.menuModes.create_image(20,50, image = self.gifGroundBuilder)
                     elif isinstance(unit, u.HealingUnit):
@@ -734,12 +747,12 @@ class View():
             self.Actionmenu.create_image(13,35,image = self.gifTank, anchor = NW, tags = 'Button_Build_GroundAttack')
             self.Actionmenu.create_image(76,35,image = self.gifGroundGather, anchor = NW, tags = 'Button_Build_GroundGather')
             self.Actionmenu.create_image(140,35,image = self.gifGroundBuilder, anchor = NW, tags = 'Button_Build_GroundBuild')
-            self.Actionmenu.create_image(13,89,image = self.gifTank, anchor = NW, tags = 'Button_Build_Special')
+            self.Actionmenu.create_image(13,89,image = self.gifGroundSpecial, anchor = NW, tags = 'Button_Build_Special')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
             self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
         elif(type == self.WAITING_FOR_UNIT_TO_HEAL_MENU):
-            self.Actionmenu.create_text(5,5,text = "Sélectionné le ou les unités à soigner",anchor = NW, fill = 'white', width = 200)
-
+            self.Actionmenu.create_text(5,5,text = "Sélectionnez le ou les unités à soigner",anchor = NW, fill = 'white', width = 200)
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
 
     def createUnitsConstructionMenu(self, unit):
         y = 35;
@@ -986,6 +999,9 @@ class View():
         distance = self.game.players[self.game.playerId].camera.calcDistance(building.position)
         if building in self.game.players[self.game.playerId].selectedObjects:
             self.gameArea.create_rectangle(distance[0]-(building.SIZE[building.type][0]/2+3), distance[1]-(building.SIZE[building.type][1]/2+3), distance[0]+(building.SIZE[building.type][0]/2+3),distance[1]+(building.SIZE[building.type][1]/2+3),outline='green', tag='deletable')
+            if isinstance(building, b.LandingZone):
+                rallyView = self.game.players[self.game.playerId].camera.calcDistance(building.rallyPoint)
+                self.gameArea.create_image(rallyView[0],rallyView[1], image = self.gifRally, tag='deletable')
         if isinstance(building, b.Farm):
             if building.finished == True:
                 self.gameArea.create_image(distance[0], distance[1], image=self.farms[color], tag='deletable')
@@ -1054,11 +1070,11 @@ class View():
         for i in players:
             if i.isAlive:
                 for j in i.buildings:
-                    if j.isAlive:
+                    if j.isAlive and not isinstance(j, b.GroundBuilding):
                         if self.game.players[self.game.playerId].inViewRange(j.position):
                             self.drawBuilding(j,i,False)
                 for j in i.units:
-                    if j.isAlive:
+                    if j.isAlive and not isinstance(j, GroundUnit):
                         if self.game.players[self.game.playerId].inViewRange(j.position):
                             self.drawUnit(j, i, False)
         if self.dragging:
@@ -1142,6 +1158,8 @@ class View():
                     elif building.type == b.Building.MOTHERSHIP:
                         if building in player.selectedObjects:
                             self.gameArea.create_oval(distance[0]-(building.SIZE[building.type][0]/2+3),distance[1]-(building.SIZE[building.type][1]/2+3),distance[0]+(building.SIZE[building.type][0]/2+3),distance[1]+(building.SIZE[building.type][1]/2+3), outline="green", tag='deletable')
+                            rallyView = self.game.players[self.game.playerId].camera.calcDistance(building.rallyPoint)
+                            self.gameArea.create_image(rallyView[0],rallyView[1], image = self.gifRally, tag='deletable')
                         self.gameArea.create_image(distance[0], distance[1], image = self.motherShips[player.colorId], tag='deletable')
                         if building.attackcount <= 5:
                             d2 = self.game.players[self.game.playerId].camera.calcDistance(building.flag.finalTarget.position)
@@ -1202,7 +1220,7 @@ class View():
                 elif unit.type == unit.HEALING_UNIT:
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
-                    self.gameArea.create_image(distance[0], distance[1], image = self.ambulance, tag='deletable')
+                    self.gameArea.create_image(distance[0], distance[1], image = self.drones[player.colorId], tag='deletable')
                 if unit.hitpoints <= 15:
                     self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
                 if self.hpBars:
@@ -1616,7 +1634,7 @@ class View():
                 self.actionMenuType = self.MAIN_MENU
                 
             elif self.isChosingUnitToHeal :
-                self.game.setActionHealUnit(pos)
+                self.game.selectUnitToHeal(pos)
                 self.isChosingUnitToHeal = False
                 self.actionMenuType = self.MAIN_MENU
                     
@@ -1703,26 +1721,85 @@ class View():
 
     def checkMotherShip(self, eve):
         self.game.players[self.game.playerId].currentPlanet = None
+        self.isSettingOff()
         cam = self.game.players[self.game.playerId].camera
         cam.position = [cam.defaultPos[0], cam.defaultPos[1]]
         self.game.players[self.game.playerId].selectedObjects = []
         self.game.players[self.game.playerId].selectedObjects.append(self.game.players[self.game.playerId].motherShip)
         self.changeBackground('GALAXY')
+        self.actionMenuType = self.MAIN_MENU
         self.drawWorld()
         self.redrawMinimap()
         self.ongletSelectedUnit()
 
     def getOutPlanet(self, eve):
         if self.game.players[self.game.playerId].currentPlanet != None:
+            self.isSettingOff()
             planet = self.game.players[self.game.playerId].currentPlanet
             cam = self.game.players[self.game.playerId].camera
             cam.position = [planet.position[0], planet.position[1]]
             planet = self.game.players[self.game.playerId].currentPlanet = None
             self.game.players[self.game.playerId].selectedObjects = []
+            self.actionMenuType = self.MAIN_MENU
             self.changeBackground('GALAXY')
             self.drawWorld()
             self.redrawMinimap()
             self.ongletSelectedUnit()
+
+    def lastPlanet(self, eve):
+        player = self.game.players[self.game.playerId]
+        if len(player.planets) > 0:
+            self.isSettingOff()
+            if self.game.players[self.game.playerId].currentPlanet == None:
+                player.planetCurrent -= 1
+                if player.planetCurrent == -1:
+                    player.planetCurrent = len(player.planets)-1
+                planet = player.planets[player.planetCurrent]
+                player.camera.position = [planet.position[0],planet.position[1]]
+            else:
+                player.planetCurrent -= 1
+                if player.planetCurrent == -1:
+                    player.planetCurrent = len(player.planets)-1
+                planet = player.planets[player.planetCurrent]
+                for i in planet.landingZones:
+                    if i.ownerId == player.id:
+                        landingZone = i
+                player.camera.placeOnLanding(landingZone)
+                self.game.players[self.game.playerId].currentPlanet = planet
+                self.game.players[self.game.playerId].selectedObjects = []
+                self.actionMenuType = self.MAIN_MENU
+
+    def nextPlanet(self, eve):
+        player = self.game.players[self.game.playerId]
+        if len(player.planets) > 0:
+            self.isSettingOff()
+            if self.game.players[self.game.playerId].currentPlanet == None:
+                player.planetCurrent += 1
+                if player.planetCurrent == len(player.planets):
+                    player.planetCurrent = 0
+                planet = player.planets[player.planetCurrent]
+                player.camera.position = [planet.position[0],planet.position[1]]
+            else:
+                player.planetCurrent += 1
+                if player.planetCurrent == len(player.planets):
+                    player.planetCurrent = 0
+                planet = player.planets[player.planetCurrent]
+                for i in planet.landingZones:
+                    if i.ownerId == player.id:
+                        landingZone = i
+                player.camera.placeOnLanding(landingZone)
+                self.game.players[self.game.playerId].currentPlanet = planet
+                self.game.players[self.game.playerId].selectedObjects = []
+                self.actionMenuType = self.MAIN_MENU
+
+    def isSettingOff(self):
+        self.wantToCancelUnitBuild = False
+        self.isSettingPatrolPosition = False
+        self.isSettingRallyPointPosition = False
+        self.isSettingMovePosition = False
+        self.isSettingAttackPosition = False
+        self.isSettingBuildingPosition = False
+        self.isChosingUnitToHeal = False
 
     def clickMenuModes(self,eve):
         bp = (eve.widget.gettags(eve.widget.find_withtag('current')))
@@ -1764,6 +1841,7 @@ class View():
                 if i.ownerId == self.game.playerId and i.LandedShip != None:
                     if i in self.game.players[self.game.playerId].selectedObjects:
                         self.game.setTakeOffFlag(i.LandedShip, planet)
+                        self.actionMenuType = self.MAIN_MENU
 
     def unload(self, eve):
         self.game.unload()
@@ -1829,6 +1907,7 @@ class View():
                 self.isSettingMovePosition = False
                 self.isSettingAttackPosition = False
                 self.isSettingBuildingPosition = False
+                self.isChosingUnitToHeal = False
             elif (Button_pressed == "Button_Build_Scout"):
                 self.game.addUnit(Unit.SCOUT)
             elif (Button_pressed == "Button_Build_Attack"):
@@ -1895,6 +1974,9 @@ class View():
             elif (Button_pressed == "Button_Build_GroundGather"):
                 self.drawFirstLine=str(Unit.NAME[Unit.GROUND_GATHER])
                 self.drawSecondLine=str(Unit.BUILD_COST[Unit.GROUND_GATHER][0])+" mine | "+str(Unit.BUILD_COST[Unit.GROUND_GATHER][1])+" gaz"
+            elif (Button_pressed == "Button_Build_Special"):
+                self.drawFirstLine=str(Unit.NAME[Unit.SPECIAL_GATHER])
+                self.drawSecondLine=str(Unit.BUILD_COST[Unit.SPECIAL_GATHER][0])+" mine | "+str(Unit.BUILD_COST[Unit.SPECIAL_GATHER][1])+" gaz"
             elif (Button_pressed == "Button_Build_GroundBuild"):
                 self.drawFirstLine=str(Unit.NAME[Unit.GROUND_BUILDER_UNIT])
                 self.drawSecondLine=str(Unit.BUILD_COST[Unit.GROUND_BUILDER_UNIT][0])+" mine | "+str(Unit.BUILD_COST[Unit.GROUND_BUILDER_UNIT][1])+" gaz"
@@ -1987,6 +2069,8 @@ class View():
         self.gameArea.bind("<KeyRelease-c>", self.unSelectAll)
         self.gameArea.bind("1", self.checkMotherShip)
         self.gameArea.bind("2", self.getOutPlanet)
+        self.gameArea.bind("3", self.lastPlanet)
+        self.gameArea.bind("4", self.nextPlanet)
         self.gameArea.bind("<Control_L>",self.ctrlPressed)
         self.gameArea.bind("<KeyRelease-Control_L>",self.ctrlDepressed)
         self.gameArea.bind("<Tab>",self.enterChat)

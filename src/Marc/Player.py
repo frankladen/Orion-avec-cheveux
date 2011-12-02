@@ -32,6 +32,8 @@ class Player():
         self.units = [] #Liste de toute les unites
         self.buildings = [] #Liste de tous les buildings
         self.notifications = [] #Liste de toutes les notifications
+        self.planets = [] #Liste des planètes que nous avons atterit
+        self.planetCurrent = 0
         self.id = id #Numero du joueur dans la liste de joueur
         self.diplomacies=[]
         for i in range(8):
@@ -44,7 +46,26 @@ class Player():
         self.ressources = [500,500,2,0]
         self.isAlive = True
         self.camera = None
-        
+        self.actionHealUnit = None
+    
+    def setSelectedHealUnitIndex(self):
+        if self.selectedObjects[0].type == u.Unit.HEALING_UNIT:
+            return  self.units.index(self.selectedObjects[0])
+        return None
+
+    def selectUnitToHeal(self, position):
+        for i in self.units:
+            if not isinstance(i, u.GroundUnit):
+                unit = i.select(position)
+                if unit != None:
+                    return (self.units.index(unit), 0)
+        for i in self.buildings:
+            if not isinstance(i, b.GroundBuilding):
+                building = i.select(position)
+                if building != None:
+                    return (self.buildings.index(building), 1)
+        return None
+    
     def getSelectedBuildingIndex(self):
         return self.buildings.index(self.selectedObjects[0])
     
@@ -69,6 +90,7 @@ class Player():
         self.motherShip.finished = True
         self.motherShip.buildingTimer = b.Building.TIME[b.Building.MOTHERSHIP]
         self.motherShip.hitpoints = self.motherShip.maxHP
+        self.motherShip.armor = self.motherShip.MAX_ARMOR
         self.units.append(u.Unit(u.Unit.SCOUT,[startPos[0] + 20, startPos[1] + 20 ,0], self.id))
         self.units.append(u.GatherShip(u.Unit.CARGO,[startPos[0] + 40, startPos[1]+40], self.id))
         
@@ -215,7 +237,7 @@ class Player():
                         else:
                             return True
         for i in self.buildings:
-            if i.isAlive and i.finished:
+            if i.isAlive and i.finished and not isinstance(i, b.GroundBuilding):
                 if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
                     if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
                         return True
@@ -335,8 +357,11 @@ class Player():
         unit.applyBonuses(self.BONUS)
         if unit.type == u.Unit.TRANSPORT:
             pilot = u.GroundGatherUnit(u.Unit.GROUND_GATHER, [-10000,-10000,-10000], self.id, -1, -1)
+            robot = u.SpecialGather(u.Unit.SPECIAL_GATHER, [-10000,-10000,-10000], self.id, -1, -1)
             unit.units.append(pilot)
             self.units.append(pilot)
+            unit.units.append(robot)
+            self.units.append(robot)
         unit.changeFlag(t.Target(constructionUnit.rallyPoint), FlagState.MOVE)
         self.units.append(unit)
         
@@ -370,7 +395,7 @@ class Player():
 
     def createUnit(self, unitType, constructionBuilding):
         if self.ressources[self.MINERAL] >= u.Unit.BUILD_COST[unitType][u.Unit.MINERAL] and self.ressources[self.GAS] >= u.Unit.BUILD_COST[unitType][u.Unit.GAS]:
-            self.buildings[constructionBuilding].addUnitToQueue(unitType)
+            self.buildings[constructionBuilding].addUnitToQueue(unitType, self.game.galaxy)
             self.ressources[self.MINERAL] -= u.Unit.BUILD_COST[unitType][u.Unit.MINERAL]
             self.ressources[self.GAS] -= u.Unit.BUILD_COST[unitType][u.Unit.GAS]
             self.ressources[self.FOOD] += u.Unit.BUILD_COST[unitType][u.Unit.FOOD]
@@ -464,14 +489,17 @@ class Player():
                         #Si le Unit n'a pas trouvé sa place, on avance d'une ligne
                         if goodPlace==False:
                             line+=1
-                            if (len(lineTaken)-1)<line:
-                                numberOfSpaces=1+line
-                                thatLine=[]
-                                for a in range(0,numberOfSpaces):
-                                    thatLine.append(False)
-                                lineTaken.append(thatLine)
                     #Lorsqu'il a trouvé sa place, on le fait bouger vers sa nouvelle target
-                    self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
+                    try:
+                        self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
+                    except:
+                        print("carre")
+                        print(target[0])
+                        print(target[1])
+                        print(action)
+                        print(len(units))
+                        print(units[len(units)-1])
+                        print(units[i])
             #Formation en triangle, FUCK YEAH
             elif self.formation == "triangle":
                 #tuple qui contient le nombre de Unit par ligne
@@ -522,7 +550,16 @@ class Player():
                                     thatLine.append(False)
                                 lineTaken.append(thatLine)
                     #Lorsqu'il a trouvé sa place, on le fait bouger à sa nouvelle Target  
-                    self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
+                    try:
+                        self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
+                    except:
+                        print("triangle")
+                        print(target[0])
+                        print(target[1])
+                        print(action)
+                        print(len(units))
+                        print(units[len(units)-1])
+                        print(units[i])
         
 #Represente la camera            
 class Camera():

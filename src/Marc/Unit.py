@@ -18,19 +18,20 @@ class Unit(PlayerObject):
     SPECIAL_GATHER = 7
     GROUND_ATTACK = 8
     GROUND_BUILDER_UNIT = 9
-    NAME = ('Unité','Scout', "Vaisseau d'attaque", "Vaisseau de Transport", "Cargo", 'Unité terrestre', 'Unité de collecte', '', 'Unité d\'attaque', 'Unité de construction')
+    HEALING_UNIT = 10
+    NAME = ('Unité','Scout', "Vaisseau d'attaque", "Vaisseau de Transport", "Cargo", 'Unité terrestre', 'Unité de collecte', 'Unité spéciale', 'Unité d\'attaque', 'Unité de construction', 'Ambulance')
     MINERAL=0
     GAS=1
     FOOD=2
-    SIZE=((0,0),  (18,15), (28,32), (32,29), (20,30),(24,24),(23,37), (0,0), (36,33),(20,20))
-    MAX_HP = (50, 50, 100,125, 75, 100, 100, 100, 100,100)
-    MOVE_SPEED=(1.0,  4.0, 2.0, 3.0, 3.0, 5.0, 5.0, 3.0, 3.5, 4.0)
-    ATTACK_SPEED=(0,0,10,0,0,0,0,0,15,0)
-    ATTACK_DAMAGE=(0,0,5,0,0,0,0,0,12,0)
-    ATTACK_RANGE=(0,0,150,0,0,0,0,0,150,0)
-    BUILD_TIME=(300,  200, 400, 300, 250, 200, 200, 200, 200, 200)
-    BUILD_COST=((50,50,1),  (50,0,1), (150,100,1), (75,20,2), (50,10,1), (50,10,1),(50,10,1), (50,15,1), (60,60,1), (30,25,1))
-    VIEW_RANGE=(150,  200, 150, 175, 175,200, 200, 200, 200, 200)
+    SIZE=((0,0),  (18,15), (28,32), (32,29), (20,30), (24,24), (23,37), (32,32), (36,33), (20,20), (40,28))
+    MAX_HP = (50, 50, 100,125, 75, 100, 100, 100, 100,100, 100)
+    MOVE_SPEED=(1.0,  4.0, 2.0, 3.0, 3.0, 5.0, 5.0, 3.0, 3.5, 4.0, 3.0)
+    ATTACK_SPEED=(0,0,10,0,0,0,0,0,15,0,0)
+    ATTACK_DAMAGE=(0,0,5,0,0,0,0,0,12,0,0)
+    ATTACK_RANGE=(0,0,150,0,0,0,0,0,150,0,0)
+    BUILD_TIME=(300,  200, 400, 300, 250, 200, 200, 200, 200, 200,200)
+    BUILD_COST=((50,50,1),  (50,0,1), (150,100,1), (75,20,2), (50,10,1), (50,10,1),(50,10,1), (50,15,1), (60,60,1), (30,25,1),(75,50,1))
+    VIEW_RANGE=(150,  200, 150, 175, 175,200, 200, 200, 200, 200, 200)
     
     def __init__(self, type, position, owner):
         PlayerObject.__init__(self, type, position, owner)
@@ -249,6 +250,8 @@ class GroundGatherUnit(GroundUnit):
     def action(self, parent):
         if self.flag.flagState == FlagState.GROUND_GATHER:
             self.gather(parent, parent.game)
+        elif self.flag.flagState == FlagState.LOAD:
+            self.load(parent, parent.game)
         else:
             GroundUnit.action(self, parent)
 
@@ -315,7 +318,142 @@ class GroundGatherUnit(GroundUnit):
                 else:
                     self.flag.finalTarget = self.position
                     self.flag.flagState = FlagState.STANDBY
- 
+					
+    def load(self, player, game):
+        landingZone = self.flag.finalTarget
+        planet = game.galaxy.solarSystemList[landingZone.sunId].planets[landingZone.planetId]
+        arrived = True
+        if self.position[0] < landingZone.position[0] or self.position[0] > landingZone.position[0]:
+            if self.position[1] < landingZone.position[1] or self.position[1] > landingZone.position[1]:
+                arrived = False
+                self.move()
+        if arrived and landingZone.LandedShip != None:
+            player.ressources[player.MINERAL] += self.container[player.MINERAL]
+            player.ressources[player.GAS] += self.container[player.GAS]
+            self.container[player.MINERAL] = 0
+            self.container[player.GAS] = 0
+            self.planet = None
+            self.position = [-100000, -100000]
+            self.planetId = -1
+            self.sunId = -1
+            planet.units.pop(planet.units.index(self))
+            landingZone.LandedShip.units.append(self)
+            if self in player.selectedObjects:
+                player.selectedObjects.pop(player.selectedObjects.index(self))
+            self.flag.flagState = FlagState.STANDBY	
+
+class SpecialGather(GroundGatherUnit) :
+    def __init__(self,  type, position, owner, planetId, sunId, isLanded = False):
+        GroundGatherUnit.__init__(self, type, position, owner, planetId, sunId, isLanded)
+        self.maxGather = 1
+        self.gatherSpeed = 1200
+        self.container = 0
+        self.returning = False
+        self.isGathering = False
+
+    def action(self, parent):
+        self.isGathering = False
+        if self.flag.flagState == FlagState.GROUND_GATHER:
+            self.gather(parent, parent.game)
+        elif self.flag.flagState == FlagState.LOAD:
+            self.load(parent, parent.game)
+        else:
+            GroundUnit.action(self, parent)
+    def calcProgression(self):
+        return self.gatherSpeed/30
+
+    def getColorProgression(self):
+        if self.gatherSpeed >= 800:
+            return 'green'
+        elif self.gatherSpeed >= 400:
+            return 'yellow'
+        else:
+            return 'red'
+
+    def gather(self, player, game):
+        ressource = self.flag.finalTarget
+        arrived = True
+        if isinstance(ressource, w.NuclearSite):
+            if self.position[0] < ressource.position[0] or self.position[0] > ressource.position[0]:
+                if self.position[1] < ressource.position[1] or self.position[1] > ressource.position[1]:
+                    arrived = False
+                    self.move()
+            if arrived:
+                if self.gatherSpeed==0:
+                    if self.container < self.maxGather:
+                        if ressource.nbRessource > 0:
+                            self.container+=1
+                            ressource.nbRessource-=1
+                        self.gatherSpeed = 1200
+                        self.flag.initialTarget = self.flag.finalTarget
+                        self.flag.finalTarget = self.planet.getLandingSpot(player.id)
+                else:
+                    self.isGathering = True
+                    self.gatherSpeed-=1
+        else:
+            if self.position[0] < ressource.position[0] or self.position[0] > ressource.position[0]:
+                if self.position[1] < ressource.position[1] or self.position[1] > ressource.position[1]:
+                    arrived = False
+                    self.move()
+            if arrived:
+                if ressource.LandedShip != None:
+                    ressource.LandedShip.nuclear += self.container
+                else:
+                    ressource.nuclear += self.container
+                self.container = 0
+                self.flag.finalTarget = self.position
+                self.flag.flagState = FlagState.STANDBY
+				
+    def load(self, player, game):
+        landingZone = self.flag.finalTarget
+        planet = game.galaxy.solarSystemList[landingZone.sunId].planets[landingZone.planetId]
+        arrived = True
+        if self.position[0] < landingZone.position[0] or self.position[0] > landingZone.position[0]:
+            if self.position[1] < landingZone.position[1] or self.position[1] > landingZone.position[1]:
+                arrived = False
+                self.move()
+        if arrived and landingZone.LandedShip != None:
+            landingZone.LandedShip.nuclear += self.container
+            self.container = 0
+            self.planet = None
+            self.position = [-100000, -100000]
+            self.planetId = -1
+            self.sunId = -1
+            planet.units.pop(planet.units.index(self))
+            landingZone.LandedShip.units.append(self)
+            if self in player.selectedObjects:
+                player.selectedObjects.pop(player.selectedObjects.index(self))
+            self.flag.flagState = FlagState.STANDBY
+
+class HealingUnit(SpaceUnit):
+
+        def __init__(self, type, position, owner):
+            SpaceUnit.__init__(self,  type, position, owner)
+            self.unitsToHeal = []
+            self.HEALING_RANGE = 50
+            self.HEALING_SPEED = 40
+            self.HEALING_POWER = 1
+            self.ctr = 0
+
+        
+        
+        def action(self,parent):
+            if self.flag.flagState == FlagState.HEAL:
+                target = self.flag.finalTarget
+                if (Helper.calcDistance(self.position[0], self.position[1], target.position[0], target.position[1])) >= self.HEALING_RANGE:
+                    self.move()
+                else:
+                    self.ctr+=1
+                    if self.ctr == self.HEALING_SPEED and self.flag.finalTarget.hitpoints <self.flag.finalTarget.maxHP:
+                        self.flag.finalTarget.hitpoints += self.HEALING_POWER
+                        self.ctr = 0
+
+                
+            else:
+                SpaceUnit.action(self, parent)
+
+            
+
 class GroundAttackUnit(GroundUnit):
     def __init__(self,  type, position, owner, planetId, sunId, isLanded = False):
         GroundUnit.__init__(self,  type, position, owner, planetId, sunId, isLanded)
@@ -449,11 +587,14 @@ class TransportShip(SpaceUnit):
         self.planetId = -1
         self.sunId = -1
         self.planet = None
+        self.nuclear = 0
         #self.units.append(GroundUnit('Builder', self.GROUND_UNIT, [0,0,0], self.owner,-1,-1))
 
     def action(self, parent):
         if self.flag.flagState == FlagState.LAND:
             self.land(parent.game)
+        elif self.flag.flagState == FlagState.GATHER:
+            self.returnToMothership(parent)
         else:
             Unit.action(self, parent)
 
@@ -477,6 +618,17 @@ class TransportShip(SpaceUnit):
                     return self
         return None
     
+    def returnToMothership(self, player):
+        mothership = self.flag.finalTarget
+        arrived = True
+        if self.position[0] < mothership.position[0] or self.position[0] > mothership.position[0]:
+            if self.position[1] < mothership.position[1] or self.position[1] > mothership.position[1]:
+                arrived = False
+                self.move()
+        if arrived:
+            player.ressources[player.NUCLEAR] += self.nuclear
+            self.nuclear = 0
+
     def land(self, game):
         playerId = self.owner
         galaxy = game.galaxy
@@ -503,13 +655,17 @@ class TransportShip(SpaceUnit):
             if not alreadyLanded:
                 if len(planet.landingZones) < 4:
                     landingZone = planet.addLandingZone(playerId, self, game.players[playerId])
-                    landingZone.hitpoints = b.Building.MAX_HP[landingZone.type]
+                    self.nuclear += landingZone.nuclear
+                    landingZone.nuclear = 0
+                    landingZone.hitpoints = 100
                     player.buildings.append(landingZone)
                     player.selectedObjects = []
                     self.landed = True
                     self.planetId = planetId
                     self.sunId = sunId
                     self.planet = planet
+                    player.planets.append(planet)
+                    player.planetCurrent = player.planets.index(planet)
                     if playerId == game.playerId:
                         cam = game.players[playerId].camera
                         cam.placeOnLanding(landingZone)
@@ -527,6 +683,9 @@ class TransportShip(SpaceUnit):
                     if i.ownerId == playerId:
                         landingZone = i
                 if landingZone.LandedShip == None:
+                    self.nuclear += landingZone.nuclear
+                    landingZone.nuclear = 0
+                    landingZone.hitpoints = 100
                     self.landed = True
                     self.planetId = planetId
                     self.sunId = sunId

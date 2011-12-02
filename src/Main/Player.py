@@ -13,14 +13,15 @@ class Player():
     GAS = 1
     FOOD = 2
     NUCLEAR = 3
-    #[AttaqueDamage,AttaqueSpeed,MoveSpeed,AttackRange]
     ATTACK_DAMAGE_BONUS = 0
     ATTACK_SPEED_BONUS = 1
     MOVE_SPEED_BONUS = 2
     ATTACK_RANGE_BONUS = 3
     VIEW_RANGE_BONUS = 4
     BUILDING_SHIELD_BONUS = 5
-    BONUS = [0,0,0,0,0,0]
+    BUILDING_MOTHERSHIELD_BONUS = 6
+    #[AttaqueDamage,AttaqueSpeed,MoveSpeed,AttackRange]
+    BONUS = [0,0,0,0,0,0,0]
     MAX_FOOD = 10
     
     def __init__(self, name, game, id , colorId):
@@ -32,6 +33,8 @@ class Player():
         self.units = [] #Liste de toute les unites
         self.buildings = [] #Liste de tous les buildings
         self.notifications = [] #Liste de toutes les notifications
+        self.planets = [] #Liste des planètes que nous avons atterit
+        self.planetCurrent = 0
         self.id = id #Numero du joueur dans la liste de joueur
         self.diplomacies=[]
         for i in range(8):
@@ -46,7 +49,7 @@ class Player():
         self.camera = None
         self.actionHealUnit = None
     
-    def setSelectedHealUnitIndex(self):
+    def getSelectedHealUnitIndex(self):
         if self.selectedObjects[0].type == u.Unit.HEALING_UNIT:
             return  self.units.index(self.selectedObjects[0])
         return None
@@ -56,12 +59,12 @@ class Player():
             if not isinstance(i, u.GroundUnit):
                 unit = i.select(position)
                 if unit != None:
-                    return (self.units.index(unit), 0)
+                    return unit
         for i in self.buildings:
             if not isinstance(i, b.GroundBuilding):
                 building = i.select(position)
                 if building != None:
-                    return (self.buildings.index(building), 1)
+                    return building
         return None
     
     def getSelectedBuildingIndex(self):
@@ -126,7 +129,7 @@ class Player():
 
     def selectObject(self, playerObj, multi):
         if playerObj != None:
-            #Si on selectionne une unité
+            #Si on selectionne une unitÃ©
             if isinstance(playerObj, u.Unit):
                 if playerObj.owner == self.id:
                     if not multi:
@@ -353,13 +356,6 @@ class Player():
     def buildUnit(self, constructionUnit):
         unit = constructionUnit.unitBeingConstruct.pop(0)
         unit.applyBonuses(self.BONUS)
-        if unit.type == u.Unit.TRANSPORT:
-            pilot = u.GroundGatherUnit(u.Unit.GROUND_GATHER, [-10000,-10000,-10000], self.id, -1, -1)
-            robot = u.SpecialGather(u.Unit.SPECIAL_GATHER, [-10000,-10000,-10000], self.id, -1, -1)
-            unit.units.append(pilot)
-            self.units.append(pilot)
-            unit.units.append(robot)
-            self.units.append(robot)
         unit.changeFlag(t.Target(constructionUnit.rallyPoint), FlagState.MOVE)
         self.units.append(unit)
         
@@ -427,17 +423,17 @@ class Player():
         
     def makeFormation(self, units, galaxy, target = None, action = FlagState.MOVE):
         if len(units) > 1:
-            #S'il n'y a pas de target de spécifiée comme lors du changement de formation
+            #S'il n'y a pas de target de spÃ©cifiÃ©e comme lors du changement de formation
             if target == None:
                 target = self.units[int(units[0])].flag.finalTarget.position
             #tuple qui contient les lignes qui peut contenir par ligne
             lineTaken=[]
             line=0
-            #Coordonnées avant modification
+            #CoordonnÃ©es avant modification
             targetorig=[0,0]
             targetorig[0]=target[0]
             targetorig[1]=target[1]
-            #Permet de savoir combien en x et en y je dois les séparer selon la grosseur
+            #Permet de savoir combien en x et en y je dois les sÃ©parer selon la grosseur
             #du plus gros unit dans les selectedObjects
             unit =  self.units[int(units[0])]
             widths = [unit.SIZE[unit.type][0]]
@@ -448,24 +444,24 @@ class Player():
                 heights.append(unit.SIZE[unit.type][1])
             width = max(widths)
             height = max(heights)
-            #Formation en carré selon le nombre de unit qui se déplace, OH YEAH
+            #Formation en carrÃ© selon le nombre de unit qui se dÃ©place, OH YEAH
             if self.formation == "carre":
                 #tuple qui contient les units qui peut contenir par ligne
                 thatLine = []
                 lineTaken = []
-                #Nombre de ligne nécessaires pour faire la formation carré
+                #Nombre de ligne nÃ©cessaires pour faire la formation carrÃ©
                 numberOfLines = math.sqrt(len(units)-1)
                 if str(numberOfLines).split('.')[1] != '0':
                     numberOfLines+=1
                 math.trunc(float(numberOfLines))
                 numberOfLines = int(numberOfLines)
-                #Remplissage du tuple de chaque ligne pour créer la formation par des False
+                #Remplissage du tuple de chaque ligne pour crÃ©er la formation par des False
                 for l in range(0,numberOfLines):
                     thatLine = []
                     for k in range(0,numberOfLines):
                         thatLine.append(False)
                     lineTaken.append(thatLine)
-                #Maintenant on fait la vérification de chaque Unit pour les placer dans le carré
+                #Maintenant on fait la vÃ©rification de chaque Unit pour les placer dans le carrÃ©
                 for i in range(0,len(units)-1):
                     goodPlace=False
                     line=0
@@ -484,10 +480,10 @@ class Player():
                                     target[1] = -1*(galaxy.height/2)+height
                                 goodPlace=True
                                 break
-                        #Si le Unit n'a pas trouvé sa place, on avance d'une ligne
+                        #Si le Unit n'a pas trouvÃ© sa place, on avance d'une ligne
                         if goodPlace==False:
                             line+=1
-                    #Lorsqu'il a trouvé sa place, on le fait bouger vers sa nouvelle target
+                    #Lorsqu'il a trouvÃ© sa place, on le fait bouger vers sa nouvelle target
                     try:
                         self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
                     except:
@@ -502,20 +498,20 @@ class Player():
             elif self.formation == "triangle":
                 #tuple qui contient le nombre de Unit par ligne
                 thatLine=[]
-                #tuple qui contient les X de la ligne précédente
+                #tuple qui contient les X de la ligne prÃ©cÃ©dente
                 xLineBefore=[0,0,0,0,0,0,0,0,0,0,0,0]
-                #On initialise directement la première ligne et on l'ajoute dans le tableau des lignes par
+                #On initialise directement la premiÃ¨re ligne et on l'ajoute dans le tableau des lignes par
                 #la suite
                 thatLine.append([False])
                 lineTaken.append(thatLine[False])
                 xLineBefore[0] = target[0]
-                #Après, on fait chercher un endroit dans la formation pour chaque Unit
+                #AprÃ¨s, on fait chercher un endroit dans la formation pour chaque Unit
                 for i in range(0,len(units)-1):
                     goodPlace=False
                     line=0
                     while goodPlace==False:
                         for p in range(0,len(lineTaken[line])):
-                            #S'il a trouvé une place vide
+                            #S'il a trouvÃ© une place vide
                             if lineTaken[line][p]==False:
                                 lineTaken[line][p]=True
                                 if line != 0:
@@ -537,17 +533,17 @@ class Player():
                                     target[1] = targetorig[1]
                                 goodPlace=True
                                 break
-                        #S'il n'a pas trouvé de place dans cette ligne
+                        #S'il n'a pas trouvÃ© de place dans cette ligne
                         if goodPlace==False:
                             line+=1
-                            #Si la prochaine ligne n'existe pas, on la crée
+                            #Si la prochaine ligne n'existe pas, on la crÃ©e
                             if (len(lineTaken)-1)<line:
                                 numberOfSpaces=1+line
                                 thatLine=[]
                                 for a in range(0,numberOfSpaces):
                                     thatLine.append(False)
                                 lineTaken.append(thatLine)
-                    #Lorsqu'il a trouvé sa place, on le fait bouger à sa nouvelle Target  
+                    #Lorsqu'il a trouvÃ© sa place, on le fait bouger Ã  sa nouvelle Target  
                     try:
                         self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
                     except:
@@ -572,7 +568,7 @@ class Camera():
         self.movingDirection = []
         self.recalculateDefault()
 
-    #Pour replacer la position du début sur le mothership
+    #Pour replacer la position du dÃ©but sur le mothership
     def recalculateDefault(self):
         if self.defaultPos[0]-self.screenCenter[0] < (self.galaxy.width*-1)/2:
             self.position[0] = (self.galaxy.width*-1)/2+self.screenCenter[0]

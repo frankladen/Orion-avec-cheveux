@@ -25,17 +25,27 @@ class Game():
     
     def healUnitForReal(self, actionPlayerId, target, healUnitIndex):
         if target[1] == 0:
-            self.players[actionPlayerId].units[healUnitIndex].changeFlag(self.players[self.playerId].units[int(target[0])],FlagState.HEAL)
+            self.players[actionPlayerId].units[healUnitIndex].changeFlag(self.players[actionPlayerId].units[int(target[0])],FlagState.HEAL)
         else:
-            self.players[actionPlayerId].units[healUnitIndex].changeFlag(self.players[self.playerId].buildings[int(target[0])],FlagState.HEAL)
-            
-    def setActionHealUnit(self, pos):
-        healerUnitIndex = self.players[self.playerId].setSelectedHealUnitIndex()
+            self.players[actionPlayerId].units[healUnitIndex].changeFlag(self.players[actionPlayerId].buildings[int(target[0])],FlagState.HEAL)
+
+    def selectUnitToHeal(self, pos):
+        toHeal = self.players[self.playerId].selectUnitToHeal(pos)
+        if toHeal != None:
+            if isinstance(toHeal, u.Unit):
+                typeToHeal = 0
+            elif isinstance(toHeal, Building):
+                typeToHeal = 1
+            else:
+                typeToHeal = 2
+            if typeToHeal != 2:
+                self.setActionHealUnit(toHeal, typeToHeal)
+    
+    def setActionHealUnit(self, toHeal, typeToHeal):
+        toHealIndex = self.players[self.playerId].units.index(toHeal)
+        healerUnitIndex = self.players[self.playerId].getSelectedHealUnitIndex()
         if healerUnitIndex != None:
-            index = self.players[self.playerId].selectUnitToHeal(pos)
-            if index != None:
-                print(index)
-                self.parent.pushChange(str(healerUnitIndex), Flag(finalTarget = t.Target([index[0],index[1],0]),flagState = FlagState.HEAL))
+            self.parent.pushChange(healerUnitIndex, Flag(finalTarget = t.Target([toHealIndex,typeToHeal,0]),flagState = FlagState.HEAL))
     
     def action(self):
         self.players[self.playerId].camera.move()
@@ -54,7 +64,7 @@ class Game():
         self.players[self.playerId].addCamera(self.galaxy, taille)
 
     # Pour créer une notification qui vient du serveur
-    def makeNotification(self, actionPlayerId, target):
+    def makeNotification(self, actionPlayerId, target, unitIndex):
         #target[0] = c'est le id du joueur qui doit recevoir la notification
         #target[1] = c'est le id du unit/building qui va faire l'action
         #target[2] = c'est le type de l'action (ATTACKED_UNIT, ATTACKED_BUILDING, ALLIANCE,...)
@@ -64,21 +74,37 @@ class Game():
         actionPlayerName = self.players[actionPlayerId].name
         addIt = True
         notif = None
-        if target[2] == t.Notification.ATTACKED_UNIT:
-            for i in player.notifications:
-                if i.position == player.units[target[1]].position and i.actionPlayerName == actionPlayerName:
-                    addIt = False
-            if addIt:
-                #Tu ajoutes seulement le 4e paramètre si tu en as besoin, le nom de l'autre joueur
-                notif = t.Notification(player.units[target[1]].position, target[2], actionPlayerName)
-        elif target[2] == t.Notification.ATTACKED_BUILDING:
-            for i in player.notifications:
-                if i.position == player.buildings[target[1]].position and i.actionPlayerName == actionPlayerName:
-                    addIt = False
-            if addIt:
-                notif = t.Notification(player.buildings[target[1]].position, target[2], actionPlayerName)
-        if notif != None:
-            player.notifications.append(notif)
+        if not target[2] in (t.Notification.MESSAGE_ALL, t.Notification.MESSAGE_ALLIES):
+            if target[2] == t.Notification.ATTACKED_UNIT:
+                for i in player.notifications:
+                    if i.position == player.units[target[1]].position and i.actionPlayerName == actionPlayerName:
+                        addIt = False
+                if addIt:
+                    #Tu ajoutes seulement le 4e paramètre si tu en as besoin, le nom de l'autre joueur
+                    notif = t.Notification(player.units[target[1]].position, target[2], actionPlayerName)
+            elif target[2] == t.Notification.ATTACKED_BUILDING:
+                for i in player.notifications:
+                    if i.position == player.buildings[target[1]].position and i.actionPlayerName == actionPlayerName:
+                        addIt = False
+                if addIt:
+                    notif = t.Notification(player.buildings[target[1]].position, target[2], actionPlayerName)
+            if notif != None:
+                player.notifications.append(notif)
+        else:
+            mess = ""
+            for i in unitIndex:
+                mess+=i
+            mess = actionPlayerName+" : "+mess
+            if target[2] == t.Notification.MESSAGE_ALL:
+                notif = t.Notification([-10000,-10000,-10000],target[2],mess)
+                if self.playerId != player.id:
+                    self.players[self.playerId].notifications.append(notif)
+            elif target[2] == t.Notification.MESSAGE_ALLIES:
+                notif = t.Notification([-10000,-10000,-10000],target[2],mess)
+                if player.isAlly(self.playerId):
+                    if self.playerId != player.id:
+                        self.players[self.playerId].notifications.append(notif)
+        
 
     # Pour changer le flag des unités selectionne pour la construction        
     def setBuildingFlag(self,x,y, type, sunId=0, planetId=0):
@@ -96,7 +122,7 @@ class Game():
     def buildBuilding(self, playerId, target, flag, unitIndex, type, sunId=0, planetId=0):
         #Condition de construction
         wp = None
-        if self.checkIfCanBuild((target[0], target[1],0), type):
+        if self.checkIfCanBuild((target[0], target[1],0), type, int(unitIndex[0]), playerId):
             player = self.players[playerId]
             if player.ressources[0] >= Building.COST[type][0] and player.ressources[1] >= Building.COST[type][1]:
                 player.ressources[0] -= Building.COST[type][0]
@@ -237,16 +263,16 @@ class Game():
     def killUnit(self, killedIndexes, hasToKill = True):
         if hasToKill:
             self.players[killedIndexes[1]].killUnit(killedIndexes)
-        if killedIndexes[2] == True:
-            if isinstance(self.players[killedIndexes[1]].buildings[killedIndexes[0]], Mothership):
-                die = True
-                for i in self.players[killedIndexes[1]].buildings:
-                    if isinstance(i, Mothership) and i.isAlive:
-                        die = False
-                        break
-                if die:
-                    self.parent.died = True
-                    self.killPlayer(killedIndexes[1])
+##        if killedIndexes[2] == True:
+##            if isinstance(self.players[killedIndexes[1]].buildings[killedIndexes[0]], Mothership):
+##                die = True
+##                for i in self.players[killedIndexes[1]].buildings:
+##                    if isinstance(i, Mothership) and i.isAlive:
+##                        die = False
+##                        break
+##                if die:
+##                    self.parent.died = True
+##                    self.killPlayer(killedIndexes[1])
         for play in self.players:
             play.checkIfIsAttacking(killedIndexes)
 
@@ -294,8 +320,11 @@ class Game():
                         b.MAX_SHIELD = tech.add
                         b.shield = tech.add
             elif tech.effect == 'BM':
-                player.motherShip.MAX_SHIELD = tech.add
-                player.motherShip.shield = player.motherShip.MAX_SHIELD
+                player.BONUS[player.BUILDING_MOTHERSHIELD_BONUS] = tech.add
+                for b in player.buildings:
+                    if isinstance(b, Mothership):
+                        b.MAX_SHIELD = tech.add
+                        b.shield = tech.add
                 
             player.changeBonuses()
         
@@ -608,13 +637,18 @@ class Game():
     def attackEnemyInRange(self, unit, unitToAttack):
         unit.changeFlag(unitToAttack, FlagState.ATTACK)
 
-    def checkIfCanBuild(self, position, type):
+    def checkIfCanBuild(self, position, type, index = None, playerId = None):
+        if index != None:
+            unit = self.players[playerId].units[index]
+        else:
+            unit = self.players[self.playerId].selectedObjects[0]
         start = (position[0]-(Building.SIZE[type][0]/2),position[1]-(Building.SIZE[type][1]/2),0)
         end = (position[0]+(Building.SIZE[type][0]/2),position[1]+(Building.SIZE[type][1]/2),0)
+        
         for p in self.players:
             for b in p.buildings:
-                if isinstance(b, GroundBuilding) and isinstance(self.players[self.playerId].selectedObjects[0], u.GroundUnit):
-                    if self.players[self.playerId].selectedObjects[0].planet == b.planet:
+                if isinstance(b, GroundBuilding) and isinstance(unit, u.GroundUnit) and self.getCurrentPlanet() != None:
+                    if unit.planet == b.planet:
                         if b.selectIcon(start, end) != None:
                             return False
                 else:
@@ -660,15 +694,22 @@ class Game():
     def rightClic(self, pos):
         empty = True
         if self.getCurrentPlanet() == None:
-            clickedObj = self.galaxy.select(pos)
-            if clickedObj == None:
-                for i in self.players:
-                    clickedObj = i.rightClic(pos, self.playerId)
-                    if clickedObj != None:
-                        break
             unit = self.players[self.playerId].getFirstUnit()
             if unit != None:
-                if clickedObj != None:
+                clickedObj = self.galaxy.select(pos)
+                if clickedObj == None:
+                    for i in self.players:
+                        clickedObj = i.rightClic(pos, self.playerId)
+                        if clickedObj != None:
+                            break
+                if clickedObj != None and not isinstance(unit, Building):
+                    if unit.type == unit.HEALING_UNIT:
+                        if isinstance(clickedObj, u.Unit):
+                            if clickedObj.owner == self.playerId:
+                                self.setActionHealUnit(clickedObj, 0)
+                        elif isinstance(clickedObj, Building):
+                            if clickedObj.owner == self.playerId:
+                                self.setActionHealUnit(clickedObj, 1)
                     if unit.type == unit.TRANSPORT:
                         if isinstance(clickedObj, w.Planet):
                             self.setLandingFlag(unit, clickedObj)
@@ -681,7 +722,7 @@ class Game():
                             if clickedObj.owner == self.playerId:
                                 self.setGatherFlag(unit, clickedObj)
                     elif unit.type == unit.ATTACK_SHIP:
-                        if isinstance(clickedObj, u.Unit) or isinstance(clickedObj, Building):
+                        if (isinstance(clickedObj, u.Unit) or isinstance(clickedObj, SpaceBuilding)) and  not isinstance(clickedObj, u.GroundUnit):
                             if clickedObj.owner != self.playerId:
                                 self.setAttackFlag(clickedObj)
                     elif unit.type == unit.SCOUT:
@@ -698,7 +739,7 @@ class Game():
             unit = self.players[self.playerId].getFirstUnit()
             clickedObj = self.getCurrentPlanet().groundSelect(pos)
             if unit != None:
-                if clickedObj != None:
+                if clickedObj != None and not isinstance(unit, Building):
                     if unit.type == unit.GROUND_GATHER:
                         if isinstance(clickedObj, w.MineralStack) or isinstance(clickedObj, w.GazStack) or isinstance(clickedObj, b.LandingZone):
                             self.setGroundGatherFlag(unit, clickedObj)
