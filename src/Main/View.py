@@ -1057,11 +1057,11 @@ class View():
         for i in players:
             if i.isAlive:
                 for j in i.buildings:
-                    if j.isAlive:
+                    if j.isAlive and not isinstance(j, b.GroundBuilding):
                         if self.game.players[self.game.playerId].inViewRange(j.position):
                             self.drawBuilding(j,i,False)
                 for j in i.units:
-                    if j.isAlive:
+                    if j.isAlive and not isinstance(j, GroundUnit):
                         if self.game.players[self.game.playerId].inViewRange(j.position):
                             self.drawUnit(j, i, False)
         if self.dragging:

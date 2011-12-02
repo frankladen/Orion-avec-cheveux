@@ -714,7 +714,7 @@ class Game():
                             if clickedObj.owner == self.playerId:
                                 self.setGatherFlag(unit, clickedObj)
                     elif unit.type == unit.ATTACK_SHIP:
-                        if isinstance(clickedObj, u.Unit) or isinstance(clickedObj, Building):
+                        if (isinstance(clickedObj, u.Unit) or isinstance(clickedObj, Building)) and  not isinstance(clickedObj, u.GroundUnit) and not isinstance(clickedObj, GroundBuild):
                             if clickedObj.owner != self.playerId:
                                 self.setAttackFlag(clickedObj)
                     elif unit.type == unit.SCOUT:
