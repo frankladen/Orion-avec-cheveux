@@ -54,7 +54,7 @@ class Game():
         self.players[self.playerId].addCamera(self.galaxy, taille)
 
     # Pour créer une notification qui vient du serveur
-    def makeNotification(self, actionPlayerId, target):
+    def makeNotification(self, actionPlayerId, target, unitIndex):
         #target[0] = c'est le id du joueur qui doit recevoir la notification
         #target[1] = c'est le id du unit/building qui va faire l'action
         #target[2] = c'est le type de l'action (ATTACKED_UNIT, ATTACKED_BUILDING, ALLIANCE,...)
@@ -64,21 +64,37 @@ class Game():
         actionPlayerName = self.players[actionPlayerId].name
         addIt = True
         notif = None
-        if target[2] == t.Notification.ATTACKED_UNIT:
-            for i in player.notifications:
-                if i.position == player.units[target[1]].position and i.actionPlayerName == actionPlayerName:
-                    addIt = False
-            if addIt:
-                #Tu ajoutes seulement le 4e paramètre si tu en as besoin, le nom de l'autre joueur
-                notif = t.Notification(player.units[target[1]].position, target[2], actionPlayerName)
-        elif target[2] == t.Notification.ATTACKED_BUILDING:
-            for i in player.notifications:
-                if i.position == player.buildings[target[1]].position and i.actionPlayerName == actionPlayerName:
-                    addIt = False
-            if addIt:
-                notif = t.Notification(player.buildings[target[1]].position, target[2], actionPlayerName)
-        if notif != None:
-            player.notifications.append(notif)
+        if not target[2] in (t.Notification.MESSAGE_ALL, t.Notification.MESSAGE_ALLIES):
+            if target[2] == t.Notification.ATTACKED_UNIT:
+                for i in player.notifications:
+                    if i.position == player.units[target[1]].position and i.actionPlayerName == actionPlayerName:
+                        addIt = False
+                if addIt:
+                    #Tu ajoutes seulement le 4e paramètre si tu en as besoin, le nom de l'autre joueur
+                    notif = t.Notification(player.units[target[1]].position, target[2], actionPlayerName)
+            elif target[2] == t.Notification.ATTACKED_BUILDING:
+                for i in player.notifications:
+                    if i.position == player.buildings[target[1]].position and i.actionPlayerName == actionPlayerName:
+                        addIt = False
+                if addIt:
+                    notif = t.Notification(player.buildings[target[1]].position, target[2], actionPlayerName)
+            if notif != None:
+                player.notifications.append(notif)
+        else:
+            mess = ""
+            for i in unitIndex:
+                mess+=i
+            mess = actionPlayerName+" : "+mess
+            if target[2] == t.Notification.MESSAGE_ALL:
+                notif = t.Notification([-10000,-10000,-10000],target[2],mess)
+                if self.playerId != player.id:
+                    self.players[self.playerId].notifications.append(notif)
+            elif target[2] == t.Notification.MESSAGE_ALLIES:
+                notif = t.Notification([-10000,-10000,-10000],target[2],mess)
+                if player.isAlly(self.playerId):
+                    if self.playerId != player.id:
+                        self.players[self.playerId].notifications.append(notif)
+        
 
     # Pour changer le flag des unités selectionne pour la construction        
     def setBuildingFlag(self,x,y, type, sunId=0, planetId=0):

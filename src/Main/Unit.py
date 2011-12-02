@@ -647,13 +647,13 @@ class TransportShip(SpaceUnit):
                 self.move()
         if self.arrived:
             player = game.players[playerId]
+            player.currentPlanet = planet
             alreadyLanded = False
             for i in planet.landingZones:
                 if i.ownerId == playerId:
                     alreadyLanded = True
             if not alreadyLanded:
                 if len(planet.landingZones) < 4:
-                    player.currentPlanet = planet
                     landingZone = planet.addLandingZone(playerId, self, game.players[playerId])
                     self.nuclear += landingZone.nuclear
                     landingZone.nuclear = 0
@@ -664,6 +664,8 @@ class TransportShip(SpaceUnit):
                     self.planetId = planetId
                     self.sunId = sunId
                     self.planet = planet
+                    player.planets.append(planet)
+                    player.planetCurrent = player.planets.index(planet)
                     if playerId == game.playerId:
                         cam = game.players[playerId].camera
                         cam.placeOnLanding(landingZone)

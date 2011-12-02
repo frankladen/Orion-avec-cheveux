@@ -1704,26 +1704,85 @@ class View():
 
     def checkMotherShip(self, eve):
         self.game.players[self.game.playerId].currentPlanet = None
+        self.isSettingOff()
         cam = self.game.players[self.game.playerId].camera
         cam.position = [cam.defaultPos[0], cam.defaultPos[1]]
         self.game.players[self.game.playerId].selectedObjects = []
         self.game.players[self.game.playerId].selectedObjects.append(self.game.players[self.game.playerId].motherShip)
         self.changeBackground('GALAXY')
+        self.actionMenuType = self.MAIN_MENU
         self.drawWorld()
         self.redrawMinimap()
         self.ongletSelectedUnit()
 
     def getOutPlanet(self, eve):
         if self.game.players[self.game.playerId].currentPlanet != None:
+            self.isSettingOff()
             planet = self.game.players[self.game.playerId].currentPlanet
             cam = self.game.players[self.game.playerId].camera
             cam.position = [planet.position[0], planet.position[1]]
             planet = self.game.players[self.game.playerId].currentPlanet = None
             self.game.players[self.game.playerId].selectedObjects = []
+            self.actionMenuType = self.MAIN_MENU
             self.changeBackground('GALAXY')
             self.drawWorld()
             self.redrawMinimap()
             self.ongletSelectedUnit()
+
+    def lastPlanet(self, eve):
+        player = self.game.players[self.game.playerId]
+        if len(player.planets) > 0:
+            self.isSettingOff()
+            if self.game.players[self.game.playerId].currentPlanet == None:
+                player.planetCurrent -= 1
+                if player.planetCurrent == -1:
+                    player.planetCurrent = len(player.planets)-1
+                planet = player.planets[player.planetCurrent]
+                player.camera.position = [planet.position[0],planet.position[1]]
+            else:
+                player.planetCurrent -= 1
+                if player.planetCurrent == -1:
+                    player.planetCurrent = len(player.planets)-1
+                planet = player.planets[player.planetCurrent]
+                for i in planet.landingZones:
+                    if i.ownerId == player.id:
+                        landingZone = i
+                player.camera.placeOnLanding(landingZone)
+                self.game.players[self.game.playerId].currentPlanet = planet
+                self.game.players[self.game.playerId].selectedObjects = []
+                self.actionMenuType = self.MAIN_MENU
+
+    def nextPlanet(self, eve):
+        player = self.game.players[self.game.playerId]
+        if len(player.planets) > 0:
+            self.isSettingOff()
+            if self.game.players[self.game.playerId].currentPlanet == None:
+                player.planetCurrent += 1
+                if player.planetCurrent == len(player.planets):
+                    player.planetCurrent = 0
+                planet = player.planets[player.planetCurrent]
+                player.camera.position = [planet.position[0],planet.position[1]]
+            else:
+                player.planetCurrent += 1
+                if player.planetCurrent == len(player.planets):
+                    player.planetCurrent = 0
+                planet = player.planets[player.planetCurrent]
+                for i in planet.landingZones:
+                    if i.ownerId == player.id:
+                        landingZone = i
+                player.camera.placeOnLanding(landingZone)
+                self.game.players[self.game.playerId].currentPlanet = planet
+                self.game.players[self.game.playerId].selectedObjects = []
+                self.actionMenuType = self.MAIN_MENU
+
+    def isSettingOff(self):
+        self.wantToCancelUnitBuild = False
+        self.isSettingPatrolPosition = False
+        self.isSettingRallyPointPosition = False
+        self.isSettingMovePosition = False
+        self.isSettingAttackPosition = False
+        self.isSettingBuildingPosition = False
+        self.isChosingUnitToHeal = False
 
     def clickMenuModes(self,eve):
         bp = (eve.widget.gettags(eve.widget.find_withtag('current')))
@@ -1765,6 +1824,7 @@ class View():
                 if i.ownerId == self.game.playerId and i.LandedShip != None:
                     if i in self.game.players[self.game.playerId].selectedObjects:
                         self.game.setTakeOffFlag(i.LandedShip, planet)
+                        self.actionMenuType = self.MAIN_MENU
 
     def unload(self, eve):
         self.game.unload()
@@ -1991,6 +2051,8 @@ class View():
         self.gameArea.bind("<KeyRelease-c>", self.unSelectAll)
         self.gameArea.bind("1", self.checkMotherShip)
         self.gameArea.bind("2", self.getOutPlanet)
+        self.gameArea.bind("3", self.lastPlanet)
+        self.gameArea.bind("4", self.nextPlanet)
         self.gameArea.bind("<Control_L>",self.ctrlPressed)
         self.gameArea.bind("<KeyRelease-Control_L>",self.ctrlDepressed)
         self.gameArea.bind("<Tab>",self.enterChat)
