@@ -19,8 +19,9 @@ class Player():
     ATTACK_RANGE_BONUS = 3
     VIEW_RANGE_BONUS = 4
     BUILDING_SHIELD_BONUS = 5
+    BUILDING_MOTHERSHIELD_BONUS = 6
     #[AttaqueDamage,AttaqueSpeed,MoveSpeed,AttackRange]
-    BONUS = [0,0,0,0,0,0]
+    BONUS = [0,0,0,0,0,0,0]
     MAX_FOOD = 10
     
     def __init__(self, name, game, id , colorId):

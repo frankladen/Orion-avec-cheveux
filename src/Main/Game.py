@@ -320,8 +320,11 @@ class Game():
                         b.MAX_SHIELD = tech.add
                         b.shield = tech.add
             elif tech.effect == 'BM':
-                player.motherShip.MAX_SHIELD = tech.add
-                player.motherShip.shield = player.motherShip.MAX_SHIELD
+                player.BONUS[player.BUILDING_MOTHERSHIELD_BONUS] = tech.add
+                for b in player.buildings:
+                    if isinstance(b, Mothership):
+                        b.MAX_SHIELD = tech.add
+                        b.shield = tech.add
                 
             player.changeBonuses()
         
@@ -641,9 +644,10 @@ class Game():
             unit = self.players[self.playerId].selectedObjects[0]
         start = (position[0]-(Building.SIZE[type][0]/2),position[1]-(Building.SIZE[type][1]/2),0)
         end = (position[0]+(Building.SIZE[type][0]/2),position[1]+(Building.SIZE[type][1]/2),0)
+        
         for p in self.players:
             for b in p.buildings:
-                if isinstance(b, GroundBuilding) and isinstance(unit, u.GroundUnit):
+                if isinstance(b, GroundBuilding) and isinstance(unit, u.GroundUnit) and self.getCurrentPlanet() != None:
                     if unit.planet == b.planet:
                         if b.selectIcon(start, end) != None:
                             return False
@@ -718,7 +722,7 @@ class Game():
                             if clickedObj.owner == self.playerId:
                                 self.setGatherFlag(unit, clickedObj)
                     elif unit.type == unit.ATTACK_SHIP:
-                        if (isinstance(clickedObj, u.Unit) or isinstance(clickedObj, Building)) and  not isinstance(clickedObj, u.GroundUnit) and not isinstance(clickedObj, GroundBuild):
+                        if (isinstance(clickedObj, u.Unit) or isinstance(clickedObj, SpaceBuilding)) and  not isinstance(clickedObj, u.GroundUnit):
                             if clickedObj.owner != self.playerId:
                                 self.setAttackFlag(clickedObj)
                     elif unit.type == unit.SCOUT:
@@ -735,7 +739,7 @@ class Game():
             unit = self.players[self.playerId].getFirstUnit()
             clickedObj = self.getCurrentPlanet().groundSelect(pos)
             if unit != None:
-                if clickedObj != None:
+                if clickedObj != None and not isinstance(unit, Building):
                     if unit.type == unit.GROUND_GATHER:
                         if isinstance(clickedObj, w.MineralStack) or isinstance(clickedObj, w.GazStack) or isinstance(clickedObj, b.LandingZone):
                             self.setGroundGatherFlag(unit, clickedObj)

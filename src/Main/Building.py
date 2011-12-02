@@ -17,7 +17,7 @@ class Building(t.PlayerObject):
     NAME = ("Point ralliement", "Raffinerie", "Barraque", "Ferme", "Tourette", "Vaisseau mere", "Zone d'aterrissage")
     SIZE =((30,30),(0,0),(0,0),(75,59),(32,32),(125,125),(32,32))
     INSPACE = (True,False,False,False,True,True,False)
-    COST = ((50,50),(0,0),(0,0),(75,75),(250,200),(1000,1000),(0,0))
+    COST = ((50,50),(0,0),(0,0),(75,75),(250,200),(2000,2000),(0,0))
     TIME = (125,0,0,125,125,1250,0)
     MAX_HP = (150,0,0,200,200,1500,100)
     VIEW_RANGE=(200, 0, 0, 100, 250, 400, 200)
@@ -273,6 +273,8 @@ class Mothership(ConstructionBuilding):
         self.AttackSpeed = self.ATTACK_SPEED[self.type]+bonuses[p.Player.ATTACK_SPEED_BONUS]
         self.AttackDamage = self.ATTACK_DAMAGE[self.type]+bonuses[p.Player.ATTACK_DAMAGE_BONUS]
         self.range = self.ATTACK_RANGE[self.type]+bonuses[p.Player.ATTACK_RANGE_BONUS]
+        self.shield = bonuses[p.Player.BUILDING_MOTHERSHIELD_BONUS]
+        self.MAX_SHIELD = bonuses[p.Player.BUILDING_MOTHERSHIELD_BONUS]
 
     def regenShield(self):
         if self.shield >= 0:
@@ -337,7 +339,7 @@ class Mothership(ConstructionBuilding):
                 return (-1, -1)
     
            
-class LandingZone(ConstructionBuilding,GroundBuilding):
+class LandingZone(ConstructionBuilding):
     WIDTH = 75
     HEIGHT = 75
     def __init__(self, position, ownerId, landingShip, id, planetId, sunId):

@@ -95,6 +95,7 @@ class View():
         self.gifGroundSpecial = PhotoImage(file='images/icones/iconeSpecial.gif')
         self.gifTurret = PhotoImage(file='images/icones/iconeTurret.gif')
         self.gifWaypoint = PhotoImage(file='images/icones/iconeWaypoint.gif')
+        self.gifRally = PhotoImage(file='images/galaxy/rallyFlag.gif')
         self.gifRepair = PhotoImage(file='images/icones/gifRepair.gif')
         self.gifupB = PhotoImage(file='images/icones/upB.gif')
         self.gifupM = PhotoImage(file='images/icones/upM.gif')
@@ -487,6 +488,7 @@ class View():
                         self.menuModes.create_image(20,50, image = self.gifTransport)
                         for i in range(0, unit.nuclear):
                             self.menuModes.create_image(80+i*40,50, image = self.nuclear)
+                        self.menuModes.create_text(20,160, text = "Capacité : " + str(len(unit.units))+"/"+str(unit.capacity),anchor = NW, fill = 'white')
                     elif isinstance(unit, u.HealingUnit):
                         self.menuModes.create_text(20,160, text = "Vitesse de réparation : " + str(unit.HEALING_POWER) + "hp/seconde", anchor = NW, fill = 'white')
                     elif isinstance(unit, u.GroundBuilderUnit):
@@ -997,6 +999,9 @@ class View():
         distance = self.game.players[self.game.playerId].camera.calcDistance(building.position)
         if building in self.game.players[self.game.playerId].selectedObjects:
             self.gameArea.create_rectangle(distance[0]-(building.SIZE[building.type][0]/2+3), distance[1]-(building.SIZE[building.type][1]/2+3), distance[0]+(building.SIZE[building.type][0]/2+3),distance[1]+(building.SIZE[building.type][1]/2+3),outline='green', tag='deletable')
+            if isinstance(building, b.LandingZone):
+                rallyView = self.game.players[self.game.playerId].camera.calcDistance(building.rallyPoint)
+                self.gameArea.create_image(rallyView[0],rallyView[1], image = self.gifRally, tag='deletable')
         if isinstance(building, b.Farm):
             if building.finished == True:
                 self.gameArea.create_image(distance[0], distance[1], image=self.farms[color], tag='deletable')
@@ -1153,6 +1158,8 @@ class View():
                     elif building.type == b.Building.MOTHERSHIP:
                         if building in player.selectedObjects:
                             self.gameArea.create_oval(distance[0]-(building.SIZE[building.type][0]/2+3),distance[1]-(building.SIZE[building.type][1]/2+3),distance[0]+(building.SIZE[building.type][0]/2+3),distance[1]+(building.SIZE[building.type][1]/2+3), outline="green", tag='deletable')
+                            rallyView = self.game.players[self.game.playerId].camera.calcDistance(building.rallyPoint)
+                            self.gameArea.create_image(rallyView[0],rallyView[1], image = self.gifRally, tag='deletable')
                         self.gameArea.create_image(distance[0], distance[1], image = self.motherShips[player.colorId], tag='deletable')
                         if building.attackcount <= 5:
                             d2 = self.game.players[self.game.playerId].camera.calcDistance(building.flag.finalTarget.position)

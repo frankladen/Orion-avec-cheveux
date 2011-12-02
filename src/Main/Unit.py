@@ -181,15 +181,18 @@ class GroundUnit(Unit):
                 arrived = False
                 self.move()
         if arrived and landingZone.LandedShip != None:
-            self.planet = None
-            self.position = [-100000, -100000]
-            self.planetId = -1
-            self.sunId = -1
-            planet.units.pop(planet.units.index(self))
-            landingZone.LandedShip.units.append(self)
-            if self in game.players[self.owner].selectedObjects:
-                game.players[self.owner].selectedObjects.pop(game.players[self.owner].selectedObjects.index(self))
-            self.flag.flagState = FlagState.STANDBY
+            if len(landingZone.LandedShip.units) <= landingZone.LandedShip.capacity:
+                self.planet = None
+                self.position = [-100000, -100000]
+                self.planetId = -1
+                self.sunId = -1
+                planet.units.pop(planet.units.index(self))
+                landingZone.LandedShip.units.append(self)
+                if self in game.players[self.owner].selectedObjects:
+                    game.players[self.owner].selectedObjects.pop(game.players[self.owner].selectedObjects.index(self))
+                self.flag.flagState = FlagState.STANDBY
+            else:
+                self.flag.flagState = FlagState.STANDBY
 
 class GroundBuilderUnit(GroundUnit):
     def __init__(self,  type, position, owner, planetId, sunId, isLanded = False):
@@ -228,15 +231,18 @@ class GroundBuilderUnit(GroundUnit):
                 arrived = False
                 self.move()
         if arrived and landingZone.LandedShip != None:
-            self.planet = None
-            self.position = [-100000, -100000]
-            self.planetId = -1
-            self.sunId = -1
-            planet.units.pop(planet.units.index(self))
-            landingZone.LandedShip.units.append(self)
-            if self in game.players[self.owner].selectedObjects:
-                game.players[self.owner].selectedObjects.pop(game.players[self.owner].selectedObjects.index(self))
-            self.flag.flagState = FlagState.STANDBY
+            if len(landingZone.LandedShip.units) <= landingZone.LandedShip.capacity:
+                self.planet = None
+                self.position = [-100000, -100000]
+                self.planetId = -1
+                self.sunId = -1
+                planet.units.pop(planet.units.index(self))
+                landingZone.LandedShip.units.append(self)
+                if self in game.players[self.owner].selectedObjects:
+                    game.players[self.owner].selectedObjects.pop(game.players[self.owner].selectedObjects.index(self))
+                self.flag.flagState = FlagState.STANDBY
+            else:
+                self.flag.flagState = FlagState.STANDBY
                
             
 class GroundGatherUnit(GroundUnit):
@@ -328,19 +334,22 @@ class GroundGatherUnit(GroundUnit):
                 arrived = False
                 self.move()
         if arrived and landingZone.LandedShip != None:
-            player.ressources[player.MINERAL] += self.container[player.MINERAL]
-            player.ressources[player.GAS] += self.container[player.GAS]
-            self.container[player.MINERAL] = 0
-            self.container[player.GAS] = 0
-            self.planet = None
-            self.position = [-100000, -100000]
-            self.planetId = -1
-            self.sunId = -1
-            planet.units.pop(planet.units.index(self))
-            landingZone.LandedShip.units.append(self)
-            if self in player.selectedObjects:
-                player.selectedObjects.pop(player.selectedObjects.index(self))
-            self.flag.flagState = FlagState.STANDBY	
+            if len(landingZone.LandedShip.units) <= landingZone.LandedShip.capacity:
+                player.ressources[player.MINERAL] += self.container[player.MINERAL]
+                player.ressources[player.GAS] += self.container[player.GAS]
+                self.container[player.MINERAL] = 0
+                self.container[player.GAS] = 0
+                self.planet = None
+                self.position = [-100000, -100000]
+                self.planetId = -1
+                self.sunId = -1
+                planet.units.pop(planet.units.index(self))
+                landingZone.LandedShip.units.append(self)
+                if self in player.selectedObjects:
+                    player.selectedObjects.pop(player.selectedObjects.index(self))
+                self.flag.flagState = FlagState.STANDBY
+            else:
+                self.flag.flagState = FlagState.STANDBY
 
 class SpecialGather(GroundGatherUnit) :
     def __init__(self,  type, position, owner, planetId, sunId, isLanded = False):
@@ -413,17 +422,20 @@ class SpecialGather(GroundGatherUnit) :
                 arrived = False
                 self.move()
         if arrived and landingZone.LandedShip != None:
-            landingZone.LandedShip.nuclear += self.container
-            self.container = 0
-            self.planet = None
-            self.position = [-100000, -100000]
-            self.planetId = -1
-            self.sunId = -1
-            planet.units.pop(planet.units.index(self))
-            landingZone.LandedShip.units.append(self)
-            if self in player.selectedObjects:
-                player.selectedObjects.pop(player.selectedObjects.index(self))
-            self.flag.flagState = FlagState.STANDBY
+            if len(landingZone.LandedShip.units) <= landingZone.LandedShip.capacity:
+                landingZone.LandedShip.nuclear += self.container
+                self.container = 0
+                self.planet = None
+                self.position = [-100000, -100000]
+                self.planetId = -1
+                self.sunId = -1
+                planet.units.pop(planet.units.index(self))
+                landingZone.LandedShip.units.append(self)
+                if self in player.selectedObjects:
+                    player.selectedObjects.pop(player.selectedObjects.index(self))
+                self.flag.flagState = FlagState.STANDBY
+            else:
+                self.flag.flagState = FlagState.STANDBY
 
 class HealingUnit(SpaceUnit):
 
