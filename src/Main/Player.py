@@ -554,6 +554,8 @@ class Player():
                         print(len(units))
                         print(units[len(units)-1])
                         print(units[i])
+        else:
+            self.units[int(units[0])].changeFlag(t.Target([target[0],target[1],0]),int(action))
         
 #Represente la camera            
 class Camera():
