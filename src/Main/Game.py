@@ -538,21 +538,23 @@ class Game():
         gazCost = u.Unit.BUILD_COST[unitType][1]
         foodCost = u.Unit.BUILD_COST[unitType][2]
         if self.players[player].canAfford(mineralCost, gazCost, foodCost):
-            if (len(self.players[player].buildings)-1) <= constructionUnit:
-                self.players[player].createUnit(unitType, constructionUnit)
+            if (len(self.players[player].buildings)-1) <= constructionUnit and constructionUnit != None:
+                if isinstance(self.players[player].buildings[constructionUnit], ConstructionBuilding):
+                    self.players[player].createUnit(unitType, constructionUnit)
 
     def sendCancelUnit(self, unit):
         self.parent.pushChange(self.players[self.playerId].getSelectedBuildingIndex(), Flag(finalTarget = unit, flagState = FlagState.CANCEL_UNIT))
 
     def cancelUnit(self, player, unit, constructionBuilding):
-        if (len(self.players[player].buildings)-1) <= constructionBuilding:
+        if (len(self.players[player].buildings)-1) <= constructionBuilding and constructionBuilding != None:
             self.players[player].cancelUnit(unit, constructionBuilding)
     
     #Pour effacer un Unit
     def eraseUnit(self):
         if len(self.players[self.playerId].selectedObjects) > 0:
             if isinstance(self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1], u.Unit):
-                self.parent.pushChange(self.players[self.playerId].units.index(self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1]), Flag(None,None,FlagState.DESTROY))
+                if isinstance(self.players[player].buildings[constructionBuilding], ConstructionBuilding):
+                    self.parent.pushChange(self.players[self.playerId].units.index(self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1]), Flag(None,None,FlagState.DESTROY))
                 
     #Pour effacer tous les units
     def eraseUnits(self, playerId=None):
