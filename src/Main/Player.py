@@ -422,7 +422,7 @@ class Player():
                 self.units[int(i)].changeFlag(ressource, FlagState.GROUND_GATHER)
         
     def makeFormation(self, units, galaxy, target = None, action = FlagState.MOVE):
-        if len(units) > 1:
+        if len(units) > 2:
             #S'il n'y a pas de target de spÃ©cifiÃ©e comme lors du changement de formation
             if target == None:
                 target = self.units[int(units[0])].flag.finalTarget.position
@@ -438,7 +438,7 @@ class Player():
             unit =  self.units[int(units[0])]
             widths = [unit.SIZE[unit.type][0]]
             heights = [unit.SIZE[unit.type][1]]
-            for i in range(0,len(units)-2):
+            for i in range(0,len(units)-1):
                 unit = self.units[int(units[i])]
                 widths.append(unit.SIZE[unit.type][0])
                 heights.append(unit.SIZE[unit.type][1])
