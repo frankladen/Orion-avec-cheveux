@@ -479,6 +479,8 @@ class View():
                         self.menuModes.create_image(20,50, image = self.gifTransport)
                         for i in range(0, unit.nuclear):
                             self.menuModes.create_image(80+i*40,50, image = self.nuclear)
+                    elif isinstance(unit, u.HealingUnit):
+                        self.menuModes.create_text(20,160, text = "Vitesse de réparation : " + str(unit.HEALING_POWER) + "hp/seconde", anchor = NW, fill = 'white')
                     elif isinstance(unit, u.GroundBuilderUnit):
                         self.menuModes.create_image(20,50, image = self.gifGroundBuilder)
                     elif isinstance(unit, u.HealingUnit):
@@ -739,8 +741,8 @@ class View():
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
             self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
         elif(type == self.WAITING_FOR_UNIT_TO_HEAL_MENU):
-            self.Actionmenu.create_text(5,5,text = "Sélectionné le ou les unités à soigner",anchor = NW, fill = 'white', width = 200)
-
+            self.Actionmenu.create_text(5,5,text = "Sélectionnez le ou les unités à soigner",anchor = NW, fill = 'white', width = 200)
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
 
     def createUnitsConstructionMenu(self, unit):
         y = 35;
@@ -1617,7 +1619,7 @@ class View():
                 self.actionMenuType = self.MAIN_MENU
                 
             elif self.isChosingUnitToHeal :
-                self.game.setActionHealUnit(pos)
+                self.game.selectUnitToHeal(pos)
                 self.isChosingUnitToHeal = False
                 self.actionMenuType = self.MAIN_MENU
                     
@@ -1890,6 +1892,7 @@ class View():
                 self.isSettingMovePosition = False
                 self.isSettingAttackPosition = False
                 self.isSettingBuildingPosition = False
+                self.isChosingUnitToHeal = False
             elif (Button_pressed == "Button_Build_Scout"):
                 self.game.addUnit(Unit.SCOUT)
             elif (Button_pressed == "Button_Build_Attack"):

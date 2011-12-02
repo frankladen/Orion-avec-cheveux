@@ -25,17 +25,27 @@ class Game():
     
     def healUnitForReal(self, actionPlayerId, target, healUnitIndex):
         if target[1] == 0:
-            self.players[actionPlayerId].units[healUnitIndex].changeFlag(self.players[self.playerId].units[int(target[0])],FlagState.HEAL)
+            self.players[actionPlayerId].units[healUnitIndex].changeFlag(self.players[actionPlayerId].units[int(target[0])],FlagState.HEAL)
         else:
-            self.players[actionPlayerId].units[healUnitIndex].changeFlag(self.players[self.playerId].buildings[int(target[0])],FlagState.HEAL)
-            
-    def setActionHealUnit(self, pos):
-        healerUnitIndex = self.players[self.playerId].setSelectedHealUnitIndex()
+            self.players[actionPlayerId].units[healUnitIndex].changeFlag(self.players[actionPlayerId].buildings[int(target[0])],FlagState.HEAL)
+
+    def selectUnitToHeal(self, pos):
+        toHeal = self.players[self.playerId].selectUnitToHeal(pos)
+        if toHeal != None:
+            if isinstance(toHeal, u.Unit):
+                typeToHeal = 0
+            elif isinstance(toHeal, Building):
+                typeToHeal = 1
+            else:
+                typeToHeal = 2
+            if typeToHeal != 2:
+                self.setActionHealUnit(toHeal, typeToHeal)
+    
+    def setActionHealUnit(self, toHeal, typeToHeal):
+        toHealIndex = self.players[self.playerId].units.index(toHeal)
+        healerUnitIndex = self.players[self.playerId].getSelectedHealUnitIndex()
         if healerUnitIndex != None:
-            index = self.players[self.playerId].selectUnitToHeal(pos)
-            if index != None:
-                print(index)
-                self.parent.pushChange(str(healerUnitIndex), Flag(finalTarget = t.Target([index[0],index[1],0]),flagState = FlagState.HEAL))
+            self.parent.pushChange(healerUnitIndex, Flag(finalTarget = t.Target([toHealIndex,typeToHeal,0]),flagState = FlagState.HEAL))
     
     def action(self):
         self.players[self.playerId].camera.move()
@@ -676,15 +686,22 @@ class Game():
     def rightClic(self, pos):
         empty = True
         if self.getCurrentPlanet() == None:
-            clickedObj = self.galaxy.select(pos)
-            if clickedObj == None:
-                for i in self.players:
-                    clickedObj = i.rightClic(pos, self.playerId)
-                    if clickedObj != None:
-                        break
             unit = self.players[self.playerId].getFirstUnit()
             if unit != None:
+                clickedObj = self.galaxy.select(pos)
+                if clickedObj == None:
+                    for i in self.players:
+                        clickedObj = i.rightClic(pos, self.playerId)
+                        if clickedObj != None:
+                            break
                 if clickedObj != None:
+                    if unit.type == unit.HEALING_UNIT:
+                        if isinstance(clickedObj, u.Unit):
+                            if clickedObj.owner == self.playerId:
+                                self.setActionHealUnit(clickedObj, 0)
+                        elif isinstance(clickedObj, Building):
+                            if clickedObj.owner == self.playerId:
+                                self.setActionHealUnit(clickedObj, 1)
                     if unit.type == unit.TRANSPORT:
                         if isinstance(clickedObj, w.Planet):
                             self.setLandingFlag(unit, clickedObj)

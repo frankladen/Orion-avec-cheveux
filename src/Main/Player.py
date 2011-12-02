@@ -48,7 +48,7 @@ class Player():
         self.camera = None
         self.actionHealUnit = None
     
-    def setSelectedHealUnitIndex(self):
+    def getSelectedHealUnitIndex(self):
         if self.selectedObjects[0].type == u.Unit.HEALING_UNIT:
             return  self.units.index(self.selectedObjects[0])
         return None
@@ -58,12 +58,12 @@ class Player():
             if not isinstance(i, u.GroundUnit):
                 unit = i.select(position)
                 if unit != None:
-                    return (self.units.index(unit), 0)
+                    return unit
         for i in self.buildings:
             if not isinstance(i, b.GroundBuilding):
                 building = i.select(position)
                 if building != None:
-                    return (self.buildings.index(building), 1)
+                    return building
         return None
     
     def getSelectedBuildingIndex(self):
