@@ -81,6 +81,8 @@ class Controller():
                 self.game.players[self.game.playerId].ressources[p.Player.MINERAL] += 5000
             elif mess == "forcenuke":
                 self.game.players[self.game.playerId].ressources[p.Player.NUCLEAR] += 25
+            elif mess == "forcepop":
+                self.game.players[self.game.playerId].MAX_FOOD += 50    
         elif mess.find("\\t ") == 0:
             mess = mess.split("\\t ")
             mess = "(Alliés) "+mess[1]

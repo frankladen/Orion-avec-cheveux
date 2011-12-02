@@ -122,7 +122,7 @@ class Game():
     def buildBuilding(self, playerId, target, flag, unitIndex, type, sunId=0, planetId=0):
         #Condition de construction
         wp = None
-        if self.checkIfCanBuild((target[0], target[1],0), type):
+        if self.checkIfCanBuild((target[0], target[1],0), type, int(unitIndex[0]), playerId):
             player = self.players[playerId]
             if player.ressources[0] >= Building.COST[type][0] and player.ressources[1] >= Building.COST[type][1]:
                 player.ressources[0] -= Building.COST[type][0]
@@ -634,13 +634,17 @@ class Game():
     def attackEnemyInRange(self, unit, unitToAttack):
         unit.changeFlag(unitToAttack, FlagState.ATTACK)
 
-    def checkIfCanBuild(self, position, type):
+    def checkIfCanBuild(self, position, type, index = None, playerId = None):
+        if index != None:
+            unit = self.players[playerId].units[index]
+        else:
+            unit = self.players[self.playerId].selectedObjects[0]
         start = (position[0]-(Building.SIZE[type][0]/2),position[1]-(Building.SIZE[type][1]/2),0)
         end = (position[0]+(Building.SIZE[type][0]/2),position[1]+(Building.SIZE[type][1]/2),0)
         for p in self.players:
             for b in p.buildings:
-                if isinstance(b, GroundBuilding) and isinstance(self.players[self.playerId].selectedObjects[0], u.GroundUnit):
-                    if self.players[self.playerId].selectedObjects[0].planet == b.planet:
+                if isinstance(b, GroundBuilding) and isinstance(unit, u.GroundUnit):
+                    if unit.planet == b.planet:
                         if b.selectIcon(start, end) != None:
                             return False
                 else:
@@ -694,7 +698,7 @@ class Game():
                         clickedObj = i.rightClic(pos, self.playerId)
                         if clickedObj != None:
                             break
-                if clickedObj != None and not isinstance(clickedObj, Building):
+                if clickedObj != None and not isinstance(unit, Building):
                     if unit.type == unit.HEALING_UNIT:
                         if isinstance(clickedObj, u.Unit):
                             if clickedObj.owner == self.playerId:

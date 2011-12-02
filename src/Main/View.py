@@ -405,7 +405,8 @@ class View():
                         self.menuModes.create_image(x, y, image = self.gifTank, tags = ('selected_unit',unitList.index(i)), anchor = NW)
                     elif isinstance(i, u.GroundBuilderUnit):
                         self.menuModes.create_image(x, y, image = self.gifGroundBuilder, tags = ('selected_unit',unitList.index(i)), anchor = NW)
-                        
+                    elif isinstance(i, u.HealingUnit):
+                        self.menuModes.create_image(x, y, image = self.gifRepair,tags = ('selected_all_units',unitList.index(i)), anchor = NW) 
                     elif isinstance(i, u.Unit):
                         self.menuModes.create_image(x,y, image = self.gifUnit, tags = ('selected_unit',unitList.index(i)), anchor = NW)     
                     self.menuModes.create_rectangle(x,y+46,x + (i.hitpoints/i.maxHP) * 52,y+51, fill = 'green')
@@ -414,36 +415,43 @@ class View():
                                
                     #Ca sert à créer une nouvelle ligne lorsque le nombre de units selectionné le requiert
                     x += 52
-                    if x > 600:
+                    if x > 500:
                         x = 0
                         y+= 51
                 
                 y = 0
+                ctr = 0
+                x=800
                 for i in range(0,len(countList)):
                     if countList[i] > 0:
+                        ctr+=1
+                        if ctr > 4:
+                            x = 680
 
-                        self.menuModes.create_text(700,y + 20,text= str(countList[i]) +'X' ,fill='white')
+                        self.menuModes.create_text(x-100,y + 20,text= str(countList[i]) +'X' ,fill='white')
 
                         if i == Unit.SCOUT:
-                            self.menuModes.create_image(800,y, anchor = NE, image = self.gifUnit,tags = ('selected_all_units',i))            
+                            self.menuModes.create_image(x,y, anchor = NE, image = self.gifUnit,tags = ('selected_all_units',i))            
                         elif i == Unit.CARGO: 
-                            self.menuModes.create_image(800,y,anchor = NE, image = self.gifCargo,tags = ('selected_all_units',i))
+                            self.menuModes.create_image(x,y,anchor = NE, image = self.gifCargo,tags = ('selected_all_units',i))
                         elif i == Unit.TRANSPORT: 
-                            self.menuModes.create_image(800,y,anchor = NE, image = self.gifTransport,tags = ('selected_all_units',i))                                
+                            self.menuModes.create_image(x,y,anchor = NE, image = self.gifTransport,tags = ('selected_all_units',i))                                
                         elif i == Unit.ATTACK_SHIP: 
-                            self.menuModes.create_image(800,y, anchor = NE,image = self.gifAttackUnit,tags = ('selected_all_units',i))
+                            self.menuModes.create_image(x,y, anchor = NE,image = self.gifAttackUnit,tags = ('selected_all_units',i))
                         elif i == Unit.SPECIAL_GATHER:
-                            self.menuModes.create_image(800,y, anchor = NE,image = self.gifGroundSpecial,tags = ('selected_all_units',i))
+                            self.menuModes.create_image(x,y, anchor = NE,image = self.gifGroundSpecial,tags = ('selected_all_units',i))
                         elif i == Unit.GROUND_GATHER:
-                            self.menuModes.create_image(800,y, anchor = NE,image = self.gifGroundGather,tags = ('selected_all_units',i))
+                            self.menuModes.create_image(x,y, anchor = NE,image = self.gifGroundGather,tags = ('selected_all_units',i))
                         elif i == Unit.GROUND_ATTACK:
-                            self.menuModes.create_image(800,y, anchor = NE,image = self.gifTank,tags = ('selected_all_units',i))
+                            self.menuModes.create_image(x,y, anchor = NE,image = self.gifTank,tags = ('selected_all_units',i))
                         elif i == Unit.GROUND_BUILDER_UNIT:
-                            self.menuModes.create_image(800,y, anchor = NE,image = self.gifGroundBuilder,tags = ('selected_all_units',i))
+                            self.menuModes.create_image(x,y, anchor = NE,image = self.gifGroundBuilder,tags = ('selected_all_units',i))
+                        elif i == Unit.HEALING_UNIT:
+                            self.menuModes.create_image(x,y, anchor = NE,image = self.gifRepair,tags = ('selected_all_units',i))
                         elif i == Unit.DEFAULT:
-                            self.menuModes.create_image(800,y, anchor = NE, image = self.gifUnit,tags = ('selected_all_units',i))
+                            self.menuModes.create_image(x,y, anchor = NE, image = self.gifUnit,tags = ('selected_all_units',i))
 
-                        y+=46
+                        y = (ctr%4) * 46
 
     def showInfo(self, unit):
         if isinstance(unit, Unit) or isinstance(unit, b.Building):
