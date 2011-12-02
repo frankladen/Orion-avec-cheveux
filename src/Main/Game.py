@@ -263,16 +263,16 @@ class Game():
     def killUnit(self, killedIndexes, hasToKill = True):
         if hasToKill:
             self.players[killedIndexes[1]].killUnit(killedIndexes)
-        if killedIndexes[2] == True:
-            if isinstance(self.players[killedIndexes[1]].buildings[killedIndexes[0]], Mothership):
-                die = True
-                for i in self.players[killedIndexes[1]].buildings:
-                    if isinstance(i, Mothership) and i.isAlive:
-                        die = False
-                        break
-                if die:
-                    self.parent.died = True
-                    self.killPlayer(killedIndexes[1])
+##        if killedIndexes[2] == True:
+##            if isinstance(self.players[killedIndexes[1]].buildings[killedIndexes[0]], Mothership):
+##                die = True
+##                for i in self.players[killedIndexes[1]].buildings:
+##                    if isinstance(i, Mothership) and i.isAlive:
+##                        die = False
+##                        break
+##                if die:
+##                    self.parent.died = True
+##                    self.killPlayer(killedIndexes[1])
         for play in self.players:
             play.checkIfIsAttacking(killedIndexes)
 
@@ -694,7 +694,7 @@ class Game():
                         clickedObj = i.rightClic(pos, self.playerId)
                         if clickedObj != None:
                             break
-                if clickedObj != None:
+                if clickedObj != None and not isinstance(clickedObj, Building):
                     if unit.type == unit.HEALING_UNIT:
                         if isinstance(clickedObj, u.Unit):
                             if clickedObj.owner == self.playerId:
