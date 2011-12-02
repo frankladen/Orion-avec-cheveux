@@ -930,17 +930,19 @@ class View():
         self.gameArea.delete('deletable')
         self.drawPlanetBackground()
         for i in planet.minerals:
-            distance = self.game.players[self.game.playerId].camera.calcDistance(i.position)
-            if i in self.game.players[self.game.playerId].selectedObjects:
-                self.gameArea.create_text(distance[0], distance[1]-40, fill="cyan", text="Mineral :" + str(i.nbMinerals), tag='deletable')
-                self.gameArea.create_oval(distance[0]-(i.WIDTH/2+3), distance[1]-(i.HEIGHT/2+3), distance[0]+(i.WIDTH/2+3), distance[1]+(i.HEIGHT/2+3), outline='yellow', tag='deletable')
-            self.gameArea.create_image(distance[0], distance[1], image=self.mineral, tag='deletable')
+            if i.nbMinerals > 0:
+                distance = self.game.players[self.game.playerId].camera.calcDistance(i.position)
+                if i in self.game.players[self.game.playerId].selectedObjects:
+                    self.gameArea.create_text(distance[0], distance[1]-40, fill="cyan", text="Mineral :" + str(i.nbMinerals), tag='deletable')
+                    self.gameArea.create_oval(distance[0]-(i.WIDTH/2+3), distance[1]-(i.HEIGHT/2+3), distance[0]+(i.WIDTH/2+3), distance[1]+(i.HEIGHT/2+3), outline='yellow', tag='deletable')
+                self.gameArea.create_image(distance[0], distance[1], image=self.mineral, tag='deletable')
         for i in planet.gaz:
-            distance = self.game.players[self.game.playerId].camera.calcDistance(i.position)
-            if i in self.game.players[self.game.playerId].selectedObjects:
-                self.gameArea.create_text(distance[0], distance[1]-(i.HEIGHT/2+8), fill="green", text="Gaz :" + str(i.nbGaz), tag='deletable')
-                self.gameArea.create_oval(distance[0]-(i.WIDTH/2+3), distance[1]-(i.HEIGHT/2+3), distance[0]+(i.WIDTH/2+3), distance[1]+(i.HEIGHT/2+3), outline='yellow', tag='deletable')
-            self.gameArea.create_image(distance[0], distance[1],image=self.gaz, tag='deletable')
+            if i.nbGaz > 0:
+                distance = self.game.players[self.game.playerId].camera.calcDistance(i.position)
+                if i in self.game.players[self.game.playerId].selectedObjects:
+                    self.gameArea.create_text(distance[0], distance[1]-(i.HEIGHT/2+8), fill="green", text="Gaz :" + str(i.nbGaz), tag='deletable')
+                    self.gameArea.create_oval(distance[0]-(i.WIDTH/2+3), distance[1]-(i.HEIGHT/2+3), distance[0]+(i.WIDTH/2+3), distance[1]+(i.HEIGHT/2+3), outline='yellow', tag='deletable')
+                self.gameArea.create_image(distance[0], distance[1],image=self.gaz, tag='deletable')
         if planet.nuclearSite != None:
             if planet.nuclearSite.nbRessource > 0:
                 site = planet.nuclearSite
@@ -1244,11 +1246,13 @@ class View():
             color = "yellow"
         else:
             color = "green"
-        hpLeft=((unit.hitpoints/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
-        self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+(unit.SIZE[unit.type][0]/2),distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="white", tag='deletable')
-        self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline=color, tag='deletable')
-        if unit.owner != self.game.playerId:
-            self.gameArea.create_text(distance[0]-(len(self.game.players[unit.owner].name)/2),distance[1]+((unit.SIZE[unit.type][1]/2)+5), text=self.game.players[unit.owner].name, fill="white", tag='deletable')
+        player = self.game.players[self.game.playerId]
+        if ((isinstance(unit, b.GroundBuilding) or isinstance(unit, GroundUnit) or unit.type == b.Building.LANDING_ZONE) and player.currentPlanet != None) or ((isinstance(unit, b.SpaceBuilding) or isinstance(unit, SpaceUnit) or unit.type == Unit.SCOUT or unit.type == b.Building.MOTHERSHIP) and player.currentPlanet == None):
+            hpLeft=((unit.hitpoints/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
+            self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+(unit.SIZE[unit.type][0]/2),distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="white", tag='deletable')
+            self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline=color, tag='deletable')
+            if unit.owner != self.game.playerId:
+                self.gameArea.create_text(distance[0]-(len(self.game.players[unit.owner].name)/2),distance[1]+((unit.SIZE[unit.type][1]/2)+5), text=self.game.players[unit.owner].name, fill="white", tag='deletable')
           
     #Dessine la minimap
     def drawMinimap(self):
@@ -1272,16 +1276,16 @@ class View():
                         if j.isAlive and not isinstance(j, GroundUnit):
                                 self.drawMiniUnit(j)
                     for j in i.buildings:
-                        if j.isAlive and not isinstance(j, b.GroundBuilding):
+                        if j.isAlive and not isinstance(j, b.GroundBuilding) and not isinstance(j, b.LandingZone):
                             if j.finished:
                                 self.drawMiniBuilding(j)
                 else:
                     for j in i.units:
-                        if j.isAlive and isinstance(j, GroundUnit) == False:
+                        if j.isAlive and not isinstance(j, GroundUnit):
                             if players[self.game.playerId].inViewRange(j.position):
                                 self.drawMiniUnit(j)
                     for j in i.buildings:
-                        if j.isAlive and isinstance(j, b.GroundBuilding) == False:
+                        if j.isAlive and not isinstance(j, b.GroundBuilding) and not isinstance(j, b.LandingZone):
                             if j.finished:
                                 if players[self.game.playerId].inViewRange(j.position):
                                     self.drawMiniBuilding(j)
@@ -1321,7 +1325,7 @@ class View():
                             self.drawMiniUnit(j)
                     for j in i.buildings:
                         if j.isAlive:
-                            if j.finished and isinstance(j, b.GroundBuilding) == False:
+                            if j.finished and not isinstance(j, b.GroundBuilding) and not isinstance(j, b.LandingZone):
                                 self.drawMiniBuilding(j)
                 else:
                     for j in i.units:
@@ -1329,7 +1333,7 @@ class View():
                             if players[self.game.playerId].inViewRange(j.position):
                                 self.drawMiniUnit(j)
                     for j in i.buildings:
-                        if j.isAlive and isinstance(j, b.GroundBuilding) == False:
+                        if j.isAlive and not isinstance(j, b.GroundBuilding) and not isinstance(j, b.LandingZone):
                             if j.finished:
                                 if players[self.game.playerId].inViewRange(j.position):
                                     self.drawMiniBuilding(j)

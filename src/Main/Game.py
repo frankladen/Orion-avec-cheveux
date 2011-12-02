@@ -538,13 +538,15 @@ class Game():
         gazCost = u.Unit.BUILD_COST[unitType][1]
         foodCost = u.Unit.BUILD_COST[unitType][2]
         if self.players[player].canAfford(mineralCost, gazCost, foodCost):
-            self.players[player].createUnit(unitType, constructionUnit)
+            if (len(self.players[player].buildings)-1) <= constructionBuilding:
+                self.players[player].createUnit(unitType, constructionUnit)
 
     def sendCancelUnit(self, unit):
-        self.parent.pushChange(self.players[self.playerId].getSelectedBuildingIndex(), Flag(finalTarget = unit, flagState = FlagState.CANCEL_UNIT))
+        self.parent.pushChange(, Flag(finalTarget = unit, flagState = FlagState.CANCEL_UNIT))
 
     def cancelUnit(self, player, unit, constructionBuilding):
-        self.players[player].cancelUnit(unit, constructionBuilding)
+        if (len(self.players[player].buildings)-1) <= constructionBuilding:
+            self.players[player].cancelUnit(unit, constructionBuilding)
     
     #Pour effacer un Unit
     def eraseUnit(self):

@@ -115,7 +115,7 @@ class Player():
                     self.selectedObjects = [unit]
                     return
         for i in self.buildings:
-            if not isinstance(i, b.GroundBuilding):
+            if not isinstance(i, b.GroundBuilding) and not isinstance(i, b.LandingZone):
                 building = i.select(position)
                 if building != None:
                     self.selectedObjects = [building]
