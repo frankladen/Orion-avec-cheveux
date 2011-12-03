@@ -42,7 +42,10 @@ class Game():
                 self.setActionHealUnit(toHeal, typeToHeal)
     
     def setActionHealUnit(self, toHeal, typeToHeal):
-        toHealIndex = self.players[self.playerId].units.index(toHeal)
+        if typeToHeal == 0:
+            toHealIndex = self.players[self.playerId].units.index(toHeal)
+        elif typeToHeal == 1:
+            toHealIndex = self.players[self.playerId].buildings.index(toHeal)
         healerUnitIndex = self.players[self.playerId].getSelectedHealUnitIndex()
         if healerUnitIndex != None:
             self.parent.pushChange(healerUnitIndex, Flag(finalTarget = t.Target([toHealIndex,typeToHeal,0]),flagState = FlagState.HEAL))
