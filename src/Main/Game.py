@@ -541,7 +541,7 @@ class Game():
         gazCost = u.Unit.BUILD_COST[unitType][1]
         foodCost = u.Unit.BUILD_COST[unitType][2]
         if self.players[player].canAfford(mineralCost, gazCost, foodCost):
-            if constructionUnit < (len(self.players[player].buildings)-1) and constructionUnit != None:
+            if constructionUnit <= (len(self.players[player].buildings)-1) and constructionUnit != None:
                 if isinstance(self.players[player].buildings[constructionUnit], ConstructionBuilding):
                     self.players[player].createUnit(unitType, constructionUnit)
 
@@ -549,7 +549,7 @@ class Game():
         self.parent.pushChange(self.players[self.playerId].getSelectedBuildingIndex(), Flag(finalTarget = unit, flagState = FlagState.CANCEL_UNIT))
 
     def cancelUnit(self, player, unit, constructionBuilding):
-        if constructionBuilding < (len(self.players[player].buildings)-1) and constructionBuilding != None:
+        if constructionBuilding <= (len(self.players[player].buildings)-1) and constructionBuilding != None:
             self.players[player].cancelUnit(unit, constructionBuilding)
     
     #Pour effacer un Unit
@@ -730,7 +730,7 @@ class Game():
                             if clickedObj.owner == self.playerId:
                                 self.setGatherFlag(unit, clickedObj)
                     elif unit.type == unit.ATTACK_SHIP:
-                        if (isinstance(clickedObj, u.Unit) or isinstance(clickedObj, SpaceBuilding)) and  not isinstance(clickedObj, u.GroundUnit):
+                        if (isinstance(clickedObj, u.Unit) or isinstance(clickedObj, SpaceBuilding) or isinstance(clickedObj, Mothership)) and  not isinstance(clickedObj, u.GroundUnit):
                             if clickedObj.owner != self.playerId:
                                 self.setAttackFlag(clickedObj)
                     elif unit.type == unit.SCOUT:

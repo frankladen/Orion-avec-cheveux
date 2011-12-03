@@ -90,14 +90,14 @@ class SpaceBuilding(Building):
     def __init__(self, type, position, owner):
         Building.__init__(self, type, position, owner)
 
-class Waypoint(Building):
+class Waypoint(SpaceBuilding):
     def __init__(self, type, position, owner):
         SpaceBuilding.__init__(self, type, position, owner)
         
-class Turret(Building):
+class Turret(SpaceBuilding):
     def __init__(self, type, position, owner):
         SpaceBuilding.__init__(self, type, position, owner)
-        self.range=200
+        self.range=185
         self.AttackSpeed=12
         self.AttackDamage=6
         self.attackcount=self.AttackSpeed
@@ -241,7 +241,7 @@ class ConstructionBuilding(Building):
 class Mothership(ConstructionBuilding):
     MAX_ARMOR = 2000
     MAX_SHIELD = 0
-    ATTACK_RANGE = 250
+    ATTACK_RANGE = 185
     ATTACK_SPEED = 25
     ATTACK_DAMAGE = 15     
     

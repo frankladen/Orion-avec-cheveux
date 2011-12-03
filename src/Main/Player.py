@@ -249,13 +249,13 @@ class Player():
                     if un.isAlive and not isinstance(un, u.GroundUnit):
                         if x > un.position[0]-un.viewRange and x < un.position[0]+un.viewRange:
                             if y > un.position[1]-un.viewRange and y < un.position[1]+un.viewRange:
-                                if un.name == 'Transport':
+                                if un.type == u.Unit.TRANSPORT:
                                     if not un.landed:
                                         return True
                                 else:
                                     return True
                 for bu in self.game.players[i].buildings:
-                    if bu.isAlive and bu.finished:
+                    if bu.isAlive and bu.finished and not isinstance(bu, b.GroundBuilding) and not isinstance(bu, b.LandingZone):
                         if x > bu.position[0]-bu.viewRange and x < bu.position[0]+bu.viewRange:
                             if y > bu.position[1]-bu.viewRange and y < bu.position[1]+bu.viewRange:
                                 return True
@@ -491,13 +491,7 @@ class Player():
                     try:
                         self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
                     except:
-                        print("carre")
-                        print(target[0])
-                        print(target[1])
-                        print(action)
-                        print(len(units))
-                        print(units[len(units)-1])
-                        print(units[i])
+                        pass
             #Formation en triangle, FUCK YEAH
             elif self.formation == "triangle":
                 #tuple qui contient le nombre de Unit par ligne
@@ -551,15 +545,12 @@ class Player():
                     try:
                         self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
                     except:
-                        print("triangle")
-                        print(target[0])
-                        print(target[1])
-                        print(action)
-                        print(len(units))
-                        print(units[len(units)-1])
-                        print(units[i])
+                        pass
         else:
-            self.units[int(units[0])].changeFlag(t.Target([target[0],target[1],0]),int(action))
+            try:
+                self.units[int(units[0])].changeFlag(t.Target([target[0],target[1],0]),int(action))
+            except:
+                pass
         
 #Represente la camera            
 class Camera():
