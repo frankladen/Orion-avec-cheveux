@@ -556,7 +556,7 @@ class Game():
     def eraseUnit(self):
         if len(self.players[self.playerId].selectedObjects) > 0:
             if isinstance(self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1], u.Unit):
-                if isinstance(self.players[player].buildings[constructionBuilding], ConstructionBuilding):
+                if isinstance(self.players[self.playerId].buildings[constructionBuilding], ConstructionBuilding):
                     self.parent.pushChange(self.players[self.playerId].units.index(self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1]), Flag(None,None,FlagState.DESTROY))
                 
     #Pour effacer tous les units

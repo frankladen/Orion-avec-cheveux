@@ -2,6 +2,7 @@
 import Unit as u
 import Building as b
 from Flag import *
+from Target import *
 from Helper import *
 from TechTree import *
 import math
@@ -362,6 +363,10 @@ class Player():
         unit.applyBonuses(self.BONUS)
         unit.changeFlag(t.Target(constructionUnit.rallyPoint), FlagState.MOVE)
         self.units.append(unit)
+
+        if self.id == unit.owner:
+            if not self.camera.inGameArea(constructionUnit.position):
+                self.notifications.append(Notification(constructionUnit.position, Notification.FINISHED_BUILD, u.Unit.NAME[unit.type]))
         
         if isinstance(unit, u.GroundUnit):
             self.game.galaxy.solarSystemList[unit.sunId].planets[unit.planetId].units.append(unit)
@@ -579,7 +584,7 @@ class Camera():
 
     #Pour savoir si la position est dans le gameArea
     def inGameArea(self, position):
-        if position[0] > self.position[0] - self.screenWidth/2 and position[0] < self.position + self.screenWidth/2:
+        if position[0] > self.position[0] - self.screenWidth/2 and position[0] < self.position[0] + self.screenWidth/2:
             if position[1] > self.position[1] - self.screenHeight/2 and position[1] < self.position[1] + self.screenHeight/2:
                 return True
         return False
