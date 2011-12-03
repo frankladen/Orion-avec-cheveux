@@ -391,7 +391,8 @@ class Controller():
         
         elif action == str(FlagState.CHANGE_RALLY_POINT):
             target = self.changeToInt(self.stripAndSplit(target))
-            self.game.players[actionPlayerId].buildings[int(unitIndex[0])].changeFlag(target,int(action))
+            if int(unitIndex[0]) < len(self.game.players[actionPlayerId].buildings):
+                self.game.players[actionPlayerId].buildings[int(unitIndex[0])].changeFlag(target,int(action))
         
         elif action == str(FlagState.CANCEL_UNIT):
             self.game.cancelUnit(actionPlayerId, int(target), int(unitIndex[0]))
