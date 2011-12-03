@@ -652,7 +652,7 @@ class View():
                     self.Actionmenu.create_image(13,35,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
                     self.Actionmenu.create_image(76,35,image = self.gifBuild, anchor = NW, tags = 'Button_BuildGroundUnit')
                 if len(self.game.players[self.game.playerId].selectedObjects) > 1:
-                    if self.game.players[self.game.playerId].formation == "carre":
+                    if self.game.players[self.game.playerId].formation == self.game.players[self.game.playerId].SQUARE_FORMATION:
                         self.Actionmenu.create_image(140,143,image=self.gifTriangle,anchor = NW, tags = 'Button_Triangle')
                     else:
                         self.Actionmenu.create_image(140,143,image=self.gifSquare,anchor = NW, tags = 'Button_Square')
@@ -1408,10 +1408,11 @@ class View():
                 self.minimap.create_oval(asteroidX-1, asteroidY-1, asteroidX+1, asteroidY+1, fill='CYAN')
         
     def drawMiniNotification(self,notification, y):
-        notifPos = notification.position
-        notifPosX = (notifPos[0]+self.game.galaxy.width/2)/self.game.galaxy.width * (self.taille/6)     
-        notifPosY = (notifPos[1]+self.game.galaxy.height/2)/self.game.galaxy.height * (self.taille/6)
-        self.minimap.create_oval(notifPosX-3,notifPosY-3,notifPosX+3,notifPosY+3, fill='RED', tag = 'deletable')
+        if self.game.getCurrentPlanet() == None:
+            notifPos = notification.position
+            notifPosX = (notifPos[0]+self.game.galaxy.width/2)/self.game.galaxy.width * (self.taille/6)     
+            notifPosY = (notifPos[1]+self.game.galaxy.height/2)/self.game.galaxy.height * (self.taille/6)
+            self.minimap.create_oval(notifPosX-3,notifPosY-3,notifPosX+3,notifPosY+3, fill='RED', tag = 'deletable')
         self.gameArea.create_text(600, y, text=notification.name, fill=notification.color,tag = 'deletable') 
         notification.refreshSeen -= 1
         if notification.refreshSeen <= 0:
@@ -1744,7 +1745,6 @@ class View():
             cam.position = [planet.position[0], planet.position[1]]
             planet = self.game.players[self.game.playerId].currentPlanet = None
             self.game.players[self.game.playerId].selectedObjects = []
-            self.actionMenuType = self.MAIN_MENU
             self.changeBackground('GALAXY')
             self.drawWorld()
             self.redrawMinimap()
@@ -1771,7 +1771,6 @@ class View():
                 player.camera.placeOnLanding(landingZone)
                 self.game.players[self.game.playerId].currentPlanet = planet
                 self.game.players[self.game.playerId].selectedObjects = []
-                self.actionMenuType = self.MAIN_MENU
 
     def nextPlanet(self, eve):
         player = self.game.players[self.game.playerId]
@@ -1793,8 +1792,7 @@ class View():
                         landingZone = i
                 player.camera.placeOnLanding(landingZone)
                 self.game.players[self.game.playerId].currentPlanet = planet
-                self.game.players[self.game.playerId].selectedObjects = []
-                self.actionMenuType = self.MAIN_MENU
+                self.game.players[self.game.playerId].selectedObjects = []         
 
     def isSettingOff(self):
         self.wantToCancelUnitBuild = False
@@ -1804,6 +1802,7 @@ class View():
         self.isSettingAttackPosition = False
         self.isSettingBuildingPosition = False
         self.isChosingUnitToHeal = False
+        self.actionMenuType = self.MAIN_MENU
 
     def clickMenuModes(self,eve):
         bp = (eve.widget.gettags(eve.widget.find_withtag('current')))
@@ -1931,9 +1930,9 @@ class View():
             elif (Button_pressed == 'Button_Build_GroundBuild'):
                 self.game.addUnit(Unit.GROUND_BUILDER_UNIT)
             elif (Button_pressed == "Button_Triangle"):
-                self.game.setChangeFormationFlag('t')
+                self.game.setChangeFormationFlag(self.game.players[self.game.playerId].TRIANGLE_FORMATION)
             elif (Button_pressed == "Button_Square"):
-                self.game.setChangeFormationFlag('c')
+                self.game.setChangeFormationFlag(self.game.players[self.game.playerId].SQUARE_FORMATION)
             elif (Button_pressed == 'Button_BuildGroundUnit'):
                 self.actionMenuType = self.LANDING_SPOT_BUILD_MENU  
             elif len(Button_pressed.split("/")) == 2:
@@ -2049,22 +2048,38 @@ class View():
         self.gameArea.focus_set()
         #Bindings des fleches
         self.gameArea.bind ("<Key-Up>", self.keyPressUP)
+        self.gameArea.bind ("w", self.keyPressUP)
+        self.gameArea.bind ("W", self.keyPressUP)
         self.gameArea.bind("<Key-Down>", self.keyPressDown)
+        self.gameArea.bind("s", self.keyPressDown)
+        self.gameArea.bind("S", self.keyPressDown)
         self.gameArea.bind("<Key-Left>", self.keyPressLeft)
+        self.gameArea.bind("a", self.keyPressLeft)
+        self.gameArea.bind("A", self.keyPressLeft)
         self.gameArea.bind("<Key-Right>", self.keyPressRight)
+        self.gameArea.bind("D", self.keyPressRight)
+        self.gameArea.bind("d", self.keyPressRight)
         self.gameArea.bind ("<KeyRelease-Up>", self.keyReleaseUP)
+        self.gameArea.bind ("<KeyRelease-w>", self.keyReleaseUP)
+        self.gameArea.bind ("<KeyRelease-W>", self.keyReleaseUP)
         self.gameArea.bind ("<KeyRelease-Down>", self.keyReleaseDown)
+        self.gameArea.bind ("<KeyRelease-s>", self.keyReleaseDown)
+        self.gameArea.bind ("<KeyRelease-S>", self.keyReleaseDown)
         self.gameArea.bind ("<KeyRelease-Left>", self.keyReleaseLeft)
+        self.gameArea.bind ("<KeyRelease-a>", self.keyReleaseLeft)
+        self.gameArea.bind ("<KeyRelease-A>", self.keyReleaseLeft)
         self.gameArea.bind ("<KeyRelease-Right>", self.keyReleaseRight)
+        self.gameArea.bind ("<KeyRelease-d>", self.keyReleaseRight)
+        self.gameArea.bind ("<KeyRelease-D>", self.keyReleaseRight)
         #Bindings de shift pour la multiselection
         self.gameArea.bind("<Shift_L>", self.shiftPress)
         self.gameArea.bind("<KeyRelease-Shift_L>", self.shiftRelease)
         #BINDINGS POUR LES SHORTCUTS CLAVIERS
-        self.gameArea.bind("s", self.stop)
-        self.gameArea.bind("S", self.stop)
+        #self.gameArea.bind("s", self.stop)
+        #self.gameArea.bind("S", self.stop)
         self.gameArea.bind("<Delete>", self.delete)
-        self.gameArea.bind("a",self.attack)
-        self.gameArea.bind("A",self.attack)
+        #self.gameArea.bind("a",self.attack)
+        #self.gameArea.bind("A",self.attack)
         self.gameArea.bind("c", self.selectAll)
         self.gameArea.bind("t", self.takeOff)
         self.gameArea.bind("T", self.takeOff)

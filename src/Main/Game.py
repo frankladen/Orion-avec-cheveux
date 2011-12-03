@@ -556,7 +556,7 @@ class Game():
     def eraseUnit(self):
         if len(self.players[self.playerId].selectedObjects) > 0:
             if isinstance(self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1], u.Unit):
-                if isinstance(self.players[player].buildings[constructionBuilding], ConstructionBuilding):
+                if isinstance(self.players[self.playerId].buildings[constructionBuilding], ConstructionBuilding):
                     self.parent.pushChange(self.players[self.playerId].units.index(self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1]), Flag(None,None,FlagState.DESTROY))
                 
     #Pour effacer tous les units
@@ -654,10 +654,11 @@ class Game():
         
         for p in self.players:
             for b in p.buildings:
-                if isinstance(b, GroundBuilding) and isinstance(unit, u.GroundUnit) and self.getCurrentPlanet() != None:
-                    if unit.planet == b.planet:
-                        if b.selectIcon(start, end) != None:
-                            return False
+                if self.getCurrentPlanet() != None:
+                    if (isinstance(b, GroundBuilding) or isinstance(b, LandingZone)) and isinstance(unit, u.GroundUnit):
+                        if unit.planet == b.planet:
+                            if b.selectIcon(start, end) != None:
+                                return False
                 else:
                     if b.selectIcon(start, end) != None:
                         return False
@@ -729,7 +730,7 @@ class Game():
                             if clickedObj.owner == self.playerId:
                                 self.setGatherFlag(unit, clickedObj)
                     elif unit.type == unit.ATTACK_SHIP:
-                        if (isinstance(clickedObj, u.Unit) or isinstance(clickedObj, SpaceBuilding)) and  not isinstance(clickedObj, u.GroundUnit):
+                        if (isinstance(clickedObj, u.Unit) or isinstance(clickedObj, SpaceBuilding) or isinstance(clickedObj, Mothership)) and  not isinstance(clickedObj, u.GroundUnit):
                             if clickedObj.owner != self.playerId:
                                 self.setAttackFlag(clickedObj)
                     elif unit.type == unit.SCOUT:
@@ -826,11 +827,14 @@ class Game():
         self.parent.pushChange(shipId,(planetId, sunId, 'TAKEOFF'))
 
     def changeFormation(self, playerId, newType, units, action):
-        if newType == 'c':
-            self.players[playerId].formation = "carre"
-        elif newType =='t':
-            self.players[playerId].formation = "triangle"
-        self.players[playerId].makeFormation(units, self.galaxy, action = action)
+        self.players[playerId].formation = newType
+        try:
+            self.players[playerId].makeFormation(units, self.galaxy, action = action)
+        except:
+            pass
 
     def makeFormation(self, playerId, units, target, action):
-        self.players[playerId].makeFormation(units, self.galaxy, target, action)
+        try:
+            self.players[playerId].makeFormation(units, self.galaxy, target, action)
+        except:
+            pass

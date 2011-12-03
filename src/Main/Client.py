@@ -391,7 +391,8 @@ class Controller():
         
         elif action == str(FlagState.CHANGE_RALLY_POINT):
             target = self.changeToInt(self.stripAndSplit(target))
-            self.game.players[actionPlayerId].buildings[int(unitIndex[0])].changeFlag(target,int(action))
+            if int(unitIndex[0]) < len(self.game.players[actionPlayerId].buildings) and unitIndex[0] != None:
+                self.game.players[actionPlayerId].buildings[int(unitIndex[0])].changeFlag(target,int(action))
         
         elif action == str(FlagState.CANCEL_UNIT):
             self.game.cancelUnit(actionPlayerId, int(target), int(unitIndex[0]))
@@ -403,7 +404,7 @@ class Controller():
             self.game.killPlayer(actionPlayerId)
         
         elif action == str(FlagState.CHANGE_FORMATION):
-            self.game.changeFormation(actionPlayerId, target, unitIndex, FlagState.MOVE)
+            self.game.changeFormation(actionPlayerId, int(target), unitIndex, FlagState.MOVE)
 
         elif action == str(FlagState.BUY_TECH):
             self.game.buyTech(actionPlayerId, target, int(unitIndex[0]))

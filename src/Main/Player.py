@@ -2,6 +2,7 @@
 import Unit as u
 import Building as b
 from Flag import *
+from Target import *
 from Helper import *
 from TechTree import *
 import math
@@ -23,6 +24,8 @@ class Player():
     #[AttaqueDamage,AttaqueSpeed,MoveSpeed,AttackRange]
     BONUS = [0,0,0,0,0,0,0]
     MAX_FOOD = 10
+    SQUARE_FORMATION = 0
+    TRIANGLE_FORMATION = 1
     
     def __init__(self, name, game, id , colorId):
         self.name = name
@@ -42,9 +45,9 @@ class Player():
         self.diplomacies[self.id] = 'Ally'
         self.startPos = [0,0,0] #Position de depart du joueur (pour le mothership)
         self.motherShip = None
-        self.formation="carre"
+        self.formation = self.SQUARE_FORMATION
         self.currentPlanet = None
-        self.ressources = [500,500,2,0]
+        self.ressources = [350,350,2,0]
         self.isAlive = True
         self.camera = None
         self.actionHealUnit = None
@@ -249,13 +252,13 @@ class Player():
                     if un.isAlive and not isinstance(un, u.GroundUnit):
                         if x > un.position[0]-un.viewRange and x < un.position[0]+un.viewRange:
                             if y > un.position[1]-un.viewRange and y < un.position[1]+un.viewRange:
-                                if un.name == 'Transport':
+                                if un.type == u.Unit.TRANSPORT:
                                     if not un.landed:
                                         return True
                                 else:
                                     return True
                 for bu in self.game.players[i].buildings:
-                    if bu.isAlive and bu.finished:
+                    if bu.isAlive and bu.finished and not isinstance(bu, b.GroundBuilding) and not isinstance(bu, b.LandingZone):
                         if x > bu.position[0]-bu.viewRange and x < bu.position[0]+bu.viewRange:
                             if y > bu.position[1]-bu.viewRange and y < bu.position[1]+bu.viewRange:
                                 return True
@@ -362,6 +365,10 @@ class Player():
         unit.applyBonuses(self.BONUS)
         unit.changeFlag(t.Target(constructionUnit.rallyPoint), FlagState.MOVE)
         self.units.append(unit)
+
+        if self.id == unit.owner:
+            if not self.camera.inGameArea(constructionUnit.position):
+                self.notifications.append(Notification(constructionUnit.position, Notification.FINISHED_BUILD, u.Unit.NAME[unit.type]))
         
         if isinstance(unit, u.GroundUnit):
             self.game.galaxy.solarSystemList[unit.sunId].planets[unit.planetId].units.append(unit)
@@ -449,7 +456,7 @@ class Player():
             width = max(widths)
             height = max(heights)
             #Formation en carrÃ© selon le nombre de unit qui se dÃ©place, OH YEAH
-            if self.formation == "carre":
+            if self.formation == self.SQUARE_FORMATION:
                 #tuple qui contient les units qui peut contenir par ligne
                 thatLine = []
                 lineTaken = []
@@ -488,18 +495,9 @@ class Player():
                         if goodPlace==False:
                             line+=1
                     #Lorsqu'il a trouvÃ© sa place, on le fait bouger vers sa nouvelle target
-                    try:
-                        self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
-                    except:
-                        print("carre")
-                        print(target[0])
-                        print(target[1])
-                        print(action)
-                        print(len(units))
-                        print(units[len(units)-1])
-                        print(units[i])
+                    self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
             #Formation en triangle, FUCK YEAH
-            elif self.formation == "triangle":
+            elif self.formation == self.TRIANGLE_FORMATION:
                 #tuple qui contient le nombre de Unit par ligne
                 thatLine=[]
                 #tuple qui contient les X de la ligne prÃ©cÃ©dente
@@ -548,16 +546,7 @@ class Player():
                                     thatLine.append(False)
                                 lineTaken.append(thatLine)
                     #Lorsqu'il a trouvÃ© sa place, on le fait bouger Ã  sa nouvelle Target  
-                    try:
-                        self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
-                    except:
-                        print("triangle")
-                        print(target[0])
-                        print(target[1])
-                        print(action)
-                        print(len(units))
-                        print(units[len(units)-1])
-                        print(units[i])
+                    self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
         else:
             self.units[int(units[0])].changeFlag(t.Target([target[0],target[1],0]),int(action))
         
@@ -588,7 +577,7 @@ class Camera():
 
     #Pour savoir si la position est dans le gameArea
     def inGameArea(self, position):
-        if position[0] > self.position[0] - self.screenWidth/2 and position[0] < self.position + self.screenWidth/2:
+        if position[0] > self.position[0] - self.screenWidth/2 and position[0] < self.position[0] + self.screenWidth/2:
             if position[1] > self.position[1] - self.screenHeight/2 and position[1] < self.position[1] + self.screenHeight/2:
                 return True
         return False

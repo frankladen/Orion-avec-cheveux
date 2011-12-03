@@ -54,8 +54,10 @@ class Notification(Target):
     ALLIANCE_ENNEMY = 4
     MESSAGE_ALLIES = 5
     MESSAGE_ALL = 6
-    NAME = ("Un de vos vaisseaux se fait attaquer par ", "Un de vos bâtiments se fait attaquer par ", "Vous êtes maintenant allié avec ", "Vous avez reçu une demande d'alliance de ", "Vous êtes maintenant l'ennemi de ","","")
-    COLOR = ("RED", "RED", "GREEN", "YELLOW", "RED","GREEN","CYAN")
+    LAND_PLANET = 7
+    FINISHED_BUILD = 8
+    NAME = ("Un de vos vaisseaux se fait attaquer par ", "Un de vos bâtiments se fait attaquer par ", "Vous êtes maintenant allié avec ", "Vous avez reçu une demande d'alliance de ", "Vous êtes maintenant l'ennemi de ","","", "Votre planète est maintenant aussi habitée par ", "Un nouveau vaisseau a été créé: ")
+    COLOR = ("RED", "RED", "GREEN", "YELLOW", "RED","GREEN","CYAN", "GRAY", "WHITE")
     def __init__(self,position,type, actionPlayerName = None):
         self.position=position
         self.type=type

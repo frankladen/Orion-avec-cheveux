@@ -30,8 +30,8 @@ class Unit(PlayerObject):
     ATTACK_DAMAGE=(0,0,5,0,0,0,0,0,12,0,0)
     ATTACK_RANGE=(0,0,150,0,0,0,0,0,150,0,0)
     BUILD_TIME=(300,  200, 400, 300, 250, 200, 200, 200, 200, 200,200)
-    BUILD_COST=((50,50,1),  (100,50,1), (250,200,1), (500,500,1), (50,75,1), (150,100,1),(50,75,1), (75,125,1), (100,80,1), (65,90,1),(75,50,1))
-    VIEW_RANGE=(150,  200, 150, 175, 175,200, 200, 200, 200, 200, 200)
+    BUILD_COST=((50,50,1),  (100,50,1), (250,200,1), (500,500,1), (75,75,1), (150,100,1),(50,75,1), (75,125,1), (100,80,1), (65,90,1),(75,50,1))
+    VIEW_RANGE=(150,  250, 200, 175, 175,200, 200, 200, 200, 200, 200)
     
     def __init__(self, type, position, owner):
         PlayerObject.__init__(self, type, position, owner)
@@ -459,7 +459,9 @@ class HealingUnit(SpaceUnit):
                     if self.ctr == self.HEALING_SPEED and self.flag.finalTarget.hitpoints <self.flag.finalTarget.maxHP:
                         self.flag.finalTarget.hitpoints += self.HEALING_POWER
                         self.ctr = 0
-
+                    elif self.flag.finalTarget.hitpoints >= self.flag.finalTarget.maxHP:
+                        self.flag.finalTarget.hitpoints = self.flag.finalTarget.maxHP
+                        self.flag.flagState = FlagState.STANDBY
                 
             else:
                 SpaceUnit.action(self, parent)
@@ -660,11 +662,14 @@ class TransportShip(SpaceUnit):
         if self.arrived:
             player = game.players[playerId]
             alreadyLanded = False
+            game.parent.view.isSettingOff()
             for i in planet.landingZones:
                 if i.ownerId == playerId:
                     alreadyLanded = True
             if not alreadyLanded:
                 if len(planet.landingZones) < 4:
+                    for i in planet.landingZones:
+                        game.players[i.ownerId].notifications.append(Notification(planet.position, Notification.LAND_PLANET, game.players[game.playerId].name))
                     player.currentPlanet = planet
                     landingZone = planet.addLandingZone(playerId, self, game.players[playerId])
                     self.nuclear += landingZone.nuclear
