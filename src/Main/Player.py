@@ -24,6 +24,8 @@ class Player():
     #[AttaqueDamage,AttaqueSpeed,MoveSpeed,AttackRange]
     BONUS = [0,0,0,0,0,0,0]
     MAX_FOOD = 10
+    SQUARE_FORMATION = 0
+    TRIANGLE_FORMATION = 1
     
     def __init__(self, name, game, id , colorId):
         self.name = name
@@ -43,7 +45,7 @@ class Player():
         self.diplomacies[self.id] = 'Ally'
         self.startPos = [0,0,0] #Position de depart du joueur (pour le mothership)
         self.motherShip = None
-        self.formation="carre"
+        self.formation = self.SQUARE_FORMATION
         self.currentPlanet = None
         self.ressources = [350,350,2,0]
         self.isAlive = True
@@ -454,7 +456,7 @@ class Player():
             width = max(widths)
             height = max(heights)
             #Formation en carrÃ© selon le nombre de unit qui se dÃ©place, OH YEAH
-            if self.formation == "carre":
+            if self.formation == self.SQUARE_FORMATION:
                 #tuple qui contient les units qui peut contenir par ligne
                 thatLine = []
                 lineTaken = []
@@ -493,12 +495,9 @@ class Player():
                         if goodPlace==False:
                             line+=1
                     #Lorsqu'il a trouvÃ© sa place, on le fait bouger vers sa nouvelle target
-                    try:
-                        self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
-                    except:
-                        pass
+                    self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
             #Formation en triangle, FUCK YEAH
-            elif self.formation == "triangle":
+            elif self.formation == self.TRIANGLE_FORMATION:
                 #tuple qui contient le nombre de Unit par ligne
                 thatLine=[]
                 #tuple qui contient les X de la ligne prÃ©cÃ©dente
@@ -547,15 +546,9 @@ class Player():
                                     thatLine.append(False)
                                 lineTaken.append(thatLine)
                     #Lorsqu'il a trouvÃ© sa place, on le fait bouger Ã  sa nouvelle Target  
-                    try:
-                        self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
-                    except:
-                        pass
+                    self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
         else:
-            try:
-                self.units[int(units[0])].changeFlag(t.Target([target[0],target[1],0]),int(action))
-            except:
-                pass
+            self.units[int(units[0])].changeFlag(t.Target([target[0],target[1],0]),int(action))
         
 #Represente la camera            
 class Camera():

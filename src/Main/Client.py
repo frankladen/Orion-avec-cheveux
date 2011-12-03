@@ -404,7 +404,7 @@ class Controller():
             self.game.killPlayer(actionPlayerId)
         
         elif action == str(FlagState.CHANGE_FORMATION):
-            self.game.changeFormation(actionPlayerId, target, unitIndex, FlagState.MOVE)
+            self.game.changeFormation(actionPlayerId, int(target), unitIndex, FlagState.MOVE)
 
         elif action == str(FlagState.BUY_TECH):
             self.game.buyTech(actionPlayerId, target, int(unitIndex[0]))

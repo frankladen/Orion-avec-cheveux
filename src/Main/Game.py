@@ -827,11 +827,14 @@ class Game():
         self.parent.pushChange(shipId,(planetId, sunId, 'TAKEOFF'))
 
     def changeFormation(self, playerId, newType, units, action):
-        if newType == 'c':
-            self.players[playerId].formation = "carre"
-        elif newType =='t':
-            self.players[playerId].formation = "triangle"
-        self.players[playerId].makeFormation(units, self.galaxy, action = action)
+        self.players[playerId].formation = newType
+        try:
+            self.players[playerId].makeFormation(units, self.galaxy, action = action)
+        except:
+            pass
 
     def makeFormation(self, playerId, units, target, action):
-        self.players[playerId].makeFormation(units, self.galaxy, target, action)
+        try:
+            self.players[playerId].makeFormation(units, self.galaxy, target, action)
+        except:
+            pass

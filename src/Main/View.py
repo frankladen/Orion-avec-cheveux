@@ -652,7 +652,7 @@ class View():
                     self.Actionmenu.create_image(13,35,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
                     self.Actionmenu.create_image(76,35,image = self.gifBuild, anchor = NW, tags = 'Button_BuildGroundUnit')
                 if len(self.game.players[self.game.playerId].selectedObjects) > 1:
-                    if self.game.players[self.game.playerId].formation == "carre":
+                    if self.game.players[self.game.playerId].formation == self.game.players[self.game.playerId].SQUARE_FORMATION:
                         self.Actionmenu.create_image(140,143,image=self.gifTriangle,anchor = NW, tags = 'Button_Triangle')
                     else:
                         self.Actionmenu.create_image(140,143,image=self.gifSquare,anchor = NW, tags = 'Button_Square')
@@ -1930,9 +1930,9 @@ class View():
             elif (Button_pressed == 'Button_Build_GroundBuild'):
                 self.game.addUnit(Unit.GROUND_BUILDER_UNIT)
             elif (Button_pressed == "Button_Triangle"):
-                self.game.setChangeFormationFlag('t')
+                self.game.setChangeFormationFlag(self.game.players[self.game.playerId].TRIANGLE_FORMATION)
             elif (Button_pressed == "Button_Square"):
-                self.game.setChangeFormationFlag('c')
+                self.game.setChangeFormationFlag(self.game.players[self.game.playerId].SQUARE_FORMATION)
             elif (Button_pressed == 'Button_BuildGroundUnit'):
                 self.actionMenuType = self.LANDING_SPOT_BUILD_MENU  
             elif len(Button_pressed.split("/")) == 2:
