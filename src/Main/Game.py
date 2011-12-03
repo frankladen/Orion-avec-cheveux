@@ -654,10 +654,11 @@ class Game():
         
         for p in self.players:
             for b in p.buildings:
-                if isinstance(b, GroundBuilding) and isinstance(unit, u.GroundUnit) and self.getCurrentPlanet() != None:
-                    if unit.planet == b.planet:
-                        if b.selectIcon(start, end) != None:
-                            return False
+                if self.getCurrentPlanet() != None:
+                    if (isinstance(b, GroundBuilding) or isinstance(b, LandingZone)) and isinstance(unit, u.GroundUnit):
+                        if unit.planet == b.planet:
+                            if b.selectIcon(start, end) != None:
+                                return False
                 else:
                     if b.selectIcon(start, end) != None:
                         return False

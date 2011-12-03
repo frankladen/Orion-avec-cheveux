@@ -1744,7 +1744,6 @@ class View():
             cam.position = [planet.position[0], planet.position[1]]
             planet = self.game.players[self.game.playerId].currentPlanet = None
             self.game.players[self.game.playerId].selectedObjects = []
-            self.actionMenuType = self.MAIN_MENU
             self.changeBackground('GALAXY')
             self.drawWorld()
             self.redrawMinimap()
@@ -1771,7 +1770,6 @@ class View():
                 player.camera.placeOnLanding(landingZone)
                 self.game.players[self.game.playerId].currentPlanet = planet
                 self.game.players[self.game.playerId].selectedObjects = []
-                self.actionMenuType = self.MAIN_MENU
 
     def nextPlanet(self, eve):
         player = self.game.players[self.game.playerId]
@@ -1793,8 +1791,7 @@ class View():
                         landingZone = i
                 player.camera.placeOnLanding(landingZone)
                 self.game.players[self.game.playerId].currentPlanet = planet
-                self.game.players[self.game.playerId].selectedObjects = []
-                self.actionMenuType = self.MAIN_MENU
+                self.game.players[self.game.playerId].selectedObjects = []         
 
     def isSettingOff(self):
         self.wantToCancelUnitBuild = False
@@ -1804,6 +1801,7 @@ class View():
         self.isSettingAttackPosition = False
         self.isSettingBuildingPosition = False
         self.isChosingUnitToHeal = False
+        self.actionMenuType = self.MAIN_MENU
 
     def clickMenuModes(self,eve):
         bp = (eve.widget.gettags(eve.widget.find_withtag('current')))

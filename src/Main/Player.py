@@ -44,7 +44,7 @@ class Player():
         self.motherShip = None
         self.formation="carre"
         self.currentPlanet = None
-        self.ressources = [500,500,2,0]
+        self.ressources = [350,350,2,0]
         self.isAlive = True
         self.camera = None
         self.actionHealUnit = None
