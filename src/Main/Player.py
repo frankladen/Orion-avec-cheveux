@@ -238,7 +238,7 @@ class Player():
                         else:
                             return True
         for i in self.buildings:
-            if i.isAlive and i.finished and not isinstance(i, b.GroundBuilding):
+            if i.isAlive and i.finished and not isinstance(i, b.GroundBuilding) and not isinstance(i, b.LandingZone):
                 if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
                     if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
                         return True
@@ -288,9 +288,13 @@ class Player():
     def getNearestReturnRessourceCenterOnSpace(self, position, unit):
         sunId = unit.sunId
         planetId = unit.planetId
-        landingSpotPosition = unit.planet.getLandingSpot(unit.owner).position
-        nearestDistance = Helper.calcDistance(position[0],position[1],landingSpotPosition[0],landingSpotPosition[1])
-        nearestBuilding = unit.planet.getLandingSpot(unit.owner)
+        if unit.planet.getLandingSpot(unit.owner) != None:
+            landingSpotPosition = unit.planet.getLandingSpot(unit.owner).position
+            nearestDistance = Helper.calcDistance(position[0],position[1],landingSpotPosition[0],landingSpotPosition[1])
+            nearestBuilding = unit.planet.getLandingSpot(unit.owner)
+        else:
+            nearestDistance = 894382740932748
+            nearestBuilding = unit.flag.finalTarget.position
         for b in self.buildings:
             if b.type == b.FARM:
                 if b.finished:

@@ -42,7 +42,10 @@ class Game():
                 self.setActionHealUnit(toHeal, typeToHeal)
     
     def setActionHealUnit(self, toHeal, typeToHeal):
-        toHealIndex = self.players[self.playerId].units.index(toHeal)
+        if typeToHeal == 0:
+            toHealIndex = self.players[self.playerId].units.index(toHeal)
+        elif typeToHeal == 1:
+            toHealIndex = self.players[self.playerId].buildings.index(toHeal)
         healerUnitIndex = self.players[self.playerId].getSelectedHealUnitIndex()
         if healerUnitIndex != None:
             self.parent.pushChange(healerUnitIndex, Flag(finalTarget = t.Target([toHealIndex,typeToHeal,0]),flagState = FlagState.HEAL))
@@ -538,7 +541,7 @@ class Game():
         gazCost = u.Unit.BUILD_COST[unitType][1]
         foodCost = u.Unit.BUILD_COST[unitType][2]
         if self.players[player].canAfford(mineralCost, gazCost, foodCost):
-            if (len(self.players[player].buildings)-1) <= constructionUnit and constructionUnit != None:
+            if constructionUnit <= (len(self.players[player].buildings)-1) and constructionUnit != None:
                 if isinstance(self.players[player].buildings[constructionUnit], ConstructionBuilding):
                     self.players[player].createUnit(unitType, constructionUnit)
 
@@ -546,7 +549,7 @@ class Game():
         self.parent.pushChange(self.players[self.playerId].getSelectedBuildingIndex(), Flag(finalTarget = unit, flagState = FlagState.CANCEL_UNIT))
 
     def cancelUnit(self, player, unit, constructionBuilding):
-        if (len(self.players[player].buildings)-1) <= constructionBuilding and constructionBuilding != None:
+        if constructionBuilding <= (len(self.players[player].buildings)-1) and constructionBuilding != None:
             self.players[player].cancelUnit(unit, constructionBuilding)
     
     #Pour effacer un Unit
