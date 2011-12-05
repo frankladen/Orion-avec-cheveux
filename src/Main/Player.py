@@ -366,7 +366,7 @@ class Player():
         unit.changeFlag(t.Target(constructionUnit.rallyPoint), FlagState.MOVE)
         self.units.append(unit)
 
-        if self.id == unit.owner:
+        if self.game.playerId == unit.owner:
             if not self.camera.inGameArea(constructionUnit.position):
                 self.notifications.append(Notification(constructionUnit.position, Notification.FINISHED_BUILD, u.Unit.NAME[unit.type]))
         
