@@ -47,7 +47,7 @@ class Player():
         self.motherShip = None
         self.formation = self.SQUARE_FORMATION
         self.currentPlanet = None
-        self.ressources = [350,350,2,0]
+        self.ressources = [500,500,2,0]
         self.isAlive = True
         self.camera = None
         self.actionHealUnit = None
@@ -411,6 +411,7 @@ class Player():
             if i != '':
                 if type == "u":
                     self.units[int(i)].changeFlag(targetPlayer.units[targetUnit], FlagState.ATTACK)
+                    print('attack unit')
                 else:
                     self.units[int(i)].changeFlag(targetPlayer.buildings[targetUnit], FlagState.ATTACK)
 

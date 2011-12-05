@@ -1,5 +1,4 @@
 # -*- coding: UTF-8 -*-
-#import World as w
 import Player as p
 import Target as t
 import Unit as u
@@ -206,10 +205,6 @@ class Game():
         if units != "":
             self.parent.pushChange(units, Flag(i,t.Target([0,0,0]),FlagState.STANDBY))
 
-    def setAStandByFlag(self, unit):
-        units = str(self.players[self.playerId].units.index(unit)) + ","
-        self.parent.pushChange(units, Flag(i,t.Target([0,0,0]),FlagState.STANDBY))
-
     def setPatrolFlag(self, pos):
         units = ''
         send = False
@@ -230,7 +225,7 @@ class Game():
                 if isinstance(i, u.SpaceAttackUnit):
                     if isinstance(attackedUnit, u.Unit) :
                         if attackedUnit.type == u.Unit.TRANSPORT:
-                            if not attackedUnit.landed:
+                            if attackedUnit.landed == False:
                                 units += str(self.players[self.playerId].units.index(i)) + ","
                         else:
                             units += str(self.players[self.playerId].units.index(i)) + ","

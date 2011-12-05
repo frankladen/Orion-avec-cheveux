@@ -48,8 +48,8 @@ class Unit(PlayerObject):
             self.move()
         elif self.flag.flagState == FlagState.ATTACK:
             if isinstance(self.flag.finalTarget, TransportShip):
-                if self.flag.finalTarget.landed:
-                    parent.game.setAStandByFlag(self)
+                if self.flag.finalTarget.landed == True:
+                    self.flag = Flag(self, self, FlagState.STANDBY)
             killedIndex = self.attack(parent.game.players)
             if killedIndex[0] > -1:
                 parent.killUnit(killedIndex)
@@ -531,8 +531,8 @@ class SpaceAttackUnit(SpaceUnit):
     def action(self, parent):
         if self.flag.flagState == FlagState.ATTACK:
             if isinstance(self.flag.finalTarget, TransportShip):
-                if self.flag.finalTarget.landed:
-                    parent.game.setAStandByFlag(self)
+                if self.flag.finalTarget.landed == True:
+                    self.flag = Flag(self,self,FlagState.STANDBY)
             else:
                 killedIndex = self.attack(parent.game.players)
                 if killedIndex[0] > -1:
@@ -602,7 +602,6 @@ class TransportShip(SpaceUnit):
         self.sunId = -1
         self.planet = None
         self.nuclear = 0
-        #self.units.append(GroundUnit('Builder', self.GROUND_UNIT, [0,0,0], self.owner,-1,-1))
 
     def action(self, parent):
         if self.flag.flagState == FlagState.LAND:
