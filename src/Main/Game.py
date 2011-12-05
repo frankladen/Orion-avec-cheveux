@@ -311,18 +311,10 @@ class Game():
                 player.BONUS[player.ATTACK_RANGE_BONUS] = tech.add
             elif tech.effect == 'VR':
                 player.BONUS[player.VIEW_RANGE_BONUS] = tech.add
-            elif tech.effect == 'BB':
-                player.BONUS[player.BUILDING_SHIELD_BONUS] = tech.add
-                for b in player.buildings:
-                    if not isinstance(b, Mothership):
-                        b.MAX_SHIELD = tech.add
-                        b.shield = tech.add
             elif tech.effect == 'BM':
                 player.BONUS[player.BUILDING_MOTHERSHIELD_BONUS] = tech.add
-                for b in player.buildings:
-                    if isinstance(b, Mothership):
-                        b.MAX_SHIELD = tech.add
-                        b.shield = tech.add
+            elif tech.effect == 'DM':
+                player.BONUS[player.ATTACK_DAMAGE_MOTHERSHIP] = tech.add
                 
             player.changeBonuses()
         

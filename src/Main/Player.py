@@ -21,8 +21,9 @@ class Player():
     VIEW_RANGE_BONUS = 4
     BUILDING_SHIELD_BONUS = 5
     BUILDING_MOTHERSHIELD_BONUS = 6
+    ATTACK_DAMAGE_MOTHERSHIP = 7
     #[AttaqueDamage,AttaqueSpeed,MoveSpeed,AttackRange]
-    BONUS = [0,0,0,0,0,0,0]
+    BONUS = [0,0,0,0,0,0,0,0]
     MAX_FOOD = 10
     SQUARE_FORMATION = 0
     TRIANGLE_FORMATION = 1
@@ -368,7 +369,10 @@ class Player():
 
         if self.game.playerId == unit.owner:
             if not self.camera.inGameArea(constructionUnit.position):
-                self.notifications.append(Notification(constructionUnit.position, Notification.FINISHED_BUILD, u.Unit.NAME[unit.type]))
+                if isinstance(constructionUnit, b.Mothership):
+                    self.notifications.append(Notification(constructionUnit.position, Notification.FINISHED_BUILD, u.Unit.NAME[unit.type]))
+                else:
+                    self.notifications.append(Notification(constructionUnit.planet.position, Notification.FINISHED_BUILD, u.Unit.NAME[unit.type]))
         
         if isinstance(unit, u.GroundUnit):
             self.game.galaxy.solarSystemList[unit.sunId].planets[unit.planetId].units.append(unit)
@@ -384,6 +388,8 @@ class Player():
     def changeBonuses(self):
         for unit in self.units:
             unit.applyBonuses(self.BONUS)
+        for building in self.buildings:
+            building.applyBonuses(self.BONUS)
             
     def adjustRessources(self, ressourceType, amount):
         self.ressources[ressourceType] += amount

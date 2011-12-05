@@ -80,27 +80,26 @@
 	</Units>
 	<Buildings>
 		<Tech>
-			<Name>Bouclier</Name>
-			<Effect>BB</Effect>
-			<Add>300</Add>
-			<CostMine>1200</CostMine>
-			<CostGaz>1200</CostGaz>
-			<CostNuclear>1</CostNuclear>
+			<Name>+3 Damage</Name>
+			<Effect>DB</Effect>
+			<Add>3</Add>
+			<CostMine>500</CostMine>
+			<CostGaz>600</CostGaz>
 		</Tech>
 	</Buildings>
 	<Mothership>
 		<Tech>
-			<Name>+1 Damage</Name>
-			<Effect>D</Effect>
-			<Add>1</Add>
-			<CostMine>200</CostMine>
-			<CostGaz>300</CostGaz>
+			<Name>+3 Damage</Name>
+			<Effect>DM</Effect>
+			<Add>3</Add>
+			<CostMine>500</CostMine>
+			<CostGaz>600</CostGaz>
 			<Upgrade>
-				<Name>+2 Damage</Name>
-				<Effect>D</Effect>
-				<Add>2</Add>
-				<CostMine>450</CostMine>
-				<CostGaz>500</CostGaz>
+				<Name>+7 Damage</Name>
+				<Effect>DM</Effect>
+				<Add>7</Add>
+				<CostMine>750</CostMine>
+				<CostGaz>1000</CostGaz>
 				<CostNuclear>1</CostNuclear>
 			</Upgrade>
 		</Tech>

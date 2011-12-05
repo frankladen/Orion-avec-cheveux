@@ -56,7 +56,7 @@ class Unit(PlayerObject):
         elif self.flag.flagState == FlagState.PATROL:
             self.patrol()
         elif self.flag.flagState == FlagState.BUILD:
-            self.build(self.flag.finalTarget)
+            self.build(self.flag.finalTarget, parent)
     
     #La deplace d'un pas vers son flag et si elle est rendu, elle change arrete de bouger    
     def move(self):
@@ -100,7 +100,7 @@ class Unit(PlayerObject):
                     return self
         return None
 
-    def build(self, building):
+    def build(self, building, player):
         if Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1]) >= self.moveSpeed:
             self.move()
         else:
@@ -114,9 +114,8 @@ class Unit(PlayerObject):
                 building.finished = True
                 if building.hitpoints >= building.MAX_HP[building.type]-1:
                     building.hitpoints = building.MAX_HP[building.type]
-                if isinstance(building, b.Mothership):
-                    building.armor = b.Mothership.MAX_ARMOR
                 self.flag.flagState = FlagState.STANDBY
+                building.applyBonuses(player.BONUS)
             
     #Efface la unit
     def eraseUnit(self):
@@ -518,6 +517,9 @@ class GroundAttackUnit(GroundUnit):
         except ValueError:
             self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.STANDBY)
             return (-1, -1)
+
+    def applyBonuses(self, bonuses):
+        SpaceAttackUnit.applyBonuses(bonuses)
                     
 class SpaceAttackUnit(SpaceUnit):
     def __init__(self,  type, position, owner):
@@ -591,6 +593,9 @@ class SpaceAttackUnit(SpaceUnit):
     #Applique les bonus du Unit selon les upgrades
     def applyBonuses(self, bonuses):
         Unit.applyBonuses(self, bonuses)
+        self.AttackSpeed=self.ATTACK_SPEED[self.type]+bonuses[p.Player.ATTACK_SPEED_BONUS]
+        self.AttackDamage=self.ATTACK_DAMAGE[self.type]+bonuses[p.Player.ATTACK_DAMAGE_BONUS]
+        self.range=self.ATTACK_RANGE[self.type]+bonuses[p.Player.ATTACK_RANGE_BONUS]
 
 class TransportShip(SpaceUnit):
     def __init__(self, type, position, owner):
@@ -670,6 +675,7 @@ class TransportShip(SpaceUnit):
                     for i in planet.landingZones:
                         game.players[i.ownerId].notifications.append(Notification(planet.position, Notification.LAND_PLANET, game.players[game.playerId].name))
                     player.currentPlanet = planet
+                    self.planet = planet
                     landingZone = planet.addLandingZone(playerId, self, game.players[playerId])
                     self.nuclear += landingZone.nuclear
                     landingZone.nuclear = 0
@@ -703,6 +709,7 @@ class TransportShip(SpaceUnit):
                         landingZone = i
                 if landingZone.LandedShip == None:
                     player.currentPlanet = planet
+                    self.planet = planet
                     self.nuclear += landingZone.nuclear
                     landingZone.nuclear = 0
                     landingZone.hitpoints = 100
