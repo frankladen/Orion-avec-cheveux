@@ -50,9 +50,10 @@ class Unit(PlayerObject):
             if isinstance(self.flag.finalTarget, TransportShip):
                 if self.flag.finalTarget.landed == True:
                     self.flag = Flag(self, self, FlagState.STANDBY)
-            killedIndex = self.attack(parent.game.players)
-            if killedIndex[0] > -1:
-                parent.killUnit(killedIndex)
+            if self.flag.flagState == FlagState.ATTACK:
+                killedIndex = self.attack(parent.game.players)
+                if killedIndex[0] > -1:
+                    parent.killUnit(killedIndex)
         elif self.flag.flagState == FlagState.PATROL:
             self.patrol()
         elif self.flag.flagState == FlagState.BUILD:
@@ -535,7 +536,7 @@ class SpaceAttackUnit(SpaceUnit):
             if isinstance(self.flag.finalTarget, TransportShip):
                 if self.flag.finalTarget.landed == True:
                     self.flag = Flag(self,self,FlagState.STANDBY)
-            else:
+            if self.flag.flagState == FlagState.ATTACK:
                 killedIndex = self.attack(parent.game.players)
                 if killedIndex[0] > -1:
                     parent.killUnit(killedIndex)
