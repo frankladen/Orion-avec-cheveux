@@ -415,10 +415,11 @@ class Player():
     def makeUnitsAttack(self, units, targetPlayer, targetUnit, type):
         for i in units:
             if i != '':
-                if type == "u":
-                    self.units[int(i)].changeFlag(targetPlayer.units[targetUnit], FlagState.ATTACK)
-                else:
-                    self.units[int(i)].changeFlag(targetPlayer.buildings[targetUnit], FlagState.ATTACK)
+                if int(i) < len(self.units):
+                    if type == "u":
+                        self.units[int(i)].changeFlag(targetPlayer.units[targetUnit], FlagState.ATTACK)
+                    else:
+                        self.units[int(i)].changeFlag(targetPlayer.buildings[targetUnit], FlagState.ATTACK)
 
     def makeUnitLand(self, unitId, planet):
         self.units[unitId].changeFlag(planet, FlagState.LAND)
@@ -426,17 +427,20 @@ class Player():
     def makeUnitLoad(self, units, landingZone):
         for i in units:
             if i != '':
-                self.units[int(i)].changeFlag(landingZone, FlagState.LOAD)
+                if int(i) < len(self.units):
+                    self.units[int(i)].changeFlag(landingZone, FlagState.LOAD)
     
     def makeUnitsGather(self, units, astroObject):
         for i in units:
             if i != '':
-                self.units[int(i)].changeFlag(astroObject, FlagState.GATHER)
+                if int(i) < len(self.units):
+                    self.units[int(i)].changeFlag(astroObject, FlagState.GATHER)
                 
     def makeGroundUnitsGather(self, units, ressource):
         for i in units:
             if i != '':
-                self.units[int(i)].changeFlag(ressource, FlagState.GROUND_GATHER)
+                if int(i) < len(self.units):
+                    self.units[int(i)].changeFlag(ressource, FlagState.GROUND_GATHER)
         
     def makeFormation(self, units, galaxy, target = None, action = FlagState.MOVE):
         if len(units) > 2:
