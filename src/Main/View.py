@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+#-*- coding: UTF-8 -*-
 from tkinter import *
 from Unit import *
 from World import *
@@ -29,6 +29,7 @@ class View():
     LANDING_SPOT_BUILD_MENU = 15
     WAITING_FOR_UNIT_TO_HEAL_MENU = 16
     HEAL_UNIT_MENU = 17
+    WAITING_FOR_GATHER_POINT_MENU = 18
     MINIMAP_WIDTH=200
     MINIMAP_HEIGHT=200
     SELECTED_TRADE = 20
@@ -124,6 +125,7 @@ class View():
         self.isSettingAttackPosition = False
         self.isSettingBuildingPosition = False
         self.isChosingUnitToHeal = False
+        self.isSettingGatherPosition = False
         self.dragging = False
         self.hpBars=False
         self.buildingToBuild=-1
@@ -646,11 +648,17 @@ class View():
                         self.Actionmenu.create_image(13,89,image=self.gifAttack,anchor = NW, tags = 'Button_Attack')
                     elif isinstance(units[0], GroundBuilderUnit):
                         self.Actionmenu.create_image(13,89,image=self.gifBuild,anchor = NW, tags = 'Button_Ground_Buildings')
-                    elif units[0].type == u.Unit.HEALING_UNIT:
+                    elif isinstance(units[0], HealingUnit):
                         self.Actionmenu.create_image(13,89,image=self.gifRepair,anchor = NW, tags = 'Button_Heal')
+                    elif isinstance(units[0], GatherShip):
+                        self.Actionmenu.create_image(13,89,image=self.gifRepair,anchor = NW, tags = 'Button_Gather')
                 elif isinstance(units[0], b.LandingZone):
                     self.Actionmenu.create_image(13,35,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
                     self.Actionmenu.create_image(76,35,image = self.gifBuild, anchor = NW, tags = 'Button_BuildGroundUnit')
+                    self.Actionmenu.create_image(140,35,image = self.gifBuild, anchor = NW, tags = 'Button_ReturnToSpace')
+                    self.Actionmenu.create_image(13,89,image = self.gifBuild, anchor = NW, tags = 'Button_Unload')
+                    if units[0].LandedShip != None:
+                        self.Actionmenu.create_image(76,89,image = self.gifBuild, anchor = NW, tags = 'Button_TakeOff')
                 if len(self.game.players[self.game.playerId].selectedObjects) > 1:
                     if self.game.players[self.game.playerId].formation == self.game.players[self.game.playerId].SQUARE_FORMATION:
                         self.Actionmenu.create_image(140,143,image=self.gifTriangle,anchor = NW, tags = 'Button_Triangle')
@@ -680,6 +688,11 @@ class View():
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
             self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
+        elif(type == self.WAITING_FOR_GATHER_POINT_MENU):
+            self.drawFirstLine = ""
+            self.drawSecondLine = ""
+            self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu pour aller ammasser des ressources.",anchor = NW, fill = 'white', width = 200)
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.WAITING_FOR_RALLY_POINT_MENU):
             self.drawFirstLine = ""
             self.drawSecondLine = ""
@@ -1598,10 +1611,13 @@ class View():
                 if canva == self.gameArea:
                     pos = self.game.players[self.game.playerId].camera.calcPointInWorld(x,y)
                     self.game.rightClic(pos)
-                elif canva == self.minimap and self.game.getCurrentPlanet() == None:
+                elif canva == self.minimap:
                     pos = self.game.players[self.game.playerId].camera.calcPointMinimap(x,y)
-                    self.game.setMovingFlag(pos[0], pos[1])
-                    self.drawWorld()
+                    if len(self.game.players[self.game.playerId].selectedObjects) > 0:
+                        if isinstance(self.game.players[self.game.playerId].selectedObjects[0],b.ConstructionBuilding):
+                            self.game.setRallyPointPosition(pos)
+                    if self.game.getCurrentPlanet() == None:                    
+                        self.game.setMovingFlag(pos[0], pos[1])
 
     #Quand on fait un clic gauche (peu importe ou)
     def leftclic(self, eve):
@@ -1628,6 +1644,11 @@ class View():
             elif self.isSettingMovePosition:
                 self.game.setMovingFlag(pos[0],pos[1])
                 self.isSettingMovePosition = False
+                self.actionMenuType = self.MAIN_MENU
+
+            elif self.isSettingGatherPosition:
+                self.game.rightClic(pos)
+                self.isSettingGatherPosition = False
                 self.actionMenuType = self.MAIN_MENU
                 
             elif self.isSettingBuildingPosition or self.building:
@@ -1801,6 +1822,7 @@ class View():
         self.isSettingMovePosition = False
         self.isSettingAttackPosition = False
         self.isSettingBuildingPosition = False
+        self.isSettingGatherPosition = False
         self.isChosingUnitToHeal = False
         self.actionMenuType = self.MAIN_MENU
 
@@ -1845,7 +1867,8 @@ class View():
                     if i in self.game.players[self.game.playerId].selectedObjects:
                         self.game.setTakeOffFlag(i.LandedShip, planet)
                         self.actionMenuType = self.MAIN_MENU
-
+                        self.game.players[self.game.playerId].selectedObjects = []
+                        
     def unload(self, eve):
         self.game.unload()
 
@@ -1866,6 +1889,15 @@ class View():
             elif (Button_pressed == "Button_Attack"):
                 self.actionMenuType = self.WAITING_FOR_ATTACK_POINT_MENU
                 self.isSettingAttackPosition = True
+            elif (Button_pressed == "Button_Gather"):
+                self.actionMenuType = self.WAITING_FOR_GATHER_POINT_MENU
+                self.isSettingGatherPosition = True
+            elif (Button_pressed == "Button_TakeOff"):
+                self.takeOff(0)
+            elif (Button_pressed == "Button_Unload"):
+                self.unload(0)
+            elif (Button_pressed == "Button_ReturnToSpace"):
+                self.getOutPlanet(0)
             elif (Button_pressed == "Button_Space_Buildings"):
                 self.actionMenuType = self.SPACE_BUILDINGS_MENU
             elif (Button_pressed == "Button_Ground_Buildings"):
@@ -1995,6 +2027,15 @@ class View():
             elif (Button_pressed == "Button_Return"):
                 self.drawFirstLine=""
                 self.drawSecondLine="Retour"
+            elif (Button_pressed == "Button_Unload"):
+                self.drawFirstLine="Faire descendre"
+                self.drawSecondLine="les unités"
+            elif (Button_pressed == "Button_TakeOff"):
+                self.drawFirstLine=""
+                self.drawSecondLine="Décollage"
+            elif (Button_pressed == "Button_ReturnToSpace"):
+                self.drawFirstLine="Retourner"
+                self.drawSecondLine="dans l'espace"
             elif (Button_pressed == "Button_RallyPoint"):
                 self.drawFirstLine="Placer votre"
                 self.drawSecondLine="point de ralliement"
