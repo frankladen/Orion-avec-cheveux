@@ -520,7 +520,7 @@ class GroundAttackUnit(GroundUnit):
             return (-1, -1)
 
     def applyBonuses(self, bonuses):
-        SpaceAttackUnit.applyBonuses(bonuses)
+        SpaceAttackUnit.applyBonuses(self, bonuses)
                     
 class SpaceAttackUnit(SpaceUnit):
     def __init__(self,  type, position, owner):
