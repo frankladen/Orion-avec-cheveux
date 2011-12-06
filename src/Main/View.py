@@ -105,6 +105,7 @@ class View():
         self.gifWaypoint = PhotoImage(file='images/icones/iconeWaypoint.gif')
         self.gifRally = PhotoImage(file='images/galaxy/rallyFlag.gif')
         self.gifRepair = PhotoImage(file='images/icones/gifRepair.gif')
+        self.gifLab = PhotoImage(file='images/icones/iconeTech.gif')
         self.gifupB = PhotoImage(file='images/icones/upB.gif')
         self.gifupM = PhotoImage(file='images/icones/upM.gif')
         self.gifupU = PhotoImage(file='images/icones/upU.gif')
@@ -519,7 +520,7 @@ class View():
                     elif isinstance(unit, b.Farm):
                         self.menuModes.create_image(20,50, image = self.gifFarm)
                     elif isinstance(unit, b.Lab):
-                        self.menuModes.create_image(20,50, image = self.gifFarm)
+                        self.menuModes.create_image(20,50, image = self.gifLab)
                     elif isinstance(unit, b.Turret):
                         self.menuModes.create_image(20,50, image = self.gifTurret)
                         self.menuModes.create_text(20,160, text = "Vitesse d'attaque : " + str(unit.AttackSpeed),anchor = NW, fill = 'white')
@@ -696,7 +697,7 @@ class View():
         elif(type == self.GROUND_BUILDINGS_MENU):
             self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
             self.Actionmenu.create_image(13,35,image = self.gifFarm, anchor = NW, tags = 'Button_Build_Farm')
-            self.Actionmenu.create_image(76,35,image = self.gifFarm, anchor = NW, tags = 'Button_Build_Lab')
+            self.Actionmenu.create_image(76,35,image = self.gifLab, anchor = NW, tags = 'Button_Build_Lab')
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
             self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
