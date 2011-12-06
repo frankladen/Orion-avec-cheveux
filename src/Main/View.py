@@ -120,7 +120,6 @@ class View():
         self.firstTime = True
         self.attacking = False
         self.building = False
-        self.selectAllUnits = False
         self.wantToCancelUnitBuild = False
         self.isSettingPatrolPosition = False
         self.isSettingRallyPointPosition = False
@@ -974,8 +973,11 @@ class View():
             if i.isAlive:
                 color = self.game.players[i.ownerId].colorId
                 distance = self.game.players[self.game.playerId].camera.calcDistance(i.position)
-                if i in self.game.players[self.game.playerId].selectedObjects:
-                    self.gameArea.create_oval(distance[0]-(i.WIDTH/2+3),distance[1]-(i.HEIGHT/2+3),distance[0]+(i.WIDTH/2+3),distance[1]+(i.HEIGHT/2+3), outline='green', tag='deletable')
+                if i.owner == self.game.playerId:
+                    rallyView = self.game.players[self.game.playerId].camera.calcDistance(i.rallyPoint)
+                    self.gameArea.create_image(rallyView[0],rallyView[1], image = self.gifRally, tag='deletable')
+                    if i in self.game.players[self.game.playerId].selectedObjects:
+                        self.gameArea.create_oval(distance[0]-(i.WIDTH/2+3),distance[1]-(i.HEIGHT/2+3),distance[0]+(i.WIDTH/2+3),distance[1]+(i.HEIGHT/2+3), outline='green', tag='deletable')
                 self.gameArea.create_image(distance[0], distance[1], image=self.landingZones[color], tag='deletable')
                 if i.LandedShip != None:
                     self.gameArea.create_image(distance[0]+1, distance[1], image=self.landedShips[color], tag='deletable')
@@ -1023,10 +1025,7 @@ class View():
     def drawBuildingGround(self, building, color):
         distance = self.game.players[self.game.playerId].camera.calcDistance(building.position)
         if building in self.game.players[self.game.playerId].selectedObjects:
-            self.gameArea.create_rectangle(distance[0]-(building.SIZE[building.type][0]/2+3), distance[1]-(building.SIZE[building.type][1]/2+3), distance[0]+(building.SIZE[building.type][0]/2+3),distance[1]+(building.SIZE[building.type][1]/2+3),outline='green', tag='deletable')
-            if isinstance(building, b.LandingZone):
-                rallyView = self.game.players[self.game.playerId].camera.calcDistance(building.rallyPoint)
-                self.gameArea.create_image(rallyView[0],rallyView[1], image = self.gifRally, tag='deletable')
+            self.gameArea.create_rectangle(distance[0]-(building.SIZE[building.type][0]/2+3), distance[1]-(building.SIZE[building.type][1]/2+3), distance[0]+(building.SIZE[building.type][0]/2+3),distance[1]+(building.SIZE[building.type][1]/2+3),outline='green', tag='deletable')   
         if isinstance(building, b.Farm):
             if building.finished == True:
                 self.gameArea.create_image(distance[0], distance[1], image=self.farms[color], tag='deletable')
@@ -1673,21 +1672,11 @@ class View():
                 self.actionMenuType = self.MAIN_MENU
                     
             else:
-                if not self.selectAllUnits:
-                    self.game.select(pos)
-                    self.ongletSelectedUnit()
-                    self.selectedOnglet = self.SELECTED_UNIT_SELECTED
-                else:
-                    self.game.selectAll(pos)
-                    self.ongletSelectedUnit()
-                    self.selectedOnglet = self.SELECTED_UNIT_SELECTED
+                self.game.select(pos)
+                self.ongletSelectedUnit()
+                self.selectedOnglet = self.SELECTED_UNIT_SELECTED
         elif canva == self.minimap:
             self.game.quickMove(x,y)
-
-    def selectAll(self, eve):
-        self.selectAllUnits = True
-    def unSelectAll(self, eve):
-        self.selectAllUnits = False
 
     #Quand on fait un clic gauche et qu'on bouge
     def clicDrag(self,eve):
@@ -2097,6 +2086,7 @@ class View():
 
     def selectMemory(self, eve):
         self.game.selectMemory(int(eve.char)-1)
+        
     def newMemory(self, eve):
         self.game.newMemory(eve.keycode-112)
         
@@ -2106,18 +2096,18 @@ class View():
         #Bindings des fleches
         self.gameArea.bind ("w", self.keyPressUP)
         self.gameArea.bind ("W", self.keyPressUP)
-        self.gameArea.bind("s", self.keyPressDown)
-        self.gameArea.bind("S", self.keyPressDown)
         self.gameArea.bind("a", self.keyPressLeft)
         self.gameArea.bind("A", self.keyPressLeft)
+        self.gameArea.bind("s", self.keyPressDown)
+        self.gameArea.bind("S", self.keyPressDown)
         self.gameArea.bind("D", self.keyPressRight)
         self.gameArea.bind("d", self.keyPressRight)
         self.gameArea.bind ("<KeyRelease-w>", self.keyReleaseUP)
         self.gameArea.bind ("<KeyRelease-W>", self.keyReleaseUP)
-        self.gameArea.bind ("<KeyRelease-s>", self.keyReleaseDown)
-        self.gameArea.bind ("<KeyRelease-S>", self.keyReleaseDown)
         self.gameArea.bind ("<KeyRelease-a>", self.keyReleaseLeft)
         self.gameArea.bind ("<KeyRelease-A>", self.keyReleaseLeft)
+        self.gameArea.bind ("<KeyRelease-s>", self.keyReleaseDown)
+        self.gameArea.bind ("<KeyRelease-S>", self.keyReleaseDown)
         self.gameArea.bind ("<KeyRelease-d>", self.keyReleaseRight)
         self.gameArea.bind ("<KeyRelease-D>", self.keyReleaseRight)
         #Bindings de shift pour la multiselection
@@ -2129,12 +2119,10 @@ class View():
         self.gameArea.bind("<Delete>", self.delete)
         #self.gameArea.bind("a",self.attack)
         #self.gameArea.bind("A",self.attack)
-        self.gameArea.bind("c", self.selectAll)
         self.gameArea.bind("t", self.takeOff)
         self.gameArea.bind("T", self.takeOff)
         self.gameArea.bind("u", self.unload)
         self.gameArea.bind("U", self.unload)
-        self.gameArea.bind("<KeyRelease-c>", self.unSelectAll)
         self.gameArea.bind ("<Key-Up>", self.checkMotherShip)
         self.gameArea.bind("<Key-Down>", self.getOutPlanet)
         self.gameArea.bind("<Key-Left>", self.lastPlanet)
