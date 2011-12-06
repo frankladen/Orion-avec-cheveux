@@ -286,9 +286,9 @@ class Game():
             planet.landingZones.remove(landingZone)
 
     def setBuyTech(self, techType, index):
-        self.parent.pushChange(index, Flag(techType,0,FlagState.BUY_TECH))
+        self.parent.pushChange(techType, Flag(0,t.Target([int(index), self.players[self.playerId].getSelectedBuildingIndex(),0]),FlagState.BUY_TECH))
 
-    def buyTech(self, playerId, techType, index):
+    def buyTech(self, playerId, techType, index, labIndex):
         player = self.players[playerId]
         techTree = player.techTree
         if techType == "Button_Buy_Unit_Tech":
@@ -308,21 +308,19 @@ class Game():
             player.ressources[1] -= tech.costGaz
             player.ressources[3] -= tech.costNuclear
             if tech.effect == 'D':
-                player.BONUS[player.ATTACK_DAMAGE_BONUS] = tech.add
+                player.buildings[labIndex].techsToResearch.append((tech, player.ATTACK_DAMAGE_BONUS))
             elif tech.effect == 'S':
-                player.BONUS[player.MOVE_SPEED_BONUS] = tech.add
+                player.buildings[labIndex].techsToResearch.append((tech, player.MOVE_SPEED_BONUS))
             elif tech.effect == 'AS':
-                player.BONUS[player.ATTACK_SPEED_BONUS] = tech.add
+                player.buildings[labIndex].techsToResearch.append((tech, player.ATTACK_SPEED_BONUS))
             elif tech.effect == 'AR':
-                player.BONUS[player.ATTACK_RANGE_BONUS] = tech.add
+                player.buildings[labIndex].techsToResearch.append((tech, player.ATTACK_RANGE_BONUS))
             elif tech.effect == 'VR':
-                player.BONUS[player.VIEW_RANGE_BONUS] = tech.add
+                player.buildings[labIndex].techsToResearch.append((tech, player.VIEW_RANGE_BONUS))
             elif tech.effect == 'BM':
-                player.BONUS[player.BUILDING_MOTHERSHIELD_BONUS] = tech.add
+                player.buildings[labIndex].techsToResearch.append((tech, player.BUILDING_MOTHERSHIELD_BONUS))
             elif tech.effect == 'DM':
-                player.BONUS[player.ATTACK_DAMAGE_MOTHERSHIP] = tech.add
-                
-            player.changeBonuses()
+                player.buildings[labIndex].techsToResearch.append((tech, player.ATTACK_DAMAGE_MOTHERSHIP))
         
     def setGatherFlag(self,ship,ressource):
         units = str(self.players[self.playerId].units.index(ship)) + ","

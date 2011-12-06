@@ -521,6 +521,8 @@ class View():
                         self.menuModes.create_image(20,50, image = self.gifFarm)
                     elif isinstance(unit, b.Lab):
                         self.menuModes.create_image(20,50, image = self.gifLab)
+                        if len(unit.techsToResearch) > 0:
+                            self.menuModes.create_arc((675, 190, 500, 10), start=0, extent= (unit.techsToResearch[0][0].researchTime / unit.techsToResearch[0][0].timeNeeded)*359.99999999 , fill='blue', tags = 'arc')
                     elif isinstance(unit, b.Turret):
                         self.menuModes.create_image(20,50, image = self.gifTurret)
                         self.menuModes.create_text(20,160, text = "Vitesse d'attaque : " + str(unit.AttackSpeed),anchor = NW, fill = 'white')
@@ -565,7 +567,7 @@ class View():
                             self.menuModes.create_oval((662, 177, 515, 22), fill='red', tags = 'arc', outline ='black')
                     else:
                         if unit.LandedShip != None:
-                            self.menuModes.create_text(680,100, text = unit.LandedShip.name, anchor = NW, fill = 'white')
+                            self.menuModes.create_text(680,100, text = unit.LandedShip.name, anchor = NW, fill = 'white', font="Arial 7")
                             if unit.LandedShip.hitpoints != unit.LandedShip.maxHP:
                                 self.menuModes.create_arc((755, 190,695,130), start=0, extent= (unit.LandedShip.hitpoints / unit.LandedShip.maxHP)*359.99999999 , fill='green', tags = 'arc', outline ='green')
                             else:
@@ -587,7 +589,7 @@ class View():
         else:
             self.drawPlanetGround(self.game.getCurrentPlanet())
             self.redrawMinimap()
-        y=580
+        y=self.HEIGHT-20
         for k in self.game.players[self.game.playerId].notifications:
             self.drawMiniNotification(k, y)
             y-=20
@@ -646,6 +648,7 @@ class View():
             units = self.game.players[self.game.playerId].selectedObjects 
             if len(units) > 0:
                 if isinstance(units[0], b.Mothership):
+                    if units[0].finished:
                         self.Actionmenu.create_image(13,35,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
                         self.Actionmenu.create_image(76,35,image = self.gifBuild, anchor = NW, tags = 'Button_Build')
                 elif isinstance(units[0], Unit):
@@ -663,14 +666,21 @@ class View():
                     elif isinstance(units[0], GatherShip):
                         self.Actionmenu.create_image(13,89,image=self.gifRepair,anchor = NW, tags = 'Button_Gather')
                 elif isinstance(units[0], b.Lab):
-                    self.Actionmenu.create_image(13,35,image = self.gifTechTree, anchor = NW, tags = 'Button_Tech')
+                    if units[0].finished:
+                        self.Actionmenu.create_image(13,35,image = self.gifupU, anchor = NW, tags = 'Button_Tech_Units')
+                        self.Actionmenu.create_image(76,35,image = self.gifupB, anchor = NW, tags = 'Button_Tech_Buildings')
+                        self.Actionmenu.create_image(140,35,image = self.gifupM, anchor = NW, tags = 'Button_Tech_Mothership')
+                        self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
+                        self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
+                        self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
                 elif isinstance(units[0], b.LandingZone):
-                    self.Actionmenu.create_image(13,35,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
-                    self.Actionmenu.create_image(76,35,image = self.gifBuild, anchor = NW, tags = 'Button_BuildGroundUnit')
-                    self.Actionmenu.create_image(140,35,image = self.gifcheckSpace, anchor = NW, tags = 'Button_ReturnToSpace')
-                    self.Actionmenu.create_image(13,89,image = self.gifUnload, anchor = NW, tags = 'Button_Unload')
-                    if units[0].LandedShip != None:
-                        self.Actionmenu.create_image(76,89,image = self.gifTakeoff, anchor = NW, tags = 'Button_TakeOff')
+                    if units[0].finished:
+                        self.Actionmenu.create_image(13,35,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
+                        self.Actionmenu.create_image(76,35,image = self.gifBuild, anchor = NW, tags = 'Button_BuildGroundUnit')
+                        self.Actionmenu.create_image(140,35,image = self.gifcheckSpace, anchor = NW, tags = 'Button_ReturnToSpace')
+                        self.Actionmenu.create_image(13,89,image = self.gifUnload, anchor = NW, tags = 'Button_Unload')
+                        if units[0].LandedShip != None:
+                            self.Actionmenu.create_image(76,89,image = self.gifTakeoff, anchor = NW, tags = 'Button_TakeOff')
                 if len(self.game.players[self.game.playerId].selectedObjects) > 1:
                     if self.game.players[self.game.playerId].formation == self.game.players[self.game.playerId].SQUARE_FORMATION:
                         self.Actionmenu.create_image(140,143,image=self.gifTriangle,anchor = NW, tags = 'Button_Triangle')
@@ -731,14 +741,6 @@ class View():
             self.drawSecondLine = ""
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le lieu où la construction du bâtiment va s'effectuer.",anchor = NW, fill = 'white', width = 200)
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
-        elif(type == self.TECHNOLOGY_TREE_MENU):
-            self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
-            self.Actionmenu.create_image(13,35,image = self.gifupU, anchor = NW, tags = 'Button_Tech_Units')
-            self.Actionmenu.create_image(76,35,image = self.gifupB, anchor = NW, tags = 'Button_Tech_Buildings')
-            self.Actionmenu.create_image(140,35,image = self.gifupM, anchor = NW, tags = 'Button_Tech_Mothership')
-            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
-            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
-            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
         elif(type == self.TECHTREE_UNIT_MENU):
             self.drawFirstLine = ""
             self.drawSecondLine = ""
@@ -984,10 +986,10 @@ class View():
             if i.isAlive:
                 color = self.game.players[i.ownerId].colorId
                 distance = self.game.players[self.game.playerId].camera.calcDistance(i.position)
-                if i.owner == self.game.playerId:
-                    rallyView = self.game.players[self.game.playerId].camera.calcDistance(i.rallyPoint)
-                    self.gameArea.create_image(rallyView[0],rallyView[1], image = self.gifRally, tag='deletable')
-                    if i in self.game.players[self.game.playerId].selectedObjects:
+                if i in self.game.players[self.game.playerId].selectedObjects:
+                    if i.owner == self.game.playerId:
+                        rallyView = self.game.players[self.game.playerId].camera.calcDistance(i.rallyPoint)
+                        self.gameArea.create_image(rallyView[0],rallyView[1], image = self.gifRally, tag='deletable')
                         self.gameArea.create_oval(distance[0]-(i.WIDTH/2+3),distance[1]-(i.HEIGHT/2+3),distance[0]+(i.WIDTH/2+3),distance[1]+(i.HEIGHT/2+3), outline='green', tag='deletable')
                 self.gameArea.create_image(distance[0], distance[1], image=self.landingZones[color], tag='deletable')
                 if i.LandedShip != None:
@@ -1049,6 +1051,10 @@ class View():
                 self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifConstruction,tag='deletable')
         if building.hitpoints <= 15 and building.finished:
             self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
+        if self.hpBars:
+            self.drawHPBars(distance, building)
+        else:
+            self.drawHPHoverUnit(building, distance)
 
     def drawPlanetBackground(self):
         self.gameArea.delete('background')
@@ -1281,11 +1287,11 @@ class View():
     
     def drawHPBars(self, distance, unit):
         if unit.hitpoints/unit.MAX_HP[unit.type] <= 0.2:
-            color = "#D00000"
+            color = "red"
         elif unit.hitpoints/unit.MAX_HP[unit.type] <= 0.5:
-            color = "#FFFF00"
+            color = "yellow"
         else:
-            color = "#208900"
+            color = "green"
         player = self.game.players[self.game.playerId]
         if ((isinstance(unit, b.GroundBuilding) or isinstance(unit, GroundUnit) or unit.type == b.Building.LANDING_ZONE) and player.currentPlanet != None) or ((isinstance(unit, b.SpaceBuilding) or isinstance(unit, SpaceUnit) or unit.type == Unit.SCOUT or unit.type == b.Building.MOTHERSHIP) and player.currentPlanet == None):
             hpLeft=((unit.hitpoints/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
@@ -1450,8 +1456,8 @@ class View():
             notifPos = notification.position
             notifPosX = (notifPos[0]+self.game.galaxy.width/2)/self.game.galaxy.width * self.MINIMAP_WIDTH   
             notifPosY = (notifPos[1]+self.game.galaxy.height/2)/self.game.galaxy.height * self.MINIMAP_HEIGHT
-            self.minimap.create_oval(notifPosX-3,notifPosY-3,notifPosX+3,notifPosY+3, fill='RED', tag = 'deletable')
-        self.gameArea.create_text(600, y, text=notification.name, fill=notification.color,tag = 'deletable') 
+            self.minimap.create_oval(notifPosX-3,notifPosY-3,notifPosX+3,notifPosY+3, fill=notification.color, tag = 'deletable')
+        self.gameArea.create_text(self.WIDTH/2, y, text=notification.name, fill=notification.color,tag = 'deletable') 
         notification.refreshSeen -= 1
         if notification.refreshSeen <= 0:
             self.game.players[self.game.playerId].notifications.remove(notification)

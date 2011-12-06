@@ -250,7 +250,7 @@ class Controller():
             elif flag.flagState == FlagState.DEMAND_ALLIANCE:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget)
             elif flag.flagState == FlagState.BUY_TECH:
-                actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.initialTarget)
+                actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             elif flag.flagState == FlagState.LOAD:
                 planetId = flag.finalTarget.planetId
                 solarId = flag.finalTarget.sunId
@@ -407,7 +407,11 @@ class Controller():
             self.game.changeFormation(actionPlayerId, int(target), unitIndex, FlagState.MOVE)
 
         elif action == str(FlagState.BUY_TECH):
-            self.game.buyTech(actionPlayerId, target, int(unitIndex[0]))
+            target = self.changeToInt(self.stripAndSplit(target))
+            techType = ""
+            for i in unitIndex:
+                techType += i
+            self.game.buyTech(actionPlayerId, techType, target[0], target[1])
 
         elif action == str(FlagState.TRADE):
             target = self.stripAndSplit(target)

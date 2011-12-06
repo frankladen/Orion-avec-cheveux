@@ -84,6 +84,8 @@ class Tech(TechTree):
         self.add = int(element.find("Add").text)
         self.costMine = int(element.find("CostMine").text)
         self.costGaz = int(element.find("CostGaz").text)
+        self.researchTime = 0
+        self.timeNeeded = int(element.find("BuildTime").text)
         self.isAvailable = True
         if element.find("CostNuclear") != None:
             self.costNuclear = int(element.find("CostNuclear").text)

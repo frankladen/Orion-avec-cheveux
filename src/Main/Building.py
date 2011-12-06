@@ -186,6 +186,19 @@ class GroundBuilding(Building):
 class Lab (GroundBuilding):
     def __init__(self, type, position, owner, sunId, planetId):
         GroundBuilding.__init__(self, type, position, owner, sunId, planetId)
+        self.techsToResearch = []
+
+    def action(self, parent):
+        if self.finished:
+            if len(self.techsToResearch) > 0:
+                self.progressTechs(parent)
+
+    def progressTechs(self, player):
+        self.techsToResearch[0][0].researchTime += 1
+        if self.techsToResearch[0][0].researchTime == self.techsToResearch[0][0].timeNeeded:
+            player.BONUS[self.techsToResearch[0][1]] = self.techsToResearch[0][0].add
+            self.techsToResearch.pop(0)
+            player.changeBonuses()
         
 class Farm(GroundBuilding):
     def __init__(self, type, position, owner, sunId, planetId):
