@@ -447,9 +447,12 @@ class Player():
         self.selectedObjects = []
         for i in self.listMemory[selected]:
             if i.isAlive:
-                self.selectedObjects.append(i)
+                if (self.currentPlanet != None and (isinstance(i, u.GroundUnit) or isinstance(i, b.GroundBuilding) or isinstance(i, b.LandingZone))) or (self.currentPlanet == None and (isinstance(i, u.SpaceUnit) or i.type == u.Unit.SCOUT or isinstance(i, b.SpaceBuilding) or isinstance(i, b.Mothership))):
+                    self.selectedObjects.append(i)
             else:
                 self.listMemory[selected].pop(self.listMemory[selected].index(i))
+        if len(self.selectedObjects) > 0:
+            self.camera.position = [self.selectedObjects[0].position[0], self.selectedObjects[0].position[1]]
 
     def newMemory(self, selected):
         self.listMemory[selected] = []

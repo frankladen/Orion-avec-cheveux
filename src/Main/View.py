@@ -1119,8 +1119,8 @@ class View():
                         self.gameArea.create_oval(distance[0]-(planet.IMAGE_WIDTH/2+3), distance[1]-(planet.IMAGE_HEIGHT/2+3), distance[0]+(planet.IMAGE_WIDTH/2+3), distance[1]+(planet.IMAGE_HEIGHT/2+3),outline="green", tag='deletable')
                     else:
                         self.gameArea.create_oval(distance[0]-(planet.IMAGE_WIDTH/2+3), distance[1]-(planet.IMAGE_HEIGHT/2+3), distance[0]+(planet.IMAGE_WIDTH/2+3), distance[1]+(planet.IMAGE_HEIGHT/2+3),outline="yellow", tag='deletable')
-                    mVariable = "Mineral :" + str(planet.mineralQte)
-                    gVariable = "Gaz :" + str(planet.gazQte)
+                    mVariable = "Mineral :" + str(planet.getNumMinerals())
+                    gVariable = "Gaz :" + str(planet.getNumGaz())
                     self.gameArea.create_text(distance[0], distance[1]-25,fill="cyan",text=mVariable, tag='deletable')
                     self.gameArea.create_text(distance[0], distance[1]-40,fill="green",text=gVariable, tag='deletable')
                 self.gameArea.create_image(distance[0],distance[1],image=self.planet, tag='deletable')

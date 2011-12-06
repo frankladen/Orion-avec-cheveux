@@ -343,10 +343,18 @@ class Planet(Target):
                             posFound = False
                             break
             self.nuclearSite = NuclearSite(position, self.id, self.solarSystem.sunId)
+
+    def getNumMinerals(self):
+        minerals = 0
         for i in self.minerals:
-            self.mineralQte += i.nbMinerals
+            minerals += i.nbMinerals
+        return minerals
+
+    def getNumGaz(self):
+        gaz = 0
         for i in self.gaz:
-            self.gazQte += i.nbGaz
+            gaz += i.nbGaz
+        return gaz
 
     def addLandingZone(self, playerid, landingShip, player):
         placeFound = False
