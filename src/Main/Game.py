@@ -820,16 +820,10 @@ class Game():
 
     def changeFormation(self, playerId, newType, units, action):
         self.players[playerId].formation = newType
-        try:
-            self.players[playerId].makeFormation(units, self.galaxy, action = action)
-        except:
-            pass
+        self.players[playerId].makeFormation(units, self.galaxy, action = action)
 
     def makeFormation(self, playerId, units, target, action):
-        try:
-            self.players[playerId].makeFormation(units, self.galaxy, target, action)
-        except:
-            pass
+        self.players[playerId].makeFormation(units, self.galaxy, target, action)
 
     def selectMemory(self, selected):
         self.players[self.playerId].selectMemory(selected)

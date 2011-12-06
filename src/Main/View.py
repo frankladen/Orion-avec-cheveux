@@ -50,7 +50,7 @@ class View():
         #if self.root.winfo_screenwidth() < self.WIDTH:
         #    self.showTooDamnLowRes()
         #    self.root.destroy()
-        self.HEIGHT = self.root.winfo_screenheight()-310
+        self.HEIGHT = self.root.winfo_screenheight()-350
         self.root.geometry('+5+5')
         self.selectStart = [0,0]
         self.selectEnd = [0,0]

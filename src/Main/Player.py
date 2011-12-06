@@ -464,7 +464,8 @@ class Player():
         if len(units) > 2:
             #S'il n'y a pas de target de spÃ©cifiÃ©e comme lors du changement de formation
             if target == None:
-                target = self.units[int(units[0])].flag.finalTarget.position
+                if int(units[0]) < len(self.units):
+                    target = self.units[int(units[0])].flag.finalTarget.position
             #tuple qui contient les lignes qui peut contenir par ligne
             lineTaken=[]
             line=0
@@ -478,9 +479,10 @@ class Player():
             widths = [unit.SIZE[unit.type][0]]
             heights = [unit.SIZE[unit.type][1]]
             for i in range(0,len(units)-1):
-                unit = self.units[int(units[i])]
-                widths.append(unit.SIZE[unit.type][0])
-                heights.append(unit.SIZE[unit.type][1])
+                if int(units[i]) < len(self.units):
+                    unit = self.units[int(units[i])]
+                    widths.append(unit.SIZE[unit.type][0])
+                    heights.append(unit.SIZE[unit.type][1])
             width = max(widths)
             height = max(heights)
             #Formation en carrÃ© selon le nombre de unit qui se dÃ©place, OH YEAH
@@ -523,7 +525,8 @@ class Player():
                         if goodPlace==False:
                             line+=1
                     #Lorsqu'il a trouvÃ© sa place, on le fait bouger vers sa nouvelle target
-                    self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
+                    if int(units[i]) < len(self.units):
+                        self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
             #Formation en triangle, FUCK YEAH
             elif self.formation == self.TRIANGLE_FORMATION:
                 #tuple qui contient le nombre de Unit par ligne
@@ -574,9 +577,11 @@ class Player():
                                     thatLine.append(False)
                                 lineTaken.append(thatLine)
                     #Lorsqu'il a trouvÃ© sa place, on le fait bouger Ã  sa nouvelle Target  
-                    self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
+                    if int(units[i]) < len(self.units):
+                        self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
         else:
-            self.units[int(units[0])].changeFlag(t.Target([target[0],target[1],0]),int(action))
+            if int(units[0]) < len(self.units):
+                self.units[int(units[0])].changeFlag(t.Target([target[0],target[1],0]),int(action))
         
 #Represente la camera            
 class Camera():
