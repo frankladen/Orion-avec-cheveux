@@ -143,6 +143,12 @@ class Game():
                     wp.shield = wp.MAX_SHIELD
                     wp.planet = self.galaxy.solarSystemList[sunId].planets[planetId]
                     self.galaxy.solarSystemList[sunId].planets[planetId].buildings.append(wp)
+                elif type == Building.LAB:
+                    wp = Lab(Building.LAB, [target[0],target[1],0], playerId, sunId, planetId)
+                    wp.MAX_SHIELD = player.BONUS[player.BUILDING_SHIELD_BONUS]
+                    wp.shield = wp.MAX_SHIELD
+                    wp.planet = self.galaxy.solarSystemList[sunId].planets[planetId]
+                    self.galaxy.solarSystemList[sunId].planets[planetId].buildings.append(wp)    
                 elif type == Building.MOTHERSHIP:
                     wp = Mothership(Building.MOTHERSHIP, [target[0],target[1],0], playerId)
                     wp.MAX_SHIELD = player.BONUS[player.BUILDING_SHIELD_BONUS]

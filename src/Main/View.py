@@ -165,6 +165,7 @@ class View():
         self.groundBuilders = []
         self.specialGathers = []
         self.drones = []
+        self.labs=[]
         for i in range(0,8):
             self.scoutShips.append(PhotoImage(file='images/Ships/Scoutships/Scoutship'+str(i)+'.gif'))
             self.attackShips.append(PhotoImage(file='images/Ships/Attackships/Attackship'+str(i)+'.gif'))
@@ -180,6 +181,7 @@ class View():
             self.farms.append(PhotoImage(file='images/Building/Farms/farm'+str(i)+'.gif'))
             self.groundBuilders.append(PhotoImage(file='images/Planet/Special/special'+str(i)+'.gif'))
             self.specialGathers.append(PhotoImage(file='images/Planet/Robot/robot'+str(i)+'.gif'))
+            self.labs.append(PhotoImage(file='images/Building/Labs/lab'+str(i)+'.gif'))
             self.drones.append(PhotoImage(file='images/Ships/Drones/drone'+str(i)+'.gif'))
         self.ressourcesFrame = LabelFrame(gameFrame, text="Ressources", width=600, bg="black", fg="white", relief=RAISED)
         self.showMinerals = Label(self.ressourcesFrame, text="Minéraux: "+str(self.game.players[self.game.playerId].ressources[0]), width=20, bg="black", fg="white", anchor=NW)
@@ -515,6 +517,8 @@ class View():
                         self.menuModes.create_image(20,50, image = self.gifWaypoint)
                     elif isinstance(unit, b.Farm):
                         self.menuModes.create_image(20,50, image = self.gifFarm)
+                    elif isinstance(unit, b.Lab):
+                        self.menuModes.create_image(20,50, image = self.gifFarm)
                     elif isinstance(unit, b.Turret):
                         self.menuModes.create_image(20,50, image = self.gifTurret)
                         self.menuModes.create_text(20,160, text = "Vitesse d'attaque : " + str(unit.AttackSpeed),anchor = NW, fill = 'white')
@@ -642,7 +646,6 @@ class View():
                 if isinstance(units[0], b.Mothership):
                         self.Actionmenu.create_image(13,35,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
                         self.Actionmenu.create_image(76,35,image = self.gifBuild, anchor = NW, tags = 'Button_Build')
-                        self.Actionmenu.create_image(140,35,image = self.gifTechTree, anchor = NW, tags = 'Button_Tech')
                 elif isinstance(units[0], Unit):
                     self.Actionmenu.create_image(13,35,image=self.gifMove,anchor = NW, tags = 'Button_Move')
                     self.Actionmenu.create_image(76,35,image=self.gifStop,anchor = NW, tags = 'Button_Stop')
@@ -657,13 +660,15 @@ class View():
                         self.Actionmenu.create_image(13,89,image=self.gifRepair,anchor = NW, tags = 'Button_Heal')
                     elif isinstance(units[0], GatherShip):
                         self.Actionmenu.create_image(13,89,image=self.gifRepair,anchor = NW, tags = 'Button_Gather')
+                elif isinstance(units[0], b.Lab):
+                    self.Actionmenu.create_image(13,35,image = self.gifTechTree, anchor = NW, tags = 'Button_Tech')
                 elif isinstance(units[0], b.LandingZone):
                     self.Actionmenu.create_image(13,35,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
                     self.Actionmenu.create_image(76,35,image = self.gifBuild, anchor = NW, tags = 'Button_BuildGroundUnit')
-                    self.Actionmenu.create_image(140,35,image = self.gifcheckSpace, anchor = NW, tags = 'Button_ReturnToSpace')
-                    self.Actionmenu.create_image(13,89,image = self.gifUnload, anchor = NW, tags = 'Button_Unload')
+                    self.Actionmenu.create_image(140,35,image = self.gifBuild, anchor = NW, tags = 'Button_ReturnToSpace')
+                    self.Actionmenu.create_image(13,89,image = self.gifBuild, anchor = NW, tags = 'Button_Unload')
                     if units[0].LandedShip != None:
-                        self.Actionmenu.create_image(76,89,image = self.gifTakeoff, anchor = NW, tags = 'Button_TakeOff')
+                        self.Actionmenu.create_image(76,89,image = self.gifBuild, anchor = NW, tags = 'Button_TakeOff')
                 if len(self.game.players[self.game.playerId].selectedObjects) > 1:
                     if self.game.players[self.game.playerId].formation == self.game.players[self.game.playerId].SQUARE_FORMATION:
                         self.Actionmenu.create_image(140,143,image=self.gifTriangle,anchor = NW, tags = 'Button_Triangle')
@@ -690,6 +695,7 @@ class View():
         elif(type == self.GROUND_BUILDINGS_MENU):
             self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
             self.Actionmenu.create_image(13,35,image = self.gifFarm, anchor = NW, tags = 'Button_Build_Farm')
+            self.Actionmenu.create_image(76,35,image = self.gifFarm, anchor = NW, tags = 'Button_Build_Lab')
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
             self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
@@ -1034,6 +1040,11 @@ class View():
                 self.gameArea.create_image(distance[0], distance[1], image=self.farms[color], tag='deletable')
             else:
                 self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifConstruction,tag='deletable')
+        if isinstance(building, b.Lab):
+            if building.finished == True:
+                self.gameArea.create_image(distance[0], distance[1], image=self.labs[color], tag='deletable')
+            else:
+                self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifConstruction,tag='deletable')
         if building.hitpoints <= 15 and building.finished:
             self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
 
@@ -1213,6 +1224,8 @@ class View():
             self.gameArea.create_image(distance[0], distance[1], image=self.waypoints[self.game.players[self.game.playerId].colorId], tag='deletable')
         elif building == b.Building.TURRET:
             self.gameArea.create_image(distance[0], distance[1], image=self.turrets[self.game.players[self.game.playerId].colorId], tag='deletable')
+        elif building == b.Building.LAB:
+            self.gameArea.create_image(distance[0], distance[1], image=self.labs[self.game.players[self.game.playerId].colorId], tag='deletable')
         elif building == b.Building.FARM:
             self.gameArea.create_image(distance[0], distance[1], image=self.farms[self.game.players[self.game.playerId].colorId], tag='deletable')
         elif building == b.Building.MOTHERSHIP:
@@ -1921,6 +1934,13 @@ class View():
                 unit = self.game.players[self.game.playerId].getFirstUnit()
                 self.sunId = unit.sunId
                 self.planetId = unit.planetId
+            elif (Button_pressed == "Button_Build_Lab"):
+                self.actionMenuType = self.WAITING_FOR_BUILDING_POINT_MENU
+                self.buildingToBuild = b.Building.LAB
+                self.isSettingBuildingPosition = True;
+                unit = self.game.players[self.game.playerId].getFirstUnit()
+                self.sunId = unit.sunId
+                self.planetId = unit.planetId
             elif (Button_pressed == "Button_Move"):
                 self.actionMenuType = self.WAITING_FOR_MOVE_POINT_MENU
                 self.isSettingMovePosition = True
@@ -2000,6 +2020,9 @@ class View():
             elif (Button_pressed == "Button_Build_Mothership"):
                 self.drawFirstLine=str(b.Building.NAME[b.Building.MOTHERSHIP])
                 self.drawSecondLine=str(b.Building.COST[b.Building.MOTHERSHIP][0])+" mine | "+str(b.Building.COST[b.Building.MOTHERSHIP][1])+" gaz"
+            elif (Button_pressed == "Button_Build_Lab"):
+                self.drawFirstLine=str(b.Building.NAME[b.Building.LAB])
+                self.drawSecondLine=str(b.Building.COST[b.Building.LAB][0])+" mine | "+str(b.Building.COST[b.Building.LAB][1])+" gaz"
             elif (Button_pressed == "Button_Build_Farm"):
                 self.drawFirstLine=str(b.Building.NAME[b.Building.FARM])
                 self.drawSecondLine=str(b.Building.COST[b.Building.FARM][0])+" mine | "+str(b.Building.COST[b.Building.FARM][1])+" gaz"
