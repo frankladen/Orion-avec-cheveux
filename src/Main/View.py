@@ -2090,9 +2090,9 @@ class View():
         self.gameArea.delete(ALL)
 
     def selectMemory(self, eve):
-        self.game.selectMemory(int(eve.char))
+        self.game.selectMemory(int(eve.char)-1)
     def newMemory(self, eve):
-        self.game.newMemory(eve.keycode-111)
+        self.game.newMemory(eve.keycode-112)
         
     #Assignation des controles	
     def assignControls(self):
