@@ -2038,6 +2038,9 @@ class View():
             elif (Button_pressed == "Button_Unload"):
                 self.drawFirstLine="Faire descendre"
                 self.drawSecondLine="les unités"
+            elif (Button_pressed == "Button_Gather"):
+                self.drawFirstLine=""
+                self.drawSecondLine="Récolte"
             elif (Button_pressed == "Button_TakeOff"):
                 self.drawFirstLine=""
                 self.drawSecondLine="Décollage"
