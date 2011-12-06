@@ -37,6 +37,8 @@ class View():
     SELECTED_UNIT_SELECTED = 22
     SELECTED_TEAM = 23
     SELECTED_UNIT = 24
+    WIDTH = 1200
+    HEIGHT = 600
         
     def __init__(self, parent, game):
         self.parent = parent
@@ -45,9 +47,10 @@ class View():
         self.root.title("Orion")
         self.root.resizable(0,0)
         #la taille du jeu se resize selon la résolution de l'écran, niceshithum?
-        #self.taille=self.root.winfo_screenheight()-125
-        #if self.taille>800:
-        self.taille=1200
+        self.HEIGHT = self.root.winfo_screenheight()-310
+        self.WIDTH = self.root.winfo_screenwidth()
+        if self.WIDTH > 1200:
+            self.WIDTH = 1200
         self.root.geometry('+5+5')
         self.selectStart = [0,0]
         self.selectEnd = [0,0]
@@ -186,11 +189,11 @@ class View():
         self.showFood = Label(self.ressourcesFrame, text="Population: "+str(self.game.players[self.game.playerId].ressources[2])+"/"+str(self.game.players[self.game.playerId].MAX_FOOD), width=15, bg="black", fg="white", anchor=NW)
         self.showFood.grid(column=3, row=0)
         self.ressourcesFrame.grid(row=0,column=0, columnspan=24)
-        self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille/2, background='Black', relief='ridge')
+        self.gameArea=Canvas(gameFrame, width=self.WIDTH, height=self.HEIGHT, background='Black', relief='ridge')
         self.gameArea.grid(column=0,row=1, columnspan=24)#place(relx=0, rely=0,width=taille,height=taille)
-        self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
+        self.minimap= Canvas(gameFrame, width=self.MINIMAP_WIDTH,height=self.MINIMAP_HEIGHT, background='Black', relief='raised')
         self.minimap.grid(column=0,row=2, rowspan=7)
-        self.menuModes=Canvas(gameFrame, width=800, height=200, background='black', relief='ridge')
+        self.menuModes=Canvas(gameFrame, width=800, height=self.MINIMAP_WIDTH, background='black', relief='ridge')
         self.menuModes.grid(row=2,column=2, rowspan=7, columnspan=5)
         #OngletChat
         self.menuModes.chat = Label(gameFrame, anchor=W, justify=LEFT, width=75, background='black', fg='white', relief='raised')
@@ -231,7 +234,7 @@ class View():
         self.menuModes.create_image(150,0,image=self.gifTeam,anchor = NW,tag='bouton_team')
         self.menuModes.create_image(227,0,image=self.gifSelectedUnit,anchor = NW,tag='bouton_selectedUnit')
         #ActionMenu
-        self.Actionmenu = Canvas(gameFrame,width=200,height=200,background='black')
+        self.Actionmenu = Canvas(gameFrame,width=self.MINIMAP_WIDTH,height=self.MINIMAP_HEIGHT,background='black')
         self.Actionmenu.grid(column=7,row=2, rowspan=7)
         self.changeBackground('GALAXY')
         self.drawWorld()
@@ -1009,6 +1012,10 @@ class View():
             self.gameArea.create_image(distance[0], distance[1], image=self.groundBuilders[color], tag='deletable')
         if unit.hitpoints <= 15:
             self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
+        if self.hpBars:
+            self.drawHPBars(distance, unit)
+        else:
+            self.drawHPHoverUnit(unit, distance)
 
     def drawBuildingGround(self, building, color):
         distance = self.game.players[self.game.playerId].camera.calcDistance(building.position)
@@ -1254,11 +1261,11 @@ class View():
     
     def drawHPBars(self, distance, unit):
         if unit.hitpoints/unit.MAX_HP[unit.type] <= 0.2:
-            color = "red"
+            color = "#D00000"
         elif unit.hitpoints/unit.MAX_HP[unit.type] <= 0.5:
-            color = "yellow"
+            color = "#FFFF00"
         else:
-            color = "green"
+            color = "#208900"
         player = self.game.players[self.game.playerId]
         if ((isinstance(unit, b.GroundBuilding) or isinstance(unit, GroundUnit) or unit.type == b.Building.LANDING_ZONE) and player.currentPlanet != None) or ((isinstance(unit, b.SpaceBuilding) or isinstance(unit, SpaceUnit) or unit.type == Unit.SCOUT or unit.type == b.Building.MOTHERSHIP) and player.currentPlanet == None):
             hpLeft=((unit.hitpoints/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
@@ -1304,7 +1311,7 @@ class View():
                                     self.drawMiniBuilding(j)
 
         else:
-            self.minimap.create_rectangle(0,0,200,200, fill='#009900', tag='deletable')
+            self.minimap.create_rectangle(0,0,self.MINIMAP_WIDTH,self.MINIMAP_HEIGHT, fill='#009900', tag='deletable')
             planet = self.game.players[self.game.playerId].currentPlanet
             for i in planet.minerals:
                 self.drawMiniMinerals(i, planet)
@@ -1351,7 +1358,7 @@ class View():
                                 if players[self.game.playerId].inViewRange(j.position):
                                     self.drawMiniBuilding(j)
         else:
-            self.minimap.create_rectangle(0,0,200,200, fill='#009900', tag='deletable')
+            self.minimap.create_rectangle(0,0,self.MINIMAP_WIDTH,self.MINIMAP_HEIGHT, fill='#009900', tag='deletable')
             planet = self.game.players[self.game.playerId].currentPlanet
             for i in planet.minerals:
                 self.drawMiniMinerals(i, planet)
@@ -1371,10 +1378,10 @@ class View():
     def drawMiniFOV(self):
         camera = self.game.players[self.game.playerId].camera
         if self.game.players[self.game.playerId].currentPlanet == None:
-            cameraX = (camera.position[0]-(self.taille/2) + self.game.galaxy.width/2) / self.game.galaxy.width * (self.taille/6)
-            cameraY = (camera.position[1]-((self.taille/2)-self.taille/4) + self.game.galaxy.height/2) / self.game.galaxy.height * (self.taille/6)
-            width = self.taille / self.game.galaxy.width * (self.taille/6)
-            height = self.taille / self.game.galaxy.height * ((self.taille/12))
+            cameraX = (camera.position[0]-(self.WIDTH/2) + self.game.galaxy.width/2) / self.game.galaxy.width * self.MINIMAP_WIDTH
+            cameraY = (camera.position[1]-(self.HEIGHT-(self.HEIGHT/2)) + self.game.galaxy.height/2) / self.game.galaxy.height * self.MINIMAP_HEIGHT
+            width = self.WIDTH / self.game.galaxy.width * (self.MINIMAP_WIDTH)
+            height = self.HEIGHT / self.game.galaxy.height * (self.MINIMAP_HEIGHT)
             self.minimap.create_rectangle(cameraX, cameraY, cameraX+width, cameraY+height, outline='GREEN', tag='deletable')
         else:
             planet = self.game.players[self.game.playerId].currentPlanet
@@ -1382,23 +1389,21 @@ class View():
             cameraY = (camera.position[1] * (self.MINIMAP_HEIGHT)) / planet.HEIGHT
             width = camera.screenWidth * (self.MINIMAP_WIDTH) / planet.WIDTH
             height = camera.screenHeight * (self.MINIMAP_HEIGHT) / planet.HEIGHT
-	    #width = self.taille / planet.WIDTH * (self.taille/4)
-            #height = self.taille / planet.HEIGHT * ((self.taille/16)*3)
             self.minimap.create_rectangle(cameraX-width/2, cameraY-height/2, cameraX+width/2, cameraY+height/2, outline='GREEN', tag='deletable')
 
     #Dessine un soleil dans la minimap    
     def drawMiniSun(self, sun):
         sunPosition = sun.sunPosition
-        sunX = (sunPosition[0] + self.game.galaxy.width/2) / self.game.galaxy.width * (self.taille/6)
-        sunY = (sunPosition[1] + self.game.galaxy.height/2) / self.game.galaxy.height * (self.taille/6)
+        sunX = (sunPosition[0] + self.game.galaxy.width/2) / self.game.galaxy.width * self.MINIMAP_WIDTH
+        sunY = (sunPosition[1] + self.game.galaxy.height/2) / self.game.galaxy.height * self.MINIMAP_HEIGHT
         if sun.discovered:
             self.minimap.create_oval(sunX-3, sunY-3, sunX+3, sunY+3, fill='ORANGE')
 
     #Dessine une planete dans la minimap        
     def drawMiniPlanet(self, planet):
         planetPosition = planet.position
-        planetX = (planetPosition[0] + self.game.galaxy.width/2) / self.game.galaxy.width * (self.taille/6)
-        planetY = (planetPosition[1] + self.game.galaxy.height/2) / self.game.galaxy.height * (self.taille/6)
+        planetX = (planetPosition[0] + self.game.galaxy.width/2) / self.game.galaxy.width * self.MINIMAP_WIDTH
+        planetY = (planetPosition[1] + self.game.galaxy.height/2) / self.game.galaxy.height * self.MINIMAP_HEIGHT
         if planet.discovered:
             self.minimap.create_oval(planetX-1, planetY-1, planetX+1, planetY+1, fill='LIGHT BLUE')
             
@@ -1406,8 +1411,8 @@ class View():
     def drawMiniNebula(self, nebula):
         if nebula.gazQte > 0:
             nebulaPosition = nebula.position
-            nebulaX = (nebulaPosition[0] + self.game.galaxy.width/2) / self.game.galaxy.width * (self.taille/6)
-            nebulaY = (nebulaPosition[1] + self.game.galaxy.height/2) / self.game.galaxy.height * (self.taille/6)
+            nebulaX = (nebulaPosition[0] + self.game.galaxy.width/2) / self.game.galaxy.width * self.MINIMAP_WIDTH
+            nebulaY = (nebulaPosition[1] + self.game.galaxy.height/2) / self.game.galaxy.height * self.MINIMAP_HEIGHT
             if nebula.discovered:
                 self.minimap.create_oval(nebulaX-1, nebulaY-1, nebulaX+1, nebulaY+1, fill='PURPLE')
         
@@ -1415,16 +1420,16 @@ class View():
     def drawMiniAsteroid(self, asteroid):
         if asteroid.mineralQte > 0:
             asteroidPosition = asteroid.position
-            asteroidX = (asteroidPosition[0] + self.game.galaxy.width/2) / self.game.galaxy.width * (self.taille/6)
-            asteroidY = (asteroidPosition[1] + self.game.galaxy.height/2) / self.game.galaxy.height * (self.taille/6)
+            asteroidX = (asteroidPosition[0] + self.game.galaxy.width/2) / self.game.galaxy.width * self.MINIMAP_WIDTH
+            asteroidY = (asteroidPosition[1] + self.game.galaxy.height/2) / self.game.galaxy.height * self.MINIMAP_HEIGHT
             if asteroid.discovered:
                 self.minimap.create_oval(asteroidX-1, asteroidY-1, asteroidX+1, asteroidY+1, fill='CYAN')
         
     def drawMiniNotification(self,notification, y):
         if self.game.getCurrentPlanet() == None:
             notifPos = notification.position
-            notifPosX = (notifPos[0]+self.game.galaxy.width/2)/self.game.galaxy.width * (self.taille/6)     
-            notifPosY = (notifPos[1]+self.game.galaxy.height/2)/self.game.galaxy.height * (self.taille/6)
+            notifPosX = (notifPos[0]+self.game.galaxy.width/2)/self.game.galaxy.width * self.MINIMAP_WIDTH   
+            notifPosY = (notifPos[1]+self.game.galaxy.height/2)/self.game.galaxy.height * self.MINIMAP_HEIGHT
             self.minimap.create_oval(notifPosX-3,notifPosY-3,notifPosX+3,notifPosY+3, fill='RED', tag = 'deletable')
         self.gameArea.create_text(600, y, text=notification.name, fill=notification.color,tag = 'deletable') 
         notification.refreshSeen -= 1
@@ -1434,8 +1439,8 @@ class View():
         
     #Dessine une unite dans la minimap        
     def drawMiniUnit(self, unit):
-        unitX = (unit.position[0] + self.game.galaxy.width/2) / self.game.galaxy.width * (self.taille/6)
-        unitY = (unit.position[1] + self.game.galaxy.height/2) / self.game.galaxy.height * (self.taille/6)
+        unitX = (unit.position[0] + self.game.galaxy.width/2) / self.game.galaxy.width * self.MINIMAP_WIDTH
+        unitY = (unit.position[1] + self.game.galaxy.height/2) / self.game.galaxy.height * self.MINIMAP_HEIGHT
         if unit.owner == self.game.playerId:
             color = 'GREEN'
         elif self.game.players[self.game.playerId].isAlly(unit.owner):
@@ -1454,8 +1459,8 @@ class View():
             self.minimap.create_oval((unitX-width/2, unitY-height/2, unitX+width/2, unitY+height/2),fill=color, tag='deletable')
 
     def drawMiniBuilding(self, building):
-        buildingX = (building.position[0] + self.game.galaxy.width/2) / self.game.galaxy.width * (self.taille/6)
-        buildingY = (building.position[1] + self.game.galaxy.height/2) / self.game.galaxy.height * (self.taille/6)
+        buildingX = (building.position[0] + self.game.galaxy.width/2) / self.game.galaxy.width * self.MINIMAP_WIDTH
+        buildingY = (building.position[1] + self.game.galaxy.height/2) / self.game.galaxy.height * self.MINIMAP_HEIGHT
         if building.owner == self.game.playerId:
             color = 'GREEN'
         elif self.game.players[self.game.playerId].isAlly(building.owner):
@@ -1471,19 +1476,19 @@ class View():
 
     def drawMiniMinerals(self, mineral, planet):
         if mineral.nbMinerals > 0:
-            x = int(mineral.position[0] * 200 / planet.WIDTH)
-            y = int(mineral.position[1] * 200 / planet.HEIGHT)
+            x = int(mineral.position[0] * self.MINIMAP_WIDTH / planet.WIDTH)
+            y = int(mineral.position[1] * self.MINIMAP_HEIGHT / planet.HEIGHT)
             self.minimap.create_polygon(x-mineral.WIDTH/8, y, x, y-mineral.HEIGHT/8 ,x+mineral.WIDTH/8, y, x, y+mineral.HEIGHT/8, outline="black", fill='CYAN', width=2)
 
     def drawMiniGaz(self, gaz, planet):
         if gaz.nbGaz > 0:
-            x = int(gaz.position[0] * 200 / planet.WIDTH)
-            y = int(gaz.position[1] * 200 / planet.HEIGHT)
+            x = int(gaz.position[0] * self.MINIMAP_WIDTH / planet.WIDTH)
+            y = int(gaz.position[1] * self.MINIMAP_HEIGHT / planet.HEIGHT)
             self.minimap.create_oval(x-gaz.WIDTH/8, y-gaz.HEIGHT/8, x+gaz.WIDTH/8, y+gaz.HEIGHT/8,fill='GREEN')
 
     def drawMiniLandingZone(self, zone, planet):
-        x = int(zone.position[0] * 200 / planet.WIDTH)
-        y = int(zone.position[1] * 200 / planet.HEIGHT)
+        x = int(zone.position[0] * self.MINIMAP_WIDTH / planet.WIDTH)
+        y = int(zone.position[1] * self.MINIMAP_HEIGHT / planet.HEIGHT)
         if zone.ownerId == self.game.playerId:
                 color = 'WHITE'
         elif self.game.players[self.game.playerId].isAlly(zone.ownerId):
@@ -1494,14 +1499,14 @@ class View():
 
     def drawMiniNuclear(self, site, planet):
         if site.nbRessource > 0:
-            x = int(site.position[0] * 200 / planet.WIDTH)
-            y = int(site.position[1] * 200 / planet.HEIGHT)
+            x = int(site.position[0] * self.MINIMAP_WIDTH / planet.WIDTH)
+            y = int(site.position[1] * self.MINIMAP_HEIGHT / planet.HEIGHT)
             self.minimap.create_oval(x-site.WIDTH/8, y-site.HEIGHT/8, x+site.WIDTH/8, y+site.HEIGHT/8,fill='YELLOW')
 
     def drawMiniGroundUnit(self, unit, planet):
         if unit.isAlive:
-            x = int(unit.position[0] * 200 / planet.WIDTH)
-            y = int(unit.position[1] * 200 / planet.HEIGHT)
+            x = int(unit.position[0] * self.MINIMAP_WIDTH / planet.WIDTH)
+            y = int(unit.position[1] * self.MINIMAP_HEIGHT / planet.HEIGHT)
             if unit.owner == self.game.playerId:
                 color = 'WHITE'
             elif self.game.players[self.game.playerId].isAlly(unit.owner):
@@ -1512,8 +1517,8 @@ class View():
 
     def drawMiniGroundBuilding(self, building, planet):
         if building.isAlive:
-            x = int(building.position[0] * 200 / planet.WIDTH)
-            y = int(building.position[1] * 200 / planet.HEIGHT)
+            x = int(building.position[0] * self.MINIMAP_WIDTH / planet.WIDTH)
+            y = int(building.position[1] * self.MINIMAP_HEIGHT / planet.HEIGHT)
             if building.owner == self.game.playerId:
                 color = 'WHITE'
             elif self.game.players[self.game.playerId].isAlly(building.owner):
@@ -1524,8 +1529,8 @@ class View():
 
     def drawMiniGroundBuilding(self, building, planet):
         if building.isAlive:
-            x = int(building.position[0] * 200 / planet.WIDTH)
-            y = int(building.position[1] * 200 / planet.HEIGHT)
+            x = int(building.position[0] * self.MINIMAP_WIDTH / planet.WIDTH)
+            y = int(building.position[1] * self.MINIMAP_HEIGHT / planet.HEIGHT)
             if building.owner == self.game.playerId:
                 color = 'WHITE'
             elif self.game.players[self.game.playerId].isAlly(building.owner):
@@ -1606,8 +1611,8 @@ class View():
         x = eve.x
         y = eve.y
         canva = eve.widget
-        if x > 0 and x < self.taille:
-            if y > 0 and y < self.taille-200:
+        if x > 0 and x < self.WIDTH:
+            if y > 0 and y < self.WIDTH-200:
                 if canva == self.gameArea:
                     pos = self.game.players[self.game.playerId].camera.calcPointInWorld(x,y)
                     self.game.rightClic(pos)

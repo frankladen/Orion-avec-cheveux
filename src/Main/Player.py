@@ -101,10 +101,10 @@ class Player():
         self.units.append(u.GatherShip(u.Unit.CARGO,[startPos[0] + 40, startPos[1]+40], self.id))
         
     #Ajoute une camera au joueur seulement quand la partie commence    
-    def addCamera(self, galaxy, taille):
+    def addCamera(self, galaxy, width, height):
         pos = self.motherShip.position
         default = [pos[0],pos[1]]
-        self.camera = Camera(default, galaxy, self, taille)
+        self.camera = Camera(default, galaxy, self, width, height)
 
     def moveCamera(self):
         self.camera.move()
@@ -579,12 +579,12 @@ class Player():
         
 #Represente la camera            
 class Camera():
-    def __init__(self, defaultPos, galaxy, player, taille):
+    def __init__(self, defaultPos, galaxy, player, width, height):
         self.defaultPos = defaultPos
         self.position = defaultPos
-        self.screenCenter = (taille/2,(taille/2)-300)
-        self.screenWidth = taille
-        self.screenHeight = taille/2
+        self.screenCenter = (width/2,(height/2))
+        self.screenWidth = width
+        self.screenHeight = height
         self.galaxy = galaxy #reference a la galaxie
         self.player = player
         self.movingDirection = []

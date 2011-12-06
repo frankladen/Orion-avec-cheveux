@@ -57,13 +57,13 @@ class Game():
                  p.action()
         return self.players[self.playerId].isAlive
 
-    def start(self, players, seed, taille):
+    def start(self, players, seed, width, height):
         self.galaxy=w.Galaxy(len(players), seed)
         self.players = players
         for i in self.players:
             startPos = self.galaxy.getSpawnPoint()
             i.addBaseUnits(startPos) 
-        self.players[self.playerId].addCamera(self.galaxy, taille)
+        self.players[self.playerId].addCamera(self.galaxy, width, height)
 
     # Pour créer une notification qui vient du serveur
     def makeNotification(self, actionPlayerId, target, unitIndex):
