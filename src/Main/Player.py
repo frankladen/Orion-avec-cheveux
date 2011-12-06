@@ -34,7 +34,7 @@ class Player():
         self.colorId = colorId
         self.techTree = TechTree()
         self.selectedObjects = [] #Liste des unites selectionnes
-        self.listMemory = [[],[],[],[],[],[],[],[],[],[]]
+        self.listMemory = [[],[],[],[],[],[],[],[],[]]
         self.units = [] #Liste de toute les unites
         self.buildings = [] #Liste de tous les buildings
         self.notifications = [] #Liste de toutes les notifications
