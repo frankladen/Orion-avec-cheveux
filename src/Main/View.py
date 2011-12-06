@@ -47,9 +47,9 @@ class View():
         self.root.title("Orion")
         self.root.resizable(0,0)
         #la taille du jeu se resize selon la résolution de l'écran, niceshithum?
-        if self.root.winfo_screenwidth() < self.WIDTH:
-            self.showTooDamnLowRes()
-            self.root.destroy()
+        #if self.root.winfo_screenwidth() < self.WIDTH:
+        #    self.showTooDamnLowRes()
+        #    self.root.destroy()
         self.HEIGHT = self.root.winfo_screenheight()-310
         self.root.geometry('+5+5')
         self.selectStart = [0,0]
