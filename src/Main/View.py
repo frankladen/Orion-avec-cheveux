@@ -47,10 +47,10 @@ class View():
         self.root.title("Orion")
         self.root.resizable(0,0)
         #la taille du jeu se resize selon la résolution de l'écran, niceshithum?
+        if self.root.winfo_screenwidth() < self.WIDTH:
+            self.showTooDamnLowRes()
+            self.root.destroy()
         self.HEIGHT = self.root.winfo_screenheight()-310
-        self.WIDTH = self.root.winfo_screenwidth()
-        if self.WIDTH > 1200:
-            self.WIDTH = 1200
         self.root.geometry('+5+5')
         self.selectStart = [0,0]
         self.selectEnd = [0,0]
@@ -913,6 +913,9 @@ class View():
         if self.entryMessLobby.get() != "":
             self.parent.sendMessageLobby(self.entryMessLobby.get(), self.parent.server.getSockets()[self.game.playerId][1])
             self.entryMessLobby.delete(0,END)
+
+    def showTooDamnLowRes(self):
+        mb.showinfo('Résolution trop petite', 'La résolution de votre ordinateur est trop petite. Le jeu va donc fermer.')
 
     def showNameAlreadyChosen(self):
         mb.showinfo('Erreur de connection', 'Le nom que vous avez choisi a déjà été choisi par quelqu\'un dans le lobby')
