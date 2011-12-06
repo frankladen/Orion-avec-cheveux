@@ -452,7 +452,8 @@ class Player():
             else:
                 self.listMemory[selected].pop(self.listMemory[selected].index(i))
         if len(self.selectedObjects) > 0:
-            self.camera.position = [self.selectedObjects[0].position[0], self.selectedObjects[0].position[1]]
+            self.camera.position = self.camera.ensurePositionIsInWorld([self.selectedObjects[0].position[0], self.selectedObjects[0].position[1]])
+            
 
     def newMemory(self, selected):
         self.listMemory[selected] = []
@@ -608,6 +609,20 @@ class Camera():
             if position[1] > self.position[1] - self.screenHeight/2 and position[1] < self.position[1] + self.screenHeight/2:
                 return True
         return False
+
+    def ensurePositionIsInWorld(self, position):
+        tempX = position[0]
+        tempY = position[1]
+        if position[0] > self.galaxy.width/2 - self.screenWidth/2:
+            position[0] = self.galaxy.width/2 - self.screenWidth/2
+        elif position[0] < self.galaxy.width/2*-1 + self.screenWidth/2:
+            position[0] = self.galaxy.width/2*-1 + self.screenWidth/2
+        if position[1] > self.galaxy.height/2 - self.screenHeight/2:
+            position[1] = self.galaxy.height/2 - self.screenHeight/2
+        elif position[1] < self.galaxy.height/2*-1 + self.screenHeight/2:
+            position[1] = self.galaxy.height/2*-1 + self.screenHeight/2
+        return position
+
     #Pour calculer la distance entre la camera et un point
     def calcDistance(self, position):
         distX = position[0] - self.position[0]
