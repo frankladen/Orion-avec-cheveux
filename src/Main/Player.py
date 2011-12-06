@@ -34,6 +34,7 @@ class Player():
         self.colorId = colorId
         self.techTree = TechTree()
         self.selectedObjects = [] #Liste des unites selectionnes
+        self.listMemory = [[],[],[],[],[],[],[],[],[],[]]
         self.units = [] #Liste de toute les unites
         self.buildings = [] #Liste de tous les buildings
         self.notifications = [] #Liste de toutes les notifications
@@ -441,7 +442,20 @@ class Player():
             if i != '':
                 if int(i) < len(self.units):
                     self.units[int(i)].changeFlag(ressource, FlagState.GROUND_GATHER)
-        
+
+    def selectMemory(self, selected):
+        self.selectedObjects = []
+        for i in self.listMemory[selected]:
+            if i.isAlive:
+                self.selectedObjects.append(i)
+            else:
+                self.listMemory[selected].pop(self.listMemory[selected].index(i))
+
+    def newMemory(self, selected):
+        self.listMemory[selected] = []
+        for i in self.selectedObjects:
+            self.listMemory[selected].append(i)
+
     def makeFormation(self, units, galaxy, target = None, action = FlagState.MOVE):
         if len(units) > 2:
             #S'il n'y a pas de target de spÃ©cifiÃ©e comme lors du changement de formation

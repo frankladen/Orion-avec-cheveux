@@ -825,3 +825,9 @@ class Game():
             self.players[playerId].makeFormation(units, self.galaxy, target, action)
         except:
             pass
+
+    def selectMemory(self, selected):
+        self.players[self.playerId].selectMemory(selected)
+
+    def newMemory(self, selected):
+        self.players[self.playerId].newMemory(selected)
