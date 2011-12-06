@@ -317,9 +317,11 @@ class GroundGatherUnit(GroundUnit):
                     self.flag.finalTarget = self.flag.initialTarget
                     if isinstance(self.flag.initialTarget, w.MineralStack):
                         if self.flag.finalTarget.nbMinerals == 0:
+                            player.notifications.append(Notification(self.position, Notification.FINISH_GATHER))
                             self.flag.flagState = FlagState.STANDBY
                     else:
                         if self.flag.finalTarget.nbGaz == 0:
+                            player.notifications.append(Notification(self.position, Notification.FINISH_GATHER))
                             self.flag.flagState = FlagState.STANDBY
                 else:
                     self.flag.finalTarget = self.position
@@ -411,6 +413,7 @@ class SpecialGather(GroundGatherUnit) :
                     ressource.nuclear += self.container
                 self.container = 0
                 self.flag.finalTarget = self.position
+                player.notifications.append(Notification(self.position, Notification.FINISH_GATHER))
                 self.flag.flagState = FlagState.STANDBY
 				
     def load(self, player, game):
@@ -818,9 +821,11 @@ class GatherShip(SpaceUnit):
                     self.flag.finalTarget = self.flag.initialTarget
                     if self.flag.finalTarget.type == 'asteroid':
                         if self.flag.finalTarget.mineralQte == 0:
+                            player.notifications.append(Notification(self.position, Notification.FINISH_GATHER))
                             self.flag.flagState = FlagState.STANDBY
                     else:
                         if self.flag.finalTarget.gazQte == 0:
+                            player.notifications.append(Notification(self.position, Notification.FINISH_GATHER))
                             self.flag.flagState = FlagState.STANDBY
                 else:
                     self.flag.finalTarget = self.position

@@ -78,7 +78,10 @@ class View():
         self.gifRallyPoint = PhotoImage(file='images/icones/flag.gif')
         self.gifBuild = PhotoImage(file = 'images/icones/build.gif')
         self.gifTechTree = PhotoImage(file = 'images/icones/techUpgrade.gif')
-        self.gifConstruction = PhotoImage(file='images/Building/construction.gif')        
+        self.gifConstruction = PhotoImage(file='images/Building/construction.gif')
+        self.gifcheckSpace = PhotoImage(file='images/icones/iconeCheckSpace.gif')
+        self.gifUnload = PhotoImage(file='images/icones/iconeUnload.gif')
+        self.gifTakeoff = PhotoImage(file='images/icones/iconeDecollage.gif')
         self.gifCadreMenuAction = PhotoImage(file = 'images/Menus/cadreMenuAction.gif')
         self.iconCancel = PhotoImage(file = 'images/icones/cancelUnit.gif')
         self.gifPatrol = PhotoImage(file='images/icones/patrol.gif')
@@ -657,10 +660,10 @@ class View():
                 elif isinstance(units[0], b.LandingZone):
                     self.Actionmenu.create_image(13,35,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
                     self.Actionmenu.create_image(76,35,image = self.gifBuild, anchor = NW, tags = 'Button_BuildGroundUnit')
-                    self.Actionmenu.create_image(140,35,image = self.gifBuild, anchor = NW, tags = 'Button_ReturnToSpace')
-                    self.Actionmenu.create_image(13,89,image = self.gifBuild, anchor = NW, tags = 'Button_Unload')
+                    self.Actionmenu.create_image(140,35,image = self.gifcheckSpace, anchor = NW, tags = 'Button_ReturnToSpace')
+                    self.Actionmenu.create_image(13,89,image = self.gifUnload, anchor = NW, tags = 'Button_Unload')
                     if units[0].LandedShip != None:
-                        self.Actionmenu.create_image(76,89,image = self.gifBuild, anchor = NW, tags = 'Button_TakeOff')
+                        self.Actionmenu.create_image(76,89,image = self.gifTakeoff, anchor = NW, tags = 'Button_TakeOff')
                 if len(self.game.players[self.game.playerId].selectedObjects) > 1:
                     if self.game.players[self.game.playerId].formation == self.game.players[self.game.playerId].SQUARE_FORMATION:
                         self.Actionmenu.create_image(140,143,image=self.gifTriangle,anchor = NW, tags = 'Button_Triangle')
