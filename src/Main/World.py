@@ -84,8 +84,8 @@ class Galaxy():
 class SolarSystem():
     HEIGHT=400
     WIDTH=400
-    SUN_WIDTH=20
-    SUN_HEIGHT=20
+    SUN_WIDTH=64
+    SUN_HEIGHT=64
     MAX_PLANETS=6
     MAX_ATRO_OBJS=8
     NEBULA = 0
@@ -215,11 +215,11 @@ class SolarSystem():
 #Represente un objet spacial (Planete, Meteorite, Nebuleuse)
 #Le type represente quel objet parmi les 3
 class AstronomicalObject(Target):
-    NEBULA_WIDTH=15
-    NEBULA_HEIGHT=15
+    NEBULA_WIDTH=40
+    NEBULA_HEIGHT=41
     MAX_GAS=300
-    ASTEROID_WIDTH=16
-    ASTEROID_HEIGHT=16
+    ASTEROID_WIDTH=30
+    ASTEROID_HEIGHT=31
     MAX_MINERALS=300
     NEBULA = 90
     ASTEROID = 91
@@ -260,8 +260,8 @@ class AstronomicalObject(Target):
         return None
     
 class Planet(Target):
-    IMAGE_WIDTH=15
-    IMAGE_HEIGHT=15
+    IMAGE_WIDTH=38
+    IMAGE_HEIGHT=37
     WIDTH=1600
     HEIGHT=1200
     PADDING=25
@@ -343,10 +343,18 @@ class Planet(Target):
                             posFound = False
                             break
             self.nuclearSite = NuclearSite(position, self.id, self.solarSystem.sunId)
+
+    def getNumMinerals(self):
+        minerals = 0
         for i in self.minerals:
-            self.mineralQte += i.nbMinerals
+            minerals += i.nbMinerals
+        return minerals
+
+    def getNumGaz(self):
+        gaz = 0
         for i in self.gaz:
-            self.gazQte += i.nbGaz
+            gaz += i.nbGaz
+        return gaz
 
     def addLandingZone(self, playerid, landingShip, player):
         placeFound = False

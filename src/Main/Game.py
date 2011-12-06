@@ -1,5 +1,4 @@
 # -*- coding: UTF-8 -*-
-#import World as w
 import Player as p
 import Target as t
 import Unit as u
@@ -58,13 +57,13 @@ class Game():
                  p.action()
         return self.players[self.playerId].isAlive
 
-    def start(self, players, seed, taille):
+    def start(self, players, seed, width, height):
         self.galaxy=w.Galaxy(len(players), seed)
         self.players = players
         for i in self.players:
             startPos = self.galaxy.getSpawnPoint()
             i.addBaseUnits(startPos) 
-        self.players[self.playerId].addCamera(self.galaxy, taille)
+        self.players[self.playerId].addCamera(self.galaxy, width, height)
 
     # Pour créer une notification qui vient du serveur
     def makeNotification(self, actionPlayerId, target, unitIndex):
@@ -206,10 +205,6 @@ class Game():
         if units != "":
             self.parent.pushChange(units, Flag(i,t.Target([0,0,0]),FlagState.STANDBY))
 
-    def setAStandByFlag(self, unit):
-        units = str(self.players[self.playerId].units.index(unit)) + ","
-        self.parent.pushChange(units, Flag(i,t.Target([0,0,0]),FlagState.STANDBY))
-
     def setPatrolFlag(self, pos):
         units = ''
         send = False
@@ -230,7 +225,7 @@ class Game():
                 if isinstance(i, u.SpaceAttackUnit):
                     if isinstance(attackedUnit, u.Unit) :
                         if attackedUnit.type == u.Unit.TRANSPORT:
-                            if not attackedUnit.landed:
+                            if attackedUnit.landed == False:
                                 units += str(self.players[self.playerId].units.index(i)) + ","
                         else:
                             units += str(self.players[self.playerId].units.index(i)) + ","
@@ -316,18 +311,10 @@ class Game():
                 player.BONUS[player.ATTACK_RANGE_BONUS] = tech.add
             elif tech.effect == 'VR':
                 player.BONUS[player.VIEW_RANGE_BONUS] = tech.add
-            elif tech.effect == 'BB':
-                player.BONUS[player.BUILDING_SHIELD_BONUS] = tech.add
-                for b in player.buildings:
-                    if not isinstance(b, Mothership):
-                        b.MAX_SHIELD = tech.add
-                        b.shield = tech.add
             elif tech.effect == 'BM':
                 player.BONUS[player.BUILDING_MOTHERSHIELD_BONUS] = tech.add
-                for b in player.buildings:
-                    if isinstance(b, Mothership):
-                        b.MAX_SHIELD = tech.add
-                        b.shield = tech.add
+            elif tech.effect == 'DM':
+                player.BONUS[player.ATTACK_DAMAGE_MOTHERSHIP] = tech.add
                 
             player.changeBonuses()
         
@@ -556,8 +543,7 @@ class Game():
     def eraseUnit(self):
         if len(self.players[self.playerId].selectedObjects) > 0:
             if isinstance(self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1], u.Unit):
-                if isinstance(self.players[self.playerId].buildings[constructionBuilding], ConstructionBuilding):
-                    self.parent.pushChange(self.players[self.playerId].units.index(self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1]), Flag(None,None,FlagState.DESTROY))
+                self.parent.pushChange(self.players[self.playerId].units.index(self.players[self.playerId].selectedObjects[len(self.players[self.playerId].selectedObjects)-1]), Flag(None,None,FlagState.DESTROY))
                 
     #Pour effacer tous les units
     def eraseUnits(self, playerId=None):
@@ -838,3 +824,9 @@ class Game():
             self.players[playerId].makeFormation(units, self.galaxy, target, action)
         except:
             pass
+
+    def selectMemory(self, selected):
+        self.players[self.playerId].selectMemory(selected)
+
+    def newMemory(self, selected):
+        self.players[self.playerId].newMemory(selected)

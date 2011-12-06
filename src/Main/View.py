@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+#-*- coding: UTF-8 -*-
 from tkinter import *
 from Unit import *
 from World import *
@@ -29,6 +29,7 @@ class View():
     LANDING_SPOT_BUILD_MENU = 15
     WAITING_FOR_UNIT_TO_HEAL_MENU = 16
     HEAL_UNIT_MENU = 17
+    WAITING_FOR_GATHER_POINT_MENU = 18
     MINIMAP_WIDTH=200
     MINIMAP_HEIGHT=200
     SELECTED_TRADE = 20
@@ -36,6 +37,8 @@ class View():
     SELECTED_UNIT_SELECTED = 22
     SELECTED_TEAM = 23
     SELECTED_UNIT = 24
+    WIDTH = 1200
+    HEIGHT = 600
         
     def __init__(self, parent, game):
         self.parent = parent
@@ -44,9 +47,10 @@ class View():
         self.root.title("Orion")
         self.root.resizable(0,0)
         #la taille du jeu se resize selon la résolution de l'écran, niceshithum?
-        #self.taille=self.root.winfo_screenheight()-125
-        #if self.taille>800:
-        self.taille=1200
+        #if self.root.winfo_screenwidth() < self.WIDTH:
+        #    self.showTooDamnLowRes()
+        #    self.root.destroy()
+        self.HEIGHT = self.root.winfo_screenheight()-310
         self.root.geometry('+5+5')
         self.selectStart = [0,0]
         self.selectEnd = [0,0]
@@ -124,6 +128,7 @@ class View():
         self.isSettingAttackPosition = False
         self.isSettingBuildingPosition = False
         self.isChosingUnitToHeal = False
+        self.isSettingGatherPosition = False
         self.dragging = False
         self.hpBars=False
         self.buildingToBuild=-1
@@ -184,11 +189,11 @@ class View():
         self.showFood = Label(self.ressourcesFrame, text="Population: "+str(self.game.players[self.game.playerId].ressources[2])+"/"+str(self.game.players[self.game.playerId].MAX_FOOD), width=15, bg="black", fg="white", anchor=NW)
         self.showFood.grid(column=3, row=0)
         self.ressourcesFrame.grid(row=0,column=0, columnspan=24)
-        self.gameArea=Canvas(gameFrame, width=self.taille, height=self.taille/2, background='Black', relief='ridge')
+        self.gameArea=Canvas(gameFrame, width=self.WIDTH, height=self.HEIGHT, background='Black', relief='ridge')
         self.gameArea.grid(column=0,row=1, columnspan=24)#place(relx=0, rely=0,width=taille,height=taille)
-        self.minimap= Canvas(gameFrame, width=200,height=200, background='Black', relief='raised')
+        self.minimap= Canvas(gameFrame, width=self.MINIMAP_WIDTH,height=self.MINIMAP_HEIGHT, background='Black', relief='raised')
         self.minimap.grid(column=0,row=2, rowspan=7)
-        self.menuModes=Canvas(gameFrame, width=800, height=200, background='black', relief='ridge')
+        self.menuModes=Canvas(gameFrame, width=800, height=self.MINIMAP_WIDTH, background='black', relief='ridge')
         self.menuModes.grid(row=2,column=2, rowspan=7, columnspan=5)
         #OngletChat
         self.menuModes.chat = Label(gameFrame, anchor=W, justify=LEFT, width=75, background='black', fg='white', relief='raised')
@@ -229,7 +234,7 @@ class View():
         self.menuModes.create_image(150,0,image=self.gifTeam,anchor = NW,tag='bouton_team')
         self.menuModes.create_image(227,0,image=self.gifSelectedUnit,anchor = NW,tag='bouton_selectedUnit')
         #ActionMenu
-        self.Actionmenu = Canvas(gameFrame,width=200,height=200,background='black')
+        self.Actionmenu = Canvas(gameFrame,width=self.MINIMAP_WIDTH,height=self.MINIMAP_HEIGHT,background='black')
         self.Actionmenu.grid(column=7,row=2, rowspan=7)
         self.changeBackground('GALAXY')
         self.drawWorld()
@@ -646,11 +651,17 @@ class View():
                         self.Actionmenu.create_image(13,89,image=self.gifAttack,anchor = NW, tags = 'Button_Attack')
                     elif isinstance(units[0], GroundBuilderUnit):
                         self.Actionmenu.create_image(13,89,image=self.gifBuild,anchor = NW, tags = 'Button_Ground_Buildings')
-                    elif units[0].type == u.Unit.HEALING_UNIT:
+                    elif isinstance(units[0], HealingUnit):
                         self.Actionmenu.create_image(13,89,image=self.gifRepair,anchor = NW, tags = 'Button_Heal')
+                    elif isinstance(units[0], GatherShip):
+                        self.Actionmenu.create_image(13,89,image=self.gifRepair,anchor = NW, tags = 'Button_Gather')
                 elif isinstance(units[0], b.LandingZone):
                     self.Actionmenu.create_image(13,35,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
                     self.Actionmenu.create_image(76,35,image = self.gifBuild, anchor = NW, tags = 'Button_BuildGroundUnit')
+                    self.Actionmenu.create_image(140,35,image = self.gifBuild, anchor = NW, tags = 'Button_ReturnToSpace')
+                    self.Actionmenu.create_image(13,89,image = self.gifBuild, anchor = NW, tags = 'Button_Unload')
+                    if units[0].LandedShip != None:
+                        self.Actionmenu.create_image(76,89,image = self.gifBuild, anchor = NW, tags = 'Button_TakeOff')
                 if len(self.game.players[self.game.playerId].selectedObjects) > 1:
                     if self.game.players[self.game.playerId].formation == self.game.players[self.game.playerId].SQUARE_FORMATION:
                         self.Actionmenu.create_image(140,143,image=self.gifTriangle,anchor = NW, tags = 'Button_Triangle')
@@ -680,6 +691,11 @@ class View():
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
             self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
+        elif(type == self.WAITING_FOR_GATHER_POINT_MENU):
+            self.drawFirstLine = ""
+            self.drawSecondLine = ""
+            self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu pour aller ammasser des ressources.",anchor = NW, fill = 'white', width = 200)
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.WAITING_FOR_RALLY_POINT_MENU):
             self.drawFirstLine = ""
             self.drawSecondLine = ""
@@ -898,6 +914,9 @@ class View():
             self.parent.sendMessageLobby(self.entryMessLobby.get(), self.parent.server.getSockets()[self.game.playerId][1])
             self.entryMessLobby.delete(0,END)
 
+    def showTooDamnLowRes(self):
+        mb.showinfo('Résolution trop petite', 'La résolution de votre ordinateur est trop petite. Le jeu va donc fermer.')
+
     def showNameAlreadyChosen(self):
         mb.showinfo('Erreur de connection', 'Le nom que vous avez choisi a déjà été choisi par quelqu\'un dans le lobby')
      
@@ -996,6 +1015,10 @@ class View():
             self.gameArea.create_image(distance[0], distance[1], image=self.groundBuilders[color], tag='deletable')
         if unit.hitpoints <= 15:
             self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
+        if self.hpBars:
+            self.drawHPBars(distance, unit)
+        else:
+            self.drawHPHoverUnit(unit, distance)
 
     def drawBuildingGround(self, building, color):
         distance = self.game.players[self.game.playerId].camera.calcDistance(building.position)
@@ -1106,8 +1129,8 @@ class View():
                         self.gameArea.create_oval(distance[0]-(planet.IMAGE_WIDTH/2+3), distance[1]-(planet.IMAGE_HEIGHT/2+3), distance[0]+(planet.IMAGE_WIDTH/2+3), distance[1]+(planet.IMAGE_HEIGHT/2+3),outline="green", tag='deletable')
                     else:
                         self.gameArea.create_oval(distance[0]-(planet.IMAGE_WIDTH/2+3), distance[1]-(planet.IMAGE_HEIGHT/2+3), distance[0]+(planet.IMAGE_WIDTH/2+3), distance[1]+(planet.IMAGE_HEIGHT/2+3),outline="yellow", tag='deletable')
-                    mVariable = "Mineral :" + str(planet.mineralQte)
-                    gVariable = "Gaz :" + str(planet.gazQte)
+                    mVariable = "Mineral :" + str(planet.getNumMinerals())
+                    gVariable = "Gaz :" + str(planet.getNumGaz())
                     self.gameArea.create_text(distance[0], distance[1]-25,fill="cyan",text=mVariable, tag='deletable')
                     self.gameArea.create_text(distance[0], distance[1]-40,fill="green",text=gVariable, tag='deletable')
                 self.gameArea.create_image(distance[0],distance[1],image=self.planet, tag='deletable')
@@ -1241,11 +1264,11 @@ class View():
     
     def drawHPBars(self, distance, unit):
         if unit.hitpoints/unit.MAX_HP[unit.type] <= 0.2:
-            color = "red"
+            color = "#D00000"
         elif unit.hitpoints/unit.MAX_HP[unit.type] <= 0.5:
-            color = "yellow"
+            color = "#FFFF00"
         else:
-            color = "green"
+            color = "#208900"
         player = self.game.players[self.game.playerId]
         if ((isinstance(unit, b.GroundBuilding) or isinstance(unit, GroundUnit) or unit.type == b.Building.LANDING_ZONE) and player.currentPlanet != None) or ((isinstance(unit, b.SpaceBuilding) or isinstance(unit, SpaceUnit) or unit.type == Unit.SCOUT or unit.type == b.Building.MOTHERSHIP) and player.currentPlanet == None):
             hpLeft=((unit.hitpoints/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
@@ -1291,7 +1314,7 @@ class View():
                                     self.drawMiniBuilding(j)
 
         else:
-            self.minimap.create_rectangle(0,0,200,200, fill='#009900', tag='deletable')
+            self.minimap.create_rectangle(0,0,self.MINIMAP_WIDTH,self.MINIMAP_HEIGHT, fill='#009900', tag='deletable')
             planet = self.game.players[self.game.playerId].currentPlanet
             for i in planet.minerals:
                 self.drawMiniMinerals(i, planet)
@@ -1338,7 +1361,7 @@ class View():
                                 if players[self.game.playerId].inViewRange(j.position):
                                     self.drawMiniBuilding(j)
         else:
-            self.minimap.create_rectangle(0,0,200,200, fill='#009900', tag='deletable')
+            self.minimap.create_rectangle(0,0,self.MINIMAP_WIDTH,self.MINIMAP_HEIGHT, fill='#009900', tag='deletable')
             planet = self.game.players[self.game.playerId].currentPlanet
             for i in planet.minerals:
                 self.drawMiniMinerals(i, planet)
@@ -1358,10 +1381,10 @@ class View():
     def drawMiniFOV(self):
         camera = self.game.players[self.game.playerId].camera
         if self.game.players[self.game.playerId].currentPlanet == None:
-            cameraX = (camera.position[0]-(self.taille/2) + self.game.galaxy.width/2) / self.game.galaxy.width * (self.taille/6)
-            cameraY = (camera.position[1]-((self.taille/2)-self.taille/4) + self.game.galaxy.height/2) / self.game.galaxy.height * (self.taille/6)
-            width = self.taille / self.game.galaxy.width * (self.taille/6)
-            height = self.taille / self.game.galaxy.height * ((self.taille/12))
+            cameraX = (camera.position[0]-(self.WIDTH/2) + self.game.galaxy.width/2) / self.game.galaxy.width * self.MINIMAP_WIDTH
+            cameraY = (camera.position[1]-(self.HEIGHT-(self.HEIGHT/2)) + self.game.galaxy.height/2) / self.game.galaxy.height * self.MINIMAP_HEIGHT
+            width = self.WIDTH / self.game.galaxy.width * (self.MINIMAP_WIDTH)
+            height = self.HEIGHT / self.game.galaxy.height * (self.MINIMAP_HEIGHT)
             self.minimap.create_rectangle(cameraX, cameraY, cameraX+width, cameraY+height, outline='GREEN', tag='deletable')
         else:
             planet = self.game.players[self.game.playerId].currentPlanet
@@ -1369,23 +1392,21 @@ class View():
             cameraY = (camera.position[1] * (self.MINIMAP_HEIGHT)) / planet.HEIGHT
             width = camera.screenWidth * (self.MINIMAP_WIDTH) / planet.WIDTH
             height = camera.screenHeight * (self.MINIMAP_HEIGHT) / planet.HEIGHT
-	    #width = self.taille / planet.WIDTH * (self.taille/4)
-            #height = self.taille / planet.HEIGHT * ((self.taille/16)*3)
             self.minimap.create_rectangle(cameraX-width/2, cameraY-height/2, cameraX+width/2, cameraY+height/2, outline='GREEN', tag='deletable')
 
     #Dessine un soleil dans la minimap    
     def drawMiniSun(self, sun):
         sunPosition = sun.sunPosition
-        sunX = (sunPosition[0] + self.game.galaxy.width/2) / self.game.galaxy.width * (self.taille/6)
-        sunY = (sunPosition[1] + self.game.galaxy.height/2) / self.game.galaxy.height * (self.taille/6)
+        sunX = (sunPosition[0] + self.game.galaxy.width/2) / self.game.galaxy.width * self.MINIMAP_WIDTH
+        sunY = (sunPosition[1] + self.game.galaxy.height/2) / self.game.galaxy.height * self.MINIMAP_HEIGHT
         if sun.discovered:
             self.minimap.create_oval(sunX-3, sunY-3, sunX+3, sunY+3, fill='ORANGE')
 
     #Dessine une planete dans la minimap        
     def drawMiniPlanet(self, planet):
         planetPosition = planet.position
-        planetX = (planetPosition[0] + self.game.galaxy.width/2) / self.game.galaxy.width * (self.taille/6)
-        planetY = (planetPosition[1] + self.game.galaxy.height/2) / self.game.galaxy.height * (self.taille/6)
+        planetX = (planetPosition[0] + self.game.galaxy.width/2) / self.game.galaxy.width * self.MINIMAP_WIDTH
+        planetY = (planetPosition[1] + self.game.galaxy.height/2) / self.game.galaxy.height * self.MINIMAP_HEIGHT
         if planet.discovered:
             self.minimap.create_oval(planetX-1, planetY-1, planetX+1, planetY+1, fill='LIGHT BLUE')
             
@@ -1393,8 +1414,8 @@ class View():
     def drawMiniNebula(self, nebula):
         if nebula.gazQte > 0:
             nebulaPosition = nebula.position
-            nebulaX = (nebulaPosition[0] + self.game.galaxy.width/2) / self.game.galaxy.width * (self.taille/6)
-            nebulaY = (nebulaPosition[1] + self.game.galaxy.height/2) / self.game.galaxy.height * (self.taille/6)
+            nebulaX = (nebulaPosition[0] + self.game.galaxy.width/2) / self.game.galaxy.width * self.MINIMAP_WIDTH
+            nebulaY = (nebulaPosition[1] + self.game.galaxy.height/2) / self.game.galaxy.height * self.MINIMAP_HEIGHT
             if nebula.discovered:
                 self.minimap.create_oval(nebulaX-1, nebulaY-1, nebulaX+1, nebulaY+1, fill='PURPLE')
         
@@ -1402,16 +1423,16 @@ class View():
     def drawMiniAsteroid(self, asteroid):
         if asteroid.mineralQte > 0:
             asteroidPosition = asteroid.position
-            asteroidX = (asteroidPosition[0] + self.game.galaxy.width/2) / self.game.galaxy.width * (self.taille/6)
-            asteroidY = (asteroidPosition[1] + self.game.galaxy.height/2) / self.game.galaxy.height * (self.taille/6)
+            asteroidX = (asteroidPosition[0] + self.game.galaxy.width/2) / self.game.galaxy.width * self.MINIMAP_WIDTH
+            asteroidY = (asteroidPosition[1] + self.game.galaxy.height/2) / self.game.galaxy.height * self.MINIMAP_HEIGHT
             if asteroid.discovered:
                 self.minimap.create_oval(asteroidX-1, asteroidY-1, asteroidX+1, asteroidY+1, fill='CYAN')
         
     def drawMiniNotification(self,notification, y):
         if self.game.getCurrentPlanet() == None:
             notifPos = notification.position
-            notifPosX = (notifPos[0]+self.game.galaxy.width/2)/self.game.galaxy.width * (self.taille/6)     
-            notifPosY = (notifPos[1]+self.game.galaxy.height/2)/self.game.galaxy.height * (self.taille/6)
+            notifPosX = (notifPos[0]+self.game.galaxy.width/2)/self.game.galaxy.width * self.MINIMAP_WIDTH   
+            notifPosY = (notifPos[1]+self.game.galaxy.height/2)/self.game.galaxy.height * self.MINIMAP_HEIGHT
             self.minimap.create_oval(notifPosX-3,notifPosY-3,notifPosX+3,notifPosY+3, fill='RED', tag = 'deletable')
         self.gameArea.create_text(600, y, text=notification.name, fill=notification.color,tag = 'deletable') 
         notification.refreshSeen -= 1
@@ -1421,8 +1442,8 @@ class View():
         
     #Dessine une unite dans la minimap        
     def drawMiniUnit(self, unit):
-        unitX = (unit.position[0] + self.game.galaxy.width/2) / self.game.galaxy.width * (self.taille/6)
-        unitY = (unit.position[1] + self.game.galaxy.height/2) / self.game.galaxy.height * (self.taille/6)
+        unitX = (unit.position[0] + self.game.galaxy.width/2) / self.game.galaxy.width * self.MINIMAP_WIDTH
+        unitY = (unit.position[1] + self.game.galaxy.height/2) / self.game.galaxy.height * self.MINIMAP_HEIGHT
         if unit.owner == self.game.playerId:
             color = 'GREEN'
         elif self.game.players[self.game.playerId].isAlly(unit.owner):
@@ -1441,8 +1462,8 @@ class View():
             self.minimap.create_oval((unitX-width/2, unitY-height/2, unitX+width/2, unitY+height/2),fill=color, tag='deletable')
 
     def drawMiniBuilding(self, building):
-        buildingX = (building.position[0] + self.game.galaxy.width/2) / self.game.galaxy.width * (self.taille/6)
-        buildingY = (building.position[1] + self.game.galaxy.height/2) / self.game.galaxy.height * (self.taille/6)
+        buildingX = (building.position[0] + self.game.galaxy.width/2) / self.game.galaxy.width * self.MINIMAP_WIDTH
+        buildingY = (building.position[1] + self.game.galaxy.height/2) / self.game.galaxy.height * self.MINIMAP_HEIGHT
         if building.owner == self.game.playerId:
             color = 'GREEN'
         elif self.game.players[self.game.playerId].isAlly(building.owner):
@@ -1458,19 +1479,19 @@ class View():
 
     def drawMiniMinerals(self, mineral, planet):
         if mineral.nbMinerals > 0:
-            x = int(mineral.position[0] * 200 / planet.WIDTH)
-            y = int(mineral.position[1] * 200 / planet.HEIGHT)
+            x = int(mineral.position[0] * self.MINIMAP_WIDTH / planet.WIDTH)
+            y = int(mineral.position[1] * self.MINIMAP_HEIGHT / planet.HEIGHT)
             self.minimap.create_polygon(x-mineral.WIDTH/8, y, x, y-mineral.HEIGHT/8 ,x+mineral.WIDTH/8, y, x, y+mineral.HEIGHT/8, outline="black", fill='CYAN', width=2)
 
     def drawMiniGaz(self, gaz, planet):
         if gaz.nbGaz > 0:
-            x = int(gaz.position[0] * 200 / planet.WIDTH)
-            y = int(gaz.position[1] * 200 / planet.HEIGHT)
+            x = int(gaz.position[0] * self.MINIMAP_WIDTH / planet.WIDTH)
+            y = int(gaz.position[1] * self.MINIMAP_HEIGHT / planet.HEIGHT)
             self.minimap.create_oval(x-gaz.WIDTH/8, y-gaz.HEIGHT/8, x+gaz.WIDTH/8, y+gaz.HEIGHT/8,fill='GREEN')
 
     def drawMiniLandingZone(self, zone, planet):
-        x = int(zone.position[0] * 200 / planet.WIDTH)
-        y = int(zone.position[1] * 200 / planet.HEIGHT)
+        x = int(zone.position[0] * self.MINIMAP_WIDTH / planet.WIDTH)
+        y = int(zone.position[1] * self.MINIMAP_HEIGHT / planet.HEIGHT)
         if zone.ownerId == self.game.playerId:
                 color = 'WHITE'
         elif self.game.players[self.game.playerId].isAlly(zone.ownerId):
@@ -1481,14 +1502,14 @@ class View():
 
     def drawMiniNuclear(self, site, planet):
         if site.nbRessource > 0:
-            x = int(site.position[0] * 200 / planet.WIDTH)
-            y = int(site.position[1] * 200 / planet.HEIGHT)
+            x = int(site.position[0] * self.MINIMAP_WIDTH / planet.WIDTH)
+            y = int(site.position[1] * self.MINIMAP_HEIGHT / planet.HEIGHT)
             self.minimap.create_oval(x-site.WIDTH/8, y-site.HEIGHT/8, x+site.WIDTH/8, y+site.HEIGHT/8,fill='YELLOW')
 
     def drawMiniGroundUnit(self, unit, planet):
         if unit.isAlive:
-            x = int(unit.position[0] * 200 / planet.WIDTH)
-            y = int(unit.position[1] * 200 / planet.HEIGHT)
+            x = int(unit.position[0] * self.MINIMAP_WIDTH / planet.WIDTH)
+            y = int(unit.position[1] * self.MINIMAP_HEIGHT / planet.HEIGHT)
             if unit.owner == self.game.playerId:
                 color = 'WHITE'
             elif self.game.players[self.game.playerId].isAlly(unit.owner):
@@ -1499,8 +1520,8 @@ class View():
 
     def drawMiniGroundBuilding(self, building, planet):
         if building.isAlive:
-            x = int(building.position[0] * 200 / planet.WIDTH)
-            y = int(building.position[1] * 200 / planet.HEIGHT)
+            x = int(building.position[0] * self.MINIMAP_WIDTH / planet.WIDTH)
+            y = int(building.position[1] * self.MINIMAP_HEIGHT / planet.HEIGHT)
             if building.owner == self.game.playerId:
                 color = 'WHITE'
             elif self.game.players[self.game.playerId].isAlly(building.owner):
@@ -1511,8 +1532,8 @@ class View():
 
     def drawMiniGroundBuilding(self, building, planet):
         if building.isAlive:
-            x = int(building.position[0] * 200 / planet.WIDTH)
-            y = int(building.position[1] * 200 / planet.HEIGHT)
+            x = int(building.position[0] * self.MINIMAP_WIDTH / planet.WIDTH)
+            y = int(building.position[1] * self.MINIMAP_HEIGHT / planet.HEIGHT)
             if building.owner == self.game.playerId:
                 color = 'WHITE'
             elif self.game.players[self.game.playerId].isAlly(building.owner):
@@ -1593,15 +1614,18 @@ class View():
         x = eve.x
         y = eve.y
         canva = eve.widget
-        if x > 0 and x < self.taille:
-            if y > 0 and y < self.taille-200:
+        if x > 0 and x < self.WIDTH:
+            if y > 0 and y < self.WIDTH-200:
                 if canva == self.gameArea:
                     pos = self.game.players[self.game.playerId].camera.calcPointInWorld(x,y)
                     self.game.rightClic(pos)
-                elif canva == self.minimap and self.game.getCurrentPlanet() == None:
+                elif canva == self.minimap:
                     pos = self.game.players[self.game.playerId].camera.calcPointMinimap(x,y)
-                    self.game.setMovingFlag(pos[0], pos[1])
-                    self.drawWorld()
+                    if len(self.game.players[self.game.playerId].selectedObjects) > 0:
+                        if isinstance(self.game.players[self.game.playerId].selectedObjects[0],b.ConstructionBuilding):
+                            self.game.setRallyPointPosition(pos)
+                    if self.game.getCurrentPlanet() == None:                    
+                        self.game.setMovingFlag(pos[0], pos[1])
 
     #Quand on fait un clic gauche (peu importe ou)
     def leftclic(self, eve):
@@ -1628,6 +1652,11 @@ class View():
             elif self.isSettingMovePosition:
                 self.game.setMovingFlag(pos[0],pos[1])
                 self.isSettingMovePosition = False
+                self.actionMenuType = self.MAIN_MENU
+
+            elif self.isSettingGatherPosition:
+                self.game.rightClic(pos)
+                self.isSettingGatherPosition = False
                 self.actionMenuType = self.MAIN_MENU
                 
             elif self.isSettingBuildingPosition or self.building:
@@ -1801,6 +1830,7 @@ class View():
         self.isSettingMovePosition = False
         self.isSettingAttackPosition = False
         self.isSettingBuildingPosition = False
+        self.isSettingGatherPosition = False
         self.isChosingUnitToHeal = False
         self.actionMenuType = self.MAIN_MENU
 
@@ -1845,7 +1875,8 @@ class View():
                     if i in self.game.players[self.game.playerId].selectedObjects:
                         self.game.setTakeOffFlag(i.LandedShip, planet)
                         self.actionMenuType = self.MAIN_MENU
-
+                        self.game.players[self.game.playerId].selectedObjects = []
+                        
     def unload(self, eve):
         self.game.unload()
 
@@ -1866,6 +1897,15 @@ class View():
             elif (Button_pressed == "Button_Attack"):
                 self.actionMenuType = self.WAITING_FOR_ATTACK_POINT_MENU
                 self.isSettingAttackPosition = True
+            elif (Button_pressed == "Button_Gather"):
+                self.actionMenuType = self.WAITING_FOR_GATHER_POINT_MENU
+                self.isSettingGatherPosition = True
+            elif (Button_pressed == "Button_TakeOff"):
+                self.takeOff(0)
+            elif (Button_pressed == "Button_Unload"):
+                self.unload(0)
+            elif (Button_pressed == "Button_ReturnToSpace"):
+                self.getOutPlanet(0)
             elif (Button_pressed == "Button_Space_Buildings"):
                 self.actionMenuType = self.SPACE_BUILDINGS_MENU
             elif (Button_pressed == "Button_Ground_Buildings"):
@@ -1995,6 +2035,15 @@ class View():
             elif (Button_pressed == "Button_Return"):
                 self.drawFirstLine=""
                 self.drawSecondLine="Retour"
+            elif (Button_pressed == "Button_Unload"):
+                self.drawFirstLine="Faire descendre"
+                self.drawSecondLine="les unités"
+            elif (Button_pressed == "Button_TakeOff"):
+                self.drawFirstLine=""
+                self.drawSecondLine="Décollage"
+            elif (Button_pressed == "Button_ReturnToSpace"):
+                self.drawFirstLine="Retourner"
+                self.drawSecondLine="dans l'espace"
             elif (Button_pressed == "Button_RallyPoint"):
                 self.drawFirstLine="Placer votre"
                 self.drawSecondLine="point de ralliement"
@@ -2042,33 +2091,30 @@ class View():
 
     def deleteAll(self):
         self.gameArea.delete(ALL)
-    
+
+    def selectMemory(self, eve):
+        self.game.selectMemory(int(eve.char)-1)
+    def newMemory(self, eve):
+        self.game.newMemory(eve.keycode-112)
+        
     #Assignation des controles	
     def assignControls(self):
         self.gameArea.focus_set()
         #Bindings des fleches
-        self.gameArea.bind ("<Key-Up>", self.keyPressUP)
         self.gameArea.bind ("w", self.keyPressUP)
         self.gameArea.bind ("W", self.keyPressUP)
-        self.gameArea.bind("<Key-Down>", self.keyPressDown)
         self.gameArea.bind("s", self.keyPressDown)
         self.gameArea.bind("S", self.keyPressDown)
-        self.gameArea.bind("<Key-Left>", self.keyPressLeft)
         self.gameArea.bind("a", self.keyPressLeft)
         self.gameArea.bind("A", self.keyPressLeft)
-        self.gameArea.bind("<Key-Right>", self.keyPressRight)
         self.gameArea.bind("D", self.keyPressRight)
         self.gameArea.bind("d", self.keyPressRight)
-        self.gameArea.bind ("<KeyRelease-Up>", self.keyReleaseUP)
         self.gameArea.bind ("<KeyRelease-w>", self.keyReleaseUP)
         self.gameArea.bind ("<KeyRelease-W>", self.keyReleaseUP)
-        self.gameArea.bind ("<KeyRelease-Down>", self.keyReleaseDown)
         self.gameArea.bind ("<KeyRelease-s>", self.keyReleaseDown)
         self.gameArea.bind ("<KeyRelease-S>", self.keyReleaseDown)
-        self.gameArea.bind ("<KeyRelease-Left>", self.keyReleaseLeft)
         self.gameArea.bind ("<KeyRelease-a>", self.keyReleaseLeft)
         self.gameArea.bind ("<KeyRelease-A>", self.keyReleaseLeft)
-        self.gameArea.bind ("<KeyRelease-Right>", self.keyReleaseRight)
         self.gameArea.bind ("<KeyRelease-d>", self.keyReleaseRight)
         self.gameArea.bind ("<KeyRelease-D>", self.keyReleaseRight)
         #Bindings de shift pour la multiselection
@@ -2086,10 +2132,10 @@ class View():
         self.gameArea.bind("u", self.unload)
         self.gameArea.bind("U", self.unload)
         self.gameArea.bind("<KeyRelease-c>", self.unSelectAll)
-        self.gameArea.bind("1", self.checkMotherShip)
-        self.gameArea.bind("2", self.getOutPlanet)
-        self.gameArea.bind("3", self.lastPlanet)
-        self.gameArea.bind("4", self.nextPlanet)
+        self.gameArea.bind ("<Key-Up>", self.checkMotherShip)
+        self.gameArea.bind("<Key-Down>", self.getOutPlanet)
+        self.gameArea.bind("<Key-Left>", self.lastPlanet)
+        self.gameArea.bind("<Key-Right>", self.nextPlanet)
         self.gameArea.bind("<Control_L>",self.ctrlPressed)
         self.gameArea.bind("<KeyRelease-Control_L>",self.ctrlDepressed)
         self.gameArea.bind("<Tab>",self.enterChat)
@@ -2108,3 +2154,21 @@ class View():
         self.menuModes.bind("<Button-1>",self.clickMenuModes)
         self.menuModes.bind("<Motion>", self.progressCircleMouseOver)
         self.Actionmenu.bind("<Button-1>", self.clickActionMenu)
+        self.gameArea.bind("1", self.selectMemory)
+        self.gameArea.bind("2", self.selectMemory)
+        self.gameArea.bind("3", self.selectMemory)
+        self.gameArea.bind("4", self.selectMemory)
+        self.gameArea.bind("5", self.selectMemory)
+        self.gameArea.bind("6", self.selectMemory)
+        self.gameArea.bind("7", self.selectMemory)
+        self.gameArea.bind("8", self.selectMemory)
+        self.gameArea.bind("9", self.selectMemory)
+        self.gameArea.bind("<F1>", self.newMemory)
+        self.gameArea.bind("<F2>", self.newMemory)
+        self.gameArea.bind("<F3>", self.newMemory)
+        self.gameArea.bind("<F4>", self.newMemory)
+        self.gameArea.bind("<F5>", self.newMemory)
+        self.gameArea.bind("<F6>", self.newMemory)
+        self.gameArea.bind("<F7>", self.newMemory)
+        self.gameArea.bind("<F8>", self.newMemory)
+        self.gameArea.bind("<F9>", self.newMemory)

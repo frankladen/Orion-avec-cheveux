@@ -178,7 +178,7 @@ class Controller():
             if self.server.getSockets()[i][3] == -1:
                 self.server.firstColorNotChosen(i)
             players.append(p.Player(self.server.getSockets()[i][1], self.game, i, self.server.getSockets()[i][3]))
-        self.game.start(players, self.server.getSeed(), self.view.taille)
+        self.game.start(players, self.server.getSeed(), self.view.WIDTH, self.view.HEIGHT)
         self.view.gameFrame = self.view.fGame()
         self.view.changeFrame(self.view.gameFrame)
         self.view.root.after(50, self.action)

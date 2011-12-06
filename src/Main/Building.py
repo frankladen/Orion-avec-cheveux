@@ -86,6 +86,11 @@ class Building(t.PlayerObject):
                     return self
         return None
 
+    def applyBonuses(self, bonuses):
+        if self.finished:
+            self.shield = bonuses[p.Player.BUILDING_SHIELD_BONUS]
+            self.MAX_SHIELD = bonuses[p.Player.BUILDING_SHIELD_BONUS]
+
 class SpaceBuilding(Building):
     def __init__(self, type, position, owner):
         Building.__init__(self, type, position, owner)
@@ -95,11 +100,15 @@ class Waypoint(SpaceBuilding):
         SpaceBuilding.__init__(self, type, position, owner)
         
 class Turret(SpaceBuilding):
+    ATTACK_SPEED = 12
+    ATTACK_DAMAGE = 6
+    ATTACK_RANGE = 185
+    
     def __init__(self, type, position, owner):
         SpaceBuilding.__init__(self, type, position, owner)
-        self.range=185
-        self.AttackSpeed=12
-        self.AttackDamage=6
+        self.range=self.ATTACK_RANGE
+        self.AttackSpeed=self.ATTACK_SPEED
+        self.AttackDamage=self.ATTACK_DAMAGE
         self.attackcount=self.AttackSpeed
         self.killCount = 0
 
@@ -151,6 +160,13 @@ class Turret(SpaceBuilding):
             self.flag.initialTarget = t.Target([self.position[0],self.position[1],0])
             self.flag.finalTarget = finalTarget
             self.flag.flagState = state
+
+    def applyBonuses(self, bonuses):
+        if self.finished:
+            self.AttackSpeed = self.ATTACK_SPEED+bonuses[p.Player.ATTACK_SPEED_BONUS]
+            self.AttackDamage = self.ATTACK_DAMAGE+bonuses[p.Player.ATTACK_DAMAGE_BONUS]
+            self.range = self.ATTACK_RANGE+bonuses[p.Player.ATTACK_RANGE_BONUS]
+            Building.applyBonuses(self, bonuses)
 
 class GroundBuilding(Building):
     def __init__(self, type, position, owner, sunId, planetId):
@@ -269,12 +285,10 @@ class Mothership(ConstructionBuilding):
 
     #Applique les bonus du Unit selon les upgrades
     def applyBonuses(self, bonuses):
-        self.viewRange = self.VIEW_RANGE[self.type]+bonuses[p.Player.VIEW_RANGE_BONUS]
-        self.AttackSpeed = self.ATTACK_SPEED[self.type]+bonuses[p.Player.ATTACK_SPEED_BONUS]
-        self.AttackDamage = self.ATTACK_DAMAGE[self.type]+bonuses[p.Player.ATTACK_DAMAGE_BONUS]
-        self.range = self.ATTACK_RANGE[self.type]+bonuses[p.Player.ATTACK_RANGE_BONUS]
-        self.shield = bonuses[p.Player.BUILDING_MOTHERSHIELD_BONUS]
-        self.MAX_SHIELD = bonuses[p.Player.BUILDING_MOTHERSHIELD_BONUS]
+        if self.finished:
+            self.AttackDamage = self.ATTACK_DAMAGE+bonuses[p.Player.ATTACK_DAMAGE_MOTHERSHIP]
+            self.shield = bonuses[p.Player.BUILDING_MOTHERSHIELD_BONUS]
+            self.MAX_SHIELD = bonuses[p.Player.BUILDING_MOTHERSHIELD_BONUS]
 
     def regenShield(self):
         if self.shield >= 0:
@@ -350,7 +364,7 @@ class LandingZone(ConstructionBuilding):
         self.planetId = planetId
         self.sunId = sunId
         self.finished = True
-        self.planet = None
+        self.planet = landingShip.planet
         self.nuclear = 0
 
     def over(self, positionStart, positionEnd):

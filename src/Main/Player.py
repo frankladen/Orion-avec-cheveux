@@ -21,8 +21,9 @@ class Player():
     VIEW_RANGE_BONUS = 4
     BUILDING_SHIELD_BONUS = 5
     BUILDING_MOTHERSHIELD_BONUS = 6
+    ATTACK_DAMAGE_MOTHERSHIP = 7
     #[AttaqueDamage,AttaqueSpeed,MoveSpeed,AttackRange]
-    BONUS = [0,0,0,0,0,0,0]
+    BONUS = [0,0,0,0,0,0,0,0]
     MAX_FOOD = 10
     SQUARE_FORMATION = 0
     TRIANGLE_FORMATION = 1
@@ -33,6 +34,7 @@ class Player():
         self.colorId = colorId
         self.techTree = TechTree()
         self.selectedObjects = [] #Liste des unites selectionnes
+        self.listMemory = [[],[],[],[],[],[],[],[],[]]
         self.units = [] #Liste de toute les unites
         self.buildings = [] #Liste de tous les buildings
         self.notifications = [] #Liste de toutes les notifications
@@ -99,10 +101,10 @@ class Player():
         self.units.append(u.GatherShip(u.Unit.CARGO,[startPos[0] + 40, startPos[1]+40], self.id))
         
     #Ajoute une camera au joueur seulement quand la partie commence    
-    def addCamera(self, galaxy, taille):
+    def addCamera(self, galaxy, width, height):
         pos = self.motherShip.position
         default = [pos[0],pos[1]]
-        self.camera = Camera(default, galaxy, self, taille)
+        self.camera = Camera(default, galaxy, self, width, height)
 
     def moveCamera(self):
         self.camera.move()
@@ -366,9 +368,12 @@ class Player():
         unit.changeFlag(t.Target(constructionUnit.rallyPoint), FlagState.MOVE)
         self.units.append(unit)
 
-        if self.id == unit.owner:
+        if self.game.playerId == unit.owner:
             if not self.camera.inGameArea(constructionUnit.position):
-                self.notifications.append(Notification(constructionUnit.position, Notification.FINISHED_BUILD, u.Unit.NAME[unit.type]))
+                if isinstance(constructionUnit, b.Mothership):
+                    self.notifications.append(Notification(constructionUnit.position, Notification.FINISHED_BUILD, u.Unit.NAME[unit.type]))
+                else:
+                    self.notifications.append(Notification(constructionUnit.planet.position, Notification.FINISHED_BUILD, u.Unit.NAME[unit.type]))
         
         if isinstance(unit, u.GroundUnit):
             self.game.galaxy.solarSystemList[unit.sunId].planets[unit.planetId].units.append(unit)
@@ -384,6 +389,8 @@ class Player():
     def changeBonuses(self):
         for unit in self.units:
             unit.applyBonuses(self.BONUS)
+        for building in self.buildings:
+            building.applyBonuses(self.BONUS)
             
     def adjustRessources(self, ressourceType, amount):
         self.ressources[ressourceType] += amount
@@ -409,10 +416,11 @@ class Player():
     def makeUnitsAttack(self, units, targetPlayer, targetUnit, type):
         for i in units:
             if i != '':
-                if type == "u":
-                    self.units[int(i)].changeFlag(targetPlayer.units[targetUnit], FlagState.ATTACK)
-                else:
-                    self.units[int(i)].changeFlag(targetPlayer.buildings[targetUnit], FlagState.ATTACK)
+                if int(i) < len(self.units):
+                    if type == "u":
+                        self.units[int(i)].changeFlag(targetPlayer.units[targetUnit], FlagState.ATTACK)
+                    else:
+                        self.units[int(i)].changeFlag(targetPlayer.buildings[targetUnit], FlagState.ATTACK)
 
     def makeUnitLand(self, unitId, planet):
         self.units[unitId].changeFlag(planet, FlagState.LAND)
@@ -420,18 +428,37 @@ class Player():
     def makeUnitLoad(self, units, landingZone):
         for i in units:
             if i != '':
-                self.units[int(i)].changeFlag(landingZone, FlagState.LOAD)
+                if int(i) < len(self.units):
+                    self.units[int(i)].changeFlag(landingZone, FlagState.LOAD)
     
     def makeUnitsGather(self, units, astroObject):
         for i in units:
             if i != '':
-                self.units[int(i)].changeFlag(astroObject, FlagState.GATHER)
+                if int(i) < len(self.units):
+                    self.units[int(i)].changeFlag(astroObject, FlagState.GATHER)
                 
     def makeGroundUnitsGather(self, units, ressource):
         for i in units:
             if i != '':
-                self.units[int(i)].changeFlag(ressource, FlagState.GROUND_GATHER)
-        
+                if int(i) < len(self.units):
+                    self.units[int(i)].changeFlag(ressource, FlagState.GROUND_GATHER)
+
+    def selectMemory(self, selected):
+        self.selectedObjects = []
+        for i in self.listMemory[selected]:
+            if i.isAlive:
+                if (self.currentPlanet != None and (isinstance(i, u.GroundUnit) or isinstance(i, b.GroundBuilding) or isinstance(i, b.LandingZone))) or (self.currentPlanet == None and (isinstance(i, u.SpaceUnit) or i.type == u.Unit.SCOUT or isinstance(i, b.SpaceBuilding) or isinstance(i, b.Mothership))):
+                    self.selectedObjects.append(i)
+            else:
+                self.listMemory[selected].pop(self.listMemory[selected].index(i))
+        if len(self.selectedObjects) > 0:
+            self.camera.position = [self.selectedObjects[0].position[0], self.selectedObjects[0].position[1]]
+
+    def newMemory(self, selected):
+        self.listMemory[selected] = []
+        for i in self.selectedObjects:
+            self.listMemory[selected].append(i)
+
     def makeFormation(self, units, galaxy, target = None, action = FlagState.MOVE):
         if len(units) > 2:
             #S'il n'y a pas de target de spÃ©cifiÃ©e comme lors du changement de formation
@@ -552,12 +579,12 @@ class Player():
         
 #Represente la camera            
 class Camera():
-    def __init__(self, defaultPos, galaxy, player, taille):
+    def __init__(self, defaultPos, galaxy, player, width, height):
         self.defaultPos = defaultPos
         self.position = defaultPos
-        self.screenCenter = (taille/2,(taille/2)-300)
-        self.screenWidth = taille
-        self.screenHeight = taille/2
+        self.screenCenter = (width/2,(height/2))
+        self.screenWidth = width
+        self.screenHeight = height
         self.galaxy = galaxy #reference a la galaxie
         self.player = player
         self.movingDirection = []
