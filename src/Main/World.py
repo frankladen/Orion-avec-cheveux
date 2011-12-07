@@ -238,14 +238,16 @@ class AstronomicalObject(Target):
             self.gazQte = 0 
 
     def overNebula(self, positionStart, positionEnd):
-        if positionEnd[0] > self.position[0] - self.NEBULA_WIDTH/2 and positionStart[0] < self.position[0] + self.NEBULA_WIDTH/2:
-            if positionEnd[1] > self.position[1] - self.NEBULA_HEIGHT/2 and positionStart[1] < self.position[1] + self.NEBULA_HEIGHT/2:
-                return True
+        if self.gazQte > 0:
+            if positionEnd[0] > self.position[0] - self.NEBULA_WIDTH/2 and positionStart[0] < self.position[0] + self.NEBULA_WIDTH/2:
+                if positionEnd[1] > self.position[1] - self.NEBULA_HEIGHT/2 and positionStart[1] < self.position[1] + self.NEBULA_HEIGHT/2:
+                    return True
 
     def overAsteroid(self, positionStart, positionEnd):
-        if positionEnd[0] > self.position[0] - self.ASTEROID_WIDTH/2 and positionStart[0] < self.position[0] + self.ASTEROID_WIDTH/2:
-            if positionEnd[1] > self.position[1] - self.ASTEROID_HEIGHT/2 and positionStart[1] < self.position[1] + self.ASTEROID_HEIGHT/2:
-                return True
+        if self.mineralQte > 0:
+            if positionEnd[0] > self.position[0] - self.ASTEROID_WIDTH/2 and positionStart[0] < self.position[0] + self.ASTEROID_WIDTH/2:
+                if positionEnd[1] > self.position[1] - self.ASTEROID_HEIGHT/2 and positionStart[1] < self.position[1] + self.ASTEROID_HEIGHT/2:
+                    return True
             
     def selectNebula(self, position):
         if position[0] >= self.position[0]-self.NEBULA_WIDTH/2 and position[0] <= self.position[0]+self.NEBULA_WIDTH/2:
@@ -472,9 +474,10 @@ class MineralStack(Target):
         self.sunId = sunId
 
     def over(self, positionStart, positionEnd):
-        if positionEnd[0] > self.position[0] - self.WIDTH/2 and positionStart[0] < self.position[0] + self.WIDTH/2:
-            if positionEnd[1] > self.position[1] - self.HEIGHT/2 and positionStart[1] < self.position[1] + self.HEIGHT/2:
-                return True
+        if self.nbMinerals > 0:
+            if positionEnd[0] > self.position[0] - self.WIDTH/2 and positionStart[0] < self.position[0] + self.WIDTH/2:
+                if positionEnd[1] > self.position[1] - self.HEIGHT/2 and positionStart[1] < self.position[1] + self.HEIGHT/2:
+                    return True
         return False
         
     def select(self, position):
@@ -496,9 +499,10 @@ class GazStack(Target):
         self.state = 0
 
     def over(self, positionStart, positionEnd):
-        if positionEnd[0] > self.position[0] - self.WIDTH/2 and positionStart[0] < self.position[0] + self.WIDTH/2:
-            if positionEnd[1] > self.position[1] - self.HEIGHT/2 and positionStart[1] < self.position[1] + self.HEIGHT/2:
-                return True
+        if self.nbGaz > 0:
+            if positionEnd[0] > self.position[0] - self.WIDTH/2 and positionStart[0] < self.position[0] + self.WIDTH/2:
+                if positionEnd[1] > self.position[1] - self.HEIGHT/2 and positionStart[1] < self.position[1] + self.HEIGHT/2:
+                    return True
         return False
 
     def select(self, position):
@@ -517,9 +521,10 @@ class NuclearSite(Target):
         self.sunId = sunId
 
     def over(self, positionStart, positionEnd):
-        if positionEnd[0] > self.position[0] - self.WIDTH/2 and positionStart[0] < self.position[0] + self.WIDTH/2:
-            if positionEnd[1] > self.position[1] - self.HEIGHT/2 and positionStart[1] < self.position[1] + self.HEIGHT/2:
-                return True
+        if self.nbRessource > 0:
+            if positionEnd[0] > self.position[0] - self.WIDTH/2 and positionStart[0] < self.position[0] + self.WIDTH/2:
+                if positionEnd[1] > self.position[1] - self.HEIGHT/2 and positionStart[1] < self.position[1] + self.HEIGHT/2:
+                    return True
         return False
 
     def select(self, position):

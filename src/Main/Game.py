@@ -76,20 +76,20 @@ class Game():
         actionPlayerName = self.players[actionPlayerId].name
         addIt = True
         notif = None
-        if not target[2] in (t.Notification.MESSAGE_ALL, t.Notification.MESSAGE_ALLIES):
-            if target[2] == t.Notification.ATTACKED_UNIT:
+        if not target[1] in (t.Notification.MESSAGE_ALL, t.Notification.MESSAGE_ALLIES, t.Notification.PING):
+            if target[1] == t.Notification.ATTACKED_UNIT:
                 for i in player.notifications:
-                    if i.position == player.units[target[1]].position and i.actionPlayerName == actionPlayerName:
+                    if i.position == player.units[target[2]].position and i.actionPlayerName == actionPlayerName:
                         addIt = False
                 if addIt:
                     #Tu ajoutes seulement le 4e paramètre si tu en as besoin, le nom de l'autre joueur
-                    notif = t.Notification(player.units[target[1]].position, target[2], actionPlayerName)
-            elif target[2] == t.Notification.ATTACKED_BUILDING:
+                    notif = t.Notification(player.units[target[2]].position, target[1], actionPlayerName)
+            elif target[1] == t.Notification.ATTACKED_BUILDING:
                 for i in player.notifications:
-                    if i.position == player.buildings[target[1]].position and i.actionPlayerName == actionPlayerName:
+                    if i.position == player.buildings[target[2]].position and i.actionPlayerName == actionPlayerName:
                         addIt = False
                 if addIt:
-                    notif = t.Notification(player.buildings[target[1]].position, target[2], actionPlayerName)
+                    notif = t.Notification(player.buildings[target[2]].position, target[1], actionPlayerName)
             if notif != None:
                 player.notifications.append(notif)
         else:
@@ -97,15 +97,26 @@ class Game():
             for i in unitIndex:
                 mess+=i
             mess = actionPlayerName+" : "+mess
-            if target[2] == t.Notification.MESSAGE_ALL:
-                notif = t.Notification([-10000,-10000,-10000],target[2],mess)
+            if target[1] == t.Notification.MESSAGE_ALL:
+                notif = t.Notification([-10000,-10000,-10000],target[1],mess)
                 if self.playerId != player.id:
                     self.players[self.playerId].notifications.append(notif)
-            elif target[2] == t.Notification.MESSAGE_ALLIES:
-                notif = t.Notification([-10000,-10000,-10000],target[2],mess)
+            elif target[1] == t.Notification.MESSAGE_ALLIES:
+                notif = t.Notification([-10000,-10000,-10000],target[1],mess)
                 if player.isAlly(self.playerId):
                     if self.playerId != player.id:
                         self.players[self.playerId].notifications.append(notif)
+            elif target[1] == t.Notification.PING:
+                notif = t.Notification([target[2],target[3],0],target[1],actionPlayerName)
+                if player.isAlly(self.playerId):
+                    if self.playerId != player.id:
+                        add = True
+                        for i in self.players[self.playerId].notifications:
+                            if i.type == t.Notification.PING:
+                                add = False
+                                break
+                        if add == True:
+                            self.players[self.playerId].notifications.append(notif)
         
 
     # Pour changer le flag des unités selectionne pour la construction        
@@ -131,22 +142,18 @@ class Game():
                 player.ressources[1] -= Building.COST[type][1]
                 if type == Building.WAYPOINT:
                     wp = Waypoint(Building.WAYPOINT, [target[0],target[1],0], playerId)
-                    wp.MAX_SHIELD = player.BONUS[player.BUILDING_SHIELD_BONUS]
-                    wp.shield = wp.MAX_SHIELD
                 elif type == Building.TURRET:
                     wp = Turret(Building.TURRET, [target[0],target[1],0], playerId)
-                    wp.MAX_SHIELD = player.BONUS[player.BUILDING_SHIELD_BONUS]
-                    wp.shield = wp.MAX_SHIELD
                 elif type == Building.FARM:
                     wp = Farm(Building.FARM, [target[0],target[1],0], playerId, sunId, planetId)
-                    wp.MAX_SHIELD = player.BONUS[player.BUILDING_SHIELD_BONUS]
-                    wp.shield = wp.MAX_SHIELD
                     wp.planet = self.galaxy.solarSystemList[sunId].planets[planetId]
                     self.galaxy.solarSystemList[sunId].planets[planetId].buildings.append(wp)
+                elif type == Building.LAB:
+                    wp = Lab(Building.LAB, [target[0],target[1],0], playerId, sunId, planetId)
+                    wp.planet = self.galaxy.solarSystemList[sunId].planets[planetId]
+                    self.galaxy.solarSystemList[sunId].planets[planetId].buildings.append(wp)    
                 elif type == Building.MOTHERSHIP:
                     wp = Mothership(Building.MOTHERSHIP, [target[0],target[1],0], playerId)
-                    wp.MAX_SHIELD = player.BONUS[player.BUILDING_SHIELD_BONUS]
-                    wp.shield = wp.MAX_SHIELD
             if wp != None:
                 self.players[playerId].buildings.append(wp)
                 for i in unitIndex:
@@ -222,7 +229,7 @@ class Game():
         if attacking:
             units = ""
             for i in self.players[self.playerId].selectedObjects:
-                if isinstance(i, u.SpaceAttackUnit):
+                if isinstance(i, u.SpaceAttackUnit) or isinstance(i, u.SpaceBuildingAttack):
                     if isinstance(attackedUnit, u.Unit) :
                         if attackedUnit.type == u.Unit.TRANSPORT:
                             if attackedUnit.landed == False:
@@ -280,9 +287,9 @@ class Game():
             planet.landingZones.remove(landingZone)
 
     def setBuyTech(self, techType, index):
-        self.parent.pushChange(index, Flag(techType,0,FlagState.BUY_TECH))
+        self.parent.pushChange(techType, Flag(0,t.Target([int(index), self.players[self.playerId].getSelectedBuildingIndex(),0]),FlagState.BUY_TECH))
 
-    def buyTech(self, playerId, techType, index):
+    def buyTech(self, playerId, techType, index, labIndex):
         player = self.players[playerId]
         techTree = player.techTree
         if techType == "Button_Buy_Unit_Tech":
@@ -302,21 +309,21 @@ class Game():
             player.ressources[1] -= tech.costGaz
             player.ressources[3] -= tech.costNuclear
             if tech.effect == 'D':
-                player.BONUS[player.ATTACK_DAMAGE_BONUS] = tech.add
+                player.buildings[labIndex].techsToResearch.append((tech, player.ATTACK_DAMAGE_BONUS))
             elif tech.effect == 'S':
-                player.BONUS[player.MOVE_SPEED_BONUS] = tech.add
+                player.buildings[labIndex].techsToResearch.append((tech, player.MOVE_SPEED_BONUS))
             elif tech.effect == 'AS':
-                player.BONUS[player.ATTACK_SPEED_BONUS] = tech.add
+                player.buildings[labIndex].techsToResearch.append((tech, player.ATTACK_SPEED_BONUS))
             elif tech.effect == 'AR':
-                player.BONUS[player.ATTACK_RANGE_BONUS] = tech.add
+                player.buildings[labIndex].techsToResearch.append((tech, player.ATTACK_RANGE_BONUS))
             elif tech.effect == 'VR':
-                player.BONUS[player.VIEW_RANGE_BONUS] = tech.add
+                player.buildings[labIndex].techsToResearch.append((tech, player.VIEW_RANGE_BONUS))
+            elif tech.effect == 'BB':
+                player.buildings[labIndex].techsToResearch.append((tech, player.BUILDING_SHIELD_BONUS))
             elif tech.effect == 'BM':
-                player.BONUS[player.BUILDING_MOTHERSHIELD_BONUS] = tech.add
+                player.buildings[labIndex].techsToResearch.append((tech, player.BUILDING_MOTHERSHIELD_BONUS))
             elif tech.effect == 'DM':
-                player.BONUS[player.ATTACK_DAMAGE_MOTHERSHIP] = tech.add
-                
-            player.changeBonuses()
+                player.buildings[labIndex].techsToResearch.append((tech, player.ATTACK_DAMAGE_MOTHERSHIP))
         
     def setGatherFlag(self,ship,ressource):
         units = str(self.players[self.playerId].units.index(ship)) + ","
@@ -522,6 +529,8 @@ class Game():
         foodCost = u.Unit.BUILD_COST[unitType][2]
         if self.players[self.playerId].canAfford(mineralCost, gazCost, foodCost):
             self.parent.pushChange(self.players[self.playerId].getSelectedBuildingIndex(),Flag(finalTarget = unitType, flagState = FlagState.CREATE))
+        else:
+            self.players[self.playerId].notifications.append(t.Notification([-10000,-10000,-10000],t.Notification.NOT_ENOUGH_RESSOURCES))
 
     def createUnit(self, player,constructionUnit, unitType):
         mineralCost = u.Unit.BUILD_COST[unitType][0]
@@ -538,6 +547,13 @@ class Game():
     def cancelUnit(self, player, unit, constructionBuilding):
         if constructionBuilding <= (len(self.players[player].buildings)-1) and constructionBuilding != None:
             self.players[player].cancelUnit(unit, constructionBuilding)
+
+    def sendCancelTech(self, tech):
+        self.parent.pushChange(self.players[self.playerId].getSelectedBuildingIndex(), Flag(finalTarget = tech, flagState = FlagState.CANCEL_TECH))
+
+    def cancelTech(self, player, tech, constructionBuilding):
+        if constructionBuilding <= (len(self.players[player].buildings)-1) and constructionBuilding != None:
+            self.players[player].cancelTech(tech, constructionBuilding)
     
     #Pour effacer un Unit
     def eraseUnit(self):
@@ -719,6 +735,10 @@ class Game():
                         if (isinstance(clickedObj, u.Unit) or isinstance(clickedObj, SpaceBuilding) or isinstance(clickedObj, Mothership)) and  not isinstance(clickedObj, u.GroundUnit):
                             if clickedObj.owner != self.playerId:
                                 self.setAttackFlag(clickedObj)
+                    elif unit.type == unit.SPACE_BUILDING_ATTACK:
+                        if isinstance(clickedObj, SpaceBuilding) or isinstance(clickedObj, Mothership):
+                            if clickedObj.owner != self.playerId:
+                                self.setAttackFlag(clickedObj)
                     elif unit.type == unit.SCOUT:
                         if isinstance(clickedObj, Building):
                             if clickedObj.owner == self.playerId:
@@ -781,7 +801,10 @@ class Game():
         else:
             posSelected = self.players[self.playerId].camera.calcPointOnPlanetMap(x,y)
             self.players[self.playerId].camera.position = posSelected
-        
+
+    def pingAllies(self, x, y):
+        self.parent.pushChange(self.players[self.playerId].name, Flag(None,[self.playerId,t.Notification.PING,x,y],FlagState.NOTIFICATION))
+    
     def takeOff(self, ship, planet, playerId):
         ship.takeOff(planet)
         self.players[playerId].currentPlanet = None
@@ -814,16 +837,10 @@ class Game():
 
     def changeFormation(self, playerId, newType, units, action):
         self.players[playerId].formation = newType
-        try:
-            self.players[playerId].makeFormation(units, self.galaxy, action = action)
-        except:
-            pass
+        self.players[playerId].makeFormation(units, self.galaxy, action = action)
 
     def makeFormation(self, playerId, units, target, action):
-        try:
-            self.players[playerId].makeFormation(units, self.galaxy, target, action)
-        except:
-            pass
+        self.players[playerId].makeFormation(units, self.galaxy, target, action)
 
     def selectMemory(self, selected):
         self.players[self.playerId].selectMemory(selected)

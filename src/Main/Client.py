@@ -87,11 +87,11 @@ class Controller():
             mess = mess.split("\\t ")
             mess = "(Alliés) "+mess[1]
             self.server.addMessage(mess, self.game.players[self.game.playerId].name, self.game.playerId, True)
-            self.pushChange(mess, Flag(None,[self.game.playerId,0,t.Notification.MESSAGE_ALLIES],FlagState.NOTIFICATION))
+            self.pushChange(mess, Flag(None,[self.game.playerId,t.Notification.MESSAGE_ALLIES,0],FlagState.NOTIFICATION))
         elif len(mess)>0:
             mess = mess.replace('\\','/')
             self.server.addMessage(mess, self.game.players[self.game.playerId].name, self.game.playerId, False)
-            self.pushChange(mess, Flag(None,[self.game.playerId,0,t.Notification.MESSAGE_ALL],FlagState.NOTIFICATION))
+            self.pushChange(mess, Flag(None,[self.game.playerId,t.Notification.MESSAGE_ALL,0],FlagState.NOTIFICATION))
 
     def sendMessageLobby(self, mess, nom):
         mess = mess.replace('\\','/')
@@ -237,7 +237,7 @@ class Controller():
                 actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.DESTROY:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/0"
-            elif flag.flagState == FlagState.CANCEL_UNIT:
+            elif flag.flagState in (FlagState.CANCEL_UNIT, FlagState.CANCEL_TECH):
                 actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.PATROL:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
@@ -250,7 +250,7 @@ class Controller():
             elif flag.flagState == FlagState.DEMAND_ALLIANCE:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget)
             elif flag.flagState == FlagState.BUY_TECH:
-                actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.initialTarget)
+                actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             elif flag.flagState == FlagState.LOAD:
                 planetId = flag.finalTarget.planetId
                 solarId = flag.finalTarget.sunId
@@ -397,6 +397,9 @@ class Controller():
         elif action == str(FlagState.CANCEL_UNIT):
             self.game.cancelUnit(actionPlayerId, int(target), int(unitIndex[0]))
 
+        elif action == str(FlagState.CANCEL_TECH):
+            self.game.cancelTech(actionPlayerId, int(target), int(unitIndex[0]))
+
         elif action == str(FlagState.DESTROY):
             self.game.killUnit((int(unitIndex[0]),actionPlayerId,False))
         
@@ -407,7 +410,11 @@ class Controller():
             self.game.changeFormation(actionPlayerId, int(target), unitIndex, FlagState.MOVE)
 
         elif action == str(FlagState.BUY_TECH):
-            self.game.buyTech(actionPlayerId, target, int(unitIndex[0]))
+            target = self.changeToInt(self.stripAndSplit(target))
+            techType = ""
+            for i in unitIndex:
+                techType += i
+            self.game.buyTech(actionPlayerId, techType, target[0], target[1])
 
         elif action == str(FlagState.TRADE):
             target = self.stripAndSplit(target)

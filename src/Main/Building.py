@@ -14,13 +14,14 @@ class Building(t.PlayerObject):
     TURRET=4
     MOTHERSHIP=5
     LANDING_ZONE=6
-    NAME = ("Point ralliement", "Raffinerie", "Barraque", "Ferme", "Tourette", "Vaisseau mere", "Zone d'aterrissage")
-    SIZE =((30,30),(0,0),(0,0),(75,59),(32,32),(125,125),(32,32))
-    INSPACE = (True,False,False,False,True,True,False)
-    COST = ((50,50),(0,0),(0,0),(75,75),(250,200),(2000,2000),(0,0))
-    TIME = (125,0,0,125,125,1250,0)
-    MAX_HP = (150,0,0,200,200,1500,100)
-    VIEW_RANGE=(200, 0, 0, 100, 250, 400, 200)
+    LAB=7
+    NAME = ("Point ralliement", "Raffinerie", "Barraque", "Ferme", "Tourette", "Vaisseau mere", "Zone d'aterrissage","Laboratoire de recherche")
+    SIZE =((30,30),(0,0),(0,0),(75,59),(32,32),(125,125),(32,32),(94,94))
+    INSPACE = (True,False,False,False,True,True,False,False)
+    COST = ((50,50),(0,0),(0,0),(75,75),(250,200),(2000,2000),(0,0),(300,300))
+    TIME = (125,0,0,125,125,1250,0,125)
+    MAX_HP = (150,0,0,200,200,1500,100,200)
+    VIEW_RANGE=(200, 0, 0, 100, 250, 400, 200,100)
     MAX_SHIELD=0
     REGEN_WAIT_TIME = 30
     REGEN_WAIT_TIME_AFTER_ATTACK = 60
@@ -35,7 +36,7 @@ class Building(t.PlayerObject):
         self.buildCost = self.COST[type]
         self.name = self.NAME[type]    
         self.finished = False
-        self.shield = self.MAX_SHIELD
+        self.shield = 0
         self.shieldRegenCount = self.REGEN_WAIT_TIME
         self.shieldRegenAfterAttack = 0
 
@@ -182,6 +183,27 @@ class GroundBuilding(Building):
                         return self
         return None
 
+class Lab (GroundBuilding):
+    def __init__(self, type, position, owner, sunId, planetId):
+        GroundBuilding.__init__(self, type, position, owner, sunId, planetId)
+        self.techsToResearch = []
+
+    def action(self, parent):
+        if self.finished:
+            if len(self.techsToResearch) > 0:
+                self.progressTechs(parent)
+
+    def progressTechs(self, player):
+        self.techsToResearch[0][0].researchTime += 1
+        if self.techsToResearch[0][0].researchTime == self.techsToResearch[0][0].timeNeeded:
+            player.BONUS[self.techsToResearch[0][1]] = self.techsToResearch[0][0].add
+            self.techsToResearch[0][0].isAvailable = False
+            if self.techsToResearch[0][0].child != None:
+                self.techsToResearch[0][0].child.isAvailable = True
+            player.notifications.append(t.Notification(t.Target([-10000,-10000,-10000]),t.Notification.FINISH_TECH,self.techsToResearch[0][0].name))
+            self.techsToResearch.pop(0)
+            player.changeBonuses()
+        
 class Farm(GroundBuilding):
     def __init__(self, type, position, owner, sunId, planetId):
         GroundBuilding.__init__(self, type, position, owner, sunId, planetId)
@@ -227,6 +249,8 @@ class ConstructionBuilding(Building):
             un = u.SpecialGather( u.Unit.SPECIAL_GATHER, p, self.owner, self.planetId, self.sunId,True)
             un.planet = galaxy.solarSystemList[self.sunId].planets[self.planetId]
             self.unitBeingConstruct.append(un)
+        elif unitType == u.Unit.SPACE_BUILDING_ATTACK:
+            self.unitBeingConstruct.append(u.SpaceBuildingAttack( u.Unit.SPACE_BUILDING_ATTACK, p, self.owner))
         
                                            
     def getUnitBeingConstructAt(self, unitId):

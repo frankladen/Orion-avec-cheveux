@@ -49,7 +49,7 @@ class Player():
         self.motherShip = None
         self.formation = self.SQUARE_FORMATION
         self.currentPlanet = None
-        self.ressources = [350,350,2,0]
+        self.ressources = [1000,1000,2,0]
         self.isAlive = True
         self.camera = None
         self.actionHealUnit = None
@@ -396,11 +396,24 @@ class Player():
         self.ressources[ressourceType] += amount
 
     def cancelUnit(self, unitId, constructionBuilding):
-        unit = self.buildings[constructionBuilding].getUnitBeingConstructAt(unitId)
-        self.adjustRessources(self.MINERAL, unit.buildCost[0])
-        self.adjustRessources(self.GAS, unit.buildCost[1])
-        self.ressources[self.FOOD] -= unit.buildCost[2]
-        self.buildings[constructionBuilding].unitBeingConstruct.pop(unitId)
+        if constructionBuilding < len(self.buildings):
+            if unitId < len(self.buildings[constructionBuilding].unitBeingConstruct):
+                unit = self.buildings[constructionBuilding].getUnitBeingConstructAt(unitId)
+                self.adjustRessources(self.MINERAL, unit.buildCost[0])
+                self.adjustRessources(self.GAS, unit.buildCost[1])
+                self.ressources[self.FOOD] -= unit.buildCost[2]
+                self.buildings[constructionBuilding].unitBeingConstruct.pop(unitId)
+
+    def cancelTech(self, techId, constructionBuilding):
+        if constructionBuilding < len(self.buildings):
+            if techId < len(self.buildings[constructionBuilding].techsToResearch):
+                tech = self.buildings[constructionBuilding].techsToResearch[techId][0]
+                self.adjustRessources(self.MINERAL, tech.costMine)
+                self.adjustRessources(self.GAS, tech.costGaz)
+                tech.isAvailable = True
+                if tech.child != None:
+                    tech.child.isAvailable = False
+                self.buildings[constructionBuilding].techsToResearch.pop(techId)
 
     def canAfford(self, minerals, gas, food):
         return self.ressources[0] >= minerals and self.ressources[0] >= gas and self.ressources[2]+food <= self.MAX_FOOD
@@ -452,7 +465,8 @@ class Player():
             else:
                 self.listMemory[selected].pop(self.listMemory[selected].index(i))
         if len(self.selectedObjects) > 0:
-            self.camera.position = [self.selectedObjects[0].position[0], self.selectedObjects[0].position[1]]
+            self.camera.position = self.camera.ensurePositionIsInWorld([self.selectedObjects[0].position[0], self.selectedObjects[0].position[1]])
+            
 
     def newMemory(self, selected):
         self.listMemory[selected] = []
@@ -463,7 +477,8 @@ class Player():
         if len(units) > 2:
             #S'il n'y a pas de target de spÃ©cifiÃ©e comme lors du changement de formation
             if target == None:
-                target = self.units[int(units[0])].flag.finalTarget.position
+                if int(units[0]) < len(self.units):
+                    target = self.units[int(units[0])].flag.finalTarget.position
             #tuple qui contient les lignes qui peut contenir par ligne
             lineTaken=[]
             line=0
@@ -477,9 +492,10 @@ class Player():
             widths = [unit.SIZE[unit.type][0]]
             heights = [unit.SIZE[unit.type][1]]
             for i in range(0,len(units)-1):
-                unit = self.units[int(units[i])]
-                widths.append(unit.SIZE[unit.type][0])
-                heights.append(unit.SIZE[unit.type][1])
+                if int(units[i]) < len(self.units):
+                    unit = self.units[int(units[i])]
+                    widths.append(unit.SIZE[unit.type][0])
+                    heights.append(unit.SIZE[unit.type][1])
             width = max(widths)
             height = max(heights)
             #Formation en carrÃ© selon le nombre de unit qui se dÃ©place, OH YEAH
@@ -522,7 +538,8 @@ class Player():
                         if goodPlace==False:
                             line+=1
                     #Lorsqu'il a trouvÃ© sa place, on le fait bouger vers sa nouvelle target
-                    self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
+                    if int(units[i]) < len(self.units):
+                        self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
             #Formation en triangle, FUCK YEAH
             elif self.formation == self.TRIANGLE_FORMATION:
                 #tuple qui contient le nombre de Unit par ligne
@@ -573,9 +590,11 @@ class Player():
                                     thatLine.append(False)
                                 lineTaken.append(thatLine)
                     #Lorsqu'il a trouvÃ© sa place, on le fait bouger Ã  sa nouvelle Target  
-                    self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
+                    if int(units[i]) < len(self.units):
+                        self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
         else:
-            self.units[int(units[0])].changeFlag(t.Target([target[0],target[1],0]),int(action))
+            if int(units[0]) < len(self.units):
+                self.units[int(units[0])].changeFlag(t.Target([target[0],target[1],0]),int(action))
         
 #Represente la camera            
 class Camera():
@@ -608,6 +627,20 @@ class Camera():
             if position[1] > self.position[1] - self.screenHeight/2 and position[1] < self.position[1] + self.screenHeight/2:
                 return True
         return False
+
+    def ensurePositionIsInWorld(self, position):
+        tempX = position[0]
+        tempY = position[1]
+        if position[0] > self.galaxy.width/2 - self.screenWidth/2:
+            position[0] = self.galaxy.width/2 - self.screenWidth/2
+        elif position[0] < self.galaxy.width/2*-1 + self.screenWidth/2:
+            position[0] = self.galaxy.width/2*-1 + self.screenWidth/2
+        if position[1] > self.galaxy.height/2 - self.screenHeight/2:
+            position[1] = self.galaxy.height/2 - self.screenHeight/2
+        elif position[1] < self.galaxy.height/2*-1 + self.screenHeight/2:
+            position[1] = self.galaxy.height/2*-1 + self.screenHeight/2
+        return position
+
     #Pour calculer la distance entre la camera et un point
     def calcDistance(self, position):
         distX = position[0] - self.position[0]
