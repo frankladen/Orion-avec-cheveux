@@ -343,6 +343,10 @@ class Game():
     def setGroundGatherFlag(self, ship, ressource):
         units = str(self.players[self.playerId].units.index(ship)) + ","
         self.parent.pushChange(units, Flag(t.Target([0,0,0]), ressource, FlagState.GROUND_GATHER))
+        
+    def makeGroundUnitMove(self, playerId, unitsId, posX, posY, posZ, action):
+        print('makeGroundUnitMove dans Game pour le joueur: ', playerId)
+        self.players[int(playerId)].makeGroundUnitsMove(unitsId, [posX, posY, posZ], int(action))
 
     def makeGroundUnitsGather(self, playerId, unitsId, ressourceId, planetId, sunId, ressourceType):
         if ressourceType == Planet.MINERAL:

@@ -426,6 +426,12 @@ class Player():
             self.ressources[self.FOOD] += u.Unit.BUILD_COST[unitType][u.Unit.FOOD]
             self.buildings[constructionBuilding].flag.flagState = FlagState.BUILD_UNIT
 
+    def makeGroundUnitsMove(self, units, position, action):
+        print('makeGroundUnitMove dans player')
+        for i in units:
+            if i != '':
+                self.units[int(i)].changeFlag(t.Target(position), action)
+
     def makeUnitsAttack(self, units, targetPlayer, targetUnit, type):
         for i in units:
             if i != '':

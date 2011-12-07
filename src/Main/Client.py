@@ -332,10 +332,11 @@ class Controller():
             
         elif action == str(FlagState.GROUND_MOVE):
             target = self.changeToInt(self.stripAndSplit(target))
-            for i in unitIndex:
-                if i != '':
-                    self.game.players[actionPlayerId].units[int(i)].changeFlag(t.Target([int(target[0]),int(target[1]),int(target[2])]),int(action))
+            self.game.makeGroundUnitMove(actionPlayerId, unitIndex, int(target[0]), int(target[1]), int(target[2]), action)
             self.game.makeFormation(actionPlayerId, unitIndex, target, action)
+            #for i in unitIndex:
+                #if i != '':
+                    #self.game.players[actionPlayerId].units[int(i)].changeFlag(t.Target([int(target[0]),int(target[1]),int(target[2])]),int(action))
         
         elif action == str(FlagState.FINISH_BUILD):
             self.game.resumeBuilding(actionPlayerId, int(target), unitIndex)
