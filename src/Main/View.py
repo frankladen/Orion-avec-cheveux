@@ -1494,7 +1494,7 @@ class View():
             if asteroid.discovered:
                 self.minimap.create_oval(asteroidX-1, asteroidY-1, asteroidX+1, asteroidY+1, fill='CYAN')
         
-    def drawMiniNotification(self,notification, y):
+    def drawMiniNotification(self, notification, y):
         if self.game.getCurrentPlanet() == None:
             notifPos = notification.position
             notifPosX = (notifPos[0]+self.game.galaxy.width/2)/self.game.galaxy.width * self.MINIMAP_WIDTH   

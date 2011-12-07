@@ -200,7 +200,7 @@ class Lab (GroundBuilding):
             self.techsToResearch[0][0].isAvailable = False
             if self.techsToResearch[0][0].child != None:
                 self.techsToResearch[0][0].child.isAvailable = True
-            player.notifications.append(t.Notification(t.Target([-10000,-10000,-10000]),t.Notification.FINISH_TECH,self.techsToResearch[0][0].name))
+            player.notifications.append(t.Notification([-10000,-10000,-10000], t.Notification.FINISH_TECH,self.techsToResearch[0][0].name))
             self.techsToResearch.pop(0)
             player.changeBonuses()
         
