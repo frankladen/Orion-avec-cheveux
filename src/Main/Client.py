@@ -371,7 +371,7 @@ class Controller():
             self.game.makeZoneUnload(int(unitIndex[0]), actionPlayerId, int(target[0]), int(target[1]))
 
         elif action == str(FlagState.NOTIFICATION):
-            target[1] = self.changeToInt(self.stripAndSplit(target[1]))
+            target = self.changeToInt(self.stripAndSplit(target))
             self.game.makeNotification(actionPlayerId, target, unitIndex)
 
         elif action == str(FlagState.LOAD):

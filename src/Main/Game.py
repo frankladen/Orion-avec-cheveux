@@ -230,7 +230,7 @@ class Game():
         if attacking:
             units = ""
             for i in self.players[self.playerId].selectedObjects:
-                if isinstance(i, u.SpaceAttackUnit):
+                if isinstance(i, u.SpaceAttackUnit) or isinstance(i, u.SpaceBuildingAttack):
                     if isinstance(attackedUnit, u.Unit) :
                         if attackedUnit.type == u.Unit.TRANSPORT:
                             if attackedUnit.landed == False:
@@ -734,6 +734,10 @@ class Game():
                                 self.setGatherFlag(unit, clickedObj)
                     elif unit.type == unit.ATTACK_SHIP:
                         if (isinstance(clickedObj, u.Unit) or isinstance(clickedObj, SpaceBuilding) or isinstance(clickedObj, Mothership)) and  not isinstance(clickedObj, u.GroundUnit):
+                            if clickedObj.owner != self.playerId:
+                                self.setAttackFlag(clickedObj)
+                    elif unit.type == unit.SPACE_BUILDING_ATTACK:
+                        if isinstance(clickedObj, SpaceBuilding) or isinstance(clickedObj, Mothership):
                             if clickedObj.owner != self.playerId:
                                 self.setAttackFlag(clickedObj)
                     elif unit.type == unit.SCOUT:

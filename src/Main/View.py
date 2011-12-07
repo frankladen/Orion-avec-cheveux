@@ -395,7 +395,7 @@ class View():
         self.menuModesOnlets()
         self.selectedOnglet = self.SELECTED_UNIT_SELECTED
         unitList = self.game.players[self.game.playerId].selectedObjects
-        countList = [0,0,0,0,0,0,0,0,0,0,0]
+        countList = [0,0,0,0,0,0,0,0,0,0,0,0]
         if len(unitList) == 1:
             self.showInfo(unitList[0])
 
@@ -663,7 +663,7 @@ class View():
                     self.Actionmenu.create_image(140,35,image=self.gifPatrol,anchor = NW, tags = 'Button_Patrol')
                     if units[0].type == units[0].SCOUT:
                         self.Actionmenu.create_image(13,89,image=self.gifBuild,anchor = NW, tags = 'Button_Space_Buildings')
-                    elif isinstance(units[0], SpaceAttackUnit) or isinstance(units[0], GroundAttackUnit):
+                    elif isinstance(units[0], SpaceAttackUnit) or isinstance(units[0], GroundAttackUnit) or isinstance(units[0], SpaceBuildingAttack):
                         self.Actionmenu.create_image(13,89,image=self.gifAttack,anchor = NW, tags = 'Button_Attack')
                     elif isinstance(units[0], GroundBuilderUnit):
                         self.Actionmenu.create_image(13,89,image=self.gifBuild,anchor = NW, tags = 'Button_Ground_Buildings')
@@ -698,7 +698,8 @@ class View():
             self.Actionmenu.create_image(76,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Build_Attack')
             self.Actionmenu.create_image(140,35,image = self.gifCargo, anchor = NW, tags = 'Button_Build_Gather')
             self.Actionmenu.create_image(13,89,image = self.gifTransport, anchor = NW, tags = 'Button_Build_Transport')
-            self.Actionmenu.create_image(76,89,image = self.gifRepair, anchor = NW, tags = 'Button_Build_Healer')
+            self.Actionmenu.create_image(76,89,image = self.gifRepair, anchor = NW, tags = 'Button_Build_Building_Attack')
+            self.Actionmenu.create_image(140,89,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Build_Healer')
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
             self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
@@ -1303,6 +1304,14 @@ class View():
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0], distance[1], image = self.drones[player.colorId], tag='deletable')
+                elif unit.type == unit.SPACE_BUILDING_ATTACK: 
+                    if unit.attackcount <= 5 and unit.flag.flagState == FlagState.ATTACK:
+                        d2 = self.game.players[self.game.playerId].camera.calcDistance(unit.flag.finalTarget.position)
+                        self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill=self.laserColors[player.colorId], tag='deletable')
+                    if unit in player.selectedObjects:
+                        self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
+                    self.gameArea.create_image(distance[0], distance[1], image=self.attackShips[player.colorId], tag='deletable')#On prend l'image dependamment du joueur que nous sommes
+
                 if unit.hitpoints <= 15:
                     self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
                 if self.hpBars:
@@ -2032,7 +2041,9 @@ class View():
             elif (Button_pressed == "Button_Square"):
                 self.game.setChangeFormationFlag(self.game.players[self.game.playerId].SQUARE_FORMATION)
             elif (Button_pressed == 'Button_BuildGroundUnit'):
-                self.actionMenuType = self.LANDING_SPOT_BUILD_MENU  
+                self.actionMenuType = self.LANDING_SPOT_BUILD_MENU
+            elif (Button_pressed == 'Button_Build_Building_Attack'):
+                self.game.addUnit(Unit.SPACE_BUILDING_ATTACK)
             elif len(Button_pressed.split("/")) == 2:
                 #Si on achète une nouvelle technologie
                 Button_pressed = Button_pressed.split("/")
