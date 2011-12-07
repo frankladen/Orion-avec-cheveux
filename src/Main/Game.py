@@ -76,20 +76,20 @@ class Game():
         actionPlayerName = self.players[actionPlayerId].name
         addIt = True
         notif = None
-        if not target[2] in (t.Notification.MESSAGE_ALL, t.Notification.MESSAGE_ALLIES, t.Notification.PING):
-            if target[2] == t.Notification.ATTACKED_UNIT:
+        if not target[1] in (t.Notification.MESSAGE_ALL, t.Notification.MESSAGE_ALLIES, t.Notification.PING):
+            if target[1] == t.Notification.ATTACKED_UNIT:
                 for i in player.notifications:
-                    if i.position == player.units[target[1]].position and i.actionPlayerName == actionPlayerName:
+                    if i.position == player.units[target[2]].position and i.actionPlayerName == actionPlayerName:
                         addIt = False
                 if addIt:
                     #Tu ajoutes seulement le 4e paramètre si tu en as besoin, le nom de l'autre joueur
-                    notif = t.Notification(player.units[target[1]].position, target[2], actionPlayerName)
-            elif target[2] == t.Notification.ATTACKED_BUILDING:
+                    notif = t.Notification(player.units[target[2]].position, target[1], actionPlayerName)
+            elif target[1] == t.Notification.ATTACKED_BUILDING:
                 for i in player.notifications:
-                    if i.position == player.buildings[target[1]].position and i.actionPlayerName == actionPlayerName:
+                    if i.position == player.buildings[target[2]].position and i.actionPlayerName == actionPlayerName:
                         addIt = False
                 if addIt:
-                    notif = t.Notification(player.buildings[target[1]].position, target[2], actionPlayerName)
+                    notif = t.Notification(player.buildings[target[2]].position, target[1], actionPlayerName)
             if notif != None:
                 player.notifications.append(notif)
         else:
@@ -97,18 +97,17 @@ class Game():
             for i in unitIndex:
                 mess+=i
             mess = actionPlayerName+" : "+mess
-            if target[2] == t.Notification.MESSAGE_ALL:
-                notif = t.Notification([-10000,-10000,-10000],target[2],mess)
+            if target[1] == t.Notification.MESSAGE_ALL:
+                notif = t.Notification([-10000,-10000,-10000],target[1],mess)
                 if self.playerId != player.id:
                     self.players[self.playerId].notifications.append(notif)
-            elif target[2] == t.Notification.MESSAGE_ALLIES:
-                notif = t.Notification([-10000,-10000,-10000],target[2],mess)
+            elif target[1] == t.Notification.MESSAGE_ALLIES:
+                notif = t.Notification([-10000,-10000,-10000],target[1],mess)
                 if player.isAlly(self.playerId):
                     if self.playerId != player.id:
                         self.players[self.playerId].notifications.append(notif)
-            elif target[2] == t.Notification.PING:
-                pos = self.changeToInt(self.stripAndSplit(target[1]))
-                notif = t.Notification([pos[0],pos[1],0],target[2],actionPlayerName)
+            elif target[1] == t.Notification.PING:
+                notif = t.Notification([target[2],target[3],0],target[1],actionPlayerName)
                 if player.isAlly(self.playerId):
                     if self.playerId != player.id:
                         add = True
@@ -804,7 +803,7 @@ class Game():
             self.players[self.playerId].camera.position = posSelected
 
     def pingAllies(self, x, y):
-        self.parent.pushChange(self.players[self.playerId].name, Flag(None,[self.playerId,[x,y,0],t.Notification.PING],FlagState.NOTIFICATION))
+        self.parent.pushChange(self.players[self.playerId].name, Flag(None,[self.playerId,t.Notification.PING,x,y],FlagState.NOTIFICATION))
     
     def takeOff(self, ship, planet, playerId):
         ship.takeOff(planet)

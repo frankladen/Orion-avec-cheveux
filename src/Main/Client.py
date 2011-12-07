@@ -87,11 +87,11 @@ class Controller():
             mess = mess.split("\\t ")
             mess = "(Alliés) "+mess[1]
             self.server.addMessage(mess, self.game.players[self.game.playerId].name, self.game.playerId, True)
-            self.pushChange(mess, Flag(None,[self.game.playerId,0,t.Notification.MESSAGE_ALLIES],FlagState.NOTIFICATION))
+            self.pushChange(mess, Flag(None,[self.game.playerId,t.Notification.MESSAGE_ALLIES,0],FlagState.NOTIFICATION))
         elif len(mess)>0:
             mess = mess.replace('\\','/')
             self.server.addMessage(mess, self.game.players[self.game.playerId].name, self.game.playerId, False)
-            self.pushChange(mess, Flag(None,[self.game.playerId,0,t.Notification.MESSAGE_ALL],FlagState.NOTIFICATION))
+            self.pushChange(mess, Flag(None,[self.game.playerId,t.Notification.MESSAGE_ALL,0],FlagState.NOTIFICATION))
 
     def sendMessageLobby(self, mess, nom):
         mess = mess.replace('\\','/')
