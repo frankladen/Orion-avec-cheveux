@@ -518,6 +518,8 @@ class Game():
         foodCost = u.Unit.BUILD_COST[unitType][2]
         if self.players[self.playerId].canAfford(mineralCost, gazCost, foodCost):
             self.parent.pushChange(self.players[self.playerId].getSelectedBuildingIndex(),Flag(finalTarget = unitType, flagState = FlagState.CREATE))
+        else:
+            self.players[self.playerId].notifications.append(t.Notification([-10000,-10000,-10000],t.Notification.NOT_ENOUGH_RESSOURCES))
 
     def createUnit(self, player,constructionUnit, unitType):
         mineralCost = u.Unit.BUILD_COST[unitType][0]

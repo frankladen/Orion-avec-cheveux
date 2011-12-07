@@ -3,6 +3,7 @@ from tkinter import *
 from Unit import *
 from World import *
 from Flag import *
+from Target import *
 import time
 import Building as b
 import subprocess
@@ -1028,7 +1029,12 @@ class View():
         if self.dragging:
             self.drawSelectionBox()
         if self.isSettingBuildingPosition:
-            self.drawFuturBuilding()
+            if self.game.players[self.game.playerId].canAfford(b.Building.COST[self.buildingToBuild][0],b.Building.COST[self.buildingToBuild][1],0):
+                self.drawFuturBuilding()
+            else:
+                self.game.players[self.game.playerId].notifications.append(Notification([-10000,-10000,-10000], Notification.NOT_ENOUGH_RESSOURCES))
+                self.isSettingBuildingPosition = False
+                self.actionMenuType = self.GROUND_BUILDINGS_MENU
         self.createActionMenu(self.actionMenuType)
 
     def drawUnitGround(self, unit, color):
@@ -1151,7 +1157,12 @@ class View():
         if self.dragging:
             self.drawSelectionBox()
         if self.isSettingBuildingPosition:
-            self.drawFuturBuilding()
+            if self.game.players[self.game.playerId].canAfford(b.Building.COST[self.buildingToBuild][0],b.Building.COST[self.buildingToBuild][1],0):
+                self.drawFuturBuilding()
+            else:
+                self.game.players[self.game.playerId].notifications.append(Notification([-10000,-10000,-10000], Notification.NOT_ENOUGH_RESSOURCES))
+                self.isSettingBuildingPosition = False
+                self.actionMenuType = self.SPACE_BUILDINGS_MENU
         self.drawMinimap()
         self.createActionMenu(self.actionMenuType)
         
@@ -1479,10 +1490,11 @@ class View():
             notifPos = notification.position
             notifPosX = (notifPos[0]+self.game.galaxy.width/2)/self.game.galaxy.width * self.MINIMAP_WIDTH   
             notifPosY = (notifPos[1]+self.game.galaxy.height/2)/self.game.galaxy.height * self.MINIMAP_HEIGHT
-            self.minimap.create_oval(notifPosX-3,notifPosY-3,notifPosX+3,notifPosY+3, fill=notification.color, tag = 'deletable')
+            self.minimap.create_oval(notifPosX-(notification.refreshSeen/6),notifPosY-(notification.refreshSeen/6),notifPosX+(notification.refreshSeen/6),notifPosY+(notification.refreshSeen/6), outline=notification.color, tag = 'deletable')
+            self.minimap.create_oval(notifPosX-(notification.refreshSeen/8),notifPosY-(notification.refreshSeen/8),notifPosX+(notification.refreshSeen/8),notifPosY+(notification.refreshSeen/8), outline=notification.color, tag = 'deletable')
         self.gameArea.create_text(self.WIDTH/2, y, text=notification.name, fill=notification.color,tag = 'deletable') 
-        notification.refreshSeen -= 1
-        if notification.refreshSeen <= 0:
+        notification.refreshSeen += 1
+        if notification.refreshSeen >= 60:
             self.game.players[self.game.playerId].notifications.remove(notification)
         
         
@@ -1950,8 +1962,9 @@ class View():
                 self.actionMenuType = self.GROUND_BUILDINGS_MENU 
             elif (Button_pressed == "Button_Build_Waypoint"):
                 self.actionMenuType = self.WAITING_FOR_BUILDING_POINT_MENU
-                self.buildingToBuild = b.Building.WAYPOINT
-                self.isSettingBuildingPosition = True;
+                if self.game.players[self.game.playerId].canAfford(b.Building.COST[b.Building.WAYPOINT][0],b.Building.COST[b.Building.WAYPOINT][1],0):
+                    self.buildingToBuild = b.Building.WAYPOINT
+                    self.isSettingBuildingPosition = True;
             elif (Button_pressed == "Button_Build_Turret"):
                 self.actionMenuType = self.WAITING_FOR_BUILDING_POINT_MENU
                 self.buildingToBuild = b.Building.TURRET
