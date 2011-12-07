@@ -1,0 +1,139 @@
+<xml>
+	<Units>
+		<Tech>
+			<Name>+1 Damage</Name>
+			<Effect>D</Effect>
+			<Add>1</Add>
+			<CostMine>200</CostMine>
+			<CostGaz>300</CostGaz>
+			<BuildTime>1000</BuildTime>
+			<Upgrade>
+				<Name>+2 Damage</Name>
+				<Effect>D</Effect>
+				<Add>2</Add>
+				<CostMine>450</CostMine>
+				<CostGaz>500</CostGaz>
+				<CostNuclear>1</CostNuclear>
+				<BuildTime>1500</BuildTime>
+			</Upgrade>
+		</Tech>
+		<Tech>
+			<Name>+1 Annee lumiere/l'heure</Name>
+			<Effect>S</Effect>
+			<Add>1</Add>
+			<CostMine>200</CostMine>
+			<CostGaz>300</CostGaz>
+			<BuildTime>1000</BuildTime>
+			<Upgrade>
+				<Name>+2 Annee lumiere/l'heure</Name>
+				<Effect>S</Effect>
+				<Add>2</Add>
+				<CostMine>450</CostMine>
+				<CostGaz>500</CostGaz>
+				<CostNuclear>1</CostNuclear>
+				<BuildTime>1500</BuildTime>
+				<Upgrade>
+					<Name>+3 Annee lumiere/l'heure</Name>
+					<Effect>S</Effect>
+					<Add>3</Add>
+					<CostMine>750</CostMine>
+					<CostGaz>600</CostGaz>
+					<CostNuclear>2</CostNuclear>
+					<BuildTime>2500</BuildTime>
+				</Upgrade>
+			</Upgrade>
+		</Tech>
+		<Tech>
+			<Name>+2 Vitesse d'attaque</Name>
+			<Effect>AS</Effect>
+			<Add>2</Add>
+			<CostMine>400</CostMine>
+			<CostGaz>350</CostGaz>
+			<CostNuclear>1</CostNuclear>
+			<BuildTime>1500</BuildTime>
+		</Tech>
+		<Tech>
+			<Name>+25 Vision d'attaque</Name>
+			<Effect>AR</Effect>
+			<Add>25</Add>
+			<CostMine>375</CostMine>
+			<CostGaz>390</CostGaz>
+			<BuildTime>1000</BuildTime>
+			<Upgrade>
+				<Name>+50 Vision d'attaque</Name>
+				<Effect>AR</Effect>
+				<Add>50</Add>
+				<CostMine>750</CostMine>
+				<CostGaz>600</CostGaz>
+				<CostNuclear>1</CostNuclear>
+				<BuildTime>1500</BuildTime>
+			</Upgrade>
+		</Tech>
+		<Tech>
+			<Name>+25 Vision</Name>
+			<Effect>VR</Effect>
+			<Add>25</Add>
+			<CostMine>375</CostMine>
+			<CostGaz>390</CostGaz>
+			<CostNuclear>1</CostNuclear>
+			<BuildTime>1000</BuildTime>
+			<Upgrade>
+				<Name>+50 Vision</Name>
+				<Effect>VR</Effect>
+				<Add>50</Add>
+				<CostMine>750</CostMine>
+				<CostGaz>600</CostGaz>
+				<CostNuclear>2</CostNuclear>
+				<BuildTime>1500</BuildTime>
+			</Upgrade>
+		</Tech>
+	</Units>
+	<Buildings>
+		<Tech>
+			<Name>+3 Damage</Name>
+			<Effect>DB</Effect>
+			<Add>3</Add>
+			<CostMine>500</CostMine>
+			<CostGaz>600</CostGaz>
+			<BuildTime>2000</BuildTime>
+		</Tech>
+		<Tech>
+			<Name>Bouclier</Name>
+			<Effect>BB</Effect>
+			<Add>150</Add>
+			<CostMine>1200</CostMine>
+			<CostGaz>1200</CostGaz>
+			<CostNuclear>1</CostNuclear>
+			<BuildTime>2000</BuildTime>
+		</Tech>
+	</Buildings>
+	<Mothership>
+		<Tech>
+			<Name>+3 Damage</Name>
+			<Effect>DM</Effect>
+			<Add>3</Add>
+			<CostMine>500</CostMine>
+			<CostGaz>600</CostGaz>
+			<BuildTime>1500</BuildTime>
+			<Upgrade>
+				<Name>+7 Damage</Name>
+				<Effect>DM</Effect>
+				<Add>7</Add>
+				<CostMine>750</CostMine>
+				<CostGaz>1000</CostGaz>
+				<CostNuclear>1</CostNuclear>
+				<BuildTime>3000</BuildTime>
+			</Upgrade>
+		</Tech>
+		<Tech>
+			<Name>Bouclier</Name>
+			<Effect>BM</Effect>
+			<Add>300</Add>
+			<CostMine>1200</CostMine>
+			<CostGaz>1200</CostGaz>
+			<CostNuclear>2</CostNuclear>
+			<BuildTime>2000</BuildTime>
+		</Tech>
+	</Mothership>
+	
+</xml>
