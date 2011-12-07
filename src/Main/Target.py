@@ -59,8 +59,9 @@ class Notification(Target):
     FINISH_GATHER = 9
     FINISH_TECH = 10
     NOT_ENOUGH_RESSOURCES = 11
-    NAME = ("Un de vos vaisseaux se fait attaquer par ", "Un de vos bâtiments se fait attaquer par ", "Vous êtes maintenant allié avec ", "Vous avez reçu une demande d'alliance de ", "Vous êtes maintenant l'ennemi de ","","", "Votre planète est maintenant aussi habitée par ", "Une nouvelle unité a été créée: ", "Une de vos unités a fini de collecter", "Une nouvelle technologie vient d'être terminée : ", "Vous manquez de ressources.")
-    COLOR = ("RED", "RED", "GREEN", "YELLOW", "RED","GREEN","CYAN", "GRAY", "WHITE","WHITE","WHITE","RED")
+    PING = 12
+    NAME = ("Un de vos vaisseaux se fait attaquer par ", "Un de vos bâtiments se fait attaquer par ", "Vous êtes maintenant allié avec ", "Vous avez reçu une demande d'alliance de ", "Vous êtes maintenant l'ennemi de ","","", "Votre planète est maintenant aussi habitée par ", "Une nouvelle unité a été créée: ", "Une de vos unités a fini de collecter", "Une nouvelle technologie vient d'être terminée : ", "Vous manquez de ressources.", "Vous êtes demandé à cet endroit par : ")
+    COLOR = ("RED", "RED", "GREEN", "YELLOW", "RED","GREEN","CYAN", "GRAY", "WHITE","WHITE","WHITE","RED", "YELLOW")
     def __init__(self,position,type, actionPlayerName = None):
         self.position=position
         self.type=type

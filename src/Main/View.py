@@ -2171,6 +2171,10 @@ class View():
         self.selectedOnglet = self.SELECTED_CHAT
         self.menuModes.entryMess.focus_set()
 
+    def ping(self, eve):
+        pos = self.game.players[self.game.playerId].camera.calcPointOnMap(eve.x, eve.y)
+        self.game.pingAllies(pos[0], pos[1])
+
     def deleteAll(self):
         self.gameArea.delete(ALL)
 
@@ -2235,6 +2239,7 @@ class View():
         self.menuModes.bind("<Button-1>",self.clickMenuModes)
         self.menuModes.bind("<Motion>", self.progressCircleMouseOver)
         self.Actionmenu.bind("<Button-1>", self.clickActionMenu)
+        self.minimap.bind("<Button-2>",self.ping)
         self.gameArea.bind("1", self.selectMemory)
         self.gameArea.bind("2", self.selectMemory)
         self.gameArea.bind("3", self.selectMemory)

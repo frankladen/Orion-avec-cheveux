@@ -76,7 +76,7 @@ class Game():
         actionPlayerName = self.players[actionPlayerId].name
         addIt = True
         notif = None
-        if not target[2] in (t.Notification.MESSAGE_ALL, t.Notification.MESSAGE_ALLIES):
+        if not target[2] in (t.Notification.MESSAGE_ALL, t.Notification.MESSAGE_ALLIES, t.Notification.PING):
             if target[2] == t.Notification.ATTACKED_UNIT:
                 for i in player.notifications:
                     if i.position == player.units[target[1]].position and i.actionPlayerName == actionPlayerName:
@@ -106,6 +106,18 @@ class Game():
                 if player.isAlly(self.playerId):
                     if self.playerId != player.id:
                         self.players[self.playerId].notifications.append(notif)
+            elif target[2] == t.Notification.PING:
+                pos = self.changeToInt(self.stripAndSplit(target[1]))
+                notif = t.Notification([pos[0],pos[1],0],target[2],actionPlayerName)
+                if player.isAlly(self.playerId):
+                    if self.playerId != player.id:
+                        add = True
+                        for i in self.players[self.playerId].notifications:
+                            if i.type == t.Notification.PING:
+                                add = False
+                                break
+                        if add == True:
+                            self.players[self.playerId].notifications.append(notif)
         
 
     # Pour changer le flag des unités selectionne pour la construction        
@@ -786,7 +798,10 @@ class Game():
         else:
             posSelected = self.players[self.playerId].camera.calcPointOnPlanetMap(x,y)
             self.players[self.playerId].camera.position = posSelected
-        
+
+    def pingAllies(self, x, y):
+        self.parent.pushChange(self.players[self.playerId].name, Flag(None,[self.playerId,[x,y,0],t.Notification.PING],FlagState.NOTIFICATION))
+    
     def takeOff(self, ship, planet, playerId):
         ship.takeOff(planet)
         self.players[playerId].currentPlanet = None
