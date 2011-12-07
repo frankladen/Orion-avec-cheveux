@@ -237,7 +237,7 @@ class Controller():
                 actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.DESTROY:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/0"
-            elif flag.flagState == FlagState.CANCEL_UNIT:
+            elif flag.flagState in (FlagState.CANCEL_UNIT, FlagState.CANCEL_TECH):
                 actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.PATROL:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
@@ -396,6 +396,9 @@ class Controller():
         
         elif action == str(FlagState.CANCEL_UNIT):
             self.game.cancelUnit(actionPlayerId, int(target), int(unitIndex[0]))
+
+        elif action == str(FlagState.CANCEL_TECH):
+            self.game.cancelTech(actionPlayerId, int(target), int(unitIndex[0]))
 
         elif action == str(FlagState.DESTROY):
             self.game.killUnit((int(unitIndex[0]),actionPlayerId,False))

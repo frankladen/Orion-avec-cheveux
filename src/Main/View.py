@@ -514,6 +514,11 @@ class View():
                         self.menuModes.create_oval((675, 190,500,10), fill='green', tags = 'arc', outline ='black')
                         
                 elif isinstance(unit, b.Building):
+                    if unit.shield > 0:
+                        if unit.shield != unit.MAX_SHIELD:
+                            self.menuModes.create_arc((675, 190, 500, 10), start=0, extent= (unit.shield / unit.MAX_SHIELD)*359.99999999 , fill='blue', tags = 'arc')
+                        else:
+                            self.menuModes.create_oval((675, 190, 500, 10), fill='blue', tags = 'arc', outline ='black')
                     self.menuModes.create_text(20,140, text = "Bouclier : " + str(math.trunc(unit.shield)) + "/" + str(unit.MAX_SHIELD),anchor = NW, fill = 'white')
                     if isinstance(unit, b.Waypoint):
                         self.menuModes.create_image(20,50, image = self.gifWaypoint)
@@ -522,16 +527,16 @@ class View():
                     elif isinstance(unit, b.Lab):
                         self.menuModes.create_image(20,50, image = self.gifLab)
                         if len(unit.techsToResearch) > 0:
-                            self.menuModes.create_arc((675, 190, 500, 10), start=0, extent= (unit.techsToResearch[0][0].researchTime / unit.techsToResearch[0][0].timeNeeded)*359.99999999 , fill='blue', tags = 'arc')
+                            y = 20
+                            for i in unit.techsToResearch:
+                                self.menuModes.create_text(690,y+3, text = i[0].name, anchor = NW, fill = 'white', font="Arial 7")
+                                self.menuModes.create_image(670,y, image = self.iconCancel, anchor = NW, tags = ('cancelTechButton', unit.techsToResearch.index(i)))
+                                y+=20
+                            self.menuModes.create_arc((662, 177, 515, 22), start=0, extent= (unit.techsToResearch[0][0].researchTime / unit.techsToResearch[0][0].timeNeeded)*359.99999999 , fill='white', tags = 'arc')
                     elif isinstance(unit, b.Turret):
                         self.menuModes.create_image(20,50, image = self.gifTurret)
                         self.menuModes.create_text(20,160, text = "Vitesse d'attaque : " + str(unit.AttackSpeed),anchor = NW, fill = 'white')
                         self.menuModes.create_text(20,180, text = "Force d'attaque : " + str(unit.AttackDamage),anchor = NW, fill = 'white')
-                    if unit.shield > 0:
-                        if unit.shield != unit.MAX_SHIELD:
-                            self.menuModes.create_arc((675, 190, 500, 10), start=0, extent= (unit.shield / unit.MAX_SHIELD)*359.99999999 , fill='blue', tags = 'arc')
-                        else:
-                            self.menuModes.create_oval((675, 190, 500, 10), fill='blue', tags = 'arc', outline ='black')
                     if unit.hitpoints != unit.maxHP:
                         self.menuModes.create_arc((650, 165,525,35), start=0, extent= (unit.hitpoints / unit.maxHP)*359.99999999 , fill='green', tags = 'arc')
                     else:
@@ -742,34 +747,50 @@ class View():
             self.Actionmenu.create_text(5,5,text = "Cliquez à un endroit dans l'aire de jeu afin d'initialiser le lieu où la construction du bâtiment va s'effectuer.",anchor = NW, fill = 'white', width = 200)
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.TECHTREE_UNIT_MENU):
-            self.drawFirstLine = ""
-            self.drawSecondLine = ""
+            self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
             techTree = self.game.players[self.game.playerId].techTree
             techs = techTree.getTechs(techTree.UNITS)
-            y=5
+            y=35
+            x=13
             for i in techs:
-                self.Actionmenu.create_text(5,y,text = i.name,anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
-                self.Actionmenu.create_text(5,y+13,text = "Mine: "+str(i.costMine)+"  Gaz: "+str(i.costGaz)+"  Nuke: "+str(i.costNuclear),anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
-                y+=28
+                if x > 150:
+                    x=13
+                    y+=54
+                self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
+                x+=63
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
+            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
+            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
         elif(type == self.TECHTREE_BUILDING_MENU):
+            self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
             techTree = self.game.players[self.game.playerId].techTree
             techs = techTree.getTechs(techTree.BUILDINGS)
-            y=5
+            y=35
+            x=13
             for i in techs:
-                self.Actionmenu.create_text(5,y,text = i.name,anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Building_Tech/'+str(techs.index(i)))
-                self.Actionmenu.create_text(5,y+13,text = "Mine: "+str(i.costMine)+"  Gaz: "+str(i.costGaz)+"  Nuke: "+str(i.costNuclear),anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Building_Tech/'+str(techs.index(i)))
-                y+=28
+                if x > 150:
+                    x=13
+                    y+=54
+                self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Building_Tech/'+str(techs.index(i)))
+                x+=63
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
+            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
+            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
         elif(type == self.TECHTREE_MOTHERSHIP_MENU):
+            self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
             techTree = self.game.players[self.game.playerId].techTree
             techs = techTree.getTechs(techTree.MOTHERSHIP)
-            y=5
+            y=35
+            x=13
             for i in techs:
-                self.Actionmenu.create_text(5,y,text = i.name,anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Mothership_Tech/'+str(techs.index(i)))
-                self.Actionmenu.create_text(5,y+13,text = "Mine: "+str(i.costMine)+"  Gaz: "+str(i.costGaz)+"  Nuke: "+str(i.costNuclear),anchor = NW, fill = 'white', width = 200, tag='Button_Buy_Mothership_Tech/'+str(techs.index(i)))
-                y+=28
+                if x > 150:
+                    x=13
+                    y+=54
+                self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Mothership_Tech/'+str(techs.index(i)))
+                x+=63
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
+            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
+            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
         elif(type == self.LANDING_SPOT_BUILD_MENU):
             self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
             self.Actionmenu.create_image(13,35,image = self.gifTank, anchor = NW, tags = 'Button_Build_GroundAttack')
@@ -986,12 +1007,12 @@ class View():
             if i.isAlive:
                 color = self.game.players[i.ownerId].colorId
                 distance = self.game.players[self.game.playerId].camera.calcDistance(i.position)
+                self.gameArea.create_image(distance[0], distance[1], image=self.landingZones[color], tag='deletable')
                 if i in self.game.players[self.game.playerId].selectedObjects:
                     if i.owner == self.game.playerId:
                         rallyView = self.game.players[self.game.playerId].camera.calcDistance(i.rallyPoint)
                         self.gameArea.create_image(rallyView[0],rallyView[1], image = self.gifRally, tag='deletable')
                         self.gameArea.create_oval(distance[0]-(i.WIDTH/2+3),distance[1]-(i.HEIGHT/2+3),distance[0]+(i.WIDTH/2+3),distance[1]+(i.HEIGHT/2+3), outline='green', tag='deletable')
-                self.gameArea.create_image(distance[0], distance[1], image=self.landingZones[color], tag='deletable')
                 if i.LandedShip != None:
                     self.gameArea.create_image(distance[0]+1, distance[1], image=self.landedShips[color], tag='deletable')
                 if i.nuclear > 0:
@@ -1117,6 +1138,10 @@ class View():
             if i.isAlive:
                 for j in i.buildings:
                     if j.isAlive and not isinstance(j, b.GroundBuilding):
+                        if i.id == self.game.playerId:
+                            if j in i.selectedObjects and isinstance(j, b.Mothership) and j.finished:
+                                rallyView = i.camera.calcDistance(j.rallyPoint)
+                                self.gameArea.create_image(rallyView[0],rallyView[1], image = self.gifRally, tag='deletable')
                         if self.game.players[self.game.playerId].inViewRange(j.position):
                             self.drawBuilding(j,i,False)
                 for j in i.units:
@@ -1204,8 +1229,6 @@ class View():
                     elif building.type == b.Building.MOTHERSHIP:
                         if building in player.selectedObjects:
                             self.gameArea.create_oval(distance[0]-(building.SIZE[building.type][0]/2+3),distance[1]-(building.SIZE[building.type][1]/2+3),distance[0]+(building.SIZE[building.type][0]/2+3),distance[1]+(building.SIZE[building.type][1]/2+3), outline="green", tag='deletable')
-                            rallyView = self.game.players[self.game.playerId].camera.calcDistance(building.rallyPoint)
-                            self.gameArea.create_image(rallyView[0],rallyView[1], image = self.gifRally, tag='deletable')
                         self.gameArea.create_image(distance[0], distance[1], image = self.motherShips[player.colorId], tag='deletable')
                         if building.attackcount <= 5:
                             d2 = self.game.players[self.game.playerId].camera.calcDistance(building.flag.finalTarget.position)
@@ -1876,6 +1899,8 @@ class View():
                 self.ongletSelectedUnit()
             elif (Button_pressed == 'cancelUnitButton'):
                 self.game.sendCancelUnit(bp[1])
+            elif (Button_pressed == 'cancelTechButton'):
+                self.game.sendCancelTech(bp[1])
             elif (Button_pressed == 'selected_all_units'):
                 self.game.selectUnitByType(int(bp[1]))
 
@@ -2097,6 +2122,24 @@ class View():
             elif (Button_pressed == "Button_Square"):
                 self.drawFirstLine=""
                 self.drawSecondLine="Formation carrée"
+            elif len(Button_pressed.split("/")) == 2:
+                #Si on achète une nouvelle technologie
+                Button_pressed = Button_pressed.split("/")
+                if Button_pressed[0] == 'Button_Buy_Building_Tech':
+                    techTree = self.game.players[self.game.playerId].techTree
+                    tech = techTree.getTechs(techTree.BUILDINGS)[int(Button_pressed[1])]
+                    self.drawFirstLine=tech.name
+                    self.drawSecondLine="M:"+str(tech.costMine)+" G:"+str(tech.costGaz)+" N:"+str(tech.costNuclear)
+                elif Button_pressed[0] == 'Button_Buy_Unit_Tech':
+                    techTree = self.game.players[self.game.playerId].techTree
+                    tech = techTree.getTechs(techTree.UNITS)[int(Button_pressed[1])]
+                    self.drawFirstLine=tech.name
+                    self.drawSecondLine="M:"+str(tech.costMine)+" G:"+str(tech.costGaz)+" N:"+str(tech.costNuclear)
+                elif Button_pressed[0] == 'Button_Buy_Mothership_Tech':
+                    techTree = self.game.players[self.game.playerId].techTree
+                    tech = techTree.getTechs(techTree.MOTHERSHIP)[int(Button_pressed[1])]
+                    self.drawFirstLine=tech.name
+                    self.drawSecondLine="M:"+str(tech.costMine)+" G:"+str(tech.costGaz)+" N:"+str(tech.costNuclear)
             else:
                 self.drawFirstLine=""
                 self.drawSecondLine=""

@@ -116,6 +116,8 @@ class Unit(PlayerObject):
                 if building.hitpoints >= building.MAX_HP[building.type]-1:
                     building.hitpoints = building.MAX_HP[building.type]
                 self.flag.flagState = FlagState.STANDBY
+                if isinstance(building, b.Mothership):
+                    building.armor = building.MAX_ARMOR
                 building.applyBonuses(player.BONUS)
             
     #Efface la unit

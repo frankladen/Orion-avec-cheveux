@@ -34,8 +34,6 @@ class TechTree():
                 return None
         else:
             tech.isAvailable = False
-            if tech.child != None:
-                tech.child.isAvailable = True
             return tech
 
     def getUpgrade(self, name, branch, tech=None):

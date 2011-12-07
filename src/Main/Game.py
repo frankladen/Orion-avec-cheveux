@@ -131,28 +131,18 @@ class Game():
                 player.ressources[1] -= Building.COST[type][1]
                 if type == Building.WAYPOINT:
                     wp = Waypoint(Building.WAYPOINT, [target[0],target[1],0], playerId)
-                    wp.MAX_SHIELD = player.BONUS[player.BUILDING_SHIELD_BONUS]
-                    wp.shield = wp.MAX_SHIELD
                 elif type == Building.TURRET:
                     wp = Turret(Building.TURRET, [target[0],target[1],0], playerId)
-                    wp.MAX_SHIELD = player.BONUS[player.BUILDING_SHIELD_BONUS]
-                    wp.shield = wp.MAX_SHIELD
                 elif type == Building.FARM:
                     wp = Farm(Building.FARM, [target[0],target[1],0], playerId, sunId, planetId)
-                    wp.MAX_SHIELD = player.BONUS[player.BUILDING_SHIELD_BONUS]
-                    wp.shield = wp.MAX_SHIELD
                     wp.planet = self.galaxy.solarSystemList[sunId].planets[planetId]
                     self.galaxy.solarSystemList[sunId].planets[planetId].buildings.append(wp)
                 elif type == Building.LAB:
                     wp = Lab(Building.LAB, [target[0],target[1],0], playerId, sunId, planetId)
-                    wp.MAX_SHIELD = player.BONUS[player.BUILDING_SHIELD_BONUS]
-                    wp.shield = wp.MAX_SHIELD
                     wp.planet = self.galaxy.solarSystemList[sunId].planets[planetId]
                     self.galaxy.solarSystemList[sunId].planets[planetId].buildings.append(wp)    
                 elif type == Building.MOTHERSHIP:
                     wp = Mothership(Building.MOTHERSHIP, [target[0],target[1],0], playerId)
-                    wp.MAX_SHIELD = player.BONUS[player.BUILDING_SHIELD_BONUS]
-                    wp.shield = wp.MAX_SHIELD
             if wp != None:
                 self.players[playerId].buildings.append(wp)
                 for i in unitIndex:
@@ -317,6 +307,8 @@ class Game():
                 player.buildings[labIndex].techsToResearch.append((tech, player.ATTACK_RANGE_BONUS))
             elif tech.effect == 'VR':
                 player.buildings[labIndex].techsToResearch.append((tech, player.VIEW_RANGE_BONUS))
+            elif tech.effect == 'BB':
+                player.buildings[labIndex].techsToResearch.append((tech, player.BUILDING_SHIELD_BONUS))
             elif tech.effect == 'BM':
                 player.buildings[labIndex].techsToResearch.append((tech, player.BUILDING_MOTHERSHIELD_BONUS))
             elif tech.effect == 'DM':
@@ -542,6 +534,13 @@ class Game():
     def cancelUnit(self, player, unit, constructionBuilding):
         if constructionBuilding <= (len(self.players[player].buildings)-1) and constructionBuilding != None:
             self.players[player].cancelUnit(unit, constructionBuilding)
+
+    def sendCancelTech(self, tech):
+        self.parent.pushChange(self.players[self.playerId].getSelectedBuildingIndex(), Flag(finalTarget = tech, flagState = FlagState.CANCEL_TECH))
+
+    def cancelTech(self, player, tech, constructionBuilding):
+        if constructionBuilding <= (len(self.players[player].buildings)-1) and constructionBuilding != None:
+            self.players[player].cancelTech(tech, constructionBuilding)
     
     #Pour effacer un Unit
     def eraseUnit(self):

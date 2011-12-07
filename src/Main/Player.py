@@ -396,11 +396,24 @@ class Player():
         self.ressources[ressourceType] += amount
 
     def cancelUnit(self, unitId, constructionBuilding):
-        unit = self.buildings[constructionBuilding].getUnitBeingConstructAt(unitId)
-        self.adjustRessources(self.MINERAL, unit.buildCost[0])
-        self.adjustRessources(self.GAS, unit.buildCost[1])
-        self.ressources[self.FOOD] -= unit.buildCost[2]
-        self.buildings[constructionBuilding].unitBeingConstruct.pop(unitId)
+        if constructionBuilding < len(self.buildings):
+            if unitId < len(self.buildings[constructionBuilding].unitBeingConstruct):
+                unit = self.buildings[constructionBuilding].getUnitBeingConstructAt(unitId)
+                self.adjustRessources(self.MINERAL, unit.buildCost[0])
+                self.adjustRessources(self.GAS, unit.buildCost[1])
+                self.ressources[self.FOOD] -= unit.buildCost[2]
+                self.buildings[constructionBuilding].unitBeingConstruct.pop(unitId)
+
+    def cancelTech(self, techId, constructionBuilding):
+        if constructionBuilding < len(self.buildings):
+            if techId < len(self.buildings[constructionBuilding].techsToResearch):
+                tech = self.buildings[constructionBuilding].techsToResearch[techId][0]
+                self.adjustRessources(self.MINERAL, tech.costMine)
+                self.adjustRessources(self.GAS, tech.costGaz)
+                tech.isAvailable = True
+                if tech.child != None:
+                    tech.child.isAvailable = False
+                self.buildings[constructionBuilding].techsToResearch.pop(techId)
 
     def canAfford(self, minerals, gas, food):
         return self.ressources[0] >= minerals and self.ressources[0] >= gas and self.ressources[2]+food <= self.MAX_FOOD
