@@ -704,33 +704,37 @@ class Game():
         unit.changeFlag(unitToAttack, FlagState.ATTACK)
 
     def checkIfCanBuild(self, position, type, index = None, playerId = None):
-        if index < len(self.players[playerId].units):
-            if index != None:
+        if index != None:
+            if index < len(self.players[playerId].units):
                 unit = self.players[playerId].units[index]
             else:
+                return False
+        else:
+            if len(self.players[self.playerId].selectedObjects) > 0:
                 unit = self.players[self.playerId].selectedObjects[0]
-            start = (position[0]-(Building.SIZE[type][0]/2),position[1]-(Building.SIZE[type][1]/2),0)
-            end = (position[0]+(Building.SIZE[type][0]/2),position[1]+(Building.SIZE[type][1]/2),0)
-            
-            for p in self.players:
-                for b in p.buildings:
-                    if self.getCurrentPlanet() != None:
-                        if (isinstance(b, GroundBuilding) or isinstance(b, LandingZone)) and isinstance(unit, u.GroundUnit):
-                            if unit.planet == b.planet:
-                                if b.selectIcon(start, end) != None:
-                                    return False
-                    else:
-                        if b.selectIcon(start, end) != None:
-                            return False
-            if self.getCurrentPlanet() == None:
-                for i in self.galaxy.solarSystemList:
-                    if i.over(start, end):
-                        return False
             else:
-                if self.getCurrentPlanet().groundOver(start, end):
+                return False
+        start = (position[0]-(Building.SIZE[type][0]/2),position[1]-(Building.SIZE[type][1]/2),0)
+        end = (position[0]+(Building.SIZE[type][0]/2),position[1]+(Building.SIZE[type][1]/2),0)
+        
+        for p in self.players:
+            for b in p.buildings:
+                if self.getCurrentPlanet() != None:
+                    if (isinstance(b, GroundBuilding) or isinstance(b, LandingZone)) and isinstance(unit, u.GroundUnit):
+                        if unit.planet == b.planet:
+                            if b.selectIcon(start, end) != None:
+                                return False
+                else:
+                    if b.selectIcon(start, end) != None:
+                        return False
+        if self.getCurrentPlanet() == None:
+            for i in self.galaxy.solarSystemList:
+                if i.over(start, end):
                     return False
-            return True
-        return False
+        else:
+            if self.getCurrentPlanet().groundOver(start, end):
+                return False
+        return True
     
     def selectUnitByType(self, typeId):
         self.players[self.playerId].selectUnitsByType(typeId)
