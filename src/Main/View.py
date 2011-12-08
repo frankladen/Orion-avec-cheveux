@@ -420,6 +420,8 @@ class View():
                         self.menuModes.create_image(x, y, image = self.gifGroundBuilder, tags = ('selected_unit',unitList.index(i)), anchor = NW)
                     elif isinstance(i, u.HealingUnit):
                         self.menuModes.create_image(x, y, image = self.gifRepair,tags = ('selected_all_units',unitList.index(i)), anchor = NW) 
+                    elif isinstance(i, u.SpaceBuildingAttack):
+                        self.menuModes.create_image(x, y, image = self.gifAttackUnit, tags = ('selected_unit',unitList.index(i)), anchor = NW)
                     elif isinstance(i, u.Unit):
                         self.menuModes.create_image(x,y, image = self.gifUnit, tags = ('selected_unit',unitList.index(i)), anchor = NW)     
                     self.menuModes.create_rectangle(x,y+46,x + (i.hitpoints/i.maxHP) * 52,y+51, fill = 'green')
@@ -461,6 +463,8 @@ class View():
                             self.menuModes.create_image(x,y, anchor = NE,image = self.gifGroundBuilder,tags = ('selected_all_units',i))
                         elif i == Unit.HEALING_UNIT:
                             self.menuModes.create_image(x,y, anchor = NE,image = self.gifRepair,tags = ('selected_all_units',i))
+                        elif i == Unit.SPACE_BUILDING_ATTACK:
+                            self.menuModes.create_image(x,y, anchor = NE,image = self.gifAttackUnit,tags = ('selected_all_units',i))
                         elif i == Unit.DEFAULT:
                             self.menuModes.create_image(x,y, anchor = NE, image = self.gifUnit,tags = ('selected_all_units',i))
 
@@ -476,8 +480,10 @@ class View():
                 
                 if isinstance(unit, u.Unit):
                     self.menuModes.create_text(20,140, text = "Vitesse de déplacement : " + str(unit.moveSpeed) + " années lumière à l'heure.", anchor = NW, fill = 'white')
-                    if isinstance(unit, u.SpaceAttackUnit) or isinstance(unit, u.GroundAttackUnit):
+                    if isinstance(unit, u.SpaceAttackUnit) or isinstance(unit, u.GroundAttackUnit) or isinstance(unit, u.SpaceBuildingAttack):
                         if isinstance(unit, u.SpaceAttackUnit):
+                            self.menuModes.create_image(20, 50, image = self.gifAttackUnit)
+                        elif isinstance(unit, u.SpaceBuildingAttack):
                             self.menuModes.create_image(20, 50, image = self.gifAttackUnit)
                         else:
                             self.menuModes.create_image(20, 50, image = self.gifTank)
@@ -1228,7 +1234,7 @@ class View():
         if self.game.players[self.game.playerId].camera.isInFOV(buildingPosition):
             distance = self.game.players[self.game.playerId].camera.calcDistance(buildingPosition)
             if not isInFOW:
-                if building.buildingTimer < building.TIME[building.type]:
+                if building.buildingTimer < building.buildTime:
                     self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifConstruction,tag='deletable')
                 else:
                     if building.type == b.Building.WAYPOINT:
@@ -1494,7 +1500,7 @@ class View():
             if asteroid.discovered:
                 self.minimap.create_oval(asteroidX-1, asteroidY-1, asteroidX+1, asteroidY+1, fill='CYAN')
         
-    def drawMiniNotification(self, notification, y):
+    def drawMiniNotification(self,notification, y):
         if self.game.getCurrentPlanet() == None:
             notifPos = notification.position
             notifPosX = (notifPos[0]+self.game.galaxy.width/2)/self.game.galaxy.width * self.MINIMAP_WIDTH   
@@ -1648,28 +1654,32 @@ class View():
 
     #Actions quand on lache les touches
     def keyReleaseUP(self, eve):
-        self.game.players[self.game.playerId].camera.movingDirection.remove('UP')
+        if 'UP' in self.game.players[self.game.playerId].camera.movingDirection:
+            self.game.players[self.game.playerId].camera.movingDirection.remove('UP')
         if self.game.players[self.game.playerId].currentPlanet == None:
             self.drawWorld()
         else:
             self.drawPlanetGround(self.game.players[self.game.playerId].currentPlanet)
 
     def keyReleaseDown(self, eve):
-        self.game.players[self.game.playerId].camera.movingDirection.remove('DOWN')
+        if 'DOWN' in self.game.players[self.game.playerId].camera.movingDirection:
+            self.game.players[self.game.playerId].camera.movingDirection.remove('DOWN')
         if self.game.players[self.game.playerId].currentPlanet == None:
             self.drawWorld()
         else:
             self.drawPlanetGround(self.game.players[self.game.playerId].currentPlanet)
 
     def keyReleaseLeft(self, eve):
-        self.game.players[self.game.playerId].camera.movingDirection.remove('LEFT')
+        if 'LEFT' in self.game.players[self.game.playerId].camera.movingDirection:
+            self.game.players[self.game.playerId].camera.movingDirection.remove('LEFT')
         if self.game.players[self.game.playerId].currentPlanet == None:
             self.drawWorld()
         else:
             self.drawPlanetGround(self.game.players[self.game.playerId].currentPlanet)
 
     def keyReleaseRight(self, eve):
-        self.game.players[self.game.playerId].camera.movingDirection.remove('RIGHT')
+        if 'RIGHT' in self.game.players[self.game.playerId].camera.movingDirection:
+            self.game.players[self.game.playerId].camera.movingDirection.remove('RIGHT')
         if self.game.players[self.game.playerId].currentPlanet == None:
             self.drawWorld()
         else:

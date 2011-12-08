@@ -74,15 +74,16 @@ class Controller():
     
     #Envoyer le message pour le chat
     def sendMessage(self, mess):
-        if len(self.game.players) == 1:
-            if mess == "forcegaz":
-                self.game.players[self.game.playerId].ressources[p.Player.GAS] += 5000
-            elif mess == "forcemine":
-                self.game.players[self.game.playerId].ressources[p.Player.MINERAL] += 5000
-            elif mess == "forcenuke":
-                self.game.players[self.game.playerId].ressources[p.Player.NUCLEAR] += 25
-            elif mess == "forcepop":
-                self.game.players[self.game.playerId].MAX_FOOD += 50    
+        if mess == "forcegaz":
+            self.pushChange(0,Flag(None,"forcegaz",FlagState.CHEAT))
+        elif mess == "forcemine":
+            self.pushChange(0,Flag(None,"forcemine",FlagState.CHEAT))
+        elif mess == "forcenuke":
+            self.pushChange(0,Flag(None,"forcenuke",FlagState.CHEAT))
+        elif mess == "forcepop":
+            self.pushChange(0,Flag(None,"forcepop",FlagState.CHEAT))
+        elif mess == "forcebuild":
+            self.pushChange(0,Flag(None,"forcebuild",FlagState.CHEAT)) 
         elif mess.find("\\t ") == 0:
             mess = mess.split("\\t ")
             mess = "(Alliés) "+mess[1]
@@ -239,6 +240,8 @@ class Controller():
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/0"
             elif flag.flagState in (FlagState.CANCEL_UNIT, FlagState.CANCEL_TECH):
                 actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
+            elif flag.flagState == FlagState.CHEAT:
+                actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.PATROL:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             elif flag.flagState == FlagState.CHANGE_FORMATION:
@@ -389,6 +392,9 @@ class Controller():
         
         elif action == str(FlagState.CREATE):
             self.game.createUnit( actionPlayerId, int(unitIndex[0]), int(target))
+
+        elif action == str(FlagState.CHEAT):
+            self.game.cheatPlayer(actionPlayerId, target)
         
         elif action == str(FlagState.CHANGE_RALLY_POINT):
             target = self.changeToInt(self.stripAndSplit(target))

@@ -27,9 +27,9 @@ class Unit(PlayerObject):
     SIZE=((0,0),  (18,15), (28,32), (32,29), (20,30), (24,24), (20,38), (32,32), (36,33), (23,37), (30,37), (28,32))
     MAX_HP = (50, 50, 100,125, 75, 100, 100, 100, 100,100, 100, 100)
     MOVE_SPEED=(1.0,  4.0, 2.0, 3.0, 3.0, 5.0, 5.0, 3.0, 3.5, 4.0, 3.0, 1.5)
-    ATTACK_SPEED=(0,0,10,0,0,0,0,0,15,0,0, 10)
-    ATTACK_DAMAGE=(0,0,5,0,0,0,0,0,12,0,0, 5)
-    ATTACK_RANGE=(0,0,150,0,0,0,0,0,150,0,0, 300)
+    ATTACK_SPEED=(0,0,10,0,0,0,0,0,15,0,0, 20)
+    ATTACK_DAMAGE=(0,0,5,0,0,0,0,0,12,0,0, 15)
+    ATTACK_RANGE=(0,0,150,0,0,0,0,0,150,0,0, 185)
     BUILD_TIME=(300,  200, 400, 300, 250, 200, 200, 200, 200, 200,200, 500)
     BUILD_COST=((50,50,1),  (100,50,1), (300,300,1), (500,500,1), (75,0,1), (150,100,1),(50,75,1), (75,125,1), (100,80,1), (65,90,1),(75,50,1),(400,400,1))
     VIEW_RANGE=(150,  250, 200, 175, 175,200, 200, 200, 200, 200, 200, 300)
@@ -109,9 +109,9 @@ class Unit(PlayerObject):
             endPos = [self.flag.finalTarget.position[0],self.flag.finalTarget.position[1]]
             self.position = endPos
             
-            if building.buildingTimer < building.TIME[building.type]:
+            if building.buildingTimer < building.buildTime:
                 building.buildingTimer += 1
-                building.hitpoints += (1/building.TIME[building.type])*building.MAX_HP[building.type]
+                building.hitpoints += (1/building.buildTime)*building.MAX_HP[building.type]
             else:
                 building.finished = True
                 if building.hitpoints >= building.MAX_HP[building.type]-1:
@@ -214,9 +214,9 @@ class GroundBuilderUnit(GroundUnit):
             endPos = [self.flag.finalTarget.position[0],self.flag.finalTarget.position[1]]
             self.position = endPos
             
-            if building.buildingTimer < building.TIME[building.type]:
+            if building.buildingTimer < building.buildTime:
                 building.buildingTimer += 1
-                building.hitpoints += (1/building.TIME[building.type])*building.MAX_HP[building.type]
+                building.hitpoints += (1/building.buildTime)*building.MAX_HP[building.type]
             else:
                 building.finished = True
                 if building.hitpoints >= building.MAX_HP[building.type]-1:
@@ -519,6 +519,8 @@ class GroundAttackUnit(GroundUnit):
                             isBuilding = True
                         killedOwner = unitToAttack.owner
                         self.killCount +=1
+                        if self.killCount % 2 == 1:
+                            self.AttackDamage += 1
                     self.attackcount=self.AttackSpeed
             return (index, killedOwner, isBuilding)
         except ValueError:
@@ -577,6 +579,8 @@ class SpaceBuildingAttack(SpaceUnit):
                             isBuilding = True
                         killedOwner = unitToAttack.owner
                         self.killCount +=1
+                        if self.killCount % 2 == 1:
+                            self.AttackDamage += 1
                     self.attackcount=self.AttackSpeed
             return (index, killedOwner, isBuilding)
         except ValueError:
@@ -644,6 +648,8 @@ class SpaceAttackUnit(SpaceUnit):
                             isBuilding = True
                         killedOwner = unitToAttack.owner
                         self.killCount +=1
+                        if self.killCount % 2 == 1:
+                            self.AttackDamage += 1
                     self.attackcount=self.AttackSpeed
             return (index, killedOwner, isBuilding)
         except ValueError:

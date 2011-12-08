@@ -25,6 +25,7 @@ class Player():
     #[AttaqueDamage,AttaqueSpeed,MoveSpeed,AttackRange]
     BONUS = [0,0,0,0,0,0,0,0]
     MAX_FOOD = 10
+    FORCE_BUILD_ACTIVATED = False
     SQUARE_FORMATION = 0
     TRIANGLE_FORMATION = 1
     
@@ -328,6 +329,12 @@ class Player():
                     b.flag = Flag(t.Target(i.position), t.Target(i.position), FlagState.STANDBY)
                     b.attackcount=b.AttackSpeed
 
+    def checkIfCanAddNotif(self, type):
+        for n in self.notifications:
+            if n.type == type:
+                return False
+        return True
+
     def killUnit(self, killedIndexes):
         if killedIndexes[1] == self.id:
             if killedIndexes[2] == False:
@@ -420,7 +427,7 @@ class Player():
 
     def createUnit(self, unitType, constructionBuilding):
         if self.ressources[self.MINERAL] >= u.Unit.BUILD_COST[unitType][u.Unit.MINERAL] and self.ressources[self.GAS] >= u.Unit.BUILD_COST[unitType][u.Unit.GAS]:
-            self.buildings[constructionBuilding].addUnitToQueue(unitType, self.game.galaxy)
+            self.buildings[constructionBuilding].addUnitToQueue(unitType, self.game.galaxy, self.FORCE_BUILD_ACTIVATED)
             self.ressources[self.MINERAL] -= u.Unit.BUILD_COST[unitType][u.Unit.MINERAL]
             self.ressources[self.GAS] -= u.Unit.BUILD_COST[unitType][u.Unit.GAS]
             self.ressources[self.FOOD] += u.Unit.BUILD_COST[unitType][u.Unit.FOOD]
