@@ -110,12 +110,7 @@ class Game():
                 notif = t.Notification([target[2],target[3],0],target[1],actionPlayerName)
                 if player.isAlly(self.playerId):
                     if self.playerId != player.id:
-                        add = True
-                        for i in self.players[self.playerId].notifications:
-                            if i.type == t.Notification.PING:
-                                add = False
-                                break
-                        if add == True:
+                        if self.players[self.playerId].checkIfCanAddNotif(t.Notification.PING):
                             self.players[self.playerId].notifications.append(notif)
         
 
@@ -154,7 +149,10 @@ class Game():
                     self.galaxy.solarSystemList[sunId].planets[planetId].buildings.append(wp)    
                 elif type == Building.MOTHERSHIP:
                     wp = Mothership(Building.MOTHERSHIP, [target[0],target[1],0], playerId)
+                    self.players[playerId].motherships.append(wp)
             if wp != None:
+                if self.players[playerId].FORCE_BUILD_ACTIVATED:
+                    wp.buildTime = 1
                 self.players[playerId].buildings.append(wp)
                 for i in unitIndex:
                     if i != '':
@@ -229,7 +227,7 @@ class Game():
         if attacking:
             units = ""
             for i in self.players[self.playerId].selectedObjects:
-                if isinstance(i, u.SpaceAttackUnit) or isinstance(i, u.SpaceBuildingAttack):
+                if isinstance(i, u.SpaceAttackUnit) or isinstance(i, u.SpaceBuildingAttack) or isinstance(i, u.NyanCat):
                     if isinstance(attackedUnit, u.Unit) :
                         if attackedUnit.type == u.Unit.TRANSPORT:
                             if attackedUnit.landed == False:
@@ -245,9 +243,9 @@ class Game():
             if units != "":
                 self.parent.pushChange(units, Flag(i,attackedUnit,FlagState.ATTACK))
                 if isinstance(attackedUnit,u.Unit):
-                    self.parent.pushChange(None, Flag(None,[attackedUnit.owner,self.players[attackedUnit.owner].units.index(attackedUnit), t.Notification.ATTACKED_UNIT],FlagState.NOTIFICATION))
+                    self.parent.pushChange(None, Flag(None,[attackedUnit.owner, t.Notification.ATTACKED_UNIT, self.players[attackedUnit.owner].units.index(attackedUnit)],FlagState.NOTIFICATION))
                 else:
-                    self.parent.pushChange(None, Flag(None,[attackedUnit.owner,self.players[attackedUnit.owner].buildings.index(attackedUnit), t.Notification.ATTACKED_BUILDING],FlagState.NOTIFICATION))
+                    self.parent.pushChange(None, Flag(None,[attackedUnit.owner, t.Notification.ATTACKED_BUILDING, self.players[attackedUnit.owner].buildings.index(attackedUnit)], FlagState.NOTIFICATION))
 
 
     def setAnAttackFlag(self, attackedUnit, unit):
@@ -268,16 +266,16 @@ class Game():
     def killUnit(self, killedIndexes, hasToKill = True):
         if hasToKill:
             self.players[killedIndexes[1]].killUnit(killedIndexes)
-##        if killedIndexes[2] == True:
-##            if isinstance(self.players[killedIndexes[1]].buildings[killedIndexes[0]], Mothership):
-##                die = True
-##                for i in self.players[killedIndexes[1]].buildings:
-##                    if isinstance(i, Mothership) and i.isAlive:
-##                        die = False
-##                        break
-##                if die:
-##                    self.parent.died = True
-##                    self.killPlayer(killedIndexes[1])
+            if killedIndexes[2] == True:
+                if isinstance(self.players[killedIndexes[1]].buildings[killedIndexes[0]], Mothership):
+                    self.players[killedIndexes[1]].motherships.remove(self.players[killedIndexes[1]].buildings[killedIndexes[0]])
+                    die = True
+                    for i in self.players[killedIndexes[1]].motherships:
+                        if i.isAlive:
+                            die = False
+                            break
+                    if die:
+                        self.killPlayer(killedIndexes[1])
         for play in self.players:
             play.checkIfIsAttacking(killedIndexes)
 
@@ -308,22 +306,29 @@ class Game():
             player.ressources[0] -= tech.costMine
             player.ressources[1] -= tech.costGaz
             player.ressources[3] -= tech.costNuclear
-            if tech.effect == 'D':
-                player.buildings[labIndex].techsToResearch.append((tech, player.ATTACK_DAMAGE_BONUS))
-            elif tech.effect == 'S':
-                player.buildings[labIndex].techsToResearch.append((tech, player.MOVE_SPEED_BONUS))
-            elif tech.effect == 'AS':
-                player.buildings[labIndex].techsToResearch.append((tech, player.ATTACK_SPEED_BONUS))
-            elif tech.effect == 'AR':
-                player.buildings[labIndex].techsToResearch.append((tech, player.ATTACK_RANGE_BONUS))
-            elif tech.effect == 'VR':
-                player.buildings[labIndex].techsToResearch.append((tech, player.VIEW_RANGE_BONUS))
-            elif tech.effect == 'BB':
-                player.buildings[labIndex].techsToResearch.append((tech, player.BUILDING_SHIELD_BONUS))
-            elif tech.effect == 'BM':
-                player.buildings[labIndex].techsToResearch.append((tech, player.BUILDING_MOTHERSHIELD_BONUS))
-            elif tech.effect == 'DM':
-                player.buildings[labIndex].techsToResearch.append((tech, player.ATTACK_DAMAGE_MOTHERSHIP))
+            if labIndex < len(player.buildings) and isinstance(player.buildings[labIndex], Lab):
+                if player.FORCE_BUILD_ACTIVATED:
+                    tech.timeNeeded = 1
+                if tech.effect == 'D':
+                    player.buildings[labIndex].techsToResearch.append((tech, player.ATTACK_DAMAGE_BONUS))
+                elif tech.effect == 'DB':
+                    player.buildings[labIndex].techsToResearch.append((tech, player.ATTACK_DAMAGE_BUILDING_BONUS))
+                elif tech.effect == 'S':
+                    player.buildings[labIndex].techsToResearch.append((tech, player.MOVE_SPEED_BONUS))
+                elif tech.effect == 'AS':
+                    player.buildings[labIndex].techsToResearch.append((tech, player.ATTACK_SPEED_BONUS))
+                elif tech.effect == 'AR':
+                    player.buildings[labIndex].techsToResearch.append((tech, player.ATTACK_RANGE_BONUS))
+                elif tech.effect == 'VR':
+                    player.buildings[labIndex].techsToResearch.append((tech, player.VIEW_RANGE_BONUS))
+                elif tech.effect == 'BB':
+                    player.buildings[labIndex].techsToResearch.append((tech, player.BUILDING_SHIELD_BONUS))
+                elif tech.effect == 'BM':
+                    player.buildings[labIndex].techsToResearch.append((tech, player.BUILDING_MOTHERSHIELD_BONUS))
+                elif tech.effect == 'DM':
+                    player.buildings[labIndex].techsToResearch.append((tech, player.ATTACK_DAMAGE_MOTHERSHIP))
+        else:
+            player.notifications.append(t.Notification([-10000,-10000,-10000],t.Notification.NOT_ENOUGH_RESSOURCES))
         
     def setGatherFlag(self,ship,ressource):
         units = str(self.players[self.playerId].units.index(ship)) + ","
@@ -343,6 +348,10 @@ class Game():
     def setGroundGatherFlag(self, ship, ressource):
         units = str(self.players[self.playerId].units.index(ship)) + ","
         self.parent.pushChange(units, Flag(t.Target([0,0,0]), ressource, FlagState.GROUND_GATHER))
+        
+    def makeGroundUnitMove(self, playerId, unitsId, posX, posY, posZ, action):
+        print('makeGroundUnitMove dans Game pour le joueur: ', playerId)
+        self.players[int(playerId)].makeGroundUnitsMove(unitsId, [posX, posY, posZ], int(action))
 
     def makeGroundUnitsGather(self, playerId, unitsId, ressourceId, planetId, sunId, ressourceType):
         if ressourceType == Planet.MINERAL:
@@ -529,8 +538,12 @@ class Game():
         foodCost = u.Unit.BUILD_COST[unitType][2]
         if self.players[self.playerId].canAfford(mineralCost, gazCost, foodCost):
             self.parent.pushChange(self.players[self.playerId].getSelectedBuildingIndex(),Flag(finalTarget = unitType, flagState = FlagState.CREATE))
+        elif self.players[self.playerId].ressources[p.Player.FOOD]+foodCost > self.players[self.playerId].MAX_FOOD:
+            if self.players[self.playerId].checkIfCanAddNotif(t.Notification.NOT_ENOUGH_POPULATION):
+                self.players[self.playerId].notifications.append(t.Notification([-10000,-10000,-10000],t.Notification.NOT_ENOUGH_POPULATION))
         else:
-            self.players[self.playerId].notifications.append(t.Notification([-10000,-10000,-10000],t.Notification.NOT_ENOUGH_RESSOURCES))
+            if self.players[self.playerId].checkIfCanAddNotif(t.Notification.NOT_ENOUGH_RESSOURCES):
+                self.players[self.playerId].notifications.append(t.Notification([-10000,-10000,-10000],t.Notification.NOT_ENOUGH_RESSOURCES))
 
     def createUnit(self, player,constructionUnit, unitType):
         mineralCost = u.Unit.BUILD_COST[unitType][0]
@@ -567,13 +580,31 @@ class Game():
             playerId = self.playerId
         #self.parent.pushChange(playerId, Flag(None,playerId,FlagState.DESTROY_ALL))
 
-    def killPlayer(self, playerId):
+    def checkIfGameFinished(self):
+        for i in self.players:
+            for j in self.players:
+                if j.isAlive:
+                    if not i.isAlly(j.id):
+                        return False
+        return True
+
+    def calculateWhoWon(self):
+        scores = []
+        for i in self.players:
+            scores.append(0)
+            if i.isAlive:
+                scores[i.id] = i.ressources(i.MINERAL) + i.ressources(i.GAS) + (i.ressources(i.NUCLEAR)*500) + (i.ressources(i.FOOD)*50)
+        return scores
+
+    def killPlayer(self, playerId, endofGame = False):
         self.players[playerId].kill()
         if playerId == self.playerId:
             self.parent.removePlayer()
             self.players[self.playerId].selectedObjects = []
-        if playerId == 0 or playerId == self.playerId:
+        if playerId == self.playerId or endofGame:
             self.parent.endGame()
+        if self.checkIfGameFinished():
+            self.parent.goToWinFrame(self.calculateWhoWon())
     
     def trade(self, player1, player2, ressourceType, amount):
         self.players[player1].adjustRessources(ressourceType, amount)
@@ -582,6 +613,32 @@ class Game():
     def adjustRessources(self, player, ressourceType, amount):
         self.players[player].adjustRessources(ressourceType, amount)
 
+    def cheatPlayer(self, playerId , type):
+        if type == "forcegaz":
+            self.players[playerId].ressources[p.Player.GAS] += 5000
+        elif type == "forcemine":
+            self.players[playerId].ressources[p.Player.MINERAL] += 5000
+        elif type == "forcenuke":
+            self.players[playerId].ressources[p.Player.NUCLEAR] += 25
+        elif type == "forcepop":
+            self.players[playerId].MAX_FOOD += 30
+        elif type == "forcebuild":
+            self.players[playerId].FORCE_BUILD_ACTIVATED = True
+            player = self.players[playerId]
+            for i in player.buildings:
+                if isinstance(i, b.ConstructionBuilding) and i.finished:
+                    for a in i.unitBeingConstruct:
+                        a.buildTime = 1
+                elif not i.finished:
+                    i.hitpoints = i.MAX_HP[i.type]
+                    i.buildTime = 1
+                elif isinstance(i, b.Lab) and i.finished:
+                    for t in i.techsToResearch:
+                        t.timeNeeded = 1
+        elif type == "doabarrelroll":
+            un = u.NyanCat(u.Unit.NYAN_CAT, [0,0,0], playerId)
+            self.players[playerId].units.append(un)
+    
     def demandAlliance(self, playerId, otherPlayerId, newStatus):
         self.players[playerId].changeDiplomacy(otherPlayerId, newStatus)
         if otherPlayerId == self.playerId:
@@ -731,7 +788,7 @@ class Game():
                         elif isinstance(clickedObj, Mothership) or isinstance(clickedObj, Waypoint):
                             if clickedObj.owner == self.playerId:
                                 self.setGatherFlag(unit, clickedObj)
-                    elif unit.type == unit.ATTACK_SHIP:
+                    elif unit.type in (unit.ATTACK_SHIP, unit.NYAN_CAT):
                         if (isinstance(clickedObj, u.Unit) or isinstance(clickedObj, SpaceBuilding) or isinstance(clickedObj, Mothership)) and  not isinstance(clickedObj, u.GroundUnit):
                             if clickedObj.owner != self.playerId:
                                 self.setAttackFlag(clickedObj)

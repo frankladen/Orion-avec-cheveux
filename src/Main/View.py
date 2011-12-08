@@ -110,6 +110,7 @@ class View():
         self.gifupB = PhotoImage(file='images/icones/upB.gif')
         self.gifupM = PhotoImage(file='images/icones/upM.gif')
         self.gifupU = PhotoImage(file='images/icones/upU.gif')
+        self.nyan = PhotoImage(file='images/Ships/nyan-cat.gif')
         self.laserColors = ['#ff7733','#ee0022','#1144ff','#009911','#ffff00','#993300','#ffffff','#cc00cc']
         #fenetres
         self.mainMenu = self.fMainMenu()
@@ -271,7 +272,10 @@ class View():
                         self.menuModes.listAllies.insert(END,self.game.players[i].name + ' ?')
                 else:
                     self.menuModes.listEnnemies.insert(END,self.game.players[i].name)
-                    
+
+    def fScore(self, scores):
+        pass
+                   
     def changeToAlly(self):
         self.gameArea.focus_set()
         selected = self.menuModes.listEnnemies.curselection()
@@ -395,7 +399,7 @@ class View():
         self.menuModesOnlets()
         self.selectedOnglet = self.SELECTED_UNIT_SELECTED
         unitList = self.game.players[self.game.playerId].selectedObjects
-        countList = [0,0,0,0,0,0,0,0,0,0,0,0]
+        countList = [0,0,0,0,0,0,0,0,0,0,0,0,0]
         if len(unitList) == 1:
             self.showInfo(unitList[0])
 
@@ -420,6 +424,10 @@ class View():
                         self.menuModes.create_image(x, y, image = self.gifGroundBuilder, tags = ('selected_unit',unitList.index(i)), anchor = NW)
                     elif isinstance(i, u.HealingUnit):
                         self.menuModes.create_image(x, y, image = self.gifRepair,tags = ('selected_all_units',unitList.index(i)), anchor = NW) 
+                    elif isinstance(i, u.SpaceBuildingAttack):
+                        self.menuModes.create_image(x, y, image = self.gifAttackUnit, tags = ('selected_unit',unitList.index(i)), anchor = NW)
+                    elif isinstance(i, u.NyanCat):
+                        self.menuModes.create_image(x, y, image = self.nyan, tags = ('selected_unit',unitList.index(i)), anchor = NW)
                     elif isinstance(i, u.Unit):
                         self.menuModes.create_image(x,y, image = self.gifUnit, tags = ('selected_unit',unitList.index(i)), anchor = NW)     
                     self.menuModes.create_rectangle(x,y+46,x + (i.hitpoints/i.maxHP) * 52,y+51, fill = 'green')
@@ -461,6 +469,10 @@ class View():
                             self.menuModes.create_image(x,y, anchor = NE,image = self.gifGroundBuilder,tags = ('selected_all_units',i))
                         elif i == Unit.HEALING_UNIT:
                             self.menuModes.create_image(x,y, anchor = NE,image = self.gifRepair,tags = ('selected_all_units',i))
+                        elif i == Unit.SPACE_BUILDING_ATTACK:
+                            self.menuModes.create_image(x,y, anchor = NE,image = self.gifAttackUnit,tags = ('selected_all_units',i))
+                        elif i == Unit.NYAN_CAT:
+                            self.menuModes.create_image(x,y, anchor = NE,image = self.nyan,tags = ('selected_all_units',i))
                         elif i == Unit.DEFAULT:
                             self.menuModes.create_image(x,y, anchor = NE, image = self.gifUnit,tags = ('selected_all_units',i))
 
@@ -476,9 +488,13 @@ class View():
                 
                 if isinstance(unit, u.Unit):
                     self.menuModes.create_text(20,140, text = "Vitesse de déplacement : " + str(unit.moveSpeed) + " années lumière à l'heure.", anchor = NW, fill = 'white')
-                    if isinstance(unit, u.SpaceAttackUnit) or isinstance(unit, u.GroundAttackUnit):
+                    if isinstance(unit, u.SpaceAttackUnit) or isinstance(unit, u.GroundAttackUnit) or isinstance(unit, u.SpaceBuildingAttack) or isinstance(unit, u.NyanCat):
                         if isinstance(unit, u.SpaceAttackUnit):
                             self.menuModes.create_image(20, 50, image = self.gifAttackUnit)
+                        elif isinstance(unit, u.SpaceBuildingAttack):
+                            self.menuModes.create_image(20, 50, image = self.gifAttackUnit)
+                        elif isinstance(unit, u.NyanCat):
+                            self.menuModes.create_image(20, 50, image = self.nyan)
                         else:
                             self.menuModes.create_image(20, 50, image = self.gifTank)
                         self.menuModes.create_text(20,160, text = "Vitesse d'attaque : " + str(unit.AttackSpeed),anchor = NW, fill = 'white')
@@ -758,7 +774,17 @@ class View():
                 if x > 150:
                     x=13
                     y+=54
-                self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
+                if i.effect == 'D':
+                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
+                elif i.effect == 'S':
+                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
+                elif i.effect == 'AS':
+                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
+                elif i.effect == 'AR':
+                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
+                elif i.effect == 'VR':
+                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
+                
                 x+=63
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
@@ -773,7 +799,10 @@ class View():
                 if x > 150:
                     x=13
                     y+=54
-                self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Building_Tech/'+str(techs.index(i)))
+                if i.effect == 'DB':
+                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Building_Tech/'+str(techs.index(i)))
+                elif i.effect == 'BB':
+                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Building_Tech/'+str(techs.index(i)))
                 x+=63
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
@@ -788,7 +817,10 @@ class View():
                 if x > 150:
                     x=13
                     y+=54
-                self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Mothership_Tech/'+str(techs.index(i)))
+                if i.effect == 'DM':
+                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Mothership_Tech/'+str(techs.index(i)))
+                elif i.effect == 'BM':
+                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Mothership_Tech/'+str(techs.index(i)))
                 x+=63
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
@@ -1228,7 +1260,7 @@ class View():
         if self.game.players[self.game.playerId].camera.isInFOV(buildingPosition):
             distance = self.game.players[self.game.playerId].camera.calcDistance(buildingPosition)
             if not isInFOW:
-                if building.buildingTimer < building.TIME[building.type]:
+                if building.buildingTimer < building.buildTime:
                     self.gameArea.create_image(distance[0]+1, distance[1], image=self.gifConstruction,tag='deletable')
                 else:
                     if building.type == b.Building.WAYPOINT:
@@ -1311,6 +1343,13 @@ class View():
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
                     self.gameArea.create_image(distance[0], distance[1], image=self.attackShips[player.colorId], tag='deletable')#On prend l'image dependamment du joueur que nous sommes
+                elif unit.type == unit.NYAN_CAT: 
+                    if unit.attackcount <= 5 and unit.flag.flagState == FlagState.ATTACK:
+                        d2 = self.game.players[self.game.playerId].camera.calcDistance(unit.flag.finalTarget.position)
+                        self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill=self.laserColors[player.colorId], tag='deletable')
+                    if unit in player.selectedObjects:
+                        self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
+                    self.gameArea.create_image(distance[0], distance[1], image=self.nyan, tag='deletable')#On prend l'image dependamment du joueur que nous sommes
 
                 if unit.hitpoints <= 15:
                     self.gameArea.create_image(distance[0], distance[1], image=self.explosion, tag='deletable')
@@ -1494,7 +1533,7 @@ class View():
             if asteroid.discovered:
                 self.minimap.create_oval(asteroidX-1, asteroidY-1, asteroidX+1, asteroidY+1, fill='CYAN')
         
-    def drawMiniNotification(self, notification, y):
+    def drawMiniNotification(self,notification, y):
         if self.game.getCurrentPlanet() == None:
             notifPos = notification.position
             notifPosX = (notifPos[0]+self.game.galaxy.width/2)/self.game.galaxy.width * self.MINIMAP_WIDTH   
@@ -1648,28 +1687,32 @@ class View():
 
     #Actions quand on lache les touches
     def keyReleaseUP(self, eve):
-        self.game.players[self.game.playerId].camera.movingDirection.remove('UP')
+        if 'UP' in self.game.players[self.game.playerId].camera.movingDirection:
+            self.game.players[self.game.playerId].camera.movingDirection.remove('UP')
         if self.game.players[self.game.playerId].currentPlanet == None:
             self.drawWorld()
         else:
             self.drawPlanetGround(self.game.players[self.game.playerId].currentPlanet)
 
     def keyReleaseDown(self, eve):
-        self.game.players[self.game.playerId].camera.movingDirection.remove('DOWN')
+        if 'DOWN' in self.game.players[self.game.playerId].camera.movingDirection:
+            self.game.players[self.game.playerId].camera.movingDirection.remove('DOWN')
         if self.game.players[self.game.playerId].currentPlanet == None:
             self.drawWorld()
         else:
             self.drawPlanetGround(self.game.players[self.game.playerId].currentPlanet)
 
     def keyReleaseLeft(self, eve):
-        self.game.players[self.game.playerId].camera.movingDirection.remove('LEFT')
+        if 'LEFT' in self.game.players[self.game.playerId].camera.movingDirection:
+            self.game.players[self.game.playerId].camera.movingDirection.remove('LEFT')
         if self.game.players[self.game.playerId].currentPlanet == None:
             self.drawWorld()
         else:
             self.drawPlanetGround(self.game.players[self.game.playerId].currentPlanet)
 
     def keyReleaseRight(self, eve):
-        self.game.players[self.game.playerId].camera.movingDirection.remove('RIGHT')
+        if 'RIGHT' in self.game.players[self.game.playerId].camera.movingDirection:
+            self.game.players[self.game.playerId].camera.movingDirection.remove('RIGHT')
         if self.game.players[self.game.playerId].currentPlanet == None:
             self.drawWorld()
         else:
@@ -1681,6 +1724,7 @@ class View():
         x = eve.x
         y = eve.y
         canva = eve.widget
+        self.isSettingOff()
         if x > 0 and x < self.WIDTH:
             if y > 0 and y < self.WIDTH-200:
                 if canva == self.gameArea:
@@ -1814,9 +1858,13 @@ class View():
         self.game.players[self.game.playerId].currentPlanet = None
         self.isSettingOff()
         cam = self.game.players[self.game.playerId].camera
-        cam.position = [cam.defaultPos[0], cam.defaultPos[1]]
+        self.game.players[self.game.playerId].motherCurrent += 1
+        if self.game.players[self.game.playerId].motherCurrent >= len(self.game.players[self.game.playerId].motherships):
+            self.game.players[self.game.playerId].motherCurrent = 0
+        mothership = self.game.players[self.game.playerId].motherships[self.game.players[self.game.playerId].motherCurrent]
+        cam.position = [mothership.position[0], mothership.position[1]]
         self.game.players[self.game.playerId].selectedObjects = []
-        self.game.players[self.game.playerId].selectedObjects.append(self.game.players[self.game.playerId].motherShip)
+        self.game.players[self.game.playerId].selectedObjects.append(mothership)
         self.changeBackground('GALAXY')
         self.actionMenuType = self.MAIN_MENU
         self.drawWorld()

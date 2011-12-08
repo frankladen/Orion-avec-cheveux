@@ -48,6 +48,7 @@ class Controller():
                             self.waitTime = self.server.amITooHigh(self.game.playerId)
                     elif self.game.playerId != 0:
                         self.view.deleteAll()
+                        self.view.root.destroy()
                 else:
                     self.checkIfGameStarting()
         else:
@@ -74,15 +75,18 @@ class Controller():
     
     #Envoyer le message pour le chat
     def sendMessage(self, mess):
-        if len(self.game.players) == 1:
-            if mess == "forcegaz":
-                self.game.players[self.game.playerId].ressources[p.Player.GAS] += 5000
-            elif mess == "forcemine":
-                self.game.players[self.game.playerId].ressources[p.Player.MINERAL] += 5000
-            elif mess == "forcenuke":
-                self.game.players[self.game.playerId].ressources[p.Player.NUCLEAR] += 25
-            elif mess == "forcepop":
-                self.game.players[self.game.playerId].MAX_FOOD += 50    
+        if mess == "forcegaz":
+            self.pushChange(0,Flag(None,"forcegaz",FlagState.CHEAT))
+        elif mess == "forcemine":
+            self.pushChange(0,Flag(None,"forcemine",FlagState.CHEAT))
+        elif mess == "forcenuke":
+            self.pushChange(0,Flag(None,"forcenuke",FlagState.CHEAT))
+        elif mess == "forcepop":
+            self.pushChange(0,Flag(None,"forcepop",FlagState.CHEAT))
+        elif mess == "forcebuild":
+            self.pushChange(0,Flag(None,"forcebuild",FlagState.CHEAT))
+        elif mess == "doabarrelroll":
+            self.pushChange(0,Flag(None,"doabarrelroll",FlagState.CHEAT))
         elif mess.find("\\t ") == 0:
             mess = mess.split("\\t ")
             mess = "(Alliés) "+mess[1]
@@ -189,6 +193,10 @@ class Controller():
     def redrawMinimap(self):
         self.view.redrawMinimap()
 
+    def goToWinFrame(self, scores):
+        self.view.scores = self.view.fScore(scores)
+        self.view.changeFrame(self.view.scores)
+
     def changeBackground(self, newBg):
         self.view.changeBackground(newBg)
     
@@ -238,6 +246,8 @@ class Controller():
             elif flag.flagState == FlagState.DESTROY:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/0"
             elif flag.flagState in (FlagState.CANCEL_UNIT, FlagState.CANCEL_TECH):
+                actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
+            elif flag.flagState == FlagState.CHEAT:
                 actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.PATROL:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
@@ -332,10 +342,11 @@ class Controller():
             
         elif action == str(FlagState.GROUND_MOVE):
             target = self.changeToInt(self.stripAndSplit(target))
-            for i in unitIndex:
-                if i != '':
-                    self.game.players[actionPlayerId].units[int(i)].changeFlag(t.Target([int(target[0]),int(target[1]),int(target[2])]),int(action))
+            self.game.makeGroundUnitMove(actionPlayerId, unitIndex, int(target[0]), int(target[1]), int(target[2]), action)
             self.game.makeFormation(actionPlayerId, unitIndex, target, action)
+            #for i in unitIndex:
+                #if i != '':
+                    #self.game.players[actionPlayerId].units[int(i)].changeFlag(t.Target([int(target[0]),int(target[1]),int(target[2])]),int(action))
         
         elif action == str(FlagState.FINISH_BUILD):
             self.game.resumeBuilding(actionPlayerId, int(target), unitIndex)
@@ -388,6 +399,9 @@ class Controller():
         
         elif action == str(FlagState.CREATE):
             self.game.createUnit( actionPlayerId, int(unitIndex[0]), int(target))
+
+        elif action == str(FlagState.CHEAT):
+            self.game.cheatPlayer(actionPlayerId, target)
         
         elif action == str(FlagState.CHANGE_RALLY_POINT):
             target = self.changeToInt(self.stripAndSplit(target))
@@ -404,7 +418,7 @@ class Controller():
             self.game.killUnit((int(unitIndex[0]),actionPlayerId,False))
         
         elif action == str(FlagState.DESTROY_ALL):
-            self.game.killPlayer(actionPlayerId)
+            self.game.killPlayer(actionPlayerId, True)
         
         elif action == str(FlagState.CHANGE_FORMATION):
             self.game.changeFormation(actionPlayerId, int(target), unitIndex, FlagState.MOVE)
@@ -446,6 +460,7 @@ class Controller():
     #Enleve le joueur courant de la partie ainsi que ses units
     def removePlayer(self):
         if self.view.currentFrame == self.view.gameFrame:
+            self.died = True
             self.view.selectedOnglet = self.view.SELECTED_CHAT
             self.sendMessage('a quitté la partie')
             self.server.removePlayer(self.game.players[self.game.playerId].name, self.game.playerId)

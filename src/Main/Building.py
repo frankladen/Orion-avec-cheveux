@@ -45,17 +45,16 @@ class Building(t.PlayerObject):
             self.regenShield()
 
     def regenShield(self):
-        if self.shield >= 0:
-            if self.shieldRegenAfterAttack > 0:
-                self.shieldRegenAfterAttack -= 1
-            elif self.shieldRegenCount > 0:
-                self.shieldRegenCount -= 1
+        if self.shieldRegenAfterAttack > 0:
+            self.shieldRegenAfterAttack -= 1
+        elif self.shieldRegenCount > 0:
+            self.shieldRegenCount -= 1
+        else:
+            if self.shield > self.MAX_SHIELD-5:
+                self.shield = self.MAX_SHIELD
             else:
-                if self.shield > self.MAX_SHIELD-5:
-                    self.shield = self.MAX_SHIELD
-                else:
-                    self.shield += 5
-                    self.shieldRegenCount = self.REGEN_WAIT_TIME
+                self.shield += 5
+                self.shieldRegenCount = self.REGEN_WAIT_TIME
                     
     def takeDammage(self, amount, players):
         self.shieldRegenCount = self.REGEN_WAIT_TIME
@@ -103,7 +102,7 @@ class Waypoint(SpaceBuilding):
 class Turret(SpaceBuilding):
     ATTACK_SPEED = 12
     ATTACK_DAMAGE = 6
-    ATTACK_RANGE = 185
+    ATTACK_RANGE = 175
     
     def __init__(self, type, position, owner):
         SpaceBuilding.__init__(self, type, position, owner)
@@ -165,7 +164,7 @@ class Turret(SpaceBuilding):
     def applyBonuses(self, bonuses):
         if self.finished:
             self.AttackSpeed = self.ATTACK_SPEED+bonuses[p.Player.ATTACK_SPEED_BONUS]
-            self.AttackDamage = self.ATTACK_DAMAGE+bonuses[p.Player.ATTACK_DAMAGE_BONUS]
+            self.AttackDamage = self.ATTACK_DAMAGE+bonuses[p.Player.ATTACK_DAMAGE_BUILDING_BONUS]
             self.range = self.ATTACK_RANGE+bonuses[p.Player.ATTACK_RANGE_BONUS]
             Building.applyBonuses(self, bonuses)
 
@@ -195,12 +194,12 @@ class Lab (GroundBuilding):
 
     def progressTechs(self, player):
         self.techsToResearch[0][0].researchTime += 1
-        if self.techsToResearch[0][0].researchTime == self.techsToResearch[0][0].timeNeeded:
+        if self.techsToResearch[0][0].researchTime >= self.techsToResearch[0][0].timeNeeded:
             player.BONUS[self.techsToResearch[0][1]] = self.techsToResearch[0][0].add
             self.techsToResearch[0][0].isAvailable = False
             if self.techsToResearch[0][0].child != None:
                 self.techsToResearch[0][0].child.isAvailable = True
-            player.notifications.append(t.Notification([-10000,-10000,-10000], t.Notification.FINISH_TECH,self.techsToResearch[0][0].name))
+            player.notifications.append(t.Notification([-10000,-10000,-10000],t.Notification.FINISH_TECH,self.techsToResearch[0][0].name))
             self.techsToResearch.pop(0)
             player.changeBonuses()
         
@@ -221,36 +220,35 @@ class ConstructionBuilding(Building):
         else:
             self.flag.flagState = FlagState.STANDBY
                
-    def addUnitToQueue(self, unitType, galaxy=None):
+    def addUnitToQueue(self, unitType, galaxy=None, forcebuild=False):
         p = [self.position[0], self.position[1], 0]
         if unitType == u.Unit.SCOUT:
-            self.unitBeingConstruct.append(u.Unit( u.Unit.SCOUT, p, self.owner))
+            un = u.Unit( u.Unit.SCOUT, p, self.owner)
         elif unitType == u.Unit.ATTACK_SHIP:
-            self.unitBeingConstruct.append(u.SpaceAttackUnit( u.Unit.ATTACK_SHIP, p, self.owner))
+            un = u.SpaceAttackUnit( u.Unit.ATTACK_SHIP, p, self.owner)
         elif unitType == u.Unit.CARGO:
-            self.unitBeingConstruct.append(u.GatherShip( u.Unit.CARGO, p, self.owner))
+            un = u.GatherShip( u.Unit.CARGO, p, self.owner)
         elif unitType == u.Unit.TRANSPORT:
-            self.unitBeingConstruct.append(u.TransportShip( u.Unit.TRANSPORT, p, self.owner))
+            un = u.TransportShip( u.Unit.TRANSPORT, p, self.owner)
         elif unitType == u.Unit.HEALING_UNIT:
-            self.unitBeingConstruct.append(u.HealingUnit(u.Unit.HEALING_UNIT, p, self.owner))
+            un = u.HealingUnit(u.Unit.HEALING_UNIT, p, self.owner)
         elif unitType == u.Unit.GROUND_GATHER:
             un = u.GroundGatherUnit( u.Unit.GROUND_GATHER, p, self.owner, self.planetId, self.sunId,True)
             un.planet = galaxy.solarSystemList[self.sunId].planets[self.planetId]
-            self.unitBeingConstruct.append(un)
         elif unitType == u.Unit.GROUND_ATTACK:
             un = u.GroundAttackUnit( u.Unit.GROUND_ATTACK, p, self.owner, self.planetId, self.sunId,True)
             un.planet = galaxy.solarSystemList[self.sunId].planets[self.planetId]
-            self.unitBeingConstruct.append(un)
         elif unitType == u.Unit.GROUND_BUILDER_UNIT:
             un = u.GroundBuilderUnit( u.Unit.GROUND_BUILDER_UNIT, p, self.owner, self.planetId, self.sunId,True)
             un.planet = galaxy.solarSystemList[self.sunId].planets[self.planetId]
-            self.unitBeingConstruct.append(un)
         elif unitType == u.Unit.SPECIAL_GATHER:
             un = u.SpecialGather( u.Unit.SPECIAL_GATHER, p, self.owner, self.planetId, self.sunId,True)
             un.planet = galaxy.solarSystemList[self.sunId].planets[self.planetId]
-            self.unitBeingConstruct.append(un)
         elif unitType == u.Unit.SPACE_BUILDING_ATTACK:
-            self.unitBeingConstruct.append(u.SpaceBuildingAttack( u.Unit.SPACE_BUILDING_ATTACK, p, self.owner))
+            un = u.SpaceBuildingAttack( u.Unit.SPACE_BUILDING_ATTACK, p, self.owner)
+        if forcebuild:
+            un.buildTime = 1
+        self.unitBeingConstruct.append(un)
         
                                            
     def getUnitBeingConstructAt(self, unitId):
@@ -315,17 +313,16 @@ class Mothership(ConstructionBuilding):
             self.MAX_SHIELD = bonuses[p.Player.BUILDING_MOTHERSHIELD_BONUS]
 
     def regenShield(self):
-        if self.shield >= 0:
-            if self.shieldRegenAfterAttack > 0:
-                self.shieldRegenAfterAttack -= 1
-            elif self.shieldRegenCount > 0:
-                self.shieldRegenCount -= 1
+        if self.shieldRegenAfterAttack > 0:
+            self.shieldRegenAfterAttack -= 1
+        elif self.shieldRegenCount > 0:
+            self.shieldRegenCount -= 1
+        else:
+            if self.shield > self.MAX_SHIELD-5:
+                self.shield = self.MAX_SHIELD
             else:
-                if self.shield > self.MAX_SHIELD-5:
-                    self.shield = self.MAX_SHIELD
-                else:
-                    self.shield += 5
-                    self.shieldRegenCount = self.REGEN_WAIT_TIME
+                self.shield += 5
+                self.shieldRegenCount = self.REGEN_WAIT_TIME
 
     def takeDammage(self, amount, players):
         self.shieldRegenCount = self.REGEN_WAIT_TIME

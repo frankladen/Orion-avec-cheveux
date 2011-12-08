@@ -22,9 +22,11 @@ class Player():
     BUILDING_SHIELD_BONUS = 5
     BUILDING_MOTHERSHIELD_BONUS = 6
     ATTACK_DAMAGE_MOTHERSHIP = 7
+    ATTACK_DAMAGE_BUILDING_BONUS = 8
     #[AttaqueDamage,AttaqueSpeed,MoveSpeed,AttackRange]
-    BONUS = [0,0,0,0,0,0,0,0]
+    BONUS = [0,0,0,0,0,0,0,0,0]
     MAX_FOOD = 10
+    FORCE_BUILD_ACTIVATED = False
     SQUARE_FORMATION = 0
     TRIANGLE_FORMATION = 1
     
@@ -47,6 +49,8 @@ class Player():
         self.diplomacies[self.id] = 'Ally'
         self.startPos = [0,0,0] #Position de depart du joueur (pour le mothership)
         self.motherShip = None
+        self.motherships = []
+        self.motherCurrent = 0
         self.formation = self.SQUARE_FORMATION
         self.currentPlanet = None
         self.ressources = [1000,1000,2,0]
@@ -93,6 +97,7 @@ class Player():
     def addBaseUnits(self, startPos):
         self.buildings.append(b.Mothership( b.Building.MOTHERSHIP,startPos, self.id))
         self.motherShip = self.buildings[0]
+        self.motherships.append(self.motherShip)
         self.motherShip.finished = True
         self.motherShip.buildingTimer = b.Building.TIME[b.Building.MOTHERSHIP]
         self.motherShip.hitpoints = self.motherShip.maxHP
@@ -328,6 +333,12 @@ class Player():
                     b.flag = Flag(t.Target(i.position), t.Target(i.position), FlagState.STANDBY)
                     b.attackcount=b.AttackSpeed
 
+    def checkIfCanAddNotif(self, type):
+        for n in self.notifications:
+            if n.type == type:
+                return False
+        return True
+
     def killUnit(self, killedIndexes):
         if killedIndexes[1] == self.id:
             if killedIndexes[2] == False:
@@ -385,6 +396,8 @@ class Player():
         self.isAlive = False
         for i in self.units:
             i.kill()
+        for b in self.buildings:
+            b.kill()
 
     def changeBonuses(self):
         for unit in self.units:
@@ -420,11 +433,17 @@ class Player():
 
     def createUnit(self, unitType, constructionBuilding):
         if self.ressources[self.MINERAL] >= u.Unit.BUILD_COST[unitType][u.Unit.MINERAL] and self.ressources[self.GAS] >= u.Unit.BUILD_COST[unitType][u.Unit.GAS]:
-            self.buildings[constructionBuilding].addUnitToQueue(unitType, self.game.galaxy)
+            self.buildings[constructionBuilding].addUnitToQueue(unitType, self.game.galaxy, self.FORCE_BUILD_ACTIVATED)
             self.ressources[self.MINERAL] -= u.Unit.BUILD_COST[unitType][u.Unit.MINERAL]
             self.ressources[self.GAS] -= u.Unit.BUILD_COST[unitType][u.Unit.GAS]
             self.ressources[self.FOOD] += u.Unit.BUILD_COST[unitType][u.Unit.FOOD]
             self.buildings[constructionBuilding].flag.flagState = FlagState.BUILD_UNIT
+
+    def makeGroundUnitsMove(self, units, position, action):
+        print('makeGroundUnitMove dans player')
+        for i in units:
+            if i != '':
+                self.units[int(i)].changeFlag(t.Target(position), action)
 
     def makeUnitsAttack(self, units, targetPlayer, targetUnit, type):
         for i in units:
