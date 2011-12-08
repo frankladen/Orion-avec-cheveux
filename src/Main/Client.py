@@ -342,7 +342,7 @@ class Controller():
             
         elif action == str(FlagState.GROUND_MOVE):
             target = self.changeToInt(self.stripAndSplit(target))
-            self.game.makeGroundUnitMove(actionPlayerId, unitIndex, int(target[0]), int(target[1]), int(target[2]), action)
+            #self.game.makeGroundUnitMove(actionPlayerId, unitIndex, int(target[0]), int(target[1]), int(target[2]), action)
             self.game.makeFormation(actionPlayerId, unitIndex, target, action)
             #for i in unitIndex:
                 #if i != '':
