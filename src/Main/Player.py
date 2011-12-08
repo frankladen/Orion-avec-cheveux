@@ -53,7 +53,7 @@ class Player():
         self.motherCurrent = 0
         self.formation = self.SQUARE_FORMATION
         self.currentPlanet = None
-        self.ressources = [1000,1000,2,0]
+        self.ressources = [350,350,2,0]
         self.isAlive = True
         self.camera = None
         self.actionHealUnit = None
