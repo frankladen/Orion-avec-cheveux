@@ -507,110 +507,111 @@ class Player():
             targetorig[1]=target[1]
             #Permet de savoir combien en x et en y je dois les sÃ©parer selon la grosseur
             #du plus gros unit dans les selectedObjects
-            unit =  self.units[int(units[0])]
-            widths = [unit.SIZE[unit.type][0]]
-            heights = [unit.SIZE[unit.type][1]]
-            for i in range(0,len(units)-1):
-                if int(units[i]) < len(self.units):
-                    unit = self.units[int(units[i])]
-                    widths.append(unit.SIZE[unit.type][0])
-                    heights.append(unit.SIZE[unit.type][1])
-            width = max(widths)
-            height = max(heights)
-            #Formation en carrÃ© selon le nombre de unit qui se dÃ©place, OH YEAH
-            if self.formation == self.SQUARE_FORMATION:
-                #tuple qui contient les units qui peut contenir par ligne
-                thatLine = []
-                lineTaken = []
-                #Nombre de ligne nÃ©cessaires pour faire la formation carrÃ©
-                numberOfLines = math.sqrt(len(units)-1)
-                if str(numberOfLines).split('.')[1] != '0':
-                    numberOfLines+=1
-                math.trunc(float(numberOfLines))
-                numberOfLines = int(numberOfLines)
-                #Remplissage du tuple de chaque ligne pour crÃ©er la formation par des False
-                for l in range(0,numberOfLines):
+            if int(units[0]) < len(self.units):
+                unit =  self.units[int(units[0])]
+                widths = [unit.SIZE[unit.type][0]]
+                heights = [unit.SIZE[unit.type][1]]
+                for i in range(0,len(units)-1):
+                    if int(units[i]) < len(self.units):
+                        unit = self.units[int(units[i])]
+                        widths.append(unit.SIZE[unit.type][0])
+                        heights.append(unit.SIZE[unit.type][1])
+                width = max(widths)
+                height = max(heights)
+                #Formation en carrÃ© selon le nombre de unit qui se dÃ©place, OH YEAH
+                if self.formation == self.SQUARE_FORMATION:
+                    #tuple qui contient les units qui peut contenir par ligne
                     thatLine = []
-                    for k in range(0,numberOfLines):
-                        thatLine.append(False)
-                    lineTaken.append(thatLine)
-                #Maintenant on fait la vÃ©rification de chaque Unit pour les placer dans le carrÃ©
-                for i in range(0,len(units)-1):
-                    goodPlace=False
-                    line=0
-                    while goodPlace==False:
-                        for p in range(0,len(lineTaken[line])):
-                            #Si la place n'est pas prise
-                            if lineTaken[line][p]==False:
-                                lineTaken[line][p]=True
-                                target[0]=targetorig[0]+(p*width*1.2)
-                                if target[0] < -1*(galaxy.width/2)+(width):
-                                    target[0] = -1*(galaxy.width/2)+width
-                                elif target[0] > (galaxy.width/2)-(width):
-                                    target[0] = (galaxy.width/2)-width
-                                target[1]=targetorig[1]-(line*height*1.2)
-                                if target[1] < -1*(galaxy.height/2)+(height):
-                                    target[1] = -1*(galaxy.height/2)+height
-                                goodPlace=True
-                                break
-                        #Si le Unit n'a pas trouvÃ© sa place, on avance d'une ligne
-                        if goodPlace==False:
-                            line+=1
-                    #Lorsqu'il a trouvÃ© sa place, on le fait bouger vers sa nouvelle target
-                    if int(units[i]) < len(self.units):
-                        self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
-            #Formation en triangle, FUCK YEAH
-            elif self.formation == self.TRIANGLE_FORMATION:
-                #tuple qui contient le nombre de Unit par ligne
-                thatLine=[]
-                #tuple qui contient les X de la ligne prÃ©cÃ©dente
-                xLineBefore=[0,0,0,0,0,0,0,0,0,0,0,0]
-                #On initialise directement la premiÃ¨re ligne et on l'ajoute dans le tableau des lignes par
-                #la suite
-                thatLine.append([False])
-                lineTaken.append(thatLine[False])
-                xLineBefore[0] = target[0]
-                #AprÃ¨s, on fait chercher un endroit dans la formation pour chaque Unit
-                for i in range(0,len(units)-1):
-                    goodPlace=False
-                    line=0
-                    while goodPlace==False:
-                        for p in range(0,len(lineTaken[line])):
-                            #S'il a trouvÃ© une place vide
-                            if lineTaken[line][p]==False:
-                                lineTaken[line][p]=True
-                                if line != 0:
-                                    if p==len(lineTaken[line-1]):
-                                        target[0]=targetorig[0]+(p*width)
-                                        #jerome ajoute ca ici la largeur du vaisseau
-                                        if target[0] > (galaxy.width/2)-width:
-                                            target[0] = target[0]-(target[0]-(galaxy.width/2)+width)
-                                        xLineBefore[p] = target[0]
-                                    else:
-                                        target[0]=xLineBefore[p]-width
-                                        if target[0] < -1*(galaxy.width/2)+(width/2):
-                                            target[0] = xLineBefore[p]
-                                        elif target[0] > (galaxy.width/2)-(width/2):
-                                            target[0] = target[0]-(target[0]-(galaxy.width/2)+width)
-                                        xLineBefore[p] = target[0]
-                                target[1]=targetorig[1]-(line*height)
-                                if target[1] < -1*(galaxy.height/2)+(height/2):
-                                    target[1] = targetorig[1]
-                                goodPlace=True
-                                break
-                        #S'il n'a pas trouvÃ© de place dans cette ligne
-                        if goodPlace==False:
-                            line+=1
-                            #Si la prochaine ligne n'existe pas, on la crÃ©e
-                            if (len(lineTaken)-1)<line:
-                                numberOfSpaces=1+line
-                                thatLine=[]
-                                for a in range(0,numberOfSpaces):
-                                    thatLine.append(False)
-                                lineTaken.append(thatLine)
-                    #Lorsqu'il a trouvÃ© sa place, on le fait bouger Ã  sa nouvelle Target  
-                    if int(units[i]) < len(self.units):
-                        self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
+                    lineTaken = []
+                    #Nombre de ligne nÃ©cessaires pour faire la formation carrÃ©
+                    numberOfLines = math.sqrt(len(units)-1)
+                    if str(numberOfLines).split('.')[1] != '0':
+                        numberOfLines+=1
+                    math.trunc(float(numberOfLines))
+                    numberOfLines = int(numberOfLines)
+                    #Remplissage du tuple de chaque ligne pour crÃ©er la formation par des False
+                    for l in range(0,numberOfLines):
+                        thatLine = []
+                        for k in range(0,numberOfLines):
+                            thatLine.append(False)
+                        lineTaken.append(thatLine)
+                    #Maintenant on fait la vÃ©rification de chaque Unit pour les placer dans le carrÃ©
+                    for i in range(0,len(units)-1):
+                        goodPlace=False
+                        line=0
+                        while goodPlace==False:
+                            for p in range(0,len(lineTaken[line])):
+                                #Si la place n'est pas prise
+                                if lineTaken[line][p]==False:
+                                    lineTaken[line][p]=True
+                                    target[0]=targetorig[0]+(p*width*1.2)
+                                    if target[0] < -1*(galaxy.width/2)+(width):
+                                        target[0] = -1*(galaxy.width/2)+width
+                                    elif target[0] > (galaxy.width/2)-(width):
+                                        target[0] = (galaxy.width/2)-width
+                                    target[1]=targetorig[1]-(line*height*1.2)
+                                    if target[1] < -1*(galaxy.height/2)+(height):
+                                        target[1] = -1*(galaxy.height/2)+height
+                                    goodPlace=True
+                                    break
+                            #Si le Unit n'a pas trouvÃ© sa place, on avance d'une ligne
+                            if goodPlace==False:
+                                line+=1
+                        #Lorsqu'il a trouvÃ© sa place, on le fait bouger vers sa nouvelle target
+                        if int(units[i]) < len(self.units):
+                            self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
+                #Formation en triangle, FUCK YEAH
+                elif self.formation == self.TRIANGLE_FORMATION:
+                    #tuple qui contient le nombre de Unit par ligne
+                    thatLine=[]
+                    #tuple qui contient les X de la ligne prÃ©cÃ©dente
+                    xLineBefore=[0,0,0,0,0,0,0,0,0,0,0,0]
+                    #On initialise directement la premiÃ¨re ligne et on l'ajoute dans le tableau des lignes par
+                    #la suite
+                    thatLine.append([False])
+                    lineTaken.append(thatLine[False])
+                    xLineBefore[0] = target[0]
+                    #AprÃ¨s, on fait chercher un endroit dans la formation pour chaque Unit
+                    for i in range(0,len(units)-1):
+                        goodPlace=False
+                        line=0
+                        while goodPlace==False:
+                            for p in range(0,len(lineTaken[line])):
+                                #S'il a trouvÃ© une place vide
+                                if lineTaken[line][p]==False:
+                                    lineTaken[line][p]=True
+                                    if line != 0:
+                                        if p==len(lineTaken[line-1]):
+                                            target[0]=targetorig[0]+(p*width)
+                                            #jerome ajoute ca ici la largeur du vaisseau
+                                            if target[0] > (galaxy.width/2)-width:
+                                                target[0] = target[0]-(target[0]-(galaxy.width/2)+width)
+                                            xLineBefore[p] = target[0]
+                                        else:
+                                            target[0]=xLineBefore[p]-width
+                                            if target[0] < -1*(galaxy.width/2)+(width/2):
+                                                target[0] = xLineBefore[p]
+                                            elif target[0] > (galaxy.width/2)-(width/2):
+                                                target[0] = target[0]-(target[0]-(galaxy.width/2)+width)
+                                            xLineBefore[p] = target[0]
+                                    target[1]=targetorig[1]-(line*height)
+                                    if target[1] < -1*(galaxy.height/2)+(height/2):
+                                        target[1] = targetorig[1]
+                                    goodPlace=True
+                                    break
+                            #S'il n'a pas trouvÃ© de place dans cette ligne
+                            if goodPlace==False:
+                                line+=1
+                                #Si la prochaine ligne n'existe pas, on la crÃ©e
+                                if (len(lineTaken)-1)<line:
+                                    numberOfSpaces=1+line
+                                    thatLine=[]
+                                    for a in range(0,numberOfSpaces):
+                                        thatLine.append(False)
+                                    lineTaken.append(thatLine)
+                        #Lorsqu'il a trouvÃ© sa place, on le fait bouger Ã  sa nouvelle Target  
+                        if int(units[i]) < len(self.units):
+                            self.units[int(units[i])].changeFlag(t.Target([target[0],target[1],0]),int(action))
         else:
             if int(units[0]) < len(self.units):
                 self.units[int(units[0])].changeFlag(t.Target([target[0],target[1],0]),int(action))

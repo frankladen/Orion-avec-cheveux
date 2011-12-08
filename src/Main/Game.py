@@ -634,7 +634,7 @@ class Game():
                     i.buildTime = 1
                 elif isinstance(i, b.Lab) and i.finished:
                     for t in i.techsToResearch:
-                        t.timeNeeded = 1
+                        t[0].timeNeeded = 1
         elif type == "doabarrelroll":
             un = u.NyanCat(u.Unit.NYAN_CAT, [0,0,0], playerId)
             self.players[playerId].units.append(un)
