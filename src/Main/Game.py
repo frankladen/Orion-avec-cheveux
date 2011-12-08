@@ -149,6 +149,7 @@ class Game():
                     self.galaxy.solarSystemList[sunId].planets[planetId].buildings.append(wp)    
                 elif type == Building.MOTHERSHIP:
                     wp = Mothership(Building.MOTHERSHIP, [target[0],target[1],0], playerId)
+                    self.players[playerId].motherships.append(wp)
             if wp != None:
                 if self.players[playerId].FORCE_BUILD_ACTIVATED:
                     wp.buildTime = 1
@@ -268,8 +269,8 @@ class Game():
             if killedIndexes[2] == True:
                 if isinstance(self.players[killedIndexes[1]].buildings[killedIndexes[0]], Mothership):
                     die = True
-                    for i in self.players[killedIndexes[1]].buildings:
-                        if isinstance(i, Mothership) and i.isAlive:
+                    for i in self.players[killedIndexes[1]].motherships:
+                        if i.isAlive:
                             die = False
                             break
                     if die:
@@ -309,6 +310,8 @@ class Game():
                 tech.timeNeeded = 1
             if tech.effect == 'D':
                 player.buildings[labIndex].techsToResearch.append((tech, player.ATTACK_DAMAGE_BONUS))
+            elif tech.effect == 'DB':
+                player.buildings[labIndex].techsToResearch.append((tech, player.ATTACK_DAMAGE_BUILDING_BONUS))
             elif tech.effect == 'S':
                 player.buildings[labIndex].techsToResearch.append((tech, player.MOVE_SPEED_BONUS))
             elif tech.effect == 'AS':

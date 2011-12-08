@@ -164,7 +164,7 @@ class Turret(SpaceBuilding):
     def applyBonuses(self, bonuses):
         if self.finished:
             self.AttackSpeed = self.ATTACK_SPEED+bonuses[p.Player.ATTACK_SPEED_BONUS]
-            self.AttackDamage = self.ATTACK_DAMAGE+bonuses[p.Player.ATTACK_DAMAGE_BONUS]
+            self.AttackDamage = self.ATTACK_DAMAGE+bonuses[p.Player.ATTACK_DAMAGE_BUILDING_BONUS]
             self.range = self.ATTACK_RANGE+bonuses[p.Player.ATTACK_RANGE_BONUS]
             Building.applyBonuses(self, bonuses)
 

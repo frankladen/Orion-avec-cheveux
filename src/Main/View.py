@@ -764,7 +764,17 @@ class View():
                 if x > 150:
                     x=13
                     y+=54
-                self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
+                if i.effect == 'D':
+                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
+                elif i.effect == 'S':
+                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
+                elif i.effect == 'AS':
+                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
+                elif i.effect == 'AR':
+                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
+                elif i.effect == 'VR':
+                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
+                
                 x+=63
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
@@ -779,7 +789,10 @@ class View():
                 if x > 150:
                     x=13
                     y+=54
-                self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Building_Tech/'+str(techs.index(i)))
+                if i.effect == 'DB':
+                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Building_Tech/'+str(techs.index(i)))
+                elif i.effect == 'BB':
+                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Building_Tech/'+str(techs.index(i)))
                 x+=63
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
@@ -794,7 +807,10 @@ class View():
                 if x > 150:
                     x=13
                     y+=54
-                self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Mothership_Tech/'+str(techs.index(i)))
+                if i.effect == 'DM':
+                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Mothership_Tech/'+str(techs.index(i)))
+                elif i.effect == 'BM':
+                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Mothership_Tech/'+str(techs.index(i)))
                 x+=63
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
@@ -1824,9 +1840,13 @@ class View():
         self.game.players[self.game.playerId].currentPlanet = None
         self.isSettingOff()
         cam = self.game.players[self.game.playerId].camera
-        cam.position = [cam.defaultPos[0], cam.defaultPos[1]]
+        self.game.players[self.game.playerId].motherCurrent += 1
+        if self.game.players[self.game.playerId].motherCurrent == len(self.game.players[self.game.playerId].motherships):
+            self.game.players[self.game.playerId].motherCurrent = 0
+        mothership = self.game.players[self.game.playerId].motherships[self.game.players[self.game.playerId].motherCurrent]
+        cam.position = [mothership.position[0], mothership.position[1]]
         self.game.players[self.game.playerId].selectedObjects = []
-        self.game.players[self.game.playerId].selectedObjects.append(self.game.players[self.game.playerId].motherShip)
+        self.game.players[self.game.playerId].selectedObjects.append(mothership)
         self.changeBackground('GALAXY')
         self.actionMenuType = self.MAIN_MENU
         self.drawWorld()

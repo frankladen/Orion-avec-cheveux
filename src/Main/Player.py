@@ -22,8 +22,9 @@ class Player():
     BUILDING_SHIELD_BONUS = 5
     BUILDING_MOTHERSHIELD_BONUS = 6
     ATTACK_DAMAGE_MOTHERSHIP = 7
+    ATTACK_DAMAGE_BUILDING_BONUS = 8
     #[AttaqueDamage,AttaqueSpeed,MoveSpeed,AttackRange]
-    BONUS = [0,0,0,0,0,0,0,0]
+    BONUS = [0,0,0,0,0,0,0,0,0]
     MAX_FOOD = 10
     FORCE_BUILD_ACTIVATED = False
     SQUARE_FORMATION = 0
@@ -48,6 +49,8 @@ class Player():
         self.diplomacies[self.id] = 'Ally'
         self.startPos = [0,0,0] #Position de depart du joueur (pour le mothership)
         self.motherShip = None
+        self.motherships = []
+        self.motherCurrent = 0
         self.formation = self.SQUARE_FORMATION
         self.currentPlanet = None
         self.ressources = [1000,1000,2,0]
@@ -94,6 +97,7 @@ class Player():
     def addBaseUnits(self, startPos):
         self.buildings.append(b.Mothership( b.Building.MOTHERSHIP,startPos, self.id))
         self.motherShip = self.buildings[0]
+        self.motherships.append(self.motherShip)
         self.motherShip.finished = True
         self.motherShip.buildingTimer = b.Building.TIME[b.Building.MOTHERSHIP]
         self.motherShip.hitpoints = self.motherShip.maxHP
