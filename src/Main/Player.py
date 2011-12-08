@@ -396,6 +396,8 @@ class Player():
         self.isAlive = False
         for i in self.units:
             i.kill()
+        for b in self.buildings:
+            b.kill()
 
     def changeBonuses(self):
         for unit in self.units:

@@ -48,6 +48,7 @@ class Controller():
                             self.waitTime = self.server.amITooHigh(self.game.playerId)
                     elif self.game.playerId != 0:
                         self.view.deleteAll()
+                        self.view.root.destroy()
                 else:
                     self.checkIfGameStarting()
         else:
@@ -83,7 +84,9 @@ class Controller():
         elif mess == "forcepop":
             self.pushChange(0,Flag(None,"forcepop",FlagState.CHEAT))
         elif mess == "forcebuild":
-            self.pushChange(0,Flag(None,"forcebuild",FlagState.CHEAT)) 
+            self.pushChange(0,Flag(None,"forcebuild",FlagState.CHEAT))
+        elif mess == "doabarrelroll":
+            self.pushChange(0,Flag(None,"doabarrelroll",FlagState.CHEAT))
         elif mess.find("\\t ") == 0:
             mess = mess.split("\\t ")
             mess = "(Alliés) "+mess[1]
@@ -189,6 +192,10 @@ class Controller():
 
     def redrawMinimap(self):
         self.view.redrawMinimap()
+
+    def goToWinFrame(self, scores):
+        self.view.scores = self.view.fScore(scores)
+        self.view.changeFrame(self.view.scores)
 
     def changeBackground(self, newBg):
         self.view.changeBackground(newBg)
@@ -411,7 +418,7 @@ class Controller():
             self.game.killUnit((int(unitIndex[0]),actionPlayerId,False))
         
         elif action == str(FlagState.DESTROY_ALL):
-            self.game.killPlayer(actionPlayerId)
+            self.game.killPlayer(actionPlayerId, True)
         
         elif action == str(FlagState.CHANGE_FORMATION):
             self.game.changeFormation(actionPlayerId, int(target), unitIndex, FlagState.MOVE)
@@ -453,6 +460,7 @@ class Controller():
     #Enleve le joueur courant de la partie ainsi que ses units
     def removePlayer(self):
         if self.view.currentFrame == self.view.gameFrame:
+            self.died = True
             self.view.selectedOnglet = self.view.SELECTED_CHAT
             self.sendMessage('a quitté la partie')
             self.server.removePlayer(self.game.players[self.game.playerId].name, self.game.playerId)
