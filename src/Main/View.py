@@ -106,6 +106,7 @@ class View():
         self.gifWaypoint = PhotoImage(file='images/icones/iconeWaypoint.gif')
         self.gifRally = PhotoImage(file='images/galaxy/rallyFlag.gif')
         self.gifRepair = PhotoImage(file='images/icones/gifRepair.gif')
+        self.gifGather = PhotoImage(file='images/icones/gifGather.gif')
         self.gifLab = PhotoImage(file='images/icones/iconeTech.gif')
         self.gifupB = PhotoImage(file='images/icones/upB.gif')
         self.gifupM = PhotoImage(file='images/icones/upM.gif')
@@ -695,7 +696,7 @@ class View():
                     elif isinstance(units[0], HealingUnit):
                         self.Actionmenu.create_image(13,89,image=self.gifRepair,anchor = NW, tags = 'Button_Heal')
                     elif isinstance(units[0], GatherShip):
-                        self.Actionmenu.create_image(13,89,image=self.gifRepair,anchor = NW, tags = 'Button_Gather')
+                        self.Actionmenu.create_image(13,89,image=self.gifGather,anchor = NW, tags = 'Button_Gather')
                 elif isinstance(units[0], b.Lab):
                     if units[0].finished:
                         self.Actionmenu.create_image(13,35,image = self.gifupU, anchor = NW, tags = 'Button_Tech_Units')
