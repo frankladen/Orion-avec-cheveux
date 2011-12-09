@@ -180,6 +180,7 @@ class View():
         self.specialGathers = []
         self.drones = []
         self.labs=[]
+        self.battlecruisers = []
         for i in range(0,8):
             self.scoutShips.append(PhotoImage(file='images/Ships/Scoutships/Scoutship'+str(i)+'.gif'))
             self.attackShips.append(PhotoImage(file='images/Ships/Attackships/Attackship'+str(i)+'.gif'))
@@ -197,6 +198,7 @@ class View():
             self.specialGathers.append(PhotoImage(file='images/Planet/Robot/robot'+str(i)+'.gif'))
             self.labs.append(PhotoImage(file='images/Building/Labs/lab'+str(i)+'.gif'))
             self.drones.append(PhotoImage(file='images/Ships/Drones/drone'+str(i)+'.gif'))
+            self.battlecruisers.append(PhotoImage(file='images/Ships/Battlecruisers/battlecruiser'+str(i)+'.gif'))
         self.ressourcesFrame = LabelFrame(gameFrame, text="Ressources", width=600, bg="black", fg="white", relief=RAISED)
         self.showMinerals = Label(self.ressourcesFrame, text="Minéraux: "+str(self.game.players[self.game.playerId].ressources[0]), width=20, bg="black", fg="white", anchor=NW)
         self.showMinerals.grid(column=0, row=0)
@@ -1352,7 +1354,7 @@ class View():
                         self.gameArea.create_line(distance[0],distance[1], d2[0], d2[1], fill=self.laserColors[player.colorId], tag='deletable')
                     if unit in player.selectedObjects:
                         self.gameArea.create_oval(distance[0]-(unit.SIZE[unit.type][0]/2+3),distance[1]-(unit.SIZE[unit.type][1]/2+3),distance[0]+(unit.SIZE[unit.type][0]/2+3),distance[1]+(unit.SIZE[unit.type][1]/2+3), outline="green", tag='deletable')
-                    self.gameArea.create_image(distance[0], distance[1], image=self.attackShips[player.colorId], tag='deletable')#On prend l'image dependamment du joueur que nous sommes
+                    self.gameArea.create_image(distance[0], distance[1], image=self.battlecruisers[player.colorId], tag='deletable')#On prend l'image dependamment du joueur que nous sommes
                 elif unit.type == unit.NYAN_CAT: 
                     if unit.attackcount <= 5 and unit.flag.flagState == FlagState.ATTACK:
                         d2 = self.game.players[self.game.playerId].camera.calcDistance(unit.flag.finalTarget.position)
