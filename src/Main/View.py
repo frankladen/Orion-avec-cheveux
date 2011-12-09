@@ -111,6 +111,15 @@ class View():
         self.gifupM = PhotoImage(file='images/icones/upM.gif')
         self.gifupU = PhotoImage(file='images/icones/upU.gif')
         self.nyan = PhotoImage(file='images/Ships/nyan-cat.gif')
+        self.upgBB = PhotoImage(file='images/icones/upgradeBB.gif')
+        self.upgBM = PhotoImage(file='images/icones/upgradeBM.gif')
+        self.upgD = PhotoImage(file='images/icones/upgradeD.gif')
+        self.upgDB = PhotoImage(file='images/icones/upgradeDB.gif')
+        self.upgDM = PhotoImage(file='images/icones/upgradeDM.gif')
+        self.upgPA = PhotoImage(file='images/icones/upgradePA.gif')
+        self.upgPV = PhotoImage(file='images/icones/upgradePV.gif')
+        self.upgV = PhotoImage(file='images/icones/upgradeV.gif')
+        self.upgVA = PhotoImage(file='images/icones/upgradeVA.gif')
         self.laserColors = ['#ff7733','#ee0022','#1144ff','#009911','#ffff00','#993300','#ffffff','#cc00cc']
         #fenetres
         self.mainMenu = self.fMainMenu()
@@ -775,15 +784,15 @@ class View():
                     x=13
                     y+=54
                 if i.effect == 'D':
-                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
+                    self.Actionmenu.create_image(x,y,image = self.upgD, anchor = NW, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
                 elif i.effect == 'S':
-                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
+                    self.Actionmenu.create_image(x,y,image = self.upgV, anchor = NW, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
                 elif i.effect == 'AS':
-                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
+                    self.Actionmenu.create_image(x,y,image = self.upgVA, anchor = NW, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
                 elif i.effect == 'AR':
-                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
+                    self.Actionmenu.create_image(x,y,image = self.upgPA, anchor = NW, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
                 elif i.effect == 'VR':
-                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
+                    self.Actionmenu.create_image(x,y,image = self.upgPV, anchor = NW, tag='Button_Buy_Unit_Tech/'+str(techs.index(i)))
                 
                 x+=63
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
@@ -800,9 +809,9 @@ class View():
                     x=13
                     y+=54
                 if i.effect == 'DB':
-                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Building_Tech/'+str(techs.index(i)))
+                    self.Actionmenu.create_image(x,y,image = self.upgDB, anchor = NW, tag='Button_Buy_Building_Tech/'+str(techs.index(i)))
                 elif i.effect == 'BB':
-                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Building_Tech/'+str(techs.index(i)))
+                    self.Actionmenu.create_image(x,y,image = self.upgBB, anchor = NW, tag='Button_Buy_Building_Tech/'+str(techs.index(i)))
                 x+=63
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
@@ -818,9 +827,9 @@ class View():
                     x=13
                     y+=54
                 if i.effect == 'DM':
-                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Mothership_Tech/'+str(techs.index(i)))
+                    self.Actionmenu.create_image(x,y,image = self.upgDM, anchor = NW, tag='Button_Buy_Mothership_Tech/'+str(techs.index(i)))
                 elif i.effect == 'BM':
-                    self.Actionmenu.create_image(x,y,image = self.gifTechTree, anchor = NW, tag='Button_Buy_Mothership_Tech/'+str(techs.index(i)))
+                    self.Actionmenu.create_image(x,y,image = self.upgBM, anchor = NW, tag='Button_Buy_Mothership_Tech/'+str(techs.index(i)))
                 x+=63
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
