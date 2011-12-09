@@ -53,14 +53,14 @@
 			<BuildTime>1500</BuildTime>
 		</Tech>
 		<Tech>
-			<Name>+25 Vision d'attaque</Name>
+			<Name>+25 Portee d'attaque</Name>
 			<Effect>AR</Effect>
 			<Add>25</Add>
 			<CostMine>375</CostMine>
 			<CostGaz>390</CostGaz>
 			<BuildTime>1000</BuildTime>
 			<Upgrade>
-				<Name>+50 Vision d'attaque</Name>
+				<Name>+50 Portee d'attaque</Name>
 				<Effect>AR</Effect>
 				<Add>50</Add>
 				<CostMine>750</CostMine>
@@ -70,7 +70,7 @@
 			</Upgrade>
 		</Tech>
 		<Tech>
-			<Name>+25 Vision</Name>
+			<Name>+25 Portee de vision</Name>
 			<Effect>VR</Effect>
 			<Add>25</Add>
 			<CostMine>375</CostMine>
@@ -78,7 +78,7 @@
 			<CostNuclear>1</CostNuclear>
 			<BuildTime>1000</BuildTime>
 			<Upgrade>
-				<Name>+50 Vision</Name>
+				<Name>+50 Portee de vision</Name>
 				<Effect>VR</Effect>
 				<Add>50</Add>
 				<CostMine>750</CostMine>
