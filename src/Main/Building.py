@@ -248,6 +248,8 @@ class ConstructionBuilding(Building):
             un = u.SpaceBuildingAttack( u.Unit.SPACE_BUILDING_ATTACK, p, self.owner)
         if forcebuild:
             un.buildTime = 1
+            if unitType in (u.Unit.SPECIAL_GATHER, u.Unit.GROUND_GATHER, u.Unit.CARGO):
+                un.GATHERTIME = 0
         self.unitBeingConstruct.append(un)
         
                                            

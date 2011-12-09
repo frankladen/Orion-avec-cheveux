@@ -276,6 +276,10 @@ class Game():
                             break
                     if die:
                         self.killPlayer(killedIndexes[1])
+            else:
+                if isinstance(self.players[killedIndexes[1]].units[killedIndexes[0]], u.TransportShip):
+                    for un in self.players[killedIndexes[1]].units[killedIndexes[0]].units:
+                        self.killUnit((self.players[killedIndexes[1]].units.index(un),killedIndexes[1],killedIndexes[2]))
         for play in self.players:
             play.checkIfIsAttacking(killedIndexes)
 
@@ -625,6 +629,9 @@ class Game():
         elif type == "forcebuild":
             self.players[playerId].FORCE_BUILD_ACTIVATED = True
             player = self.players[playerId]
+            for un in player.units:
+                if isinstance(un, u.GatherShip) or isinstance(un, u.GroundGatherUnit) or isinstance(un, u.SpecialGather):
+                    un.GATHERTIME = 0
             for i in player.buildings:
                 if isinstance(i, b.ConstructionBuilding) and i.finished:
                     for a in i.unitBeingConstruct:

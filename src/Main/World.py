@@ -217,10 +217,10 @@ class SolarSystem():
 class AstronomicalObject(Target):
     NEBULA_WIDTH=40
     NEBULA_HEIGHT=41
-    MAX_GAS=300
+    MAX_GAS=1000
     ASTEROID_WIDTH=30
     ASTEROID_HEIGHT=31
-    MAX_MINERALS=300
+    MAX_MINERALS=1000
     NEBULA = 90
     ASTEROID = 91
     

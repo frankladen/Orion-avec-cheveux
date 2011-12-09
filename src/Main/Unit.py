@@ -250,10 +250,11 @@ class GroundBuilderUnit(GroundUnit):
                
             
 class GroundGatherUnit(GroundUnit):
+    GATHERTIME = 20
     def __init__(self,  type, position, owner, planetId, sunId, isLanded = False):
         GroundUnit.__init__(self, type, position, owner, planetId, sunId, isLanded)
         self.maxGather = 50
-        self.gatherSpeed = 20
+        self.gatherSpeed = self.GATHERTIME
         self.container = [0,0]
         self.returning = False
 
@@ -286,7 +287,7 @@ class GroundGatherUnit(GroundUnit):
                                 self.flag.initialTarget = self.flag.finalTarget
                                 self.flag.finalTarget =player.getNearestReturnRessourceCenterOnSpace(self.position, self)
                                 game.parent.redrawMinimap()
-                            self.gatherSpeed = 20
+                            self.gatherSpeed = self.GATHERTIME
                         else:
                             self.flag.initialTarget = self.flag.finalTarget
                             self.flag.finalTarget = player.getNearestReturnRessourceCenterOnSpace(self.position, self)
@@ -301,7 +302,7 @@ class GroundGatherUnit(GroundUnit):
                                 self.flag.initialTarget = self.flag.finalTarget
                                 self.flag.finalTarget = player.getNearestReturnRessourceCenterOnSpace(self.position, self)
                                 game.parent.redrawMinimap()
-                            self.gatherSpeed = 20
+                            self.gatherSpeed = self.GATHERTIME
                         else:
                             self.flag.initialTarget = self.flag.finalTarget
                             self.flag.finalTarget = player.getNearestReturnRessourceCenterOnSpace(self.position, self)
@@ -321,11 +322,17 @@ class GroundGatherUnit(GroundUnit):
                     self.flag.finalTarget = self.flag.initialTarget
                     if isinstance(self.flag.initialTarget, w.MineralStack):
                         if self.flag.finalTarget.nbMinerals == 0:
-                            player.notifications.append(Notification(self.position, Notification.FINISH_GATHER))
+                            if game.getCurrentPlanet() == self.planet:
+                                player.notifications.append(Notification(self.position, Notification.FINISH_GATHER))
+                            else:
+                                player.notifications.append(Notification(self.planet.position, Notification.FINISH_GATHER))
                             self.flag.flagState = FlagState.STANDBY
                     else:
                         if self.flag.finalTarget.nbGaz == 0:
-                            player.notifications.append(Notification(self.position, Notification.FINISH_GATHER))
+                            if game.getCurrentPlanet() == self.planet:
+                                player.notifications.append(Notification(self.position, Notification.FINISH_GATHER))
+                            else:
+                                player.notifications.append(Notification(self.planet.position, Notification.FINISH_GATHER))
                             self.flag.flagState = FlagState.STANDBY
                 else:
                     self.flag.finalTarget = self.position
@@ -358,10 +365,11 @@ class GroundGatherUnit(GroundUnit):
                 self.flag.flagState = FlagState.STANDBY
 
 class SpecialGather(GroundGatherUnit) :
+    GATHERTIME = 1200
     def __init__(self,  type, position, owner, planetId, sunId, isLanded = False):
         GroundGatherUnit.__init__(self, type, position, owner, planetId, sunId, isLanded)
         self.maxGather = 1
-        self.gatherSpeed = 1200
+        self.gatherSpeed = self.GATHERTIME
         self.container = 0
         self.returning = False
         self.isGathering = False
@@ -399,7 +407,7 @@ class SpecialGather(GroundGatherUnit) :
                         if ressource.nbRessource > 0:
                             self.container+=1
                             ressource.nbRessource-=1
-                        self.gatherSpeed = 1200
+                        self.gatherSpeed = self.GATHERTIME
                         self.flag.initialTarget = self.flag.finalTarget
                         self.flag.finalTarget = self.planet.getLandingSpot(player.id)
                 else:
@@ -850,7 +858,7 @@ class GatherShip(SpaceUnit):
                                 self.flag.initialTarget = self.flag.finalTarget
                                 self.flag.finalTarget = player.getNearestReturnRessourceCenter(self.position)
                                 game.parent.redrawMinimap()
-                            self.gatherSpeed = 20
+                            self.gatherSpeed = self.GATHERTIME
                         else:
                             self.flag.initialTarget = self.flag.finalTarget
                             self.flag.finalTarget = player.getNearestReturnRessourceCenter(self.position)
@@ -865,7 +873,7 @@ class GatherShip(SpaceUnit):
                                 self.flag.initialTarget = self.flag.finalTarget
                                 self.flag.finalTarget = player.getNearestReturnRessourceCenter(self.position)
                                 game.parent.redrawMinimap()
-                            self.gatherSpeed = 20
+                            self.gatherSpeed = self.GATHERTIME
                         else:
                             self.flag.initialTarget = self.flag.finalTarget
                             self.flag.finalTarget = player.getNearestReturnRessourceCenter(self.position)
