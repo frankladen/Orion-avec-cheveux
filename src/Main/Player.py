@@ -492,6 +492,37 @@ class Player():
         for i in self.selectedObjects:
             self.listMemory[selected].append(i)
 
+    def calculateFinalBuildingsScore(self):
+        score = 0
+        for b in self.buildings:
+            score += b.SCORE_VALUE[b.type]
+        return score
+
+    def calculateFinalUnitsScore(self):
+        score = 0
+        for u in self.units:
+            score += u.SCORE_VALUE[u.type]
+        return score
+
+    def calculateFinalDiplomacyScore(self):
+        score = 0
+        for i in self.diplomacies:
+            if i == 'Ally':
+                score += 100
+        return score
+
+    def calculateFinalRessourcesScore(self):
+        score = self.ressources[self.MINERAL] + self.ressources[self.GAS]
+        score += self.ressources[self.FOOD]*3
+        score += self.ressources[self.NUCLEAR]*50
+        return score
+
+    def calculateFinalKilledScore(self):
+        score = 0
+        for u in self.units:
+            score += u.getKilledCount()
+        return score*50
+    
     def makeFormation(self, units, galaxy, target = None, action = FlagState.MOVE):
         if len(units) > 2:
             #S'il n'y a pas de target de spÃ©cifiÃ©e comme lors du changement de formation

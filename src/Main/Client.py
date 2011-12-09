@@ -40,15 +40,12 @@ class Controller():
                             self.refreshMessages(self.view.menuModes.chat)
                         #À chaque itération je demande les nouvelles infos au serveur
                         self.pullChange()
-                        if self.died:
-                            self.view.root.destroy()
-                        else:
+                        if not self.died:
                             self.view.refreshGame(self.game.isOnPlanet())
                             self.refresh+=1
                             self.waitTime = self.server.amITooHigh(self.game.playerId)
                     elif self.game.playerId != 0:
                         self.view.deleteAll()
-                        self.view.root.destroy()
                 else:
                     self.checkIfGameStarting()
         else:
@@ -418,7 +415,7 @@ class Controller():
             self.game.killUnit((int(unitIndex[0]),actionPlayerId,False))
         
         elif action == str(FlagState.DESTROY_ALL):
-            self.game.killPlayer(actionPlayerId, True)
+            self.game.killPlayer(actionPlayerId)
         
         elif action == str(FlagState.CHANGE_FORMATION):
             self.game.changeFormation(actionPlayerId, int(target), unitIndex, FlagState.MOVE)
@@ -449,11 +446,17 @@ class Controller():
     def endGame(self):
         self.died = True
         self.view.showGameIsFinished()
+        self.view.scores = self.view.fScore(scores)
+        self.view.changeFrame(self.view.scores)
 
     def sendKillPlayer(self):
-        if self.server:
-            playerId = self.game.playerId
-            self.pushChange(playerId, Flag(playerId,playerId,FlagState.DESTROY_ALL))
+        if self.view.currentFrame == self.view.gameFrame:
+            if self.server:
+                print("Envoie le kill au serveur")
+                playerId = self.game.playerId
+                self.pushChange(playerId, Flag(playerId,playerId,FlagState.DESTROY_ALL))
+            else:
+                self.view.root.destroy()
         else:
             self.view.root.destroy()
 

@@ -122,6 +122,7 @@ class View():
         self.upgV = PhotoImage(file='images/icones/upgradeV.gif')
         self.upgVA = PhotoImage(file='images/icones/upgradeVA.gif')
         self.laserColors = ['#ff7733','#ee0022','#1144ff','#009911','#ffff00','#993300','#ffffff','#cc00cc']
+        self.colors = ["ORANGE", "RED", "BLUE", "GREEN", "YELLOW", "BROWN", "WHITE", "PINK"]
         #fenetres
         self.mainMenu = self.fMainMenu()
         self.mainMenu.pack()
@@ -286,7 +287,48 @@ class View():
                     self.menuModes.listEnnemies.insert(END,self.game.players[i].name)
 
     def fScore(self, scores):
-        pass
+        self.scoresFrame = Frame(self.root, bg='black')
+        self.labelTitleScore = Label(self.scoresFrame, background='black', fg='gold', text="Pointage final", font="Arial 18 bold", anchor=N)
+        self.labelTitleScore.grid(row = 0, column = 0, columnspan = 14)
+        self.labelTitleNames = Label(self.scoresFrame, background='black', fg='white', text="Noms", font="Arial 14 bold")
+        self.labelTitleNames.grid(row = 2, column = 1)
+        self.labelTitleBuildings = Label(self.scoresFrame, background='black', fg='white', text="Bâtiments", font="Arial 14 bold")
+        self.labelTitleBuildings.grid(row = 2, column = 3)
+        self.laberTitleUnits = Label(self.scoresFrame, background='black', fg='white', text="Unités", font="Arial 14 bold")
+        self.laberTitleUnits.grid(row = 2, column = 5)
+        self.labelTitleRessources = Label(self.scoresFrame, background='black', fg='white', text="Ressources", font="Arial 14 bold")
+        self.labelTitleRessources.grid(row = 2, column = 7)
+        self.labelTitleKilled = Label(self.scoresFrame, background='black', fg='white', text="Destruction", font="Arial 14 bold")
+        self.labelTitleKilled.grid(row = 2, column = 9)
+        self.labelTitleDiplomacy = Label(self.scoresFrame, background='black', fg='white', text="Diplomatie", font="Arial 14 bold")
+        self.labelTitleDiplomacy.grid(row = 2, column = 11)
+        self.labelTitleTotal = Label(self.scoresFrame, background='black', fg='white', text="Total", font="Arial 16 bold")
+        self.labelTitleTotal.grid(row = 2, column = 13)
+        self.labelsNames = []
+        self.labelsBuildings = []
+        self.labelsUnits = []
+        self.labelsRessources = []
+        self.labelsKilled = []
+        self.labelsDiplomacy = []
+        self.labelsTotal = []
+        index = 0
+        for score in scores:
+            self.labelsNames.append(Label(self.scoresFrame, background='black', fg=self.colors[score[0]], text=score[1], font="Arial 14 bold"))
+            self.labelsNames[index].grid(row = 4+index*2, column = 1)
+            self.labelsBuildings.append(Label(self.scoresFrame, background='black', fg=self.colors[score[0]], text=score[2], font="Arial 12 bold", padx=50))
+            self.labelsBuildings[index].grid(row = 4+index*2, column = 3)
+            self.labelsUnits.append(Label(self.scoresFrame, background='black', fg=self.colors[score[0]], text=score[3], font="Arial 12 bold", padx=50))
+            self.labelsUnits[index].grid(row = 4+index*2, column = 5)
+            self.labelsRessources.append(Label(self.scoresFrame, background='black', fg=self.colors[score[0]], text=score[4], font="Arial 12 bold", padx=50))
+            self.labelsRessources[index].grid(row = 4+index*2, column = 7)
+            self.labelsKilled.append(Label(self.scoresFrame, background='black', fg=self.colors[score[0]], text=score[5], font="Arial 12 bold", padx=50))
+            self.labelsKilled[index].grid(row = 4+index*2, column = 9)
+            self.labelsDiplomacy.append(Label(self.scoresFrame, background='black', fg=self.colors[score[0]], text=score[6], font="Arial 12 bold", padx=50))
+            self.labelsDiplomacy[index].grid(row = 4+index*2, column = 11)
+            self.labelsTotal.append(Label(self.scoresFrame, background='black', fg=self.colors[score[0]], text=score[7], font="Arial 14 bold", padx=50))
+            self.labelsTotal[index].grid(row = 4+index*2, column = 13)
+            index+=1
+        return self.scoresFrame
                    
     def changeToAlly(self):
         self.gameArea.focus_set()

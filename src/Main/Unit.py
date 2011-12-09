@@ -34,6 +34,7 @@ class Unit(PlayerObject):
     BUILD_TIME=(300,  200, 400, 300, 250, 200, 200, 200, 200, 200,200, 500, 0)
     BUILD_COST=((50,50,1),  (100,50,1), (300,300,1), (500,500,1), (75,0,1), (150,100,1),(50,75,1), (75,125,1), (100,80,1), (65,90,1),(75,50,1),(400,400,1), (0,0,0))
     VIEW_RANGE=(150,  250, 200, 175, 175,200, 200, 200, 200, 200, 200, 300, 450)
+    SCORE_VALUE=(10,10,20,30,15,10,15,25,20,15,20,25,50)
     
     def __init__(self, type, position, owner):
         PlayerObject.__init__(self, type, position, owner)
@@ -135,6 +136,9 @@ class Unit(PlayerObject):
     #Retourne le flag de la unit    
     def getFlag(self):
         return self.flag
+
+    def getKilledCount(self):
+        return 0
               
 class SpaceUnit(Unit):
     def __init__(self,  type, position, owner):
@@ -538,6 +542,9 @@ class GroundAttackUnit(GroundUnit):
 
     def applyBonuses(self, bonuses):
         SpaceAttackUnit.applyBonuses(self, bonuses)
+
+    def getKilledCount(self):
+        return self.killCount
                     
 class SpaceBuildingAttack(SpaceUnit):
     def __init__(self,  type, position, owner):
@@ -604,6 +611,9 @@ class SpaceBuildingAttack(SpaceUnit):
         self.AttackSpeed=self.ATTACK_SPEED[self.type]+bonuses[p.Player.ATTACK_SPEED_BONUS]
         self.AttackDamage=self.ATTACK_DAMAGE[self.type]+bonuses[p.Player.ATTACK_DAMAGE_BONUS]
         self.range=self.ATTACK_RANGE[self.type]+bonuses[p.Player.ATTACK_RANGE_BONUS]
+
+    def getKilledCount(self):
+        return self.killCount
         
 class SpaceAttackUnit(SpaceUnit):
     def __init__(self,  type, position, owner):
@@ -672,6 +682,9 @@ class SpaceAttackUnit(SpaceUnit):
         self.AttackSpeed=self.ATTACK_SPEED[self.type]+bonuses[p.Player.ATTACK_SPEED_BONUS]
         self.AttackDamage=self.ATTACK_DAMAGE[self.type]+bonuses[p.Player.ATTACK_DAMAGE_BONUS]
         self.range=self.ATTACK_RANGE[self.type]+bonuses[p.Player.ATTACK_RANGE_BONUS]
+
+    def getKilledCount(self):
+        return self.killCount
 
 class TransportShip(SpaceUnit):
     def __init__(self, type, position, owner):
@@ -959,4 +972,7 @@ class NyanCat(SpaceUnit):
         except ValueError:
             self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.STANDBY)
             return (-1, -1)
+
+    def getKilledCount(self):
+        return self.killCount
  

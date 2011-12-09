@@ -22,6 +22,7 @@ class Building(t.PlayerObject):
     TIME = (125,0,0,125,125,1250,0,125)
     MAX_HP = (150,0,0,200,200,1500,100,200)
     VIEW_RANGE=(200, 0, 0, 100, 250, 400, 200,100)
+    SCORE_VALUE=(15,10,10,10,20,50,15,30)
     MAX_SHIELD=0
     REGEN_WAIT_TIME = 30
     REGEN_WAIT_TIME_AFTER_ATTACK = 60
@@ -152,6 +153,9 @@ class Turret(SpaceBuilding):
         except ValueError:
             self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.STANDBY)
             return (-1, -1, isBuilding)
+
+    def getKilledCount(self):
+        return self.killCount
 
     #Change le flag pour une nouvelle destination et un nouvel etat
     def changeFlag(self, finalTarget, state):
@@ -374,6 +378,9 @@ class Mothership(ConstructionBuilding):
             except ValueError:
                 self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.BUILD_UNIT)
                 return (-1, -1)
+
+    def getKilledCount(self):
+        return self.killCount
     
            
 class LandingZone(ConstructionBuilding):

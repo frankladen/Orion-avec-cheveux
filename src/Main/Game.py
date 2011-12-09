@@ -585,29 +585,41 @@ class Game():
         #self.parent.pushChange(playerId, Flag(None,playerId,FlagState.DESTROY_ALL))
 
     def checkIfGameFinished(self):
+        myPlayer = self.players[self.playerId]
         for i in self.players:
-            for j in self.players:
-                if j.isAlive:
-                    if not i.isAlly(j.id):
-                        return False
+            if i.isAlive and i.id != myPlayer.id:
+                if not myPlayer.isAlly(i.id):
+                    return False
         return True
 
     def calculateWhoWon(self):
         scores = []
-        for i in self.players:
-            scores.append(0)
-            if i.isAlive:
-                scores[i.id] = i.ressources(i.MINERAL) + i.ressources(i.GAS) + (i.ressources(i.NUCLEAR)*500) + (i.ressources(i.FOOD)*50)
+        for pl in self.players:
+            toInsert = []
+            toInsert.append(pl.colorId)
+            toInsert.append(pl.name)
+            toInsert.append(pl.calculateFinalBuildingsScore())
+            toInsert.append(pl.calculateFinalUnitsScore())
+            toInsert.append(pl.calculateFinalRessourcesScore())
+            toInsert.append(pl.calculateFinalKilledScore())
+            toInsert.append(pl.calculateFinalDiplomacyScore())
+            toInsert.append(toInsert[2]+toInsert[3]+toInsert[4]+toInsert[5]+toInsert[6])
+            indexToInsert = 0
+            for i in scores:
+                if toInsert[7] > i[7]:
+                    break
+                indexToInsert += 1
+            scores.insert(indexToInsert, toInsert)
+        print("Il y a ",len(scores), " joueurs.")
         return scores
 
-    def killPlayer(self, playerId, endofGame = False):
+    def killPlayer(self, playerId):
         self.players[playerId].kill()
         if playerId == self.playerId:
             self.parent.removePlayer()
             self.players[self.playerId].selectedObjects = []
-        if playerId == self.playerId or endofGame:
-            self.parent.endGame()
-        if self.checkIfGameFinished():
+            self.parent.goToWinFrame(self.calculateWhoWon())
+        elif self.checkIfGameFinished():
             self.parent.goToWinFrame(self.calculateWhoWon())
     
     def trade(self, player1, player2, ressourceType, amount):
@@ -660,6 +672,8 @@ class Game():
         elif playerId == self.playerId:
             if newStatus == "Ally" and self.players[otherPlayerId].isAlly(playerId):
                     self.players[self.playerId].notifications.append(t.Notification((-10000,-10000,-10000),t.Notification.ALLIANCE_ALLY,self.players[otherPlayerId].name))
+        if self.checkIfGameFinished():
+            self.parent.goToWinFrame(self.calculateWhoWon())
 
     def getPlayerId(self, player):
         for i in self.players:
