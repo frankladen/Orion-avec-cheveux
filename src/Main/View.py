@@ -111,6 +111,7 @@ class View():
         self.gifupB = PhotoImage(file='images/icones/upB.gif')
         self.gifupM = PhotoImage(file='images/icones/upM.gif')
         self.gifupU = PhotoImage(file='images/icones/upU.gif')
+        self.gifBattlecruiser = PhotoImage(file='images/icones/gifBattleship.gif')
         self.nyan = PhotoImage(file='images/Ships/nyan-cat.gif')
         self.upgBB = PhotoImage(file='images/icones/upgradeBB.gif')
         self.upgBM = PhotoImage(file='images/icones/upgradeBM.gif')
@@ -546,7 +547,7 @@ class View():
                         if isinstance(unit, u.SpaceAttackUnit):
                             self.menuModes.create_image(20, 50, image = self.gifAttackUnit)
                         elif isinstance(unit, u.SpaceBuildingAttack):
-                            self.menuModes.create_image(20, 50, image = self.gifAttackUnit)
+                            self.menuModes.create_image(20, 50, image = self.gifBattlecruiser)
                         elif isinstance(unit, u.NyanCat):
                             self.menuModes.create_image(20, 50, image = self.nyan)
                         else:
@@ -768,7 +769,7 @@ class View():
             self.Actionmenu.create_image(76,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Build_Attack')
             self.Actionmenu.create_image(140,35,image = self.gifCargo, anchor = NW, tags = 'Button_Build_Gather')
             self.Actionmenu.create_image(13,89,image = self.gifTransport, anchor = NW, tags = 'Button_Build_Transport')
-            self.Actionmenu.create_image(76,89,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Build_Building_Attack')
+            self.Actionmenu.create_image(76,89,image = self.gifBattlecruiser, anchor = NW, tags = 'Button_Build_Building_Attack')
             self.Actionmenu.create_image(140,89,image = self.gifRepair, anchor = NW, tags = 'Button_Build_Healer')
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
