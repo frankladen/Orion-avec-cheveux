@@ -452,7 +452,6 @@ class Controller():
     def sendKillPlayer(self):
         if self.view.currentFrame == self.view.gameFrame:
             if self.server:
-                print("Envoie le kill au serveur")
                 playerId = self.game.playerId
                 self.pushChange(playerId, Flag(playerId,playerId,FlagState.DESTROY_ALL))
             else:

@@ -282,11 +282,11 @@ class Player():
         return False
 
     def getNearestReturnRessourceCenter(self, position):
-        motherShipPosition = self.motherShip.position
+        motherShipPosition = self.motherships[0].position
         nearestDistance = Helper.calcDistance(position[0],position[1],motherShipPosition[0],motherShipPosition[1])
-        nearestBuilding = self.motherShip
+        nearestBuilding = self.motherships[0]
         for b in self.buildings:
-            if b.type == b.WAYPOINT:
+            if b.type == b.WAYPOINT or b.type == b.MOTHERSHIP:
                 if b.finished:
                     buildingPosition = b.position
                     distance = Helper.calcDistance(position[0],position[1],buildingPosition[0],buildingPosition[1])

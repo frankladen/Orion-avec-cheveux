@@ -268,6 +268,10 @@ class Game():
             self.players[killedIndexes[1]].killUnit(killedIndexes)
             if killedIndexes[2] == True:
                 if isinstance(self.players[killedIndexes[1]].buildings[killedIndexes[0]], Mothership):
+                    mothership = self.players[killedIndexes[1]].buildings[killedIndexes[0]]
+                    if self.players[killedIndexes[1]].motherships.index(mothership) == 0:
+                        if len(self.players[killedIndexes[1]].motherships) >= 2:
+                            self.motherShip = self.players[killedIndexes[1]].buildings[killedIndexes[0]+1]
                     self.players[killedIndexes[1]].motherships.remove(self.players[killedIndexes[1]].buildings[killedIndexes[0]])
                     die = True
                     for i in self.players[killedIndexes[1]].motherships:
@@ -610,7 +614,6 @@ class Game():
                     break
                 indexToInsert += 1
             scores.insert(indexToInsert, toInsert)
-        print("Il y a ",len(scores), " joueurs.")
         return scores
 
     def killPlayer(self, playerId):
