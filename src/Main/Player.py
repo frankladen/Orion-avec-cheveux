@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 import Unit as u
 import Building as b
+import World as w
 from Flag import *
 from Target import *
 from Helper import *
@@ -386,7 +387,7 @@ class Player():
 
         if self.game.playerId == unit.owner:
             if not self.camera.inGameArea(constructionUnit.position):
-                if isinstance(constructionUnit, b.Mothership):
+                if isinstance(constructionUnit, b.Mothership) or isinstance(constructionUnit, b.Barrack) or isinstance(constructionUnit, b.Utility):
                     self.notifications.append(Notification(constructionUnit.position, Notification.FINISHED_BUILD, u.Unit.NAME[unit.type]))
                 else:
                     self.notifications.append(Notification(constructionUnit.planet.position, Notification.FINISHED_BUILD, u.Unit.NAME[unit.type]))
@@ -484,18 +485,34 @@ class Player():
         self.selectedObjects = []
         for i in self.listMemory[selected]:
             if i.isAlive:
-                if (self.currentPlanet != None and (isinstance(i, u.GroundUnit) or isinstance(i, b.GroundBuilding) or isinstance(i, b.LandingZone))) or (self.currentPlanet == None and (isinstance(i, u.SpaceUnit) or i.type == u.Unit.SCOUT or isinstance(i, b.SpaceBuilding) or isinstance(i, b.Mothership))):
+                if isinstance(i, u.GroundUnit) or isinstance(i, b.GroundBuilding) or isinstance(i, b.LandingZone):
+                    self.currentPlanet = self.game.galaxy.solarSystemList[i.sunId].planets[i.planetId]
+                    self.selectedObjects.append(i)
+                elif isinstance(i, u.SpaceUnit) or i.type == u.Unit.SCOUT or isinstance(i, b.SpaceBuilding) or isinstance(i, b.Mothership) or i.type == b.Building.UTILITY or i.type == b.Building.BARRACK:
+                    self.currentPlanet == None
                     self.selectedObjects.append(i)
             else:
                 self.listMemory[selected].pop(self.listMemory[selected].index(i))
         if len(self.selectedObjects) > 0:
-            self.camera.position = self.camera.ensurePositionIsInWorld([self.selectedObjects[0].position[0], self.selectedObjects[0].position[1]])
+            if self.currentPlanet == None:
+                self.camera.position = self.camera.ensurePositionIsInWorld([self.selectedObjects[0].position[0], self.selectedObjects[0].position[1]])
+            else:
+                self.camera.position = self.camera.ensurePositionIsOnPlanet([self.selectedObjects[0].position[0], self.selectedObjects[0].position[1]])
             
 
     def newMemory(self, selected):
         self.listMemory[selected] = []
         for i in self.selectedObjects:
-            self.listMemory[selected].append(i)
+            print(i)
+            if self.canMemory(i):
+                self.listMemory[selected].append(i)
+        print(self.listMemory[selected])
+
+    def canMemory(self, object):
+        if isinstance(object, w.Planet) == False and isinstance(object, w.AstronomicalObject) == False:
+            if isinstance(object, w.GazStack) == False and isinstance(object, w.MineralStack) == False and isinstance(object, w.NuclearSite) == False:
+                return True
+        return False
 
     def calculateFinalBuildingsScore(self):
         score = 0
@@ -685,8 +702,6 @@ class Camera():
         return False
 
     def ensurePositionIsInWorld(self, position):
-        tempX = position[0]
-        tempY = position[1]
         if position[0] > self.galaxy.width/2 - self.screenWidth/2:
             position[0] = self.galaxy.width/2 - self.screenWidth/2
         elif position[0] < self.galaxy.width/2*-1 + self.screenWidth/2:
@@ -695,6 +710,17 @@ class Camera():
             position[1] = self.galaxy.height/2 - self.screenHeight/2
         elif position[1] < self.galaxy.height/2*-1 + self.screenHeight/2:
             position[1] = self.galaxy.height/2*-1 + self.screenHeight/2
+        return position
+
+    def ensurePositionIsOnPlanet(self, position):
+        if position[0] > w.Planet.WIDTH - self.screenWidth/2:
+            position[0] = w.Planet.WIDTH - self.screenWidth/2
+        elif position[0] < self.screenWidth/2:
+            position[0] = self.screenWidth/2
+        if position[1] > w.Planet.HEIGHT - self.screenHeight/2:
+            position[1] = w.Planet.HEIGHT - self.screenHeight/2
+        elif position[1] < self.screenHeight/2:
+            position[1] = self.screenHeight/2
         return position
 
     #Pour calculer la distance entre la camera et un point
