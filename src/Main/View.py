@@ -31,13 +31,15 @@ class View():
     WAITING_FOR_UNIT_TO_HEAL_MENU = 16
     HEAL_UNIT_MENU = 17
     WAITING_FOR_GATHER_POINT_MENU = 18
+    BARRACK_BUILD_MENU = 19
+    UTILITY_BUILD_MENU = 20
     MINIMAP_WIDTH=200
     MINIMAP_HEIGHT=200
-    SELECTED_TRADE = 20
-    SELECTED_CHAT = 21
-    SELECTED_UNIT_SELECTED = 22
-    SELECTED_TEAM = 23
-    SELECTED_UNIT = 24
+    SELECTED_TRADE = 21
+    SELECTED_CHAT = 22
+    SELECTED_UNIT_SELECTED = 23
+    SELECTED_TEAM = 24
+    SELECTED_UNIT = 25
     WIDTH = 1200
     HEIGHT = 600
         
@@ -643,7 +645,7 @@ class View():
                             self.menuModes.create_arc((662, 177, 515, 22), start=0, extent= (unit.armor / unit.MAX_ARMOR)*359.99999999 , fill='red', tags = 'arc')
                         else:
                             self.menuModes.create_oval((662, 177, 515, 22), fill='red', tags = 'arc', outline ='black')
-                    else:
+                    elif isinstance(unit, b.LandingZone):
                         if unit.LandedShip != None:
                             self.menuModes.create_text(680,100, text = unit.LandedShip.name, anchor = NW, fill = 'white', font="Arial 7")
                             if unit.LandedShip.hitpoints != unit.LandedShip.maxHP:
@@ -729,6 +731,12 @@ class View():
                     if units[0].finished:
                         self.Actionmenu.create_image(13,35,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
                         self.Actionmenu.create_image(76,35,image = self.gifBuild, anchor = NW, tags = 'Button_Build')
+                elif isinstance(units[0], b.Barrack):
+                    if units[0].finished:
+                        self.Actionmenu.create_image(13,35,image = self.gifBuild, anchor = NW, tags = 'Button_Build_Barrack')
+                elif isinstance(units[0], b.Utility):
+                    if units[0].finished:
+                        self.Actionmenu.create_image(13,35,image = self.gifBuild, anchor = NW, tags = 'Button_Build_Utility')
                 elif isinstance(units[0], Unit):
                     self.Actionmenu.create_image(13,35,image=self.gifMove,anchor = NW, tags = 'Button_Move')
                     self.Actionmenu.create_image(76,35,image=self.gifStop,anchor = NW, tags = 'Button_Stop')
@@ -769,11 +777,21 @@ class View():
         elif(type == self.MOTHERSHIP_BUILD_MENU):
             self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
             self.Actionmenu.create_image(13,35,image = self.gifUnit, anchor = NW, tags = 'Button_Build_Scout')
-            self.Actionmenu.create_image(76,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Build_Attack')
             self.Actionmenu.create_image(140,35,image = self.gifCargo, anchor = NW, tags = 'Button_Build_Gather')
-            self.Actionmenu.create_image(13,89,image = self.gifTransport, anchor = NW, tags = 'Button_Build_Transport')
-            self.Actionmenu.create_image(76,89,image = self.gifBattlecruiser, anchor = NW, tags = 'Button_Build_Building_Attack')
-            self.Actionmenu.create_image(140,89,image = self.gifRepair, anchor = NW, tags = 'Button_Build_Healer')
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
+            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
+            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
+        elif(type == self.BARRACK_BUILD_MENU):
+            self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
+            self.Actionmenu.create_image(13,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Build_Attack')
+            self.Actionmenu.create_image(76,35,image = self.gifBattlecruiser, anchor = NW, tags = 'Button_Build_Building_Attack')
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
+            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
+            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
+        elif(type == self.UTILITY_BUILD_MENU):
+            self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
+            self.Actionmenu.create_image(13,35,image = self.gifTransport, anchor = NW, tags = 'Button_Build_Transport')
+            self.Actionmenu.create_image(76,35,image = self.gifRepair, anchor = NW, tags = 'Button_Build_Healer')
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
             self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
@@ -782,6 +800,8 @@ class View():
             self.Actionmenu.create_image(13,35,image = self.gifWaypoint, anchor = NW, tags = 'Button_Build_Waypoint')
             self.Actionmenu.create_image(76,35,image = self.gifTurret, anchor = NW, tags = 'Button_Build_Turret')
             self.Actionmenu.create_image(140,35,image = self.gifMothership, anchor = NW, tags = 'Button_Build_Mothership')
+            self.Actionmenu.create_image(13,89,image = self.gifMothership, anchor = NW, tags = 'Button_Build_A_Utility')
+            self.Actionmenu.create_image(76,89,image = self.gifMothership, anchor = NW, tags = 'Button_Build_A_Barrack')
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
             self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
@@ -1328,6 +1348,10 @@ class View():
                 else:
                     if building.type == b.Building.WAYPOINT:
                         self.gameArea.create_image(distance[0]+1, distance[1], image=self.waypoints[player.colorId],tag='deletable')
+                    elif building.type == b.Building.UTILITY:
+                        self.gameArea.create_image(distance[0]+1, distance[1], image=self.waypoints[player.colorId],tag='deletable')
+                    elif building.type == b.Building.BARRACK:
+                        self.gameArea.create_image(distance[0]+1, distance[1], image=self.waypoints[player.colorId],tag='deletable')
                     elif building.type == b.Building.TURRET:
                         self.gameArea.create_image(distance[0]+1, distance[1], image=self.turrets[player.colorId],tag='deletable')
                         if building.attackcount <= 5 and building.flag.flagState == FlagState.ATTACK:
@@ -1359,6 +1383,10 @@ class View():
             color = "red"
         self.gameArea.create_rectangle(distance[0]-b.Building.SIZE[building][0]/2, distance[1]-b.Building.SIZE[building][1]/2, distance[0]+b.Building.SIZE[building][0]/2, distance[1]+b.Building.SIZE[building][1]/2, fill=color, outline="lightgray", tag='deletable')
         if building == b.Building.WAYPOINT:
+            self.gameArea.create_image(distance[0], distance[1], image=self.waypoints[self.game.players[self.game.playerId].colorId], tag='deletable')
+        elif building == b.Building.BARRACK:
+            self.gameArea.create_image(distance[0], distance[1], image=self.waypoints[self.game.players[self.game.playerId].colorId], tag='deletable')
+        elif building == b.Building.UTILITY:
             self.gameArea.create_image(distance[0], distance[1], image=self.waypoints[self.game.players[self.game.playerId].colorId], tag='deletable')
         elif building == b.Building.TURRET:
             self.gameArea.create_image(distance[0], distance[1], image=self.turrets[self.game.players[self.game.playerId].colorId], tag='deletable')
@@ -2083,6 +2111,10 @@ class View():
                 self.isSettingRallyPointPosition = True
             elif (Button_pressed == "Button_Build"):
                 self.actionMenuType = self.MOTHERSHIP_BUILD_MENU
+            elif (Button_pressed == "Button_Build_Barrack"):
+                self.actionMenuType = self.BARRACK_BUILD_MENU
+            elif (Button_pressed == "Button_Build_Utility"):
+                self.actionMenuType = self.UTILITY_BUILD_MENU
             elif (Button_pressed == "Button_Patrol"):
                 self.actionMenuType = self.WAITING_FOR_PATROL_POINT_MENU
                 self.isSettingPatrolPosition = True
@@ -2117,6 +2149,14 @@ class View():
             elif (Button_pressed == "Button_Build_Mothership"):
                 self.actionMenuType = self.WAITING_FOR_BUILDING_POINT_MENU
                 self.buildingToBuild = b.Building.MOTHERSHIP
+                self.isSettingBuildingPosition = True;
+            elif (Button_pressed == "Button_Build_A_Barrack"):
+                self.actionMenuType = self.WAITING_FOR_BUILDING_POINT_MENU
+                self.buildingToBuild = b.Building.BARRACK
+                self.isSettingBuildingPosition = True;
+            elif (Button_pressed == "Button_Build_A_Utility"):
+                self.actionMenuType = self.WAITING_FOR_BUILDING_POINT_MENU
+                self.buildingToBuild = b.Building.UTILITY
                 self.isSettingBuildingPosition = True;
             elif (Button_pressed == "Button_Build_Farm"):
                 self.actionMenuType = self.WAITING_FOR_BUILDING_POINT_MENU
@@ -2219,6 +2259,12 @@ class View():
             elif (Button_pressed == "Button_Build_Lab"):
                 self.drawFirstLine=str(b.Building.NAME[b.Building.LAB])
                 self.drawSecondLine=str(b.Building.COST[b.Building.LAB][0])+" mine | "+str(b.Building.COST[b.Building.LAB][1])+" gaz"
+            elif (Button_pressed == "Button_Build_A_Barrack"):
+                self.drawFirstLine=str(b.Building.NAME[b.Building.BARRACK])
+                self.drawSecondLine=str(b.Building.COST[b.Building.BARRACK][0])+" mine | "+str(b.Building.COST[b.Building.BARRACK][1])+" gaz"
+            elif (Button_pressed == "Button_Build_A_Utility"):
+                self.drawFirstLine=str(b.Building.NAME[b.Building.UTILITY])
+                self.drawSecondLine=str(b.Building.COST[b.Building.UTILITY][0])+" mine | "+str(b.Building.COST[b.Building.UTILITY][1])+" gaz"
             elif (Button_pressed == "Button_Build_Farm"):
                 self.drawFirstLine=str(b.Building.NAME[b.Building.FARM])
                 self.drawSecondLine=str(b.Building.COST[b.Building.FARM][0])+" mine | "+str(b.Building.COST[b.Building.FARM][1])+" gaz"
@@ -2261,7 +2307,7 @@ class View():
             elif (Button_pressed == "Button_RallyPoint"):
                 self.drawFirstLine="Placer votre"
                 self.drawSecondLine="point de ralliement"
-            elif (Button_pressed in ("Button_Build", "Button_Space_Buildings", "Button_Ground_Buildings", "Button_BuildGroundUnit")):
+            elif (Button_pressed in ("Button_Build", "Button_Space_Buildings", "Button_Ground_Buildings", "Button_BuildGroundUnit", "Button_Build_Barrack", "Button_Build_Utility")):
                 self.drawFirstLine=""
                 self.drawSecondLine="Construction"
             elif (Button_pressed == "Button_Patrol"):

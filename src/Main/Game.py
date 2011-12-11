@@ -137,6 +137,10 @@ class Game():
                 player.ressources[1] -= Building.COST[type][1]
                 if type == Building.WAYPOINT:
                     wp = Waypoint(Building.WAYPOINT, [target[0],target[1],0], playerId)
+                elif type == Building.UTILITY:
+                    wp = Utility(Building.UTILITY, [target[0],target[1],0], playerId)
+                elif type == Building.BARRACK:
+                    wp = Barrack(Building.BARRACK, [target[0],target[1],0], playerId)
                 elif type == Building.TURRET:
                     wp = Turret(Building.TURRET, [target[0],target[1],0], playerId)
                 elif type == Building.FARM:

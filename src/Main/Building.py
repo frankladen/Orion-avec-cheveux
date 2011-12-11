@@ -8,20 +8,20 @@ from Unit import  *
 
 class Building(t.PlayerObject):
     WAYPOINT=0
-    REFINERY=1
+    UTILITY=1
     BARRACK=2
     FARM=3
     TURRET=4
     MOTHERSHIP=5
     LANDING_ZONE=6
     LAB=7
-    NAME = ("Point ralliement", "Raffinerie", "Barraque", "Ferme", "Tourette", "Vaisseau mere", "Zone d'aterrissage","Laboratoire de recherche")
-    SIZE =((30,30),(0,0),(0,0),(75,59),(32,32),(125,125),(32,32),(94,94))
-    INSPACE = (True,False,False,False,True,True,False,False)
-    COST = ((50,50),(0,0),(0,0),(75,75),(250,200),(2000,2000),(0,0),(300,300))
-    TIME = (125,0,0,125,125,1250,0,125)
-    MAX_HP = (150,0,0,200,200,1500,100,200)
-    VIEW_RANGE=(200, 0, 0, 100, 250, 400, 200,100)
+    NAME = ("Point ralliement", "Utilités", "Barraque", "Ferme", "Tourette", "Vaisseau mere", "Zone d'aterrissage","Laboratoire de recherche")
+    SIZE =((30,30),(30,30),(30,30),(75,59),(32,32),(125,125),(32,32),(94,94))
+    INSPACE = (True,True,True,False,True,True,False,False)
+    COST = ((50,50),(250,250),(300,300),(75,75),(250,200),(2000,2000),(0,0),(300,300))
+    TIME = (125,250,250,125,125,1250,0,125)
+    MAX_HP = (150,250,250,200,200,1500,100,200)
+    VIEW_RANGE=(200, 200, 200, 100, 250, 400, 200,100)
     SCORE_VALUE=(15,10,10,10,20,50,15,30)
     MAX_SHIELD=0
     REGEN_WAIT_TIME = 30
@@ -318,39 +318,6 @@ class Mothership(ConstructionBuilding):
             self.shield = bonuses[p.Player.BUILDING_MOTHERSHIELD_BONUS]
             self.MAX_SHIELD = bonuses[p.Player.BUILDING_MOTHERSHIELD_BONUS]
 
-    def regenShield(self):
-        if self.shieldRegenAfterAttack > 0:
-            self.shieldRegenAfterAttack -= 1
-        elif self.shieldRegenCount > 0:
-            self.shieldRegenCount -= 1
-        else:
-            if self.shield > self.MAX_SHIELD-5:
-                self.shield = self.MAX_SHIELD
-            else:
-                self.shield += 5
-                self.shieldRegenCount = self.REGEN_WAIT_TIME
-
-    def takeDammage(self, amount, players):
-        self.shieldRegenCount = self.REGEN_WAIT_TIME
-        self.shieldRegenAfterAttack = self.REGEN_WAIT_TIME_AFTER_ATTACK
-        if self.shield > 0:
-            if self.shield < amount:
-                self.shield = 0
-            else:
-                self.shield -= amount
-        elif self.armor > 0:
-            if self.armor < amount:
-                self.armor = 0
-            else:
-                self.armor -= amount
-        else:
-            if self.hitpoints <= amount:
-                self.hitpoints = 0
-                return True
-            else:
-                self.hitpoints -= amount
-        return False
-
     def attack(self, players, unitToAttack=None):
         if unitToAttack == None:
             unitToAttack = self.flag.finalTarget
@@ -379,10 +346,18 @@ class Mothership(ConstructionBuilding):
                 self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.BUILD_UNIT)
                 return (-1, -1)
 
-    def getKilledCount(self):
-        return self.killCount
-    
-           
+class Barrack(ConstructionBuilding):
+    def __init__(self,  type, position, owner):
+        ConstructionBuilding.__init__(self, type, position, owner)
+        self.flag.finalTarget = t.Target(position)        
+        self.owner = owner
+
+class Utility(ConstructionBuilding):
+    def __init__(self,  type, position, owner):
+        ConstructionBuilding.__init__(self, type, position, owner)
+        self.flag.finalTarget = t.Target(position)        
+        self.owner = owner
+   
 class LandingZone(ConstructionBuilding):
     WIDTH = 75
     HEIGHT = 75
