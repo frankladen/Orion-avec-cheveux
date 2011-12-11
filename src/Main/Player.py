@@ -2,6 +2,7 @@
 import Unit as u
 import Building as b
 import World as w
+from Target import *
 from Flag import *
 from Target import *
 from Helper import *
@@ -503,16 +504,9 @@ class Player():
     def newMemory(self, selected):
         self.listMemory[selected] = []
         for i in self.selectedObjects:
-            print(i)
-            if self.canMemory(i):
+            if isinstance(i, PlayerObject):
                 self.listMemory[selected].append(i)
         print(self.listMemory[selected])
-
-    def canMemory(self, object):
-        if isinstance(object, w.Planet) == False and isinstance(object, w.AstronomicalObject) == False:
-            if isinstance(object, w.GazStack) == False and isinstance(object, w.MineralStack) == False and isinstance(object, w.NuclearSite) == False:
-                return True
-        return False
 
     def calculateFinalBuildingsScore(self):
         score = 0
