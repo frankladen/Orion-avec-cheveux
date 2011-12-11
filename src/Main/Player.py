@@ -23,8 +23,10 @@ class Player():
     BUILDING_MOTHERSHIELD_BONUS = 6
     ATTACK_DAMAGE_MOTHERSHIP = 7
     ATTACK_DAMAGE_BUILDING_BONUS = 8
+    ABILITY_WORM_HOLE = 9
+    ABILITY_WALLS = 10
     #[AttaqueDamage,AttaqueSpeed,MoveSpeed,AttackRange]
-    BONUS = [0,0,0,0,0,0,0,0,0]
+    BONUS = [0,0,0,0,0,0,0,0,0,0,0]
     MAX_FOOD = 10
     FORCE_BUILD_ACTIVATED = False
     SQUARE_FORMATION = 0

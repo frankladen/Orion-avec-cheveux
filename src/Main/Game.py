@@ -338,6 +338,10 @@ class Game():
                     player.buildings[labIndex].techsToResearch.append((tech, player.ATTACK_SPEED_BONUS))
                 elif tech.effect == 'AR':
                     player.buildings[labIndex].techsToResearch.append((tech, player.ATTACK_RANGE_BONUS))
+                elif tech.effect == 'TN':
+                    player.buildings[labIndex].techsToResearch.append((tech, player.ABILITY_WORM_HOLE))
+                elif tech.effect == 'M':
+                    player.buildings[labIndex].techsToResearch.append((tech, player.ABILITY_WALLS))
                 elif tech.effect == 'VR':
                     player.buildings[labIndex].techsToResearch.append((tech, player.VIEW_RANGE_BONUS))
                 elif tech.effect == 'BB':
@@ -748,7 +752,7 @@ class Game():
                         if unitInRange != None:
                             unitsToAttack.append(unitInRange)
                 for bd in pl.buildings:
-                    if bd.isAlive and (isinstance(bd, SpaceBuilding) or isinstance(bd, Mothership)):
+                    if bd.isAlive and (isinstance(bd, SpaceBuilding) or isinstance(bd, Mothership) or isinstance(bd, Barrack) or isinstance(bd, Utility)):
                         buildingInRange = bd.isInRange(bullet.position, bullet.range)
                         if buildingInRange != None:
                             unitsToAttack.append(buildingInRange)
@@ -846,11 +850,11 @@ class Game():
                             if clickedObj.owner == self.playerId:
                                 self.setGatherFlag(unit, clickedObj)
                     elif unit.type in (unit.ATTACK_SHIP, unit.NYAN_CAT):
-                        if (isinstance(clickedObj, u.Unit) or isinstance(clickedObj, SpaceBuilding) or isinstance(clickedObj, Mothership)) and  not isinstance(clickedObj, u.GroundUnit):
+                        if (isinstance(clickedObj, u.Unit) or isinstance(clickedObj, SpaceBuilding) or isinstance(clickedObj, Mothership) or isinstance(clickedObj, Utility) or isinstance(clickedObj, Barrack)) and  not isinstance(clickedObj, u.GroundUnit):
                             if clickedObj.owner != self.playerId:
                                 self.setAttackFlag(clickedObj)
                     elif unit.type == unit.SPACE_BUILDING_ATTACK:
-                        if (isinstance(clickedObj, u.Unit) or isinstance(clickedObj, SpaceBuilding) or isinstance(clickedObj, Mothership)) and  not isinstance(clickedObj, u.GroundUnit):
+                        if (isinstance(clickedObj, u.Unit) or isinstance(clickedObj, SpaceBuilding) or isinstance(clickedObj, Mothership) or isinstance(clickedObj, Utility) or isinstance(clickedObj, Barrack)) and  not isinstance(clickedObj, u.GroundUnit):
                             if clickedObj.owner != self.playerId:
                                 pos = clickedObj.position
                             self.setAttackBuildingFlag([pos[0], pos[1], 0])

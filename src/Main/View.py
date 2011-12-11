@@ -31,15 +31,14 @@ class View():
     WAITING_FOR_UNIT_TO_HEAL_MENU = 16
     HEAL_UNIT_MENU = 17
     WAITING_FOR_GATHER_POINT_MENU = 18
-    BARRACK_BUILD_MENU = 19
-    UTILITY_BUILD_MENU = 20
+    WAITING_FOR_WALLS_POINT_MENU = 19
     MINIMAP_WIDTH=200
     MINIMAP_HEIGHT=200
-    SELECTED_TRADE = 21
-    SELECTED_CHAT = 22
-    SELECTED_UNIT_SELECTED = 23
-    SELECTED_TEAM = 24
-    SELECTED_UNIT = 25
+    SELECTED_TRADE = 22
+    SELECTED_CHAT = 23
+    SELECTED_UNIT_SELECTED = 24
+    SELECTED_TEAM = 25
+    SELECTED_UNIT = 26
     WIDTH = 1200
     HEIGHT = 600
         
@@ -150,6 +149,7 @@ class View():
         self.isChosingUnitToHeal = False
         self.isSettingGatherPosition = False
         self.isSettingAttackBuildingPosition = False
+        self.isSettingWallsPosition = False
         self.dragging = False
         self.hpBars=False
         self.buildingToBuild=-1
@@ -186,6 +186,8 @@ class View():
         self.drones = []
         self.labs=[]
         self.battlecruisers = []
+        self.barracks = []
+        self.utilities = []
         for i in range(0,8):
             self.scoutShips.append(PhotoImage(file='images/Ships/Scoutships/Scoutship'+str(i)+'.gif'))
             self.attackShips.append(PhotoImage(file='images/Ships/Attackships/Attackship'+str(i)+'.gif'))
@@ -204,6 +206,8 @@ class View():
             self.labs.append(PhotoImage(file='images/Building/Labs/lab'+str(i)+'.gif'))
             self.drones.append(PhotoImage(file='images/Ships/Drones/drone'+str(i)+'.gif'))
             self.battlecruisers.append(PhotoImage(file='images/Ships/Battlecruisers/battlecruiser'+str(i)+'.gif'))
+            self.barracks.append(PhotoImage(file='images/Building/AttackCenter/station'+str(i)+'.gif'))
+            self.utilities.append(PhotoImage(file='images/Building/UtilityCenter/Station'+str(i)+'.gif'))
         self.ressourcesFrame = LabelFrame(gameFrame, text="Ressources", width=600, bg="black", fg="white", relief=RAISED)
         self.showMinerals = Label(self.ressourcesFrame, text="Minéraux: "+str(self.game.players[self.game.playerId].ressources[0]), width=20, bg="black", fg="white", anchor=NW)
         self.showMinerals.grid(column=0, row=0)
@@ -733,10 +737,22 @@ class View():
                         self.Actionmenu.create_image(76,35,image = self.gifBuild, anchor = NW, tags = 'Button_Build')
                 elif isinstance(units[0], b.Barrack):
                     if units[0].finished:
-                        self.Actionmenu.create_image(13,35,image = self.gifBuild, anchor = NW, tags = 'Button_Build_Barrack')
+                        self.Actionmenu.create_image(13,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Build_Attack')
+                        self.Actionmenu.create_image(76,35,image = self.gifBattlecruiser, anchor = NW, tags = 'Button_Build_Building_Attack')
+                        self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
+                        self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
+                        self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
                 elif isinstance(units[0], b.Utility):
                     if units[0].finished:
-                        self.Actionmenu.create_image(13,35,image = self.gifBuild, anchor = NW, tags = 'Button_Build_Utility')
+                        self.Actionmenu.create_image(13,35,image = self.gifTransport, anchor = NW, tags = 'Button_Build_Transport')
+                        self.Actionmenu.create_image(76,35,image = self.gifRepair, anchor = NW, tags = 'Button_Build_Healer')
+                        self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
+                        self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
+                        self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
+                elif isinstance(units[0], b.Waypoint):
+                    if units[0].finished:
+                        if self.game.players[units[0].owner].BONUS[10] > 0:
+                            self.Actionmenu.create_image(13,35,image = self.gifBuild, anchor = NW, tags = 'Button_Do_Walls')
                 elif isinstance(units[0], Unit):
                     self.Actionmenu.create_image(13,35,image=self.gifMove,anchor = NW, tags = 'Button_Move')
                     self.Actionmenu.create_image(76,35,image=self.gifStop,anchor = NW, tags = 'Button_Stop')
@@ -781,20 +797,6 @@ class View():
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
             self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
-        elif(type == self.BARRACK_BUILD_MENU):
-            self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
-            self.Actionmenu.create_image(13,35,image = self.gifAttackUnit, anchor = NW, tags = 'Button_Build_Attack')
-            self.Actionmenu.create_image(76,35,image = self.gifBattlecruiser, anchor = NW, tags = 'Button_Build_Building_Attack')
-            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
-            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
-            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
-        elif(type == self.UTILITY_BUILD_MENU):
-            self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
-            self.Actionmenu.create_image(13,35,image = self.gifTransport, anchor = NW, tags = 'Button_Build_Transport')
-            self.Actionmenu.create_image(76,35,image = self.gifRepair, anchor = NW, tags = 'Button_Build_Healer')
-            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
-            self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
-            self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
         elif(type == self.SPACE_BUILDINGS_MENU):
             self.Actionmenu.create_image(0,0,image=self.gifCadreMenuAction,anchor = NW, tag='actionMain')
             self.Actionmenu.create_image(13,35,image = self.gifWaypoint, anchor = NW, tags = 'Button_Build_Waypoint')
@@ -812,6 +814,11 @@ class View():
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
             self.Actionmenu.create_text(15,165,text=self.drawSecondLine, anchor=NW, fill="white", font="Arial 7")
+        elif(type == self.WAITING_FOR_WALLS_POINT_MENU):
+            self.drawFirstLine = ""
+            self.drawSecondLine = ""
+            self.Actionmenu.create_text(5,5,text = "Cliquez sur un autre point de ralliement pour les relier d'un rayon laser.",anchor = NW, fill = 'white', width = 200)
+            self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
         elif(type == self.WAITING_FOR_GATHER_POINT_MENU):
             self.drawFirstLine = ""
             self.drawSecondLine = ""
@@ -881,6 +888,8 @@ class View():
                     self.Actionmenu.create_image(x,y,image = self.upgDB, anchor = NW, tag='Button_Buy_Building_Tech/'+str(techs.index(i)))
                 elif i.effect == 'BB':
                     self.Actionmenu.create_image(x,y,image = self.upgBB, anchor = NW, tag='Button_Buy_Building_Tech/'+str(techs.index(i)))
+                elif i.effect == 'M':
+                    self.Actionmenu.create_image(x,y,image = self.upgBB, anchor = NW, tag='Button_Buy_Building_Tech/'+str(techs.index(i)))
                 x+=63
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
@@ -899,6 +908,8 @@ class View():
                     self.Actionmenu.create_image(x,y,image = self.upgDM, anchor = NW, tag='Button_Buy_Mothership_Tech/'+str(techs.index(i)))
                 elif i.effect == 'BM':
                     self.Actionmenu.create_image(x,y,image = self.upgBM, anchor = NW, tag='Button_Buy_Mothership_Tech/'+str(techs.index(i)))
+                elif i.effect == 'TN':
+                    self.Actionmenu.create_image(x,y,image = self.upgBB, anchor = NW, tag='Button_Buy_Mothership_Tech/'+str(techs.index(i)))
                 x+=63
             self.Actionmenu.create_image(140,143,image = self.gifReturn, anchor = NW, tags = 'Button_Return')
             self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
@@ -1349,9 +1360,9 @@ class View():
                     if building.type == b.Building.WAYPOINT:
                         self.gameArea.create_image(distance[0]+1, distance[1], image=self.waypoints[player.colorId],tag='deletable')
                     elif building.type == b.Building.UTILITY:
-                        self.gameArea.create_image(distance[0]+1, distance[1], image=self.waypoints[player.colorId],tag='deletable')
+                        self.gameArea.create_image(distance[0]+1, distance[1], image=self.utilities[player.colorId],tag='deletable')
                     elif building.type == b.Building.BARRACK:
-                        self.gameArea.create_image(distance[0]+1, distance[1], image=self.waypoints[player.colorId],tag='deletable')
+                        self.gameArea.create_image(distance[0]+1, distance[1], image=self.barracks[player.colorId],tag='deletable')
                     elif building.type == b.Building.TURRET:
                         self.gameArea.create_image(distance[0]+1, distance[1], image=self.turrets[player.colorId],tag='deletable')
                         if building.attackcount <= 5 and building.flag.flagState == FlagState.ATTACK:
@@ -1385,9 +1396,9 @@ class View():
         if building == b.Building.WAYPOINT:
             self.gameArea.create_image(distance[0], distance[1], image=self.waypoints[self.game.players[self.game.playerId].colorId], tag='deletable')
         elif building == b.Building.BARRACK:
-            self.gameArea.create_image(distance[0], distance[1], image=self.waypoints[self.game.players[self.game.playerId].colorId], tag='deletable')
+            self.gameArea.create_image(distance[0], distance[1], image=self.barracks[self.game.players[self.game.playerId].colorId], tag='deletable')
         elif building == b.Building.UTILITY:
-            self.gameArea.create_image(distance[0], distance[1], image=self.waypoints[self.game.players[self.game.playerId].colorId], tag='deletable')
+            self.gameArea.create_image(distance[0], distance[1], image=self.utilities[self.game.players[self.game.playerId].colorId], tag='deletable')
         elif building == b.Building.TURRET:
             self.gameArea.create_image(distance[0], distance[1], image=self.turrets[self.game.players[self.game.playerId].colorId], tag='deletable')
         elif building == b.Building.LAB:
@@ -1482,7 +1493,7 @@ class View():
         else:
             color = "green"
         player = self.game.players[self.game.playerId]
-        if ((isinstance(unit, b.GroundBuilding) or isinstance(unit, GroundUnit) or unit.type == b.Building.LANDING_ZONE) and player.currentPlanet != None) or ((isinstance(unit, b.SpaceBuilding) or isinstance(unit, SpaceUnit) or unit.type == Unit.SCOUT or unit.type == b.Building.MOTHERSHIP) and player.currentPlanet == None):
+        if ((isinstance(unit, b.GroundBuilding) or isinstance(unit, GroundUnit) or unit.type == b.Building.LANDING_ZONE) and player.currentPlanet != None) or ((isinstance(unit, b.SpaceBuilding) or isinstance(unit, SpaceUnit) or unit.type == Unit.SCOUT or isinstance(unit, b.ConstructionBuilding) and not isinstance(unit, b.LandingZone) and player.currentPlanet == None)):
             hpLeft=((unit.hitpoints/unit.MAX_HP[unit.type])*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
             self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+(unit.SIZE[unit.type][0]/2),distance[1]-(unit.SIZE[unit.type][1]/2+5), outline="white", tag='deletable')
             self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline=color, tag='deletable')
@@ -2050,6 +2061,7 @@ class View():
         self.isSettingGatherPosition = False
         self.isChosingUnitToHeal = False
         self.isSettingAttackBuildingPosition = False
+        self.isSettingWallsPosition = False
         self.actionMenuType = self.MAIN_MENU
 
     def clickMenuModes(self,eve):
@@ -2111,10 +2123,6 @@ class View():
                 self.isSettingRallyPointPosition = True
             elif (Button_pressed == "Button_Build"):
                 self.actionMenuType = self.MOTHERSHIP_BUILD_MENU
-            elif (Button_pressed == "Button_Build_Barrack"):
-                self.actionMenuType = self.BARRACK_BUILD_MENU
-            elif (Button_pressed == "Button_Build_Utility"):
-                self.actionMenuType = self.UTILITY_BUILD_MENU
             elif (Button_pressed == "Button_Patrol"):
                 self.actionMenuType = self.WAITING_FOR_PATROL_POINT_MENU
                 self.isSettingPatrolPosition = True
@@ -2133,6 +2141,9 @@ class View():
                 self.unload(0)
             elif (Button_pressed == "Button_ReturnToSpace"):
                 self.getOutPlanet(0)
+            elif (Button_pressed == "Button_Do_Walls"):
+                self.isSettingWallsPosition = True
+                self.actionMenuType = self.WAITING_FOR_WALLS_POINT_MENU
             elif (Button_pressed == "Button_Space_Buildings"):
                 self.actionMenuType = self.SPACE_BUILDINGS_MENU
             elif (Button_pressed == "Button_Ground_Buildings"):
@@ -2307,12 +2318,15 @@ class View():
             elif (Button_pressed == "Button_RallyPoint"):
                 self.drawFirstLine="Placer votre"
                 self.drawSecondLine="point de ralliement"
-            elif (Button_pressed in ("Button_Build", "Button_Space_Buildings", "Button_Ground_Buildings", "Button_BuildGroundUnit", "Button_Build_Barrack", "Button_Build_Utility")):
+            elif (Button_pressed in ("Button_Build", "Button_Space_Buildings", "Button_Ground_Buildings", "Button_BuildGroundUnit")):
                 self.drawFirstLine=""
                 self.drawSecondLine="Construction"
             elif (Button_pressed == "Button_Patrol"):
                 self.drawFirstLine=""
                 self.drawSecondLine="Patrouille"
+            elif (Button_pressed == "Button_Do_Walls"):
+                self.drawFirstLine=""
+                self.drawSecondLine="Murailles"
             elif (Button_pressed == "Button_Stop"):
                 self.drawFirstLine=""
                 self.drawSecondLine="Stop"

@@ -106,6 +106,15 @@
 			<CostNuclear>1</CostNuclear>
 			<BuildTime>2000</BuildTime>
 		</Tech>
+		<Tech>
+			<Name>Murailles</Name>
+			<Effect>M</Effect>
+			<Add>1</Add>
+			<CostMine>1000</CostMine>
+			<CostGaz>1000</CostGaz>
+			<CostNuclear>2</CostNuclear>
+			<BuildTime>2000</BuildTime>
+		</Tech>
 	</Buildings>
 	<Mothership>
 		<Tech>
@@ -133,6 +142,15 @@
 			<CostGaz>1200</CostGaz>
 			<CostNuclear>2</CostNuclear>
 			<BuildTime>2000</BuildTime>
+		</Tech>
+		<Tech>
+			<Name>Trous noir</Name>
+			<Effect>TN</Effect>
+			<Add>1</Add>
+			<CostMine>2000</CostMine>
+			<CostGaz>2000</CostGaz>
+			<CostNuclear>2</CostNuclear>
+			<BuildTime>2500</BuildTime>
 		</Tech>
 	</Mothership>
 	

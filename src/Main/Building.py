@@ -16,10 +16,10 @@ class Building(t.PlayerObject):
     LANDING_ZONE=6
     LAB=7
     NAME = ("Point ralliement", "Utilités", "Barraque", "Ferme", "Tourette", "Vaisseau mere", "Zone d'aterrissage","Laboratoire de recherche")
-    SIZE =((30,30),(30,30),(30,30),(75,59),(32,32),(125,125),(32,32),(94,94))
+    SIZE =((30,30),(75,70),(75,80),(75,59),(32,32),(125,125),(32,32),(94,94))
     INSPACE = (True,True,True,False,True,True,False,False)
     COST = ((50,50),(250,250),(300,300),(75,75),(250,200),(2000,2000),(0,0),(300,300))
-    TIME = (125,250,250,125,125,1250,0,125)
+    TIME = (125,250,250,125,125,1250,0,250)
     MAX_HP = (150,250,250,200,200,1500,100,200)
     VIEW_RANGE=(200, 200, 200, 100, 250, 400, 200,100)
     SCORE_VALUE=(15,10,10,10,20,50,15,30)
@@ -186,7 +186,7 @@ class GroundBuilding(Building):
                         return self
         return None
 
-class Lab (GroundBuilding):
+class Lab(GroundBuilding):
     def __init__(self, type, position, owner, sunId, planetId):
         GroundBuilding.__init__(self, type, position, owner, sunId, planetId)
         self.techsToResearch = []
