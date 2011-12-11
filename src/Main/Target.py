@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 from Flag import *
 import Unit as u
+from Helper import *
 
 #Represente une position dans l'espace  
 class Target():
@@ -45,6 +46,55 @@ class PlayerObject(Target):
     
     def kill(self):
         self.isAlive = False
+
+class Bullet(PlayerObject):
+    def __init__(self, position, owner, unitId):
+        PlayerObject.__init__(self, 666, position, owner)
+        self.range = 100
+        self.moveSpeed = 7.0
+        self.AttackDamage = 50.0
+        self.unitId = unitId
+        self.arrived = False
+        self.toShow = 10
+
+    def action(self, player):
+        distance = Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1])
+        if not self.arrived:
+            if distance > 1:
+                self.move()
+            else:
+                isBuilding = False
+                players = player.game.players
+                unitsToAttack = player.game.hasUnitInRange(self)
+                for un in unitsToAttack:
+                    damageToTake = self.AttackDamage-(Helper.calcDistance(self.position[0], self.position[1], un.position[0], un.position[1])/2)
+                    if damageToTake < 0:
+                        damageToTake = 0
+                    if un.takeDammage(damageToTake, players):
+                        if isinstance(un, u.Unit):
+                            index = players[un.owner].units.index(un)
+                        else:
+                            index = players[un.owner].buildings.index(un)
+                            isBuilding = True
+                        killedOwner = un.owner
+                        player.units[self.unitId].killCount +=1
+                        if player.units[self.unitId].killCount % 4 == 1:
+                            self.AttackDamage += 1
+                        player.killUnit((index,killedOwner,isBuilding))
+                self.arrived = True
+
+
+    #La deplace d'un pas vers son flag et si elle est rendu, elle change arrete de bouger    
+    def move(self):
+        if Helper.calcDistance(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1]) <= self.moveSpeed:
+            endPos = [self.flag.finalTarget.position[0],self.flag.finalTarget.position[1]]
+            self.position = endPos
+        else:
+            angle = Helper.calcAngle(self.position[0], self.position[1], self.flag.finalTarget.position[0], self.flag.finalTarget.position[1])
+            temp = Helper.getAngledPoint(angle, self.moveSpeed, self.position[0], self.position[1])
+            self.position[0] = temp[0]
+            self.position[1] = temp[1]
+        
            
 class Notification(Target):
     ATTACKED_UNIT = 0

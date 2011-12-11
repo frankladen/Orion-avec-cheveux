@@ -42,6 +42,7 @@ class Player():
         self.notifications = [] #Liste de toutes les notifications
         self.planets = [] #Liste des planètes que nous avons atterit
         self.planetCurrent = 0
+        self.bullets = []
         self.id = id #Numero du joueur dans la liste de joueur
         self.diplomacies=[]
         for i in range(8):
@@ -86,6 +87,8 @@ class Player():
         for i in self.buildings:
             if i.isAlive:
                 i.action(self)
+        for i in self.bullets:
+            i.action(self)
             
     def selectUnitsByType(self, unitType):
         units = []

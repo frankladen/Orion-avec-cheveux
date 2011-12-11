@@ -28,9 +28,9 @@ class Unit(PlayerObject):
     SIZE=((0,0),  (18,15), (28,32), (32,29), (20,30), (24,24), (20,38), (32,32), (36,33), (23,37), (30,37), (60,33), (35,25))
     MAX_HP = (50, 50, 100,125, 75, 100, 100, 100, 100,100, 100, 100, 175)
     MOVE_SPEED=(1.0,  4.0, 2.0, 3.0, 3.0, 5.0, 5.0, 3.0, 3.5, 4.0, 3.0, 1.5, 7.0)
-    ATTACK_SPEED=(0,0,10,0,0,0,0,0,15,0,0, 15, 6)
+    ATTACK_SPEED=(0,0,10,0,0,0,0,0,15,0,0, 125, 6)
     ATTACK_DAMAGE=(0,0,5,0,0,0,0,0,12,0,0, 15, 50)
-    ATTACK_RANGE=(0,0,150,0,0,0,0,0,150,0,0, 185, 250)
+    ATTACK_RANGE=(0,0,150,0,0,0,0,0,150,0,0, 300, 450)
     BUILD_TIME=(300,  200, 400, 300, 250, 200, 200, 200, 200, 200,200, 500, 0)
     BUILD_COST=((50,50,1),  (100,50,1), (300,300,1), (500,500,1), (75,0,1), (150,100,1),(50,75,1), (75,125,1), (100,80,1), (65,90,1),(75,50,1),(400,400,1), (0,0,0))
     VIEW_RANGE=(150,  250, 200, 175, 175,200, 200, 200, 200, 200, 200, 300, 450)
@@ -556,14 +556,8 @@ class SpaceBuildingAttack(SpaceUnit):
         self.killCount = 0
 
     def action(self, parent):
-        if self.flag.flagState == FlagState.ATTACK:
-            if isinstance(self.flag.finalTarget, TransportShip):
-                if self.flag.finalTarget.landed == True:
-                    self.flag = Flag(self,self,FlagState.STANDBY)
-            if self.flag.flagState == FlagState.ATTACK:
-                killedIndex = self.attack(parent.game.players)
-                if killedIndex[0] > -1:
-                    parent.killUnit(killedIndex)
+        if self.flag.flagState == FlagState.ATTACK_BUILDING:
+            self.attack(parent.game.players)
         elif self.flag.flagState == FlagState.PATROL:
             self.patrol()
         else:
@@ -573,35 +567,18 @@ class SpaceBuildingAttack(SpaceUnit):
         self.attackcount=self.AttackSpeed
         Unit.changeFlag(self, finalTarget, state)
         
-    def attack(self, players, unitToAttack=None):
-        if unitToAttack == None:
-            unitToAttack = self.flag.finalTarget
-        index = -1
-        killedOwner = -1
-        isBuilding = False
-        distance = Helper.calcDistance(self.position[0], self.position[1], unitToAttack.position[0], unitToAttack.position[1])
-        try:
-            if distance > self.range :
+    def attack(self, players):
+        pos = self.flag.finalTarget.position
+        distance = Helper.calcDistance(self.position[0], self.position[1], pos[0], pos[1])
+        if distance > self.range :
+            self.attackcount=5
+            self.move()
+        else:
+            self.attackcount -= 1
+            if self.attackcount == 0:
+                players[self.owner].bullets.append(Bullet([self.position[0], self.position[1], 0],self.owner,players[self.owner].units.index(self)))
+                players[self.owner].bullets[len(players[self.owner].bullets)-1].changeFlag(t.Target([pos[0],pos[1],0]),FlagState.ATTACK)
                 self.attackcount=self.AttackSpeed
-                self.move()
-            else:
-                self.attackcount = self.attackcount - 1
-                if self.attackcount == 0:
-                    if unitToAttack.takeDammage(self.AttackDamage, players):
-                        if isinstance(unitToAttack, b.Building) == False:
-                            index = players[unitToAttack.owner].units.index(unitToAttack)
-                        else:
-                            index = players[unitToAttack.owner].buildings.index(unitToAttack)
-                            isBuilding = True
-                        killedOwner = unitToAttack.owner
-                        self.killCount +=1
-                        if self.killCount % 2 == 1:
-                            self.AttackDamage += 1
-                    self.attackcount=self.AttackSpeed
-            return (index, killedOwner, isBuilding)
-        except ValueError:
-            self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.STANDBY)
-            return (-1, -1)
 
 
 

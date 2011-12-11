@@ -30,6 +30,7 @@ class FlagState():
     HEAL = 33554432
     CANCEL_TECH = 67108864
     CHEAT = 134217728
+    ATTACK_BUILDING = 268435456
 
 #Represente un flag
 class Flag():

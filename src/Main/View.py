@@ -147,6 +147,7 @@ class View():
         self.isSettingBuildingPosition = False
         self.isChosingUnitToHeal = False
         self.isSettingGatherPosition = False
+        self.isSettingAttackBuildingPosition = False
         self.dragging = False
         self.hpBars=False
         self.buildingToBuild=-1
@@ -734,8 +735,10 @@ class View():
                     self.Actionmenu.create_image(140,35,image=self.gifPatrol,anchor = NW, tags = 'Button_Patrol')
                     if units[0].type == units[0].SCOUT:
                         self.Actionmenu.create_image(13,89,image=self.gifBuild,anchor = NW, tags = 'Button_Space_Buildings')
-                    elif isinstance(units[0], SpaceAttackUnit) or isinstance(units[0], GroundAttackUnit) or isinstance(units[0], SpaceBuildingAttack):
+                    elif isinstance(units[0], SpaceAttackUnit) or isinstance(units[0], GroundAttackUnit):
                         self.Actionmenu.create_image(13,89,image=self.gifAttack,anchor = NW, tags = 'Button_Attack')
+                    elif isinstance(units[0], SpaceBuildingAttack):
+                        self.Actionmenu.create_image(13,89,image=self.gifAttack,anchor = NW, tags = 'Button_Attack_Building')
                     elif isinstance(units[0], GroundBuilderUnit):
                         self.Actionmenu.create_image(13,89,image=self.gifBuild,anchor = NW, tags = 'Button_Ground_Buildings')
                     elif isinstance(units[0], HealingUnit):
@@ -1242,9 +1245,14 @@ class View():
                     if j.isAlive and not isinstance(j, GroundUnit):
                         if self.game.players[self.game.playerId].inViewRange(j.position):
                             self.drawUnit(j, i, False)
+                for j in i.bullets:
+                    self.drawBullet(j, i, False)
+                    
         if self.dragging:
             self.drawSelectionBox()
-        if self.isSettingBuildingPosition:
+        if self.isSettingAttackBuildingPosition:
+            self.drawCircleRange()
+        elif self.isSettingBuildingPosition:
             if self.game.players[self.game.playerId].canAfford(b.Building.COST[self.buildingToBuild][0],b.Building.COST[self.buildingToBuild][1],0):
                 self.drawFuturBuilding()
             else:
@@ -1360,7 +1368,23 @@ class View():
             self.gameArea.create_image(distance[0], distance[1], image=self.farms[self.game.players[self.game.playerId].colorId], tag='deletable')
         elif building == b.Building.MOTHERSHIP:
             self.gameArea.create_image(distance[0], distance[1], image=self.motherShips[self.game.players[self.game.playerId].colorId], tag='deletable')
- 
+
+    def drawCircleRange(self):
+        self.gameArea.create_oval(self.positionMouse[0]-100, self.positionMouse[1]-100, self.positionMouse[0]+100, self.positionMouse[1]+100, outline=self.laserColors[self.game.players[self.game.playerId].colorId], tag='deletable')
+
+    def drawBullet(self, bullet, player, isInFOW):
+        pos = self.game.players[self.game.playerId].camera.calcDistance(bullet.position)
+        if not bullet.arrived:
+            self.gameArea.create_oval(pos[0]-3, pos[1]-3, pos[0]+3, pos[1]+3, outline=self.laserColors[player.colorId], tag='deletable')
+        else:
+            if bullet.toShow % 4 in (0,1):
+                self.gameArea.create_oval(pos[0]-bullet.range, pos[1]-bullet.range, pos[0]+bullet.range, pos[1]+bullet.range, outline=self.laserColors[player.colorId], tag='deletable')
+            else:
+                self.gameArea.create_oval(pos[0]-bullet.range+5, pos[1]-bullet.range+5, pos[0]+bullet.range-5, pos[1]+bullet.range-5, outline=self.laserColors[player.colorId], tag='deletable')
+            bullet.toShow -= 1
+            if bullet.toShow == 0:
+                player.bullets.remove(bullet)
+     
 	#pour dessiner un vaisseau        
     def drawUnit(self, unit, player, isInFOW):
         unitPosition = unit.position
@@ -1824,6 +1848,11 @@ class View():
                 self.game.rightClic(pos)
                 self.isSettingGatherPosition = False
                 self.actionMenuType = self.MAIN_MENU
+
+            elif self.isSettingAttackBuildingPosition:
+                self.game.setAttackBuildingFlag(self.game.players[self.game.playerId].camera.calcPointInWorld(self.positionMouse[0], self.positionMouse[1]))
+                self.isSettingAttackBuildingPosition = False
+                self.actionMenuType = self.MAIN_MENU
                 
             elif self.isSettingBuildingPosition or self.building:
                 if b.Building.INSPACE[self.buildingToBuild] == True:
@@ -1992,6 +2021,7 @@ class View():
         self.isSettingBuildingPosition = False
         self.isSettingGatherPosition = False
         self.isChosingUnitToHeal = False
+        self.isSettingAttackBuildingPosition = False
         self.actionMenuType = self.MAIN_MENU
 
     def clickMenuModes(self,eve):
@@ -2059,6 +2089,9 @@ class View():
             elif (Button_pressed == "Button_Attack"):
                 self.actionMenuType = self.WAITING_FOR_ATTACK_POINT_MENU
                 self.isSettingAttackPosition = True
+            elif (Button_pressed == "Button_Attack_Building"):
+                self.actionMenuType = self.WAITING_FOR_ATTACK_POINT_MENU
+                self.isSettingAttackBuildingPosition = True
             elif (Button_pressed == "Button_Gather"):
                 self.actionMenuType = self.WAITING_FOR_GATHER_POINT_MENU
                 self.isSettingGatherPosition = True
@@ -2237,7 +2270,7 @@ class View():
             elif (Button_pressed == "Button_Stop"):
                 self.drawFirstLine=""
                 self.drawSecondLine="Stop"
-            elif (Button_pressed == "Button_Attack"):
+            elif (Button_pressed in ("Button_Attack",'Button_Build_Building_Attack')):
                 self.drawFirstLine=""
                 self.drawSecondLine="Attaque"
             elif (Button_pressed == "Button_Move"):

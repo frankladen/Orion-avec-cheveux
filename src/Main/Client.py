@@ -240,6 +240,8 @@ class Controller():
                 actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.NOTIFICATION:
                 actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
+            elif flag.flagState == FlagState.ATTACK_BUILDING:
+                actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.DESTROY:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/0"
             elif flag.flagState in (FlagState.CANCEL_UNIT, FlagState.CANCEL_TECH):
@@ -355,6 +357,10 @@ class Controller():
             else:
                 self.game.buildBuilding(actionPlayerId, target, int(action), unitIndex, int(target[3]), int(target[4]), int(target[5]))
                         
+        elif action == str(FlagState.ATTACK_BUILDING):
+            target = self.changeToInt(self.stripAndSplit(target))
+            self.game.makeSpaceBuildingAttack(actionPlayerId, target, int(unitIndex[0]))
+
         elif action == str(FlagState.ATTACK):
             target = target.split(",")
             self.game.makeUnitsAttack(actionPlayerId, unitIndex, int(target[1]), int(target[0]), target[2])

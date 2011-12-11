@@ -227,7 +227,7 @@ class Game():
         if attacking:
             units = ""
             for i in self.players[self.playerId].selectedObjects:
-                if isinstance(i, u.SpaceAttackUnit) or isinstance(i, u.SpaceBuildingAttack) or isinstance(i, u.NyanCat):
+                if isinstance(i, u.SpaceAttackUnit) or isinstance(i, u.NyanCat):
                     if isinstance(attackedUnit, u.Unit) :
                         if attackedUnit.type == u.Unit.TRANSPORT:
                             if attackedUnit.landed == False:
@@ -247,6 +247,13 @@ class Game():
                 else:
                     self.parent.pushChange(None, Flag(None,[attackedUnit.owner, t.Notification.ATTACKED_BUILDING, self.players[attackedUnit.owner].buildings.index(attackedUnit)], FlagState.NOTIFICATION))
 
+    def setAttackBuildingFlag(self, pos):
+        unit = self.players[self.playerId].selectedObjects[0]
+        self.parent.pushChange(str(self.players[self.playerId].units.index(unit))+",", Flag(None, pos, FlagState.ATTACK_BUILDING))
+
+    def makeSpaceBuildingAttack(self, playerId, target, unitId):
+        if unitId < len(self.players[playerId].units):
+            self.players[playerId].units[unitId].changeFlag(t.Target(target), FlagState.ATTACK_BUILDING)
 
     def setAnAttackFlag(self, attackedUnit, unit):
         units = ""
@@ -727,6 +734,22 @@ class Game():
     def attackEnemyInRange(self, unit, unitToAttack):
         unit.changeFlag(unitToAttack, FlagState.ATTACK)
 
+    def hasUnitInRange(self, bullet):
+        unitsToAttack = []
+        for pl in self.players:
+            if pl.isAlive and pl.id != bullet.owner:
+                for un in pl.units:
+                    if un.isAlive and (isinstance(un, u.SpaceUnit) or un.type == u.Unit.SCOUT):
+                        unitInRange = un.isInRange(bullet.position, bullet.range)
+                        if unitInRange != None:
+                            unitsToAttack.append(unitInRange)
+                for bd in pl.buildings:
+                    if bd.isAlive and (isinstance(bd, SpaceBuilding) or isinstance(bd, Mothership)):
+                        buildingInRange = bd.isInRange(bullet.position, bullet.range)
+                        if buildingInRange != None:
+                            unitsToAttack.append(buildingInRange)
+        return unitsToAttack
+    
     def checkIfCanBuild(self, position, type, index = None, playerId = None):
         if index != None:
             if index < len(self.players[playerId].units):
@@ -823,9 +846,10 @@ class Game():
                             if clickedObj.owner != self.playerId:
                                 self.setAttackFlag(clickedObj)
                     elif unit.type == unit.SPACE_BUILDING_ATTACK:
-                        if isinstance(clickedObj, SpaceBuilding) or isinstance(clickedObj, Mothership):
+                        if (isinstance(clickedObj, u.Unit) or isinstance(clickedObj, SpaceBuilding) or isinstance(clickedObj, Mothership)) and  not isinstance(clickedObj, u.GroundUnit):
                             if clickedObj.owner != self.playerId:
-                                self.setAttackFlag(clickedObj)
+                                pos = clickedObj.position
+                            self.setAttackBuildingFlag([pos[0], pos[1], 0])
                     elif unit.type == unit.SCOUT:
                         if isinstance(clickedObj, Building):
                             if clickedObj.owner == self.playerId:
