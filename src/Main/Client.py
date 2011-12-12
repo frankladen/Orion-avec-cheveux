@@ -242,6 +242,8 @@ class Controller():
                 actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.ATTACK_BUILDING:
                 actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
+            elif flag.flagState == FlagState.LINK_WAYPOINTS:
+                actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.DESTROY:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/0"
             elif flag.flagState in (FlagState.CANCEL_UNIT, FlagState.CANCEL_TECH):
@@ -422,6 +424,10 @@ class Controller():
         
         elif action == str(FlagState.DESTROY_ALL):
             self.game.killPlayer(actionPlayerId)
+
+        elif action == str(FlagState.LINK_WAYPOINTS):
+            target = self.changeToInt(self.stripAndSplit(target))
+            self.game.linkWaypoints(actionPlayerId, target[0], target[1], target[2])
         
         elif action == str(FlagState.CHANGE_FORMATION):
             self.game.changeFormation(actionPlayerId, int(target), unitIndex, FlagState.MOVE)

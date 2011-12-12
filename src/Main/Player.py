@@ -361,6 +361,9 @@ class Player():
                     self.MAX_FOOD -= 5
                 elif self.buildings[killedIndexes[0]].type == b.Building.LANDING_ZONE:
                     self.game.removeLandingZoneFromPlanet(self.buildings[killedIndexes[0]])
+                elif self.buildings[killedIndexes[0]].type == b.Building.WAYPOINT:
+                    if self.buildings[killedIndexes[0]].linkedWaypoint != None:
+                        self.buildings[killedIndexes[0]].linkedWaypoint.linkedWaypoint = None
             self.game.killUnit(killedIndexes, False)
         else:
             self.game.killUnit(killedIndexes, True)

@@ -99,6 +99,30 @@ class SpaceBuilding(Building):
 class Waypoint(SpaceBuilding):
     def __init__(self, type, position, owner):
         SpaceBuilding.__init__(self, type, position, owner)
+        self.linkedWaypoint = None
+        self.slope = 0
+        self.AttackDamage = 20
+
+    def action(self, player):
+        if self.linkedWaypoint != None:
+            isBuilding = False
+            players = player.game.players
+            unitsToAttack = player.game.unitsInLine(self)
+            for un in unitsToAttack:
+                damageToTake = self.AttackDamage-(Helper.calcDistance(self.position[0], self.position[1], un.position[0], un.position[1])/2)
+                if damageToTake < 0:
+                    damageToTake = 0
+                if un.takeDammage(damageToTake, players):
+                    if isinstance(un, u.Unit):
+                        index = players[un.owner].units.index(un)
+                    else:
+                        index = players[un.owner].buildings.index(un)
+                        isBuilding = True
+                    killedOwner = un.owner
+                    player.units[self.unitId].killCount +=1
+                    if player.units[self.unitId].killCount % 4 == 1:
+                        self.AttackDamage += 1
+                    player.killUnit((index,killedOwner,isBuilding))
         
 class Turret(SpaceBuilding):
     ATTACK_SPEED = 12

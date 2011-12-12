@@ -31,6 +31,7 @@ class FlagState():
     CANCEL_TECH = 67108864
     CHEAT = 134217728
     ATTACK_BUILDING = 268435456
+    LINK_WAYPOINTS = 536870912
 
 #Represente un flag
 class Flag():
