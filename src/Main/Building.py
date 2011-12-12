@@ -107,11 +107,12 @@ class Waypoint(SpaceBuilding):
             self.linkedWaypoint = None
             self.wall = None
 
-    def kill(self, player):
-        if self.wall != None:
-            self.wall.destroy(player)
-            self.linkedWaypoint.destroyWall()
-            self.destroyWall()
+    def kill(self, player=None):
+        if player != None:
+            if self.wall != None:
+                self.wall.destroy(player)
+                self.linkedWaypoint.destroyWall()
+                self.destroyWall()
         self.isAlive = False
         
 class Turret(SpaceBuilding):
