@@ -759,12 +759,12 @@ class Game():
         for pl in self.players:
             if pl.id != waypoint.owner:
                 for un in pl.units:
-                    unit = un.select([0,0])
-                    if unit != None:
-                        units.append(unit)
+                    b = ((un.position[0]*waypoint.slope)-un.position[1])-waypoint.position[1]
+                    if b > (un.SIZE[un.type][1]/2)*-1 and b < 0:
+                        units.append(un)
                 for bd in pl.buildings:
-                    build = bd.select([0,0])
-                    if build != None:
+                    b = ((bd.position[0]*waypoint.slope)-bd.position[1])-waypoint.position[1]
+                    if b > (un.SIZE[un.type][1]/2)*-1 and b < 0:
                         units.append(build)
         return units
 
