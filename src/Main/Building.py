@@ -421,7 +421,7 @@ class LandingZone(ConstructionBuilding):
         return False
 
 class Wall():
-    ATTACK_DAMAGE = 1
+    ATTACK_DAMAGE = 3
     def __init__(self, wp1, wp2):
         self.wp1 = wp1
         self.wp2 = wp2
