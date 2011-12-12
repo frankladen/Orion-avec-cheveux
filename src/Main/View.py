@@ -1282,6 +1282,9 @@ class View():
                     if j.isAlive and not isinstance(j, GroundUnit):
                         if self.game.getMyPlayer().inViewRange(j.position):
                             self.drawUnit(j, i, False)
+                for j in i.walls:
+                    if self.game.getMyPlayer().inViewRange(j.wp1.position) or self.game.getMyPlayer().inViewRange(j.wp2.position):
+                        self.drawWall(j, i)
                 for j in i.bullets:
                     self.drawBullet(j, i, False)
                     
@@ -1365,9 +1368,9 @@ class View():
                 else:
                     if building.type == b.Building.WAYPOINT:
                         self.gameArea.create_image(distance[0]+1, distance[1], image=self.waypoints[player.colorId],tag='deletable')
-                        if building.linkedWaypoint != None:
-                            way2pos = self.game.getMyPlayer().camera.calcDistance(building.linkedWaypoint.position)
-                            self.gameArea.create_line(distance[0], distance[1], way2pos[0], way2pos[1], fill=self.laserColors[player.colorId], tag='deletable')
+                        #if building.linkedWaypoint != None:
+                            #way2pos = self.game.getMyPlayer().camera.calcDistance(building.linkedWaypoint.position)
+                            #self.gameArea.create_line(distance[0], distance[1], way2pos[0], way2pos[1], fill=self.laserColors[player.colorId], tag='deletable')
                     elif building.type == b.Building.UTILITY:
                         self.gameArea.create_image(distance[0]+1, distance[1], image=self.utilities[player.colorId],tag='deletable')
                     elif building.type == b.Building.BARRACK:
@@ -1392,6 +1395,11 @@ class View():
                     self.drawHPBars(distance, building)
                 else:
                     self.drawHPHoverUnit(building, distance)
+
+    def drawWall(self, wall, player):
+        distance1 = self.game.getMyPlayer().camera.calcDistance(wall.wp1.position)
+        distance2 = self.game.getMyPlayer().camera.calcDistance(wall.wp2.position)
+        self.gameArea.create_line(distance1[0], distance1[1], distance2[0], distance2[1], fill=self.laserColors[player.colorId], tag='deletable')
 
     def drawFuturBuilding(self):
         buildingPos = self.game.getMyPlayer().camera.calcPointInWorld(self.positionMouse[0], self.positionMouse[1])

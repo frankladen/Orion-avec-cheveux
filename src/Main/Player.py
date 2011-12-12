@@ -28,7 +28,7 @@ class Player():
     ABILITY_WORM_HOLE = 9
     ABILITY_WALLS = 10
     #[AttaqueDamage,AttaqueSpeed,MoveSpeed,AttackRange]
-    BONUS = [0,0,0,0,0,0,0,0,0,0,0]
+    BONUS = [0,0,0,0,0,0,0,0,0,0,1]
     MAX_FOOD = 10
     FORCE_BUILD_ACTIVATED = False
     SQUARE_FORMATION = 0
@@ -55,6 +55,7 @@ class Player():
         self.startPos = [0,0,0] #Position de depart du joueur (pour le mothership)
         self.motherShip = None
         self.motherships = []
+        self.walls = []
         self.motherCurrent = 0
         self.formation = self.SQUARE_FORMATION
         self.currentPlanet = None
@@ -91,8 +92,21 @@ class Player():
         for i in self.buildings:
             if i.isAlive:
                 i.action(self)
+        for i in self.walls:
+            i.action(self)
         for i in self.bullets:
             i.action(self)
+
+    def linkWaypoints(self, wayId1, wayId2, cost):
+        way1 = self.buildings[wayId1]
+        way2 = self.buildings[wayId2]
+        self.ressources[self.GAS] -= cost
+        wall = b.Wall(way1, way2)
+        self.walls.append(wall)
+        way1.linkedWaypoint = way2
+        way1.wall = wall
+        way2.linkedWaypoint = way1
+        way2.wall = wall
             
     def selectUnitsByType(self, unitType):
         units = []
@@ -356,14 +370,14 @@ class Player():
             else:
                 if self.buildings[killedIndexes[0]] in self.selectedObjects:
                     self.selectedObjects.remove(self.buildings[killedIndexes[0]])
-                self.buildings[killedIndexes[0]].kill()
-                if self.buildings[killedIndexes[0]].type == b.Building.FARM:
-                    self.MAX_FOOD -= 5
-                elif self.buildings[killedIndexes[0]].type == b.Building.LANDING_ZONE:
-                    self.game.removeLandingZoneFromPlanet(self.buildings[killedIndexes[0]])
-                elif self.buildings[killedIndexes[0]].type == b.Building.WAYPOINT:
-                    if self.buildings[killedIndexes[0]].linkedWaypoint != None:
-                        self.buildings[killedIndexes[0]].linkedWaypoint.linkedWaypoint = None
+                if self.buildings[killedIndexes[0]].type == b.Building.WAYPOINT:
+                    self.buildings[killedIndexes[0]].kill(self)
+                else:
+                    self.buildings[killedIndexes[0]].kill()
+                    if self.buildings[killedIndexes[0]].type == b.Building.FARM:
+                        self.MAX_FOOD -= 5
+                    elif self.buildings[killedIndexes[0]].type == b.Building.LANDING_ZONE:
+                        self.game.removeLandingZoneFromPlanet(self.buildings[killedIndexes[0]])
             self.game.killUnit(killedIndexes, False)
         else:
             self.game.killUnit(killedIndexes, True)

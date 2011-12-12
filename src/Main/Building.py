@@ -100,29 +100,19 @@ class Waypoint(SpaceBuilding):
     def __init__(self, type, position, owner):
         SpaceBuilding.__init__(self, type, position, owner)
         self.linkedWaypoint = None
-        self.slope = 0
-        self.AttackDamage = 20
+        self.wall = None
 
-    def action(self, player):
-        if self.linkedWaypoint != None:
-            isBuilding = False
-            players = player.game.players
-            unitsToAttack = player.game.unitsInLine(self)
-            for un in unitsToAttack:
-                damageToTake = self.AttackDamage-(Helper.calcDistance(self.position[0], self.position[1], un.position[0], un.position[1])/2)
-                if damageToTake < 0:
-                    damageToTake = 0
-                if un.takeDammage(damageToTake, players):
-                    if isinstance(un, u.Unit):
-                        index = players[un.owner].units.index(un)
-                    else:
-                        index = players[un.owner].buildings.index(un)
-                        isBuilding = True
-                    killedOwner = un.owner
-                    player.units[self.unitId].killCount +=1
-                    if player.units[self.unitId].killCount % 4 == 1:
-                        self.AttackDamage += 1
-                    player.killUnit((index,killedOwner,isBuilding))
+    def destroyWall(self):
+        if self.wall != None:
+            self.linkedWaypoint = None
+            self.wall = None
+
+    def kill(self, player):
+        if self.wall != None:
+            self.wall.destroy(player)
+            self.linkedWaypoint.destroyWall()
+            self.destroyWall()
+        self.isAlive = False
         
 class Turret(SpaceBuilding):
     ATTACK_SPEED = 12
@@ -427,5 +417,107 @@ class LandingZone(ConstructionBuilding):
             self.hitpoints -= amount
             if self.hitpoints <= 0:
                 return True
-        return False       
-                                                                                                                                            
+        return False
+
+class Wall():
+    ATTACK_DAMAGE = 1
+    def __init__(self, wp1, wp2):
+        self.wp1 = wp1
+        self.wp2 = wp2
+        self.owner = wp1.owner
+        p1 = wp1.position
+        p2 = wp2.position
+        if p1[0] > p2[0]:
+            self.maxX = p1[0]
+            self.minX = p2[0]
+        else:
+            self.maxX = p2[0]
+            self.minX = p1[0]
+        if p1[1] > p2[1]:
+            self.maxY = p1[1]
+            self.minY = p2[1]
+        else:
+            self.maxY = p2[1]
+            self.minY = p1[1]
+        print("minX", self.minX, "maxX", self.maxX, "minY", self.minY, "maxY", self.maxY,)
+        self.slope = Helper.calcPente(p1, p2)
+        self.origineOrdonate = Helper.calcOrdonneeOrigine(p1[0], p1[1], self.slope)
+        print("p1", p1[0], p1[1], " p2", p2[0], p2[1], "pente ", self.slope, "ordonnee a lorigine", self.origineOrdonate)
+
+    def destroy(self, player):
+        self.wp1 = None
+        self.wp2 = None
+        player.walls.remove(self)
+
+    def action(self, player):
+        unitsToAttack = player.game.unitsInLine(self)
+        self.attack(unitsToAttack, player, player.game.players)
+
+    def attack(self, units, player, players):
+        for unit in units:
+            isBuilding = False
+            damageToTake = self.ATTACK_DAMAGE
+            if unit.takeDammage(damageToTake, players):
+                if isinstance(unit, u.Unit):
+                    index = players[unit.owner].units.index(unit)
+                else:
+                    index = players[unit.owner].buildings.index(unit)
+                    isBuilding = True
+                killedOwner = unit.owner
+                player.killUnit((index,killedOwner,isBuilding))
+
+    def isPointOnLine(self, point):
+        if point[0] > self.maxX or point[0] < self.minX:
+            return False
+        if point[1] > self.maxY or point[1] < self.minY:
+            return False
+        #On doit vérifier si le rectangle ne dépasse pas le bout de la droite (aligné avec le mur,
+        #mais de l'auter côté du waypoint)
+        tempOrigineOrdonate = Helper.calcOrdonneeOrigine(point[0], point[1], self.slope)
+        return self.origineOrdonate == tempOrigineOrdonate
+
+    def isRectangleOnLine(self, center, size):
+        if self.slope < 0:
+            #Si la pente est négative, on vérifie avec les coins nord ouest et sud est
+            p1 = [center[0]-size[0]/2, center[1]-size[1]/2]
+            p2 = [center[0]+size[0]/2, center[1]+size[1]/2]
+        else:
+            #Si la pente est positive, on vérifie avec les coins nord est et sud ouest
+            p1 = [center[0]+size[0]/2, center[1]-size[1]/2]
+            p2 = [center[0]-size[0]/2, center[1]+size[1]/2]
+        #On doit vérifier si le rectangle ne dépasse pas le bout de la droite (aligné avec le mur,
+        #mais de l'auter côté du waypoint)
+        if p1[0] > self.maxX:
+            if p2[0] > self.maxX:
+                return False
+        if p1[0] < self.minX:
+            if p2[0] < self.minX:
+                return False
+        if p1[1] > self.maxY:
+            if p2[1] > self.maxY:
+                return False
+        if p1[1] < self.minY:
+            if p2[1] < self.minY:
+                return False
+        print("Est dans la boite du laser")
+        if self.slope < 0: 
+            print("négative, J'ai vérifié les coins nord ouest et sud est")
+        else: 
+            print("positive, J'ai vérifié les coins nord est et sud ouest")
+        #On calcule la différence entre l'ordonnée à l'origine du mur et celle qu'on obtient avec le point
+        diff1 = self.origineOrdonate - Helper.calcOrdonneeOrigine(p1[0], p1[1], self.slope)
+        diff2 = self.origineOrdonate - Helper.calcOrdonneeOrigine(p2[0], p2[1], self.slope)
+        print("diff1", diff1, "diff2", diff2)
+        #Si les différences sont de part et d'autre de l'ordonnée a l'origine, le rectangle est sur la ligne.
+        if diff1 > 0:
+            if diff2 <= 0:
+                return True
+            else:
+                return False
+        if diff1 < 0:
+            if diff2 >= 0:
+                return True
+            else:
+                return False
+        else:
+            return False

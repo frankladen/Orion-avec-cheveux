@@ -23,7 +23,7 @@ class Game():
         self.multiSelect = False
 
     def getMyPlayer(self):
-        return self.getMyPlayer()
+        return self.players[self.playerId]
     
     def healUnitForReal(self, actionPlayerId, target, healUnitIndex):
         if target[1] == 0:
@@ -735,37 +735,35 @@ class Game():
         return cost
     
     def setLinkedWaypoint(self, pos):
-        cost = int(self.calcCostWall(self.getFirstUnitSelected(), self.selectWaypointWall(pos)))
-        if self.getPlayer().canAfford(0,cost,0):
-            way1 = self.getPlayer().buildings.index(self.getFirstUnitSelected())
-            way2 = self.getPlayer().buildings.index(self.selectWaypointWall(pos))
-            self.parent.pushChange("0,", Flag(None, [way1,way2,cost], FlagState.LINK_WAYPOINTS))
-        else:
-            self.getPlayer().notifications.append(t.Notification([-10000,-10000,-10000],t.Notification.NOT_ENOUGH_RESSOURCES))
+        selectedWayPoint = self.getFirstUnitSelected()
+        otherWaypoint = self.selectWaypointWall(pos)
+        if otherWaypoint != None:
+            if selectedWayPoint.linkedWaypoint == None and otherWaypoint.linkedWaypoint == None:
+                cost = int(self.calcCostWall(selectedWayPoint, otherWaypoint))
+                if self.getMyPlayer().canAfford(0,cost,0):
+                    way1 = self.getMyPlayer().buildings.index(selectedWayPoint)
+                    way2 = self.getMyPlayer().buildings.index(otherWaypoint)
+                    self.parent.pushChange("0,", Flag(None, [way1,way2,cost], FlagState.LINK_WAYPOINTS))
+                else:
+                    self.getMyPlayer().notifications.append(t.Notification([-10000,-10000,-10000],t.Notification.NOT_ENOUGH_RESSOURCES))
 
-    def linkWaypoints(self, playerId, way1, way2, cost):
-        if self.players[playerId].canAfford(0,cost,0):
-            way1 = self.players[playerId].buildings[way1]
-            way2 = self.players[playerId].buildings[way2]
-            self.players[playerId].ressources[p.Player.GAS] -= cost
-            way1.linkedWaypoint = way2
-            way2.linkedWaypoint = way1
-            slope = (way2.position[1]-way1.position[1])/(way2.position[0]-way1.position[0])
-            way1.slope = slope
-            way2.slope = slope
+    def linkWaypoints(self, playerId, wayId1, wayId2, cost):
+        player = self.players[playerId]
+        if player.canAfford(0,cost,0):
+           player.linkWaypoints(wayId1, wayId2, cost)
 
-    def unitsInLine(self, waypoint):
+    def unitsInLine(self, wall):
         units = []
         for pl in self.players:
-            if pl.id != waypoint.owner:
+            if pl.id != wall.owner:
                 for un in pl.units:
-                    b = ((un.position[0]*waypoint.slope)-un.position[1])-waypoint.position[1]
-                    if b > (un.SIZE[un.type][1]/2)*-1 and b < 0:
-                        units.append(un)
+                    if un.isAlive:
+                        if wall.isRectangleOnLine(un.position, un.SIZE[un.type]):
+                            units.append(un)
                 for bd in pl.buildings:
-                    b = ((bd.position[0]*waypoint.slope)-bd.position[1])-waypoint.position[1]
-                    if b > (un.SIZE[un.type][1]/2)*-1 and b < 0:
-                        units.append(build)
+                    if bd.isAlive:
+                        if wall.isRectangleOnLine(bd.position, bd.SIZE[bd.type]):
+                            units.append(build)
         return units
 
    #Pour selectionner une unit

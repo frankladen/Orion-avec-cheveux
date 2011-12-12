@@ -23,4 +23,18 @@ class Helper(object):
         distance=math.sqrt(dx+dy)
         return distance
     calcDistance = staticmethod(calcDistance)
+
+    def calcPente(p1, p2):
+        x1 = p1[0]
+        y1 = p1[1]
+        x2 = p2[0]
+        y2 = p2[1]
+        pente = (y2 - y1)/(x2 - x1)
+        return pente
+    calcPente = staticmethod(calcPente)
+
+    def calcOrdonneeOrigine(x, y, pente):
+        b = -1*(pente*x - y)
+        return b
+    calcOrdonneeOrigine = staticmethod(calcOrdonneeOrigine)
         
