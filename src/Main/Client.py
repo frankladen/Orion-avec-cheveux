@@ -299,6 +299,8 @@ class Controller():
                 actionString = str(self.game.playerId)+"/"+playerObject+"/"+str(flag[2])+"/"+str(flag[0])+","+str(flag[1])
             elif flag[2] == 'TAKEOFF':
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag[2])+"/"+str(flag[0])+","+str(flag[1])
+            elif flag[2] == 'WORMHOLE':
+                actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag[2])+"/"+str(flag[0][0])+","+str(flag[0][1])+","+str(flag[1][0])+","+str(flag[1][1])
             else:
                 actionString = str(self.game.playerId)+"/"+playerObject+"/"+flag[0]+"/"+flag[1]
         elif isinstance(flag, str):
@@ -381,6 +383,14 @@ class Controller():
                 cam.position = [unit.position[0], unit.position[1]]
                 cam.placeOverPlanet()
                 self.view.changeBackground('GALAXY')
+
+        elif action == 'WORMHOLE':
+            target = target.split(',')
+            ints = [0,0,0,0]
+            mothership = self.game.players[actionPlayerId].motherships[int(unitIndex[0])]
+            for i in range(0,4):
+                ints[i] = int(math.trunc(float(target[i])))
+            self.game.makeWormHole(actionPlayerId, [ints[0], ints[1]], [ints[2],ints[3]], mothership)
 
         elif action == 'UNLOAD':
             target = target.split(',')

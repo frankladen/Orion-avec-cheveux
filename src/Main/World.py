@@ -27,6 +27,7 @@ class Galaxy():
         self.seed  = random.seed(seed)
         self.spawnPoints = []
         self.solarSystemList = []
+        self.wormholes = []
         for i in range(1,nbPlayer*self.MAX_SOLARSYSTEM):
             tempX=""
             tempY=""
@@ -260,6 +261,30 @@ class AstronomicalObject(Target):
             if position[1] >= self.position[1]-self.ASTEROID_HEIGHT/2 and position[1] <= self.position[1]+self.ASTEROID_HEIGHT/2:
                 return self
         return None
+
+class WormHole(Target):
+    WIDTH = 125;
+    HEIGHT = 125;
+    NUKECOST = 2;
+    def __init__(self, position, destination):
+        Target.__init__(self, position)
+        self.duration = 1200
+        self.destination = destination
+
+    def action(self):
+        self.duration -= 1
+
+    def select(self, position):
+        if position[0] > self.position[0]-self.WIDTH/2 and position[0] < self.position[0]+self.WIDTH/2:
+            if position[1] > self.position[1]-self.HEIGHT/2 and position[1] < self.position[1]+self.HEIGHT/2:
+                return self
+        return None
+    
+    def over(self, positionStart, positionEnd):
+        if positionEnd[0] > self.position[0] - self.WIDTH/2 and positionStart[0] < self.position[0] + self.WIDTH/2:
+            if positionEnd[1] > self.position[1] - self.HEIGHT/2 and positionStart[1] < self.position[1] + self.HEIGHT/2:
+                return True
+        return False
     
 class Planet(Target):
     IMAGE_WIDTH=38
