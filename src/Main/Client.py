@@ -5,6 +5,8 @@ import Player as p
 import Target as t
 import Unit as u
 import Game as g
+import IA as ia
+from IA import *
 from Helper import *
 from Flag import *
 import os
@@ -17,7 +19,10 @@ import time
 
 class Controller():
     def __init__(self):
+        self.nIA = 0 #compteurIA
         self.refresh = 0 #Compteur principal
+        self.players = []
+        self.computers = []
         self.waitTime=50
         self.died = False
         self.mess = []
@@ -174,16 +179,27 @@ class Controller():
     def startGame(self):
         if self.game.playerId==0:
             self.server.startGame()
-        players = []
         for i in range(0, len(self.server.getSockets())):
             if self.server.getSockets()[i][3] == -1:
                 self.server.firstColorNotChosen(i)
-            players.append(p.Player(self.server.getSockets()[i][1], self.game, i, self.server.getSockets()[i][3]))
-        self.game.start(players, self.server.getSeed(), self.view.WIDTH, self.view.HEIGHT)
+            self.players.append(p.Player(self.server.getSockets()[i][1], self.game, i, self.server.getSockets()[i][3]))
+        for i in self.computers:
+            self.players.append(i)
+##        for i in self.computers:
+##            for j in self.players:
+##                if not isinstance(j, ia.IA) :
+##                    i.diplomacies[j.id] = 'Ally'
+        self.game.start(self.players, self.server.getSeed(), self.view.WIDTH, self.view.HEIGHT)
         self.view.gameFrame = self.view.fGame()
         self.view.changeFrame(self.view.gameFrame)
         self.view.root.after(50, self.action)
-
+        
+    def ajouterIA(self):
+        self.nIA+=1
+        if len(self.players) + len(self.computers) < 8:
+            ai = ia.IA("IA."+str(self.nIA),self.game,len(self.server.getSockets()),self.server.couleurIA())
+            self.computers.append(ai)
+        
     def drawWorld(self):
         self.view.drawWorld()
 

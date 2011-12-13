@@ -86,7 +86,13 @@ class ControleurServeur(object):
                 i[1] = True
                 self.sockets[playerId][3] = self.choiceColors.index(i)
                 break
-        
+      
+    def couleurIA(self):
+        for i in self.choiceColors:
+            if i[1] == False:
+                i[1] = True
+                return self.choiceColors.index(i)
+              
     def refreshPlayer(self, playerId, refresh):
         self.refreshes[playerId] = refresh
     
