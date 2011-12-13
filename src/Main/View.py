@@ -747,7 +747,7 @@ class View():
                         self.Actionmenu.create_image(13,35,image=self.gifRallyPoint,anchor = NW, tags = 'Button_RallyPoint')
                         self.Actionmenu.create_image(76,35,image = self.gifBuild, anchor = NW, tags = 'Button_Build')
                         if self.game.getMyPlayer().BONUS[self.game.getMyPlayer().ABILITY_WORM_HOLE] == 0:
-                            self.Actionmenu.create_image(140,35, image=self.gifNoWormhole, anchor = NW, tags = 'Button_WormHole')
+                            self.Actionmenu.create_image(140,35, image=self.gifNoWormhole, anchor = NW, tags = '')
                         else:
                             self.Actionmenu.create_image(140,35, image=self.gifWormhole, anchor = NW, tags = 'Button_WormHole')
                         self.Actionmenu.create_text(15,150,text=self.drawFirstLine, anchor=NW, fill="white", font="Arial 7")
@@ -2288,9 +2288,8 @@ class View():
             elif (Button_pressed == 'Button_Build_Building_Attack'):
                 self.game.addUnit(Unit.SPACE_BUILDING_ATTACK)
             elif (Button_pressed == 'Button_WormHole'):
-                if self.game.getMyPlayer().BONUS[self.game.getMyPlayer().ABILITY_WORM_HOLE] > 0:
-                    self.actionMenuType = self.WAITING_FOR_WORMHOLE
-                    self.isSettingWormHole = True
+                self.actionMenuType = self.WAITING_FOR_WORMHOLE
+                self.isSettingWormHole = True
             elif len(Button_pressed.split("/")) == 2:
                 #Si on achète une nouvelle technologie
                 Button_pressed = Button_pressed.split("/")
@@ -2381,7 +2380,7 @@ class View():
             elif (Button_pressed in ("Button_Build", "Button_Space_Buildings", "Button_Ground_Buildings", "Button_BuildGroundUnit")):
                 self.drawFirstLine=""
                 self.drawSecondLine="Construction"
-            elif (Button_pressed == "Button_WormHole") and self.game.getMyPlayer().BONUS[self.game.getMyPlayer().ABILITY_WORM_HOLE] > 0:
+            elif (Button_pressed == "Button_WormHole"):
                 self.drawFirstLine="Trou Noir"
                 self.drawSecondLine=str(WormHole.NUKECOST) + " Nuke + X Gaz"
             elif (Button_pressed == "Button_Patrol"):

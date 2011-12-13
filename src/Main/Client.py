@@ -386,11 +386,8 @@ class Controller():
 
         elif action == 'WORMHOLE':
             target = target.split(',')
-            ints = [0,0,0,0]
             mothership = self.game.players[actionPlayerId].motherships[int(unitIndex[0])]
-            for i in range(0,4):
-                ints[i] = int(math.trunc(float(target[i])))
-            self.game.makeWormHole(actionPlayerId, [ints[0], ints[1]], [ints[2],ints[3]], mothership)
+            self.game.makeWormHole(actionPlayerId, [int(math.trunc(float(target[0]))),int(math.trunc(float(target[1])))], [int(math.trunc(float(target[2]))), int(math.trunc(float(target[3])))], mothership)
 
         elif action == 'UNLOAD':
             target = target.split(',')
