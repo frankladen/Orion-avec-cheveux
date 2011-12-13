@@ -99,20 +99,49 @@ class SpaceBuilding(Building):
 class Waypoint(SpaceBuilding):
     def __init__(self, type, position, owner):
         SpaceBuilding.__init__(self, type, position, owner)
-        self.linkedWaypoint = None
-        self.wall = None
+        self.linkedWaypoint1 = None
+        self.wall1 = None
+        self.linkedWaypoint2 = None
+        self.wall2 = None
 
-    def destroyWall(self):
-        if self.wall != None:
-            self.linkedWaypoint = None
-            self.wall = None
+    #Vérifie si le waypoint a déjà deux murs ou non
+    def hasFreeWall(self):
+        if self.wall1 == None:
+            return True
+        if self.wall2 == None:
+            return True
+        return False
 
+    def addWall(self, wall, wp2):
+        if self.wall1 == None and self.linkedWaypoint2 != wp2:
+            self.linkedWaypoint1 = wp2
+            self.wall1 = wall
+            return True
+        elif self.wall2 == None and self.linkedWaypoint1 != wp2:
+            self.linkedWaypoint2 = wp2
+            self.wall2 = wall
+            return True
+        else:
+            return False
+
+    def destroyWall(self, wall):
+        if self.wall1 == wall:
+            self.linkedWaypoint1 = None
+            self.wall1 = None
+        elif self.wall2 == wall:
+            self.linkedWaypoint2 = None
+            self.wall2 = None
+            
     def kill(self, player=None):
         if player != None:
-            if self.wall != None:
-                self.wall.destroy(player)
-                self.linkedWaypoint.destroyWall()
-                self.destroyWall()
+            if self.wall1 != None:
+                self.wall1.destroy(player)
+                self.linkedWaypoint1.destroyWall(self.wall1)
+                self.destroyWall(self.wall1)
+            if self.wall2 != None:
+                self.wall2.destroy(player)
+                self.linkedWaypoint2.destroyWall(self.wall2)
+                self.destroyWall(self.wall2)
         self.isAlive = False
         
 class Turret(SpaceBuilding):
@@ -440,10 +469,8 @@ class Wall():
         else:
             self.maxY = p2[1]
             self.minY = p1[1]
-        print("minX", self.minX, "maxX", self.maxX, "minY", self.minY, "maxY", self.maxY,)
         self.slope = Helper.calcPente(p1, p2)
         self.origineOrdonate = Helper.calcOrdonneeOrigine(p1[0], p1[1], self.slope)
-        print("p1", p1[0], p1[1], " p2", p2[0], p2[1], "pente ", self.slope, "ordonnee a lorigine", self.origineOrdonate)
 
     def destroy(self, player):
         self.wp1 = None
@@ -500,15 +527,9 @@ class Wall():
         if p1[1] < self.minY:
             if p2[1] < self.minY:
                 return False
-        print("Est dans la boite du laser")
-        if self.slope < 0: 
-            print("négative, J'ai vérifié les coins nord ouest et sud est")
-        else: 
-            print("positive, J'ai vérifié les coins nord est et sud ouest")
         #On calcule la différence entre l'ordonnée à l'origine du mur et celle qu'on obtient avec le point
         diff1 = self.origineOrdonate - Helper.calcOrdonneeOrigine(p1[0], p1[1], self.slope)
         diff2 = self.origineOrdonate - Helper.calcOrdonneeOrigine(p2[0], p2[1], self.slope)
-        print("diff1", diff1, "diff2", diff2)
         #Si les différences sont de part et d'autre de l'ordonnée a l'origine, le rectangle est sur la ligne.
         if diff1 > 0:
             if diff2 <= 0:

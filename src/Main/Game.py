@@ -744,7 +744,7 @@ class Game():
         selectedWayPoint = self.getFirstUnitSelected()
         otherWaypoint = self.selectWaypointWall(pos)
         if otherWaypoint != None:
-            if selectedWayPoint.linkedWaypoint == None and otherWaypoint.linkedWaypoint == None:
+            if selectedWayPoint.hasFreeWall and otherWaypoint.hasFreeWall:
                 cost = int(self.calcCostWall(selectedWayPoint, otherWaypoint))
                 if self.getMyPlayer().canAfford(0,cost,0):
                     way1 = self.getMyPlayer().buildings.index(selectedWayPoint)

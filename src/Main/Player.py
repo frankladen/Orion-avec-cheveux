@@ -100,13 +100,14 @@ class Player():
     def linkWaypoints(self, wayId1, wayId2, cost):
         way1 = self.buildings[wayId1]
         way2 = self.buildings[wayId2]
-        self.ressources[self.GAS] -= cost
-        wall = b.Wall(way1, way2)
-        self.walls.append(wall)
-        way1.linkedWaypoint = way2
-        way1.wall = wall
-        way2.linkedWaypoint = way1
-        way2.wall = wall
+        if way1.hasFreeWall and way2.hasFreeWall:
+            self.ressources[self.GAS] -= cost
+            wall = b.Wall(way1, way2)
+            if way1.addWall(wall, way2):
+                if way2.addWall(wall, way1):
+                    self.walls.append(wall)
+                else:
+                    way1.destroyWall(wall)
             
     def selectUnitsByType(self, unitType):
         units = []
