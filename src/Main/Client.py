@@ -363,7 +363,7 @@ class Controller():
                         
         elif action == str(FlagState.ATTACK_BUILDING):
             target = self.changeToInt(self.stripAndSplit(target))
-            self.game.makeSpaceBuildingAttack(actionPlayerId, target, int(unitIndex[0]))
+            self.game.makeSpaceBuildingAttack(actionPlayerId, target, unitIndex)
 
         elif action == str(FlagState.ATTACK):
             target = target.split(",")

@@ -248,8 +248,6 @@ class Game():
                         units += str(self.getMyPlayer().units.index(i)) + ","
                 elif isinstance(i, u.GroundAttackUnit):
                     units += str(self.getMyPlayer().units.index(i)) + ","
-                else:
-                    self.parent.pushChange((str(self.getMyPlayer().units.index(i)) + ","), Flag(i,t.Target([attackedUnit.position[0],attackedUnit.position[1],0]),FlagState.MOVE))
             if units != "":
                 self.parent.pushChange(units, Flag(i,attackedUnit,FlagState.ATTACK))
                 if isinstance(attackedUnit,u.Unit):
@@ -258,12 +256,17 @@ class Game():
                     self.parent.pushChange(None, Flag(None,[attackedUnit.owner, t.Notification.ATTACKED_BUILDING, self.players[attackedUnit.owner].buildings.index(attackedUnit)], FlagState.NOTIFICATION))
 
     def setAttackBuildingFlag(self, pos):
-        unit = self.getMyPlayer().selectedObjects[0]
-        self.parent.pushChange(str(self.getMyPlayer().units.index(unit))+",", Flag(None, pos, FlagState.ATTACK_BUILDING))
+        units = ''
+        for i in self.getMyPlayer().selectedObjects:
+            if i.type == u.Unit.SPACE_BUILDING_ATTACK:
+                units += str(self.getMyPlayer().units.index(i)) + ","
+        self.parent.pushChange(units, Flag(None, pos, FlagState.ATTACK_BUILDING))
 
     def makeSpaceBuildingAttack(self, playerId, target, unitId):
-        if unitId < len(self.players[playerId].units):
-            self.players[playerId].units[unitId].changeFlag(t.Target(target), FlagState.ATTACK_BUILDING)
+        for i in unitId:
+            if i != '':
+                if int(i) < len(self.players[playerId].units):
+                    self.players[playerId].units[int(i)].changeFlag(t.Target(target), FlagState.ATTACK_BUILDING)
 
     def setAnAttackFlag(self, attackedUnit, unit):
         units = ""
@@ -1035,3 +1038,12 @@ class Game():
         mothership = self.getMyPlayer().selectedObjects[0]
         motherIndex = self.getMyPlayer().motherships.index(mothership)
         self.parent.pushChange(motherIndex, (mothership.position, position, 'WORMHOLE'))
+		
+    def canSetAttack(self):
+        player = self.getMyPlayer()
+        for i in player.selectedObjects:
+            if i.type == u.Unit.ATTACK_SHIP or i.type == u.Unit.GROUND_ATTACK:
+                return 'Normal'
+            elif i.type == u.Unit.SPACE_BUILDING_ATTACK:
+                return 'Building'
+        return None

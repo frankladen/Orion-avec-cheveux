@@ -452,8 +452,8 @@ class Player():
                     tech.child.isAvailable = False
                 self.buildings[constructionBuilding].techsToResearch.pop(techId)
 
-    def canAfford(self, minerals, gas, food):
-        return self.ressources[0] >= minerals and self.ressources[0] >= gas and self.ressources[2]+food <= self.MAX_FOOD
+    def canAfford(self, minerals, gas, food, nuke=0):
+        return self.ressources[self.MINERAL] >= minerals and self.ressources[self.GAS] >= gas and self.ressources[self.FOOD]+food <= self.MAX_FOOD and self.ressources[self.NUCLEAR] >= nuke
 
     def createUnit(self, unitType, constructionBuilding):
         if self.ressources[self.MINERAL] >= u.Unit.BUILD_COST[unitType][u.Unit.MINERAL] and self.ressources[self.GAS] >= u.Unit.BUILD_COST[unitType][u.Unit.GAS]:
@@ -507,7 +507,9 @@ class Player():
                     self.currentPlanet = self.game.galaxy.solarSystemList[i.sunId].planets[i.planetId]
                     self.selectedObjects.append(i)
                 elif isinstance(i, u.SpaceUnit) or i.type == u.Unit.SCOUT or isinstance(i, b.SpaceBuilding) or isinstance(i, b.Mothership) or i.type == b.Building.UTILITY or i.type == b.Building.BARRACK:
-                    self.currentPlanet == None
+                    if self.currentPlanet != None:
+                        self.currentPlanet = None
+                        self.game.parent.view.changeBackground('GALAXY')
                     self.selectedObjects.append(i)
             else:
                 self.listMemory[selected].pop(self.listMemory[selected].index(i))
@@ -523,7 +525,6 @@ class Player():
         for i in self.selectedObjects:
             if isinstance(i, PlayerObject):
                 self.listMemory[selected].append(i)
-        print(self.listMemory[selected])
 
     def calculateFinalBuildingsScore(self):
         score = 0
