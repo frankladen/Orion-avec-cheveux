@@ -385,9 +385,9 @@ class Controller():
                 self.view.changeBackground('GALAXY')
 
         elif action == 'WORMHOLE':
-            target = target.split(',')
+            target = self.changeToInt(self.stripAndSplit(target))
             mothership = self.game.players[actionPlayerId].motherships[int(unitIndex[0])]
-            self.game.makeWormHole(actionPlayerId, [int(math.trunc(float(target[0]))),int(math.trunc(float(target[1])))], [int(math.trunc(float(target[2]))), int(math.trunc(float(target[3])))], mothership)
+            self.game.makeWormHole(actionPlayerId, [target[0],target[1]], [target[2],target[3]], mothership)
 
         elif action == 'UNLOAD':
             target = target.split(',')
