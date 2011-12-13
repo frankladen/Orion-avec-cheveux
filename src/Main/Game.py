@@ -1023,14 +1023,13 @@ class Game():
         self.getMyPlayer().newMemory(selected)
 
     def makeWormHole(self, playerId, startPosition, endPosition, mothership):
-        if self.players[playerId].ressources[p.Player.NUCLEAR] >= WormHole.NUKECOST:
-            gazCost = Helper.calcDistance(startPosition[0], startPosition[1], endPosition[0], endPosition[1])*3
-            gazCost = int(math.trunc(gazCost))
-            if self.players[playerId].ressources[p.Player.GAS] >= gazCost:
-                self.players[playerId].ressources[p.Player.NUCLEAR] -= WormHole.NUKECOST
-                self.players[playerId].ressources[p.Player.GAS] -= gazCost
-                mothership.position = [endPosition[0],endPosition[1]]
-                self.galaxy.wormholes.append(WormHole(startPosition, endPosition))
+        gazCost = Helper.calcDistance(startPosition[0], startPosition[1], endPosition[0], endPosition[1])*3
+        gazCost = int(math.trunc(gazCost))
+        if self.players[playerId].canAfford(0,gazCost, 0,WormHole.NUKECOST):
+            self.players[playerId].ressources[p.Player.NUCLEAR] -= WormHole.NUKECOST
+            self.players[playerId].ressources[p.Player.GAS] -= gazCost
+            mothership.position = [endPosition[0],endPosition[1]]
+            self.galaxy.wormholes.append(WormHole(startPosition, endPosition))
         
     def createWormHole(self, position):
         mothership = self.getMyPlayer().selectedObjects[0]
