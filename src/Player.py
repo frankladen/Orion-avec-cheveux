@@ -496,7 +496,7 @@ class Player():
                 
     def makeGroundUnitsGather(self, units, ressource):
         for i in units:
-            if i != '':
+            if i != '' and i != '[]':
                 if int(i) < len(self.units):
                     self.units[int(i)].changeFlag(ressource, FlagState.GROUND_GATHER)
 

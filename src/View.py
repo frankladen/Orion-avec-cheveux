@@ -496,7 +496,7 @@ class View():
                     elif isinstance(i, u.HealingUnit):
                         self.menuModes.create_image(x, y, image = self.gifRepair,tags = ('selected_all_units',unitList.index(i)), anchor = NW) 
                     elif isinstance(i, u.SpaceBuildingAttack):
-                        self.menuModes.create_image(x, y, image = self.gifAttackUnit, tags = ('selected_unit',unitList.index(i)), anchor = NW)
+                        self.menuModes.create_image(x, y, image = self.gifBattlecruiser, tags = ('selected_unit',unitList.index(i)), anchor = NW)
                     elif isinstance(i, u.NyanCat):
                         self.menuModes.create_image(x, y, image = self.nyan, tags = ('selected_unit',unitList.index(i)), anchor = NW)
                     elif isinstance(i, u.SpaceAttackUnit):
@@ -541,7 +541,7 @@ class View():
                         elif i == Unit.HEALING_UNIT:
                             self.menuModes.create_image(x,y, anchor = NE,image = self.gifRepair,tags = ('selected_all_units',i))
                         elif i == Unit.SPACE_BUILDING_ATTACK:
-                            self.menuModes.create_image(x,y, anchor = NE,image = self.gifAttackUnit,tags = ('selected_all_units',i))
+                            self.menuModes.create_image(x,y, anchor = NE,image = self.gifBattlecruiser,tags = ('selected_all_units',i))
                         elif i == Unit.NYAN_CAT:
                             self.menuModes.create_image(x,y, anchor = NE,image = self.nyan,tags = ('selected_all_units',i))
                         elif i == Unit.ATTACK_SHIP: 
