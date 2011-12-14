@@ -362,8 +362,15 @@ class Game():
         else:
             player.notifications.append(t.Notification([-10000,-10000,-10000],t.Notification.NOT_ENOUGH_RESSOURCES))
         
-    def setGatherFlag(self,ship,ressource):
+    def setGatherFlag(self, ship, ressource):
         units = str(self.getMyPlayer().units.index(ship)) + ","
+        self.parent.pushChange(units, Flag(t.Target([0,0,0]),ressource, FlagState.GATHER))
+
+    def setAllGatherFlag(self, ressource):
+        units = []
+        for i in self.getMyPlayer().selectedObjects:
+            if i.type == u.Unit.CARGO:
+                units += str(self.getMyPlayer().units.index(i)) + ","
         self.parent.pushChange(units, Flag(t.Target([0,0,0]),ressource, FlagState.GATHER))
 
     def makeUnitsGather(self, playerId, unitsId, solarSystemId, astroObjectId, astroObjectType):
@@ -379,6 +386,13 @@ class Game():
 
     def setGroundGatherFlag(self, ship, ressource):
         units = str(self.getMyPlayer().units.index(ship)) + ","
+        self.parent.pushChange(units, Flag(t.Target([0,0,0]), ressource, FlagState.GROUND_GATHER))
+
+    def setAllGroundGatherFlag(self, ressource):
+        units = []
+        for i in self.getMyPlayer().selectedObjects:
+            if i.type == u.Unit.CARGO:
+                units += str(self.getMyPlayer().units.index(i)) + ","
         self.parent.pushChange(units, Flag(t.Target([0,0,0]), ressource, FlagState.GROUND_GATHER))
         
     def makeGroundUnitMove(self, playerId, unitsId, posX, posY, posZ, action):
@@ -903,7 +917,7 @@ class Game():
                             self.setGatherFlag(unit, clickedObj)
                     elif unit.type == unit.CARGO:
                         if isinstance(clickedObj, w.AstronomicalObject):
-                            self.setGatherFlag(unit, clickedObj)
+                            self.setAllGatherFlag(clickedObj)
                         elif isinstance(clickedObj, Mothership) or isinstance(clickedObj, Waypoint):
                             if clickedObj.owner == self.playerId:
                                 self.setGatherFlag(unit, clickedObj)
@@ -933,7 +947,7 @@ class Game():
                 if clickedObj != None and not isinstance(unit, Building):
                     if unit.type == unit.GROUND_GATHER:
                         if isinstance(clickedObj, w.MineralStack) or isinstance(clickedObj, w.GazStack) or isinstance(clickedObj, b.LandingZone):
-                            self.setGroundGatherFlag(unit, clickedObj)
+                            self.setAllGroundGatherFlag(clickedObj)
                     elif unit.type == unit.GROUND_ATTACK:
                         if isinstance(clickedObj, u.Unit) or isinstance(clickedObj, Building):
                             if clickedObj.owner != self.playerId and not self.getMyPlayer().isAlly(clickedObj.owner):

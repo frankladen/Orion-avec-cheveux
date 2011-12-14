@@ -119,7 +119,7 @@ class Notification(Target):
         self.refreshSeen = 0
         self.color = self.COLOR[type]
         self.name = self.NAME[type]
-		self.actionPlayerName = '':
+        self.actionPlayerName = ''
         if actionPlayerName != None:
             self.actionPlayerName = actionPlayerName
             self.name += actionPlayerName
