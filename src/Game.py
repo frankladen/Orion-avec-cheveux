@@ -391,7 +391,7 @@ class Game():
     def setAllGroundGatherFlag(self, ressource):
         units = ""
         for i in self.getMyPlayer().selectedObjects:
-            if i.type == u.Unit.CARGO:
+            if i.type == u.Unit.GROUND_GATHER:
                 units += str(self.getMyPlayer().units.index(i)) + ","
         self.parent.pushChange(units, Flag(t.Target([0,0,0]), ressource, FlagState.GROUND_GATHER))
         
