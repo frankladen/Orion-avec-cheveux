@@ -179,7 +179,8 @@ class Game():
     def resumeBuilding(self, playerId, building, unitIndex):
         for i in unitIndex:
             if i != '':
-                self.players[playerId].units[int(i)].changeFlag(self.players[playerId].buildings[building],FlagState.BUILD)
+                if int(i) < len(self.players[playerId].units):
+                    self.players[playerId].units[int(i)].changeFlag(self.players[playerId].buildings[building],FlagState.BUILD)
 
     #Pour changer le flag des unites selectionne pour le deplacement    
     def setMovingFlag(self,x,y):
