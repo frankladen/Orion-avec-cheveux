@@ -114,7 +114,7 @@ class ControleurServeur(object):
         refresh = []
         #Je détermine le frame minimum de tout les clients
         for r in range(len(self.refreshes)):
-            if self.sockets[r][2] != True:
+            if self.sockets[r][2] != True and not self.sockets[r][4]:
                 refresh.append(self.refreshes[r])
         frameMin = min(refresh)
         #Détermine si l'écart entre les joueurs est trop grand (15 étant une valeur arbitraire, destinée à être modifié)
