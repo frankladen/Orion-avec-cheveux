@@ -481,9 +481,7 @@ class View():
                 x = 0
                 y = 25
                 for i in unitList:
-                    if isinstance(i, u.SpaceAttackUnit):
-                        self.menuModes.create_image(x, y, image = self.gifAttackUnit, tags = ('selected_unit',unitList.index(i)), anchor = NW)
-                    elif isinstance(i, u.GatherShip):
+                    if isinstance(i, u.GatherShip):
                         self.menuModes.create_image(x,y, image = self.gifCargo, tags = ('selected_unit',unitList.index(i)), anchor = NW)
                     elif isinstance(i, u.TransportShip):
                         self.menuModes.create_image(x,y, image = self.gifTransport, tags =  ('selected_unit',unitList.index(i)), anchor = NW)
@@ -501,6 +499,8 @@ class View():
                         self.menuModes.create_image(x, y, image = self.gifAttackUnit, tags = ('selected_unit',unitList.index(i)), anchor = NW)
                     elif isinstance(i, u.NyanCat):
                         self.menuModes.create_image(x, y, image = self.nyan, tags = ('selected_unit',unitList.index(i)), anchor = NW)
+                    elif isinstance(i, u.SpaceAttackUnit):
+                        self.menuModes.create_image(x, y, image = self.gifAttackUnit, tags = ('selected_unit',unitList.index(i)), anchor = NW)
                     elif isinstance(i, u.Unit):
                         self.menuModes.create_image(x,y, image = self.gifUnit, tags = ('selected_unit',unitList.index(i)), anchor = NW)     
                     self.menuModes.create_rectangle(x,y+46,x + (i.hitpoints/i.maxHP) * 52,y+51, fill = 'green')
@@ -530,8 +530,6 @@ class View():
                             self.menuModes.create_image(x,y,anchor = NE, image = self.gifCargo,tags = ('selected_all_units',i))
                         elif i == Unit.TRANSPORT: 
                             self.menuModes.create_image(x,y,anchor = NE, image = self.gifTransport,tags = ('selected_all_units',i))                                
-                        elif i == Unit.ATTACK_SHIP: 
-                            self.menuModes.create_image(x,y, anchor = NE,image = self.gifAttackUnit,tags = ('selected_all_units',i))
                         elif i == Unit.SPECIAL_GATHER:
                             self.menuModes.create_image(x,y, anchor = NE,image = self.gifGroundSpecial,tags = ('selected_all_units',i))
                         elif i == Unit.GROUND_GATHER:
@@ -546,6 +544,8 @@ class View():
                             self.menuModes.create_image(x,y, anchor = NE,image = self.gifAttackUnit,tags = ('selected_all_units',i))
                         elif i == Unit.NYAN_CAT:
                             self.menuModes.create_image(x,y, anchor = NE,image = self.nyan,tags = ('selected_all_units',i))
+                        elif i == Unit.ATTACK_SHIP: 
+                            self.menuModes.create_image(x,y, anchor = NE,image = self.gifAttackUnit,tags = ('selected_all_units',i))
                         elif i == Unit.DEFAULT:
                             self.menuModes.create_image(x,y, anchor = NE, image = self.gifUnit,tags = ('selected_all_units',i))
 
@@ -562,12 +562,12 @@ class View():
                 if isinstance(unit, u.Unit):
                     self.menuModes.create_text(20,140, text = "Vitesse de déplacement : " + str(unit.moveSpeed) + " années lumière à l'heure.", anchor = NW, fill = 'white')
                     if isinstance(unit, u.SpaceAttackUnit) or isinstance(unit, u.GroundAttackUnit) or isinstance(unit, u.SpaceBuildingAttack) or isinstance(unit, u.NyanCat):
-                        if isinstance(unit, u.SpaceAttackUnit):
-                            self.menuModes.create_image(20, 50, image = self.gifAttackUnit)
-                        elif isinstance(unit, u.SpaceBuildingAttack):
+                        if isinstance(unit, u.SpaceBuildingAttack):
                             self.menuModes.create_image(20, 50, image = self.gifBattlecruiser)
                         elif isinstance(unit, u.NyanCat):
                             self.menuModes.create_image(20, 50, image = self.nyan)
+                        elif isinstance(unit, u.SpaceAttackUnit):
+                            self.menuModes.create_image(20, 50, image = self.gifAttackUnit)
                         else:
                             self.menuModes.create_image(20, 50, image = self.gifTank)
                         self.menuModes.create_text(20,160, text = "Vitesse d'attaque : " + str(unit.AttackSpeed),anchor = NW, fill = 'white')
