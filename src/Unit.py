@@ -444,7 +444,10 @@ class SpecialGather(GroundGatherUnit) :
                         ressource.nuclear += self.container
                     self.container = 0
                     self.flag.finalTarget = self.position
-                    player.notifications.append(Notification(self.position, Notification.FINISH_GATHER))
+                    if game.getCurrentPlanet() == self.planet:
+                        player.notifications.append(Notification(self.position, Notification.FINISH_GATHER))
+                    else:
+                        player.notifications.append(Notification(self.planet.position, Notification.FINISH_GATHER))
                     self.flag.flagState = FlagState.STANDBY
 				
     def load(self, player, game):
