@@ -355,12 +355,13 @@ class View():
         if len(selected) > 0:
             playerName = self.menuModes.listEnnemies.get(selected)
             playerId = self.game.getPlayerId(playerName)
-            if self.game.isAllied(playerId, self.game.playerId):
-                self.menuModes.listAllies.insert(END, self.menuModes.listEnnemies.get(selected))
-            else:
-                self.menuModes.listAllies.insert(END, self.menuModes.listEnnemies.get(selected) +  ' ?')
-            self.menuModes.listEnnemies.delete(int(selected[0]))
-            self.parent.changeAlliance(playerId, "Ally")
+            if playerId != -1:
+                if self.game.isAllied(playerId, self.game.playerId):
+                    self.menuModes.listAllies.insert(END, self.menuModes.listEnnemies.get(selected))
+                else:
+                    self.menuModes.listAllies.insert(END, self.menuModes.listEnnemies.get(selected) +  ' ?')
+                self.menuModes.listEnnemies.delete(int(selected[0]))
+                self.parent.changeAlliance(playerId, "Ally")
         
     def changeToEnnemy(self):
         self.gameArea.focus_set()
@@ -369,9 +370,10 @@ class View():
             playerName = self.menuModes.listAllies.get(selected)
             playerName = playerName.replace(" ?", "")
             playerId = self.game.getPlayerId(playerName)
-            self.menuModes.listEnnemies.insert(END, playerName)
-            self.menuModes.listAllies.delete(int(selected[0]))
-            self.parent.changeAlliance(playerId, "Ennemy")
+            if playerId != -1:
+                self.menuModes.listEnnemies.insert(END, playerName)
+                self.menuModes.listAllies.delete(int(selected[0]))
+                self.parent.changeAlliance(playerId, "Ennemy")
             
     def refreshAlliances(self):
         if self.selectedOnglet == self.SELECTED_TEAM:

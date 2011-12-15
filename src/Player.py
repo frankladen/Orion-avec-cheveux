@@ -260,23 +260,8 @@ class Player():
     def inViewRange(self, position):
         x = position[0]
         y = position[1]
-        for i in self.units:
-            if i.isAlive and not isinstance(i, u.GroundUnit):
-                if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
-                    if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
-                        if i.type == u.Unit.TRANSPORT:
-                            if not i.landed:
-                                return True
-                        else:
-                            return True
-        for i in self.buildings:
-            if i.isAlive and i.finished and not isinstance(i, b.GroundBuilding) and not isinstance(i, b.LandingZone):
-                if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
-                    if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
-                        return True
-                    
-        for i in range(len(self.diplomacies)):
-            if self.isAlly(i) and i != self.id:
+        for i in range(len(self.game.players)):
+            if self.isAlly(i):
                 for un in self.game.players[i].units:
                     if un.isAlive and not isinstance(un, u.GroundUnit):
                         if x > un.position[0]-un.viewRange and x < un.position[0]+un.viewRange:

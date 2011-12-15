@@ -731,9 +731,8 @@ class Game():
     def getPlayerId(self, player):
         for i in self.players:
             if i.name == player:
-                player = i.id
-                break
-        return player
+                return i.id
+        return -1
     
     def isAllied(self, player1Id, player2Id):
         if self.players[player1Id].diplomacies[player2Id] == "Ally":

@@ -14,7 +14,8 @@ class IA(Player):
         self.frameAction = 60
         self.frameActuel = 0    
         self.priority = (4, 1, 1, 3, 11)
-        self.maxUnits =(5,1,1,5,0,1)		
+        self.maxUnits =(5,1,1,5,0,1)
+        self.diplomacies = ['Ally','Ally','Ally','Ally','Ally','Ally','Ally','Ally']
         
     def requeteModele(self): #methode que controleur va appeler
         if self.frameActuel == self.frameAction:
@@ -122,9 +123,32 @@ class IA(Player):
         for i in self.units:
             if i.type == unitType:
                 nbr = nbr+1  
-        return nbr          
-                
-              
+        return nbr
+
+    def inViewRange(self, position):
+        x = position[0]
+        y = position[1]
+        for i in self.units:
+            if i.isAlive and not isinstance(i, u.GroundUnit):
+                if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
+                    if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
+                        if i.type == u.Unit.TRANSPORT:
+                            if not i.landed:
+                                return True
+                        else:
+                            return True
+        for i in self.buildings:
+            if i.isAlive and i.finished and not isinstance(i, b.GroundBuilding) and not isinstance(i, b.LandingZone):
+                if x > i.position[0]-i.viewRange and x < i.position[0]+i.viewRange:
+                    if y > i.position[1]-i.viewRange and y < i.position[1]+i.viewRange:
+                        return True
+        if x > self.motherShip.position[0]-self.motherShip.viewRange and x < self.motherShip.position[0]+self.motherShip.viewRange:
+            if y > self.motherShip.position[1]-self.motherShip.viewRange and y < self.motherShip.position[1]+self.motherShip.viewRange:
+                return True
+
+        
+        return False
+
 
 # Joueur IA 1 (stupid)       
 class IA1(IA): # hérite de la classe IA
