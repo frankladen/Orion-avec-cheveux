@@ -437,14 +437,15 @@ class SpecialGather(GroundGatherUnit) :
                     arrived = False
                     self.move()
             if arrived:
-                if ressource.LandedShip != None:
-                    ressource.LandedShip.nuclear += self.container
-                else:
-                    ressource.nuclear += self.container
-                self.container = 0
-                self.flag.finalTarget = self.position
-                player.notifications.append(Notification(self.position, Notification.FINISH_GATHER))
-                self.flag.flagState = FlagState.STANDBY
+                if isinstance(ressource, b.LandingZone):
+                    if ressource.LandedShip != None:
+                        ressource.LandedShip.nuclear += self.container
+                    else:
+                        ressource.nuclear += self.container
+                    self.container = 0
+                    self.flag.finalTarget = self.position
+                    player.notifications.append(Notification(self.position, Notification.FINISH_GATHER))
+                    self.flag.flagState = FlagState.STANDBY
 				
     def load(self, player, game):
         landingZone = self.flag.finalTarget
