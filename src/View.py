@@ -1056,10 +1056,10 @@ class View():
             pNum = len(self.parent.server.getSockets())
             for i in range(0, pNum):
                 Label(lobbyFrame, text=self.parent.server.getSockets()[i][1], fg="white", bg="black", width=10).grid(row=i+3,column=0)
-            Label(lobbyFrame, text='Admin : '+self.parent.server.getSockets()[0][1], fg="white", bg="black").grid(row=12, column=0)
+            Label(lobbyFrame, text='Admin : '+self.parent.server.getSockets()[0][1], fg="white", bg="black").grid(row=13, column=0)
             if self.game.playerId == 0:
-                Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame, bg="black", fg="white").grid(row=12, column=1)
-                Button(lobbyFrame, text='Ajouter un IA', command=self.parent.ajouterIA, bg="black", fg="white").grid(row=12, column=2)
+                Button(lobbyFrame, text='Demarrer la partie', command=self.parent.startGame, bg="black", fg="white").grid(row=13, column=1)
+                Button(lobbyFrame, text='Ajouter un IA', command=self.parent.ajouterIA, bg="black", fg="white").grid(row=12, column=1)
         self.chatLobby = Label(lobbyFrame, anchor=W, justify=LEFT, width=45, background='black', fg='white', relief='raised')
         self.chatLobby.grid(row=2, column=5, rowspan=5)
         self.entryMessLobby = Entry(lobbyFrame, width=35)
