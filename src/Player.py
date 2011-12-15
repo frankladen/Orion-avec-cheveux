@@ -511,6 +511,7 @@ class Player():
                     if self.currentPlanet != None:
                         self.currentPlanet = None
                         self.game.parent.view.changeBackground('GALAXY')
+                        self.game.parent.view.redrawMinimap()
                     self.selectedObjects.append(i)
             else:
                 self.listMemory[selected].pop(self.listMemory[selected].index(i))
