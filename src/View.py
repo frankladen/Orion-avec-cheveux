@@ -1548,7 +1548,7 @@ class View():
             self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+5),distance[0]+hpLeft,distance[1]-(unit.SIZE[unit.type][1]/2+5), outline=color, tag='deletable')
             if unit.owner != self.game.playerId:
                 self.gameArea.create_text(distance[0]-(len(self.game.players[unit.owner].name)/2),distance[1]+((unit.SIZE[unit.type][1]/2)+5), text=self.game.players[unit.owner].name, fill="white", tag='deletable')
-                if isinstance(unit, b.Mothership):
+        if isinstance(unit, b.Mothership):
             armorLeft = ((unit.armor/unit.MAX_ARMOR)*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
             self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+10),distance[0]+(unit.SIZE[unit.type][0]/2),distance[1]-(unit.SIZE[unit.type][1]/2+10), outline="white", tag='deletable')
             self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+10),distance[0]+armorLeft,distance[1]-(unit.SIZE[unit.type][1]/2+10), outline='#888888', tag='deletable')
