@@ -1555,6 +1555,14 @@ class View():
             armorLeft = ((unit.armor/unit.MAX_ARMOR)*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
             self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+10),distance[0]+(unit.SIZE[unit.type][0]/2),distance[1]-(unit.SIZE[unit.type][1]/2+10), outline="white", tag='deletable')
             self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+10),distance[0]+armorLeft,distance[1]-(unit.SIZE[unit.type][1]/2+10), outline='#888888', tag='deletable')
+        if isinstance(unit, b.Building):
+            if unit.MAX_SHIELD > 0:
+                shieldLeft = ((unit.shield/unit.MAX_SHIELD)*(unit.SIZE[unit.type][0]))-(unit.SIZE[unit.type][0])/2
+                pos = 10
+                if isinstance(unit, b.Mothership):
+                    pos = 15
+                self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+pos),distance[0]+(unit.SIZE[unit.type][0]/2),distance[1]-(unit.SIZE[unit.type][1]/2+pos), outline="white", tag='deletable')
+                self.gameArea.create_rectangle(distance[0]-(unit.SIZE[unit.type][0])/2,distance[1]-(unit.SIZE[unit.type][1]/2+pos),distance[0]+shieldLeft,distance[1]-(unit.SIZE[unit.type][1]/2+pos), outline='#00ccff', tag='deletable')
 
     #Dessine la minimap
     def drawMinimap(self):
