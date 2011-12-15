@@ -28,7 +28,7 @@ class Player():
     ABILITY_WORM_HOLE = 9
     ABILITY_WALLS = 10
     #[AttaqueDamage,AttaqueSpeed,MoveSpeed,AttackRange]
-    BONUS = [0,0,0,0,0,0,0,0,0,1,0]
+    BONUS = [0,0,0,0,0,0,0,0,0,0,0]
     MAX_FOOD = 10
     FORCE_BUILD_ACTIVATED = False
     SQUARE_FORMATION = 0

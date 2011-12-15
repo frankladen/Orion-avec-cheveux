@@ -948,7 +948,7 @@ class Game():
                                 if clickedObj.finished == False:
                                     self.resumeBuildingFlag(clickedObj)
                     if isinstance(clickedObj, w.WormHole):
-                        if clickedObj.duration > 0:
+                        if clickedObj.duration > 0 and clickedObj.playerId == self.playerId:
                             self.setWormHoleFlag(clickedObj)
                 else:
                     if isinstance(unit, ConstructionBuilding):
@@ -1060,7 +1060,7 @@ class Game():
         if self.players[playerId].canAfford(0,gazCost, 0,WormHole.NUKECOST) and mothership.wormhole == None:
             self.players[playerId].ressources[p.Player.NUCLEAR] -= WormHole.NUKECOST
             self.players[playerId].ressources[p.Player.GAS] -= gazCost
-            newWormHole = WormHole(startPosition, endPosition)
+            newWormHole = WormHole(startPosition, endPosition, playerId)
             self.galaxy.wormholes.append(newWormHole)
             mothership.wormhole = newWormHole
         

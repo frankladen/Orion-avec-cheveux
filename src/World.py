@@ -273,11 +273,12 @@ class WormHole(Target):
     WIDTH = 125;
     HEIGHT = 125;
     NUKECOST = 2;
-    DEFAULTDURATION = 250
-    def __init__(self, position, destination):
+    DEFAULTDURATION = 600
+    def __init__(self, position, destination, playerId):
         Target.__init__(self, position)
         self.duration = self.DEFAULTDURATION
         self.destination = destination
+        self.playerId = playerId
 
     def action(self):
         self.duration -= 1
