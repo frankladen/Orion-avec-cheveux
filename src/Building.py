@@ -343,6 +343,7 @@ class Mothership(ConstructionBuilding):
         self.attackcount=self.AttackSpeed
         self.armor = 0
         self.killCount = 0
+        self.wormhole = None
 
     def action(self, parent):
         parent.game.checkIfEnemyInRange(self)
@@ -353,6 +354,9 @@ class Mothership(ConstructionBuilding):
             killedIndex = self.attack(parent.game.players)
             if killedIndex[0] > -1:
                 parent.killUnit(killedIndex)
+        if self.wormhole != None:
+            if self.wormhole.duration == 0:
+                self.wormhole = None
         ConstructionBuilding.action(self, parent)
 
     #Applique les bonus du Unit selon les upgrades

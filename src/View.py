@@ -1331,6 +1331,9 @@ class View():
             if player.camera.isInFOV(wormHole.position):
                 distance = player.camera.calcDistance(wormHole.position)
                 self.gameArea.create_image(distance[0], distance[1], image=self.wormhole, tag='deletable')
+            if player.camera.isInFOV(wormHole.destination):
+                distance = player.camera.calcDistance(wormHole.destination)
+                self.gameArea.create_image(distance[0], distance[1], image=self.wormhole, tag='deletable')
 
     #Pour dessiner un soleil     
     def drawSun(self, sunPosition, player, isInFOW):

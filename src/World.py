@@ -73,12 +73,14 @@ class Galaxy():
         self.spawnPoints.append((x,y,0))
         return [x,y,0]
     
-    def select(self, position):
+    def select(self, position, wantWormhole=True):
         clickedObj = None
-        for i in self.wormholes:
-            wormhole = i.select(position)
-            if wormhole != None and clickedObj == None:
-                clickedObj = wormhole
+        if wantWormhole:
+            for i in self.wormholes:
+                if i.duration > 0:
+                    wormhole = i.select(position)
+                    if wormhole != None and clickedObj == None:
+                        clickedObj = wormhole
         if clickedObj == None:
             for i in self.solarSystemList:
                 spaceObj = i.select(position)
@@ -271,9 +273,10 @@ class WormHole(Target):
     WIDTH = 125;
     HEIGHT = 125;
     NUKECOST = 2;
+    DEFAULTDURATION = 250
     def __init__(self, position, destination):
         Target.__init__(self, position)
-        self.duration = 1200
+        self.duration = self.DEFAULTDURATION
         self.destination = destination
 
     def action(self):
