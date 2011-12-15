@@ -710,6 +710,8 @@ class Game():
         elif type == "doabarrelroll":
             un = u.NyanCat(u.Unit.NYAN_CAT, [0,0,0], playerId)
             self.players[playerId].units.append(un)
+        elif type == "allyourbasesbelongtous":
+            self.players[playerId].motherships[0].viewRange = 1000000000
     
     def demandAlliance(self, playerId, otherPlayerId, newStatus):
         self.players[playerId].changeDiplomacy(otherPlayerId, newStatus)

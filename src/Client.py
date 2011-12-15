@@ -89,6 +89,8 @@ class Controller():
             self.pushChange(0,Flag(None,"forcebuild",FlagState.CHEAT))
         elif mess == "doabarrelroll":
             self.pushChange(0,Flag(None,"doabarrelroll",FlagState.CHEAT))
+        elif mess == "allyourbasesbelongtous":
+            self.pushChange(0,Flag(None,"allyourbasesbelongtous",FlagState.CHEAT))
         elif mess.find("\\t ") == 0:
             mess = mess.split("\\t ")
             mess = "(Alliés) "+mess[1]
