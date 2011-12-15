@@ -390,6 +390,27 @@ class Mothership(ConstructionBuilding):
                 self.flag = Flag(t.Target(self.position), t.Target(self.position), FlagState.BUILD_UNIT)
                 return (-1, -1)
 
+    def takeDammage(self, amount, players):
+        self.shieldRegenCount = self.REGEN_WAIT_TIME
+        self.shieldRegenAfterAttack = self.REGEN_WAIT_TIME_AFTER_ATTACK
+        if self.shield > 0:
+            if self.shield < amount:
+                self.shield = 0
+            else:
+                self.shield -= amount
+        elif self.armor > 0:
+            if self.armor < amount:
+                self.armor = 0
+            else:
+                self.armor -= amount
+        else:
+            if self.hitpoints <= amount:
+                self.hitpoints = 0
+                return True
+            else:
+                self.hitpoints -= amount
+        return False
+
 class Barrack(ConstructionBuilding):
     def __init__(self,  type, position, owner):
         ConstructionBuilding.__init__(self, type, position, owner)
