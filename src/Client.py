@@ -274,6 +274,9 @@ class Controller():
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget)
             elif flag.flagState == FlagState.BUY_TECH:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
+            elif flag.flagState == FlagState.WORMHOLE:
+                wormholeId = self.game.galaxy.wormholes.index(flag.finalTarget)
+                actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(wormholeId)
             elif flag.flagState == FlagState.LOAD:
                 planetId = flag.finalTarget.planetId
                 solarId = flag.finalTarget.sunId
@@ -402,6 +405,10 @@ class Controller():
         elif action == 'UNLOAD':
             target = target.split(',')
             self.game.makeZoneUnload(int(unitIndex[0]), actionPlayerId, int(target[0]), int(target[1]))
+
+        elif action == str(FlagState.WORMHOLE):
+            target = self.changeToInt(self.stripAndSplit(target))
+            self.game.makeUnitGoToWormhole(unitIndex, actionPlayerId, target[0])
 
         elif action == str(FlagState.NOTIFICATION):
             target = self.changeToInt(self.stripAndSplit(target))

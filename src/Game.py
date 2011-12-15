@@ -281,6 +281,17 @@ class Game():
         if units != "":
             self.pushChange(units, Flag(unit.owner,attackedUnit,FlagState.ATTACK))
 
+    def setWormHoleFlag(self, wormhole):
+        units = ""
+        for i in self.getMyPlayer().selectedObjects:
+            if isinstance(i, u.Unit):              
+                units += str(self.getMyPlayer().units.index(i)) + ","
+        self.parent.pushChange(units, Flag(self.playerId, wormhole, FlagState.WORMHOLE))
+
+    def makeUnitGoToWormhole(self, units, playerId, wormholeId):
+        wormhole = self.galaxy.wormholes[wormholeId]
+        self.players[playerId].makeUnitGoToWormhole(units, wormhole)
+
     def makeUnitsAttack(self, playerId, units, targetPlayer, targetUnit, type):
         self.players[playerId].makeUnitsAttack(units, self.players[targetPlayer], targetUnit, type)
 
@@ -936,6 +947,9 @@ class Game():
                             if clickedObj.owner == self.playerId:
                                 if clickedObj.finished == False:
                                     self.resumeBuildingFlag(clickedObj)
+                    if isinstance(clickedObj, w.WormHole):
+                        if clickedObj.duration > 0:
+                            self.setWormHoleFlag(clickedObj)
                 else:
                     if isinstance(unit, ConstructionBuilding):
                         self.setRallyPointPosition(pos)

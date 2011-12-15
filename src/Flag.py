@@ -32,6 +32,7 @@ class FlagState():
     CHEAT = 134217728
     ATTACK_BUILDING = 268435456
     LINK_WAYPOINTS = 536870912
+    WORMHOLE = 1073741824
 
 #Represente un flag
 class Flag():

@@ -75,10 +75,15 @@ class Galaxy():
     
     def select(self, position):
         clickedObj = None
-        for i in self.solarSystemList:
-            spaceObj = i.select(position)
-            if spaceObj != None and clickedObj == None:
-                clickedObj = spaceObj
+        for i in self.wormholes:
+            wormhole = i.select(position)
+            if wormhole != None and clickedObj == None:
+                clickedObj = wormhole
+        if clickedObj == None:
+            for i in self.solarSystemList:
+                spaceObj = i.select(position)
+                if spaceObj != None and clickedObj == None:
+                    clickedObj = spaceObj
         return clickedObj
 
 #Classe qui represente 1 seul systeme solaire

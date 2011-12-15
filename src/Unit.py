@@ -61,6 +61,8 @@ class Unit(PlayerObject):
             self.patrol()
         elif self.flag.flagState == FlagState.BUILD:
             self.build(self.flag.finalTarget, parent)
+        elif self.flag.flagState == FlagState.WORMHOLE:
+            self.gotoWormHole(parent)
     
     #La deplace d'un pas vers son flag et si elle est rendu, elle change arrete de bouger    
     def move(self):
@@ -89,6 +91,18 @@ class Unit(PlayerObject):
             self.flag.finalTarget = self.before
             self.move()
         return None
+
+    def gotoWormHole(self, player):
+        wormhole = self.flag.finalTarget
+        arrived = True
+        if self.position[0] < self.flag.finalTarget.position[0] or self.position[0] > self.flag.finalTarget.position[0]:
+            if self.position[1] < self.flag.finalTarget.position[1] or self.position[1] > self.flag.finalTarget.position[1]:
+                self.move()
+                arrived = False
+        if arrived:
+            temp = [wormhole.destination[0], wormhole.destination[1]]
+            self.position = temp
+            self.flag.flagState = FlagState.STANDBY
 
     def select(self, position):
         if self.isAlive:

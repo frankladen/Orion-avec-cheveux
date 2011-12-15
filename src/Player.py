@@ -500,6 +500,12 @@ class Player():
                 if int(i) < len(self.units):
                     self.units[int(i)].changeFlag(ressource, FlagState.GROUND_GATHER)
 
+    def makeUnitGoToWormhole(self, units, wormhole):
+        for i in units:
+            if i != '':
+                if int(i) < len(self.units):
+                    self.units[int(i)].changeFlag(wormhole, FlagState.WORMHOLE)
+
     def selectMemory(self, selected):
         self.selectedObjects = []
         for i in self.listMemory[selected]:
