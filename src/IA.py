@@ -14,10 +14,8 @@ class IA(Player):
         Player.__init__(self, name, game, id , colorId)       
         self.frameAction = 60
         self.frameActuel = 0    
-        self.priority = (4, 1, 1, 3, 11)
-        self.maxUnits =(5,1,1,5,0,1)
-        self.buildingsPriority = (1,2,4,7)
-        self.maxBuildings = (1,1,3,1)
+        self.priority = (1,4,3,2,11)
+        self.maxUnits =(1,5,1,4,2)
         self.diplomacies = ['Ally','Ally','Ally','Ally','Ally','Ally','Ally','Ally']
         
     def requeteModele(self): #methode que controleur va appeler
@@ -65,34 +63,44 @@ class IA(Player):
     def explore(self):
         for i in self.units:
             if i.type == Unit.SCOUT:
-                x = random.randint(1,800) - 400
-                y = random.randint(1,800) - 400
-                while (i.position[0]+x < (self.game.galaxy.width/2)*-1 or i.position[0]+x > self.game.galaxy.width/2):
+                if i.flag.flagState != FlagState.BUILD:
                     x = random.randint(1,800) - 400
-                while (i.position[1]+y < (self.game.galaxy.height/2)*-1 or i.position[1]+y > self.game.galaxy.height/2):
                     y = random.randint(1,800) - 400
-                i.changeFlag(Target([i.position[0]+x,i.position[1]+y,0]), FlagState.MOVE)
+                    while (i.position[0]+x < (self.game.galaxy.width/2)*-1 or i.position[0]+x > self.game.galaxy.width/2):
+                        x = random.randint(1,800) - 400
+                    while (i.position[1]+y < (self.game.galaxy.height/2)*-1 or i.position[1]+y > self.game.galaxy.height/2):
+                        y = random.randint(1,800) - 400
+                    i.changeFlag(Target([i.position[0]+x,i.position[1]+y,0]), FlagState.MOVE)
                  
     def choixAction(self):
         r = random.randint(1,4)    
         if r == 1:
             self.explore()
         elif r == 2:
-            ressource = self.trouverRessource()
-            if ressource != None:
-               self.envoyerCargo(ressource)
+            self.checkRessources()
         elif r == 3:
             self.decisionBuildUnit()
         else:
             self.checkIfEnemyInRange()
-          
+
+    def checkRessources(self):
+        ressource = self.trouverRessource()
+        if ressource != None:
+            self.envoyerCargo(ressource)
+        else:
+            self.explore()
+            
     def decisionBuildUnit(self):
+        addedSomething = False
         for i in self.priority:
             if self.needBuild(i):
                 if self.canAfford(Unit.BUILD_COST[i][0],Unit.BUILD_COST[i][1], Unit.BUILD_COST[i][2]):
                     b =self.getStandByBuilding(i)
                     if b != None:
                         b.addUnitToQueue(i)
+                        return None
+        if not addedSomething:
+            self.checkRessources()
     
     def haveBuilding(self, unitType):
         for i in self.buildings:
@@ -102,18 +110,20 @@ class IA(Player):
     
     def needBuild(self, unitType):
         if self.nbrUnit(unitType) < self.maxUnits[self.priority.index(unitType)]:
-            if unitType == Unit.TRANSPORT:
+            if unitType in (Unit.SCOUT, Unit.CARGO):
+                return True #meme pour scout et les autres
+            elif unitType == Unit.TRANSPORT:
                 if self.haveBuilding(Building.UTILITY):
                     return True
                 else:
                     self.buildBuilding(Building.UTILITY)
-            elif unitType == Unit.ATTACK_SHIP or Unit.SPACE_BUILDING_ATTACK:
+                    return False
+            elif unitType in (Unit.ATTACK_SHIP, Unit.SPACE_BUILDING_ATTACK):
                 if self.haveBuilding(Building.BARRACK):
                     return True
                 else:
                     self.buildBuilding(Building.BARRACK)
-            elif unitType == Unit.SCOUT or Unit.CARGO:
-                return True #meme pour scout et les autres
+                    return False
         return False
 
     def buildBuilding(self, buildingType):
@@ -142,20 +152,28 @@ class IA(Player):
 
     def checkIfEnemyInRange(self):
         unit = self.getNearestScoutFromMothership()
-        for pl in self.players:
-            if pl.isAlive:
-                if pl.id != unit.owner and self.players[unit.owner].isAlly(pl.id) == False:
-                    enemyUnit = pl.hasUnitInRange(unit.position, unit.range, onPlanet, planetId, solarSystemId)
-                    if enemyUnit != None:
-                        attackShip = self.getFirstAttackShipStandBy(enemyUnit.position)
-                        if attackShip != None:
-                            self.game.makeUnitsAttack(self.id, [str(self.units.index(attackShip))],enemyUnit.owner,self.game.players[enemyUnit.owner].units.index(enemyUnit), "u")
+        if unit != None:
+            for pl in self.game.players:
+                if pl.isAlive:
+                    if pl.id != unit.owner and (self.game.players[unit.owner].isAlly(pl.id) == False or isinstance(pl, IA)):
+                        enemyUnit = pl.hasUnitInRange(unit.position, unit.viewRange)
+                        if enemyUnit != None:
+                            attackShip = self.getFirstAttackShipStandBy(enemyUnit.position)
+                            if attackShip != None:
+                                if attackShip.type == Unit.ATTACK_SHIP:
+                                    attackShip.changeFlag(enemyUnit, FlagState.ATTACK)
+                                else:
+                                    attackShip.changeFlag(enemyUnit, FlagState.ATTACK_BUILDING)
+                        else:
+                            self.decisionBuildUnit()
+        else:
+            self.decisionBuildUnit()
 
     def getFirstAttackShipStandBy(self, enemyPosition):
         distance = 985943
         attack = None
         for un in self.units:
-            if un.type in (un.ATTACK_SHIP,un.SPACE_ATTACK_BUILDING):
+            if un.type in (un.ATTACK_SHIP,un.SPACE_BUILDING_ATTACK):
                 if un.flag.flagState != FlagState.ATTACK:
                     atdist = Helper.calcDistance(un.position[0],un.position[1],enemyPosition[0],enemyPosition[1])
                     if atdist < distance:
@@ -165,28 +183,28 @@ class IA(Player):
     
     def getPositionBuild(self, buildType):
         modoPoso = self.motherships[0].position
-        x = random.randint(int(modoPoso[0])-500,int(modoPoso[0])+500)
-        y = random.randint(int(modoPoso[1])-500,int(modoPoso[1])+500)
-        if x < 0:
-            x = Building.SIZE[buildType][0]
-        elif x > self.game.galaxy.width:
-            x = self.game.galaxy.width - Building.SIZE[buildType][0]
-        if y < 0:
-            y = Building.SIZE[buildType][1]
-        elif y > self.game.galaxy.height:
-            y = self.game.galaxy.height - Building.SIZE[buildType][1]
+        x = random.randint(int(modoPoso[0])-250,int(modoPoso[0])+250)
+        y = random.randint(int(modoPoso[1])-250,int(modoPoso[1])+250)
+        if x < -1*(self.game.galaxy.width/2):
+            x = -1*(self.game.galaxy.width/2) + Building.SIZE[buildType][0]
+        elif x > (self.game.galaxy.width/2):
+            x = -1*(self.game.galaxy.width/2) - Building.SIZE[buildType][0]
+        if y < -1*(self.game.galaxy.height/2):
+            y = -1*(self.game.galaxy.height/2) + Building.SIZE[buildType][1]
+        elif y > (self.game.galaxy.height/2):
+            y = (self.game.galaxy.height/2) - Building.SIZE[buildType][1]
         return (x,y,0)
             
     def getStandByBuilding(self, unitType):
-        if unitType == 4 or unitType == 1:
+        if unitType == Unit.CARGO or unitType == Unit.SCOUT:
             for i in self.motherships:
                 if i.flag.flagState == FlagState.STANDBY:
                     return i 
-        elif unitType == 3: #or repaire
+        else:
             for i in self.buildings:
-                if i.type == Building.UTILITY:
+                if (i.type == Building.UTILITY and unitType == Unit.TRANSPORT) or (i.type == Building.BARRACK and unitType in (Unit.ATTACK_SHIP, Unit.SPACE_BUILDING_ATTACK)):
                     if i.flag.flagState  == FlagState.STANDBY:
-                        return i 
+                        return i
             return None
     
     def nbrUnit(self,unitType):
