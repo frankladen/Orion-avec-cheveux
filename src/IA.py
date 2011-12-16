@@ -16,6 +16,7 @@ class IA(Player):
         self.frameActuel = 0    
         self.priority = (1,4,3,2,11)
         self.maxUnits =(1,5,1,4,2)
+        self.enemyDiscovered = []
         self.diplomacies = ['Ally','Ally','Ally','Ally','Ally','Ally','Ally','Ally']
         
     def requeteModele(self): #methode que controleur va appeler
@@ -55,52 +56,70 @@ class IA(Player):
         return None
                     
     def envoyerCargo(self,ressource):
+        sentOne = False
         for i in self.units:
             if i.type == Unit.CARGO:
                 if i.flag.flagState == FlagState.STANDBY:
                     i.changeFlag(ressource,FlagState.GATHER)
+                    sentOne = True
+        return sentOne
                     
     def explore(self):
+        if self.nbrUnit(Unit.ATTACK_SHIP)+self.nbrUnit(Unit.SPACE_BUILDING_ATTACK) > 3:
+            moveRange = 800
+            if len(self.enemyDiscovered) > 0:
+                self.sendToAttackEnemy()
+        else:
+            moveRange = 400
         for i in self.units:
             if i.type == Unit.SCOUT:
                 if i.flag.flagState != FlagState.BUILD:
-                    x = random.randint(1,800) - 400
-                    y = random.randint(1,800) - 400
+                    x = random.randint(-1*(moveRange),moveRange)
+                    y = random.randint(-1*(moveRange),moveRange)
                     while (i.position[0]+x < (self.game.galaxy.width/2)*-1 or i.position[0]+x > self.game.galaxy.width/2):
-                        x = random.randint(1,800) - 400
+                        x = random.randint(-1*(moveRange),moveRange)
                     while (i.position[1]+y < (self.game.galaxy.height/2)*-1 or i.position[1]+y > self.game.galaxy.height/2):
-                        y = random.randint(1,800) - 400
+                        y = random.randint(-1*(moveRange),moveRange)
                     i.changeFlag(Target([i.position[0]+x,i.position[1]+y,0]), FlagState.MOVE)
+
+        self.checkIfSawEnemy()
+        self.checkIfEnemyInRange()
+        self.checkRessources()
                  
     def choixAction(self):
-        r = random.randint(1,4)    
+        r = random.randint(1,2)    
         if r == 1:
             self.explore()
         elif r == 2:
-            self.checkRessources()
-        elif r == 3:
             self.decisionBuildUnit()
-        else:
-            self.checkIfEnemyInRange()
+
+    def checkIfSawEnemy(self):
+        unit = self.getNearestScoutFromMothership()
+        if unit != None:
+            for pl in self.game.players:
+                if pl != self:
+                    for modo in pl.motherships:
+                        if modo.isInRange(unit.position, unit.viewRange):
+                            self.enemyDiscovered.append(modo)
 
     def checkRessources(self):
         ressource = self.trouverRessource()
         if ressource != None:
-            self.envoyerCargo(ressource)
-        else:
-            self.explore()
+            if self.envoyerCargo(ressource):
+                if Helper.calcDistance(ressource.position[0],ressource.position[1],self.motherships[0].position[0], self.motherships[0].position[1]) > 200:
+                    self.buildBuilding(Building.WAYPOINT)
             
     def decisionBuildUnit(self):
-        addedSomething = False
         for i in self.priority:
             if self.needBuild(i):
                 if self.canAfford(Unit.BUILD_COST[i][0],Unit.BUILD_COST[i][1], Unit.BUILD_COST[i][2]):
                     b =self.getStandByBuilding(i)
                     if b != None:
+                        self.ressources[0] -= Unit.BUILD_COST[i][0]
+                        self.ressources[1] -= Unit.BUILD_COST[i][1]
+                        self.ressources[2] += Unit.BUILD_COST[i][2]
                         b.addUnitToQueue(i)
                         return None
-        if not addedSomething:
-            self.checkRessources()
     
     def haveBuilding(self, unitType):
         for i in self.buildings:
@@ -130,6 +149,8 @@ class IA(Player):
         if self.canAfford(Building.COST[buildingType][0],Building.COST[buildingType][0],0):
             scout = self.getNearestScoutFromMothership()
             if scout != None:
+                self.ressources[0] -= Building.COST[buildingType][0]
+                self.ressources[1] -= Building.COST[buildingType][1]
                 if Building.INSPACE[buildingType]:
                     positionBuilding = self.getPositionBuild(buildingType)
                     self.game.buildBuilding(self.id, positionBuilding, FlagState.BUILD, [str(self.units.index(scout))], buildingType)
@@ -164,10 +185,6 @@ class IA(Player):
                                     attackShip.changeFlag(enemyUnit, FlagState.ATTACK)
                                 else:
                                     attackShip.changeFlag(enemyUnit, FlagState.ATTACK_BUILDING)
-                        else:
-                            self.decisionBuildUnit()
-        else:
-            self.decisionBuildUnit()
 
     def getFirstAttackShipStandBy(self, enemyPosition):
         distance = 985943
@@ -180,11 +197,29 @@ class IA(Player):
                         distance = atdist
                         attack = un
         return attack
+
+    def sendToAttackEnemy(self):
+        sendToAttack = []
+        for attacks in self.units:
+            if attacks.type in (Unit.ATTACK_SHIP,Unit.SPACE_BUILDING_ATTACK):
+                sendToAttack.append(un)
+        sendToAttack.pop(len(sendToAttack)-1)
+        sendToAttack.pop(len(sendToAttack)-1)
+        for att in sendToAttack:
+            if att.type == Unit.ATTACK_SHIP:
+                att.changeFlag(self.enemyDiscovered[0], FlagState.ATTACK)
+            else:
+                att.changeFlag(self.enemyDiscovered[0], FlagState.ATTACK_BUILDING)
     
     def getPositionBuild(self, buildType):
-        modoPoso = self.motherships[0].position
-        x = random.randint(int(modoPoso[0])-250,int(modoPoso[0])+250)
-        y = random.randint(int(modoPoso[1])-250,int(modoPoso[1])+250)
+        if buildType != Building.WAYPOINT:
+            modoPoso = self.motherships[0].position
+            x = random.randint(int(modoPoso[0])-250,int(modoPoso[0])+250)
+            y = random.randint(int(modoPoso[1])-250,int(modoPoso[1])+250)
+        else:
+            scout = self.getNearestScoutFromMothership().position
+            x = random.randint(int(scout[0])-15,int(scout[0])+15)
+            y = random.randint(int(scout[1])-15,int(scout[1])+15)
         if x < -1*(self.game.galaxy.width/2):
             x = -1*(self.game.galaxy.width/2) + Building.SIZE[buildType][0]
         elif x > (self.game.galaxy.width/2):
