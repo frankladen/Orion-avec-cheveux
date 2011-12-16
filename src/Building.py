@@ -267,39 +267,6 @@ class ConstructionBuilding(Building):
             self.unitBeingConstruct[0].constructionProgress = self.unitBeingConstruct[0].constructionProgress + 1
         else:
             self.flag.flagState = FlagState.STANDBY
-               
-    def addUnitToQueue(self, unitType, galaxy=None, forcebuild=False):
-        p = [self.position[0], self.position[1], 0]
-        if unitType == u.Unit.SCOUT:
-            un = u.Unit( u.Unit.SCOUT, p, self.owner)
-        elif unitType == u.Unit.ATTACK_SHIP:
-            un = u.SpaceAttackUnit( u.Unit.ATTACK_SHIP, p, self.owner)
-        elif unitType == u.Unit.CARGO:
-            un = u.GatherShip( u.Unit.CARGO, p, self.owner)
-        elif unitType == u.Unit.TRANSPORT:
-            un = u.TransportShip( u.Unit.TRANSPORT, p, self.owner)
-        elif unitType == u.Unit.HEALING_UNIT:
-            un = u.HealingUnit(u.Unit.HEALING_UNIT, p, self.owner)
-        elif unitType == u.Unit.GROUND_GATHER:
-            un = u.GroundGatherUnit( u.Unit.GROUND_GATHER, p, self.owner, self.planetId, self.sunId,True)
-            un.planet = galaxy.solarSystemList[self.sunId].planets[self.planetId]
-        elif unitType == u.Unit.GROUND_ATTACK:
-            un = u.GroundAttackUnit( u.Unit.GROUND_ATTACK, p, self.owner, self.planetId, self.sunId,True)
-            un.planet = galaxy.solarSystemList[self.sunId].planets[self.planetId]
-        elif unitType == u.Unit.GROUND_BUILDER_UNIT:
-            un = u.GroundBuilderUnit( u.Unit.GROUND_BUILDER_UNIT, p, self.owner, self.planetId, self.sunId,True)
-            un.planet = galaxy.solarSystemList[self.sunId].planets[self.planetId]
-        elif unitType == u.Unit.SPECIAL_GATHER:
-            un = u.SpecialGather( u.Unit.SPECIAL_GATHER, p, self.owner, self.planetId, self.sunId,True)
-            un.planet = galaxy.solarSystemList[self.sunId].planets[self.planetId]
-        elif unitType == u.Unit.SPACE_BUILDING_ATTACK:
-            un = u.SpaceBuildingAttack( u.Unit.SPACE_BUILDING_ATTACK, p, self.owner)
-        if forcebuild:
-            un.buildTime = 1
-            if unitType in (u.Unit.SPECIAL_GATHER, u.Unit.GROUND_GATHER, u.Unit.CARGO):
-                un.GATHERTIME = 0
-        self.unitBeingConstruct.append(un)
-        
                                            
     def getUnitBeingConstructAt(self, unitId):
         return self.unitBeingConstruct[unitId]
@@ -359,6 +326,18 @@ class Mothership(ConstructionBuilding):
                 self.wormhole = None
         ConstructionBuilding.action(self, parent)
 
+    def addUnitToQueue(self, unitType, galaxy=None, forcebuild=False):
+        p = [self.position[0], self.position[1], 0]
+        if unitType == u.Unit.SCOUT:
+            un = u.Unit( u.Unit.SCOUT, p, self.owner)
+        elif unitType == u.Unit.CARGO:
+            un = u.GatherShip( u.Unit.CARGO, p, self.owner)
+        if forcebuild:
+            un.buildTime = 1
+            if unitType == u.Unit.CARGO:
+                un.GATHERTIME = 0
+        self.unitBeingConstruct.append(un)
+        
     #Applique les bonus du Unit selon les upgrades
     def applyBonuses(self, bonuses):
         if self.finished:
@@ -421,12 +400,32 @@ class Barrack(ConstructionBuilding):
         self.flag.finalTarget = t.Target(position)        
         self.owner = owner
 
+    def addUnitToQueue(self, unitType, galaxy=None, forcebuild=False):
+        p = [self.position[0], self.position[1], 0]
+        if unitType == u.Unit.ATTACK_SHIP:
+            un = u.SpaceAttackUnit( u.Unit.ATTACK_SHIP, p, self.owner)
+        elif unitType == u.Unit.SPACE_BUILDING_ATTACK:
+            un = u.SpaceBuildingAttack( u.Unit.SPACE_BUILDING_ATTACK, p, self.owner)
+        self.unitBeingConstruct.append(un)
+        if forcebuild:
+            un.buildTime = 1
+
 class Utility(ConstructionBuilding):
     def __init__(self,  type, position, owner):
         ConstructionBuilding.__init__(self, type, position, owner)
         self.flag.finalTarget = t.Target(position)        
         self.owner = owner
-   
+
+    def addUnitToQueue(self, unitType, galaxy=None, forcebuild=False):
+        p = [self.position[0], self.position[1], 0]
+        if unitType == u.Unit.TRANSPORT:
+            un = u.TransportShip( u.Unit.TRANSPORT, p, self.owner)
+        elif unitType == u.Unit.HEALING_UNIT:
+            un = u.HealingUnit(u.Unit.HEALING_UNIT, p, self.owner)
+        self.unitBeingConstruct.append(un)
+        if forcebuild:
+            un.buildTime = 1
+
 class LandingZone(ConstructionBuilding):
     WIDTH = 75
     HEIGHT = 75
@@ -473,6 +472,26 @@ class LandingZone(ConstructionBuilding):
             if self.hitpoints <= 0:
                 return True
         return False
+
+    def addUnitToQueue(self, unitType, galaxy=None, forcebuild=False):
+        p = [self.position[0], self.position[1], 0]
+        if unitType == u.Unit.GROUND_GATHER:
+            un = u.GroundGatherUnit( u.Unit.GROUND_GATHER, p, self.owner, self.planetId, self.sunId,True)
+            un.planet = galaxy.solarSystemList[self.sunId].planets[self.planetId]
+        elif unitType == u.Unit.GROUND_ATTACK:
+            un = u.GroundAttackUnit( u.Unit.GROUND_ATTACK, p, self.owner, self.planetId, self.sunId,True)
+            un.planet = galaxy.solarSystemList[self.sunId].planets[self.planetId]
+        elif unitType == u.Unit.GROUND_BUILDER_UNIT:
+            un = u.GroundBuilderUnit( u.Unit.GROUND_BUILDER_UNIT, p, self.owner, self.planetId, self.sunId,True)
+            un.planet = galaxy.solarSystemList[self.sunId].planets[self.planetId]
+        elif unitType == u.Unit.SPECIAL_GATHER:
+            un = u.SpecialGather( u.Unit.SPECIAL_GATHER, p, self.owner, self.planetId, self.sunId,True)
+            un.planet = galaxy.solarSystemList[self.sunId].planets[self.planetId]
+        if forcebuild:
+            un.buildTime = 1
+            if unitType in (u.Unit.SPECIAL_GATHER, u.Unit.GROUND_GATHER):
+                un.GATHERTIME = 0
+        self.unitBeingConstruct.append(un)
 
 class Wall():
     ATTACK_DAMAGE = 3
