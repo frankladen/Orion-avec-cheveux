@@ -328,7 +328,7 @@ class Controller():
         for i in self.server.getChange(self.game.playerId, self.refresh):
             self.game.changes.append(i)
         for changeString in self.game.changes:
-            if int(changeString.split("/")[4]) == self.refresh:
+            if int(changeString.split("/")[4]) <= self.refresh:
                 self.doAction(changeString)
                 toRemove.append(changeString)
         for tR in toRemove:

@@ -299,7 +299,9 @@ class Game():
         if hasToKill:
             self.players[killedIndexes[1]].killUnit(killedIndexes)
             if killedIndexes[2] == True:
-                if isinstance(self.players[killedIndexes[1]].buildings[killedIndexes[0]], Mothership):
+                if isinstance(self.players[killedIndexes[1]].buildings[killedIndexes[0]], LandingZone):
+                    self.players[killedIndexes[1]].planets.remove(self.players[killedIndexes[1]].buildings[killedIndexes[0]].planet)
+                elif isinstance(self.players[killedIndexes[1]].buildings[killedIndexes[0]], Mothership):
                     mothership = self.players[killedIndexes[1]].buildings[killedIndexes[0]]
                     if self.players[killedIndexes[1]].motherships.index(mothership) == 0:
                         if len(self.players[killedIndexes[1]].motherships) >= 2:
