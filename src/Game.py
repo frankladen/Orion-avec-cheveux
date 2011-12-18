@@ -326,6 +326,12 @@ class Game():
         if landingZone in planet.landingZones:
             planet.landingZones.remove(landingZone)
 
+    def addMothershipEnemy(self, mothership):
+        for modo in self.getMyPlayer().mothershipsFound:
+            if modo == mothership:
+                return None
+        self.getMyPlayer().mothershipsFound.append(mothership)
+
     def setBuyTech(self, techType, index):
         self.parent.pushChange(techType, Flag(0,t.Target([int(index), self.getMyPlayer().getSelectedBuildingIndex(),0]),FlagState.BUY_TECH))
 

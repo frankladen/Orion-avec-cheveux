@@ -58,6 +58,7 @@ class View():
         self.selectStart = [0,0]
         self.selectEnd = [0,0]
         self.positionMouse = [0,0,0]
+        self.fowMothership = PhotoImage(file='images/Ships/Motherships/fowModo.gif')
         self.sun=PhotoImage(file='images/Galaxy/sun.gif')
         self.sunFOW = PhotoImage(file='images/Galaxy/sunFOW.gif')
         self.planet=PhotoImage(file='images/Galaxy/planet.gif')
@@ -1304,6 +1305,8 @@ class View():
                                 self.gameArea.create_image(rallyView[0],rallyView[1], image = self.gifRally, tag='deletable')
                         if self.game.getMyPlayer().inViewRange(j.position):
                             self.drawBuilding(j,i,False)
+                            if isinstance(j, b.Mothership) and i.id != self.game.playerId:
+                                self.game.addMothershipEnemy(j)
                 for j in i.units:
                     if j.isAlive and not isinstance(j, GroundUnit):
                         if self.game.getMyPlayer().inViewRange(j.position):
@@ -1313,6 +1316,10 @@ class View():
                         self.drawWall(j, i)
                 for j in i.bullets:
                     self.drawBullet(j, i, False)
+                for j in i.mothershipsFound:
+                    if j.isAlive:
+                        if not self.game.getMyPlayer().inViewRange(j.position):
+                            self.drawAlreadySeenMothership(j)
                     
         if self.dragging:
             self.drawSelectionBox()
@@ -1392,7 +1399,12 @@ class View():
                     self.gameArea.create_image(distance[0],distance[1],image=self.asteroid, tag='deletable')
                 else:
                     self.gameArea.create_image(distance[0],distance[1],image=self.asteroidFOW, tag='deletable')
-                    
+
+    def drawAlreadySeenMothership(self, building):
+        buildingPosition = building.position
+        distance = self.game.getMyPlayer().camera.calcDistance(buildingPosition)
+        self.gameArea.create_image(distance[0], distance[1], image = self.fowMothership, tag='deletable')
+              
     def drawBuilding(self, building,  player, isInFOW):
         buildingPosition = building.position
         if self.game.getMyPlayer().camera.isInFOV(buildingPosition):
@@ -1591,6 +1603,11 @@ class View():
                         if j.isAlive and not isinstance(j, b.GroundBuilding) and not isinstance(j, b.LandingZone):
                             if j.finished:
                                 self.drawMiniBuilding(j)
+                    if i.id == self.game.playerId:
+                        for j in i.mothershipsFound:
+                            if j.isAlive:
+                                if not self.game.getMyPlayer().inViewRange(j.position):
+                                    self.drawMiniBuilding(j)
                 else:
                     for j in i.units:
                         if j.isAlive and not isinstance(j, GroundUnit):
@@ -1639,6 +1656,11 @@ class View():
                         if j.isAlive:
                             if j.finished and not isinstance(j, b.GroundBuilding) and not isinstance(j, b.LandingZone):
                                 self.drawMiniBuilding(j)
+                    if i.id == self.game.playerId:
+                        for j in i.mothershipsFound:
+                            if j.isAlive:
+                                if not self.game.getMyPlayer().inViewRange(j.position):
+                                    self.drawMiniBuilding(j)
                 else:
                     for j in i.units:
                         if j.isAlive and not isinstance(j, GroundUnit):

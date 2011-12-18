@@ -57,6 +57,7 @@ class Player():
         self.motherships = []
         self.walls = []
         self.motherCurrent = 0
+        self.mothershipsFound = []
         self.formation = self.SQUARE_FORMATION
         self.currentPlanet = None
         self.ressources = [350,350,2,0]

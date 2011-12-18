@@ -14,15 +14,10 @@ class IA(Player):
         Player.__init__(self, name, game, id , colorId)       
         self.frameAction = 60
         self.frameActuel = 0    
-        self.priority = (1,4,3,2,9,6,8,11)
-        self.maxUnits =(1,5,1,4,1,2,2,2)
+        self.priority = (1,4,3,2,8,11)
+        self.maxUnits =(1,5,1,40,3,5)
         self.enemyDiscovered = []
-        self.diplomacies = ['','','','','','','','']
-        for i in range(0,len(self.game.players)-1):
-            if isinstance(self.game.players[i], IA):
-                self.diplomacies[i] = "Enemy"
-            else:
-                self.diplomacies[i] = "Ally"
+        self.diplomacies = ['Enemy','Enemy','Enemy','Enemy','Enemy','Enemy','Enemy','Enemy']
         
     def requeteModele(self): #methode que controleur va appeler
         if self.frameActuel == self.frameAction:
@@ -42,16 +37,16 @@ class IA(Player):
              
     def trouverRessource(self):
         for i in self.game.galaxy.solarSystemList:
-            for j in i.nebulas:
-                if self.game.players[self.id].inViewRange(j.position) and j.gazQte > 0:
+            for j in i.asteroids:
+                if self.game.players[self.id].inViewRange(j.position) and j.mineralQte > 0:
                     temp = True
                     for u in self.units:
                         if u.flag.finalTarget == j:
                             temp = False
                     if temp:
                         return j
-            for j in i.asteroids:
-                if self.game.players[self.id].inViewRange(j.position) and j.mineralQte > 0:
+            for j in i.nebulas:
+                if self.game.players[self.id].inViewRange(j.position) and j.gazQte > 0:
                     temp = True
                     for u in self.units:
                         if u.flag.finalTarget == j:
@@ -73,8 +68,8 @@ class IA(Player):
     def explore(self, moveRange):
         for i in self.units:
             if i.isAlive:
-                if i.type == Unit.SCOUT or (i.type == Unit.CARGO and i.flag.flagState != FlagState.GATHER):
-                    if i.flag.flagState != FlagState.BUILD:
+                if i.type == Unit.SCOUT or (i.type == Unit.CARGO and i.flag.flagState != FlagState.GATHER) or (i.type == Unit.ATTACK_SHIP and i.flag.flagState != FlagState.ATTACK):
+                    if i.flag.flagState != FlagState.BUILD or i.flag.flagState != FlagState.MOVE:
                         x = random.randint(-1*(moveRange),moveRange)
                         y = random.randint(-1*(moveRange),moveRange)
                         while (i.position[0]+x < (self.game.galaxy.width/2)*-1 or i.position[0]+x > self.game.galaxy.width/2):
@@ -97,7 +92,16 @@ class IA(Player):
         self.checkIfBuildingAreNotFinished()
         self.checkIfEnemyInRange()
         self.checkRessources()
-        #self.checkRessourcesPlanets()
+        self.doYourStuffOnPlanets()
+
+    def doYourStuffOnPlanets(self):
+        for p in self.planets:
+            self.checkRessourcesPlanets(p)
+            if self.getGroundBuilders(p) == 0:
+                self.build(Unit.GROUND_BUILDER_UNIT)
+            for i in range(self.getGroundGathers(p),(len(p.gaz)+len(p.minerals))):
+                self.build(Unit.GROUND_GATHER)
+            
 
     def checkIfBuildingAreNotFinished(self):
         scout = self.getNearestScoutFromMothership()
@@ -105,12 +109,10 @@ class IA(Player):
             if scout.flag.flagState != FlagState.BUILD:
                 for bl in self.buildings:
                     if not bl.finished:
-                        if Helper.calcDistance(scout.position[0],scout.position[1],bl.position[0],bl.position[1]) < 500:
-                            scout.changeFlag(bl,FlagState.BUILD)
+                        scout.changeFlag(bl,FlagState.BUILD)
 
     def checkIfSawEnemy(self):
-        unit = self.getNearestScoutFromMothership()
-        if unit != None:
+        for unit in self.units:
             for pl in self.game.players:
                 if pl != self:
                     for bl in pl.buildings:
@@ -126,13 +128,41 @@ class IA(Player):
                 if  Helper.calcDistance(ressource.position[0], ressource.position[1], nearestBuild.position[0], nearestBuild.position[1]) > 300:
                     self.buildBuilding(Building.WAYPOINT, ressource)
 
-    def checkRessourcesPlanets(self):
-        ressource = self.findRessourcePlanet()
+    def checkRessourcesPlanets(self, planet):
+        ressource = self.findRessourcePlanet(planet)
         if ressource != None:
             if self.sendGroundGather(ressource):
-                nearestBuild = self.getNearestReturnRessourceCenterOnSpace(ressource.position)
-                if  Helper.calcDistance(ressource.position[0], ressource.position[1], nearestBuild.position[0], nearestBuild.position[1]) > 300:
+                nearestBuild = self.getNearestReturnRessourceCenterOnSpace(ressource.position, self.planets[0].getLandingSpot(self.id))
+                if  Helper.calcDistance(ressource.position[0], ressource.position[1], nearestBuild.position[0], nearestBuild.position[1]) > 400:
                     self.buildBuilding(Building.FARM, ressource)
+
+    def getGroundGathers(self, planet):
+        gatherers = 0
+        for un in planet.units:
+            if un.type == Unit.GROUND_GATHER:
+                gatherers += 1
+        return gatherers
+
+    def sendGroundGather(self, ressource):
+        sentOne = False
+        for un in self.units:
+            if un.isAlive:
+                if un.type == Unit.GROUND_GATHER:
+                    if un.flag.flagState != FlagState.GROUND_GATHER:
+                        un.changeFlag(ressource, FlagState.GROUND_GATHER)
+                        sentOne = True
+        return sentOne
+                        
+
+    def findRessourcePlanet(self, planet):
+        for st in planet.minerals:
+            if st.nbMinerals > 0:
+                return st
+        for gaz in planet.gaz:
+            if gaz.nbGaz > 0:
+                return gaz
+        #self.game.takeOff(planet.getLandingSpot(self.id).LandedShip, planet, self.id)
+        return None
 
     def sendTransportToPlanet(self):
         for u in self.units:
@@ -147,28 +177,32 @@ class IA(Player):
         planet = None
         for i in self.game.galaxy.solarSystemList:
             for j in i.planets:
-                distancePlan = Helper.calcDistance(position[0],position[1],j.position[0],j.position[1])
-                if distancePlan < distance:
-                    distance = distancePlan
-                    planet = j
+                if j.getLandingSpot(self.id) == None:
+                    distancePlan = Helper.calcDistance(position[0],position[1],j.position[0],j.position[1])
+                    if distancePlan < distance:
+                        distance = distancePlan
+                        planet = j
         return planet
             
     def decisionBuildUnit(self):
         for i in self.priority:
             if self.needBuild(i):
-                if self.canAfford(Unit.BUILD_COST[i][self.MINERAL],Unit.BUILD_COST[i][self.GAS], Unit.BUILD_COST[i][self.FOOD]):
-                    b =self.getStandByBuilding(i)
-                    if b != None:
-                        self.ressources[self.MINERAL] -= u.Unit.BUILD_COST[i][Unit.MINERAL]
-                        self.ressources[self.GAS] -= u.Unit.BUILD_COST[i][Unit.GAS]
-                        self.ressources[self.FOOD] += u.Unit.BUILD_COST[i][Unit.FOOD]
-                        b.addUnitToQueue(i, self.game.galaxy)
-                        return 0
-                elif self.ressources[self.FOOD]+Unit.BUILD_COST[i][self.FOOD] > self.MAX_FOOD:
-                    if len(self.planets) == 0:
-                        self.sendTransportToPlanet()
-                    else:
-                        self.buildBuilding(Building.FARM)
+                self.build(i)
+
+    def build(self, unitType):
+        if self.canAfford(Unit.BUILD_COST[unitType][self.MINERAL],Unit.BUILD_COST[unitType][self.GAS], Unit.BUILD_COST[unitType][self.FOOD]):
+            b =self.getStandByBuilding(unitType)
+            if b != None:
+                self.ressources[self.MINERAL] -= u.Unit.BUILD_COST[unitType][Unit.MINERAL]
+                self.ressources[self.GAS] -= u.Unit.BUILD_COST[unitType][Unit.GAS]
+                self.ressources[self.FOOD] += u.Unit.BUILD_COST[unitType][Unit.FOOD]
+                b.addUnitToQueue(unitType, self.game.galaxy)
+                return 0
+            elif self.ressources[self.FOOD]+Unit.BUILD_COST[unitType][self.FOOD] > self.MAX_FOOD:
+                if len(self.planets) == 0:
+                    self.sendTransportToPlanet()
+                else:
+                    self.buildBuilding(Building.FARM)
     
     def haveBuilding(self, unitType):
         for i in self.buildings:
@@ -191,7 +225,7 @@ class IA(Player):
                     return True
                 else:
                     self.buildBuilding(Building.BARRACK)
-            elif unitType in (Unit.GROUND_GATHER, Unit.GROUND_BUILDER_UNIT, Unit.GROUND_ATTACK, Unit.SPECIAL_GATHER):
+            elif unitType in (Unit.GROUND_ATTACK, Unit.SPECIAL_GATHER):
                 if self.haveBuilding(Building.LANDING_ZONE):
                     return True
                 else:
@@ -209,14 +243,23 @@ class IA(Player):
                 planet = self.planets[0]
                 builder = self.getNearestBuilderFromLandingZone(planet)
                 if builder != None:
-                    sunId = self.galaxy.solarSystemList.index(planet.solarSystem)
-                    planetId = self.galaxy.solarSystemList[sunId].planets.index(planet)
+                    sunId = self.game.galaxy.solarSystemList.index(planet.solarSystem)
+                    planetId = self.game.galaxy.solarSystemList[sunId].planets.index(planet)
                     positionBuilding = self.getGroundPositionBuild(buildingType, planet)
-                    self.game.buildBuilding(self.id, positionBuilding, FlagState.BUILD, [str(self.units.index(builder))], buildingType, planetId, sunId)
+                    if positionBuilding != None:
+                        self.game.buildBuilding(self.id, positionBuilding, FlagState.BUILD, [str(self.units.index(builder))], buildingType, sunId, planetId)
+
+    def getGroundBuilders(self, planet):
+        builders = 0
+        for un in planet.units:
+            if un.isAlive:
+                if un.type == Unit.GROUND_BUILDER_UNIT:
+                    builders += 1
+        return builders
 
     def getNearestBuilderFromLandingZone(self, planet):
         landingPos = planet.getLandingSpot(self.id).position
-        distance = 984534
+        distance = 9999999
         unit = None
         for un in self.units:
             if un.isAlive:
@@ -230,7 +273,7 @@ class IA(Player):
         return unit
 
     def getNearestScoutFromMothership(self):
-        distance = 89374
+        distance = 99999999
         scout = None
         for un in self.units:
             if un.isAlive:
@@ -243,19 +286,19 @@ class IA(Player):
         return scout
 
     def checkIfEnemyInRange(self):
-        unit = self.getNearestScoutFromMothership()
-        if unit != None:
-            for pl in self.game.players:
-                if pl.isAlive:
-                    if pl.id != unit.owner and (self.game.players[unit.owner].isAlly(pl.id) == False or isinstance(pl, IA)):
-                        enemyUnit = pl.hasUnitInRange(unit.position, unit.viewRange)
-                        if enemyUnit != None:
-                            attackShip = self.getFirstAttackShipStandBy(enemyUnit.position)
-                            if attackShip != None:
-                                if attackShip.type == Unit.ATTACK_SHIP:
-                                    attackShip.changeFlag(enemyUnit, FlagState.ATTACK)
-                                else:
-                                    attackShip.changeFlag(enemyUnit, FlagState.ATTACK_BUILDING)
+        for un in self.units:
+            if un.type in (Unit.ATTACK_SHIP, Unit.SCOUT, Unit.SPACE_BUILDING_ATTACK):
+                for pl in self.game.players:
+                    if pl.isAlive:
+                        if pl.id != self.id and (self.game.players[self.id].isAlly(pl.id) == False or isinstance(pl, IA)):
+                            enemyUnit = pl.hasUnitInRange(un.position, un.viewRange)
+                            if enemyUnit != None:
+                                attackShip = self.getFirstAttackShipStandBy(enemyUnit.position)
+                                if attackShip != None:
+                                    if attackShip.type == Unit.ATTACK_SHIP:
+                                        attackShip.changeFlag(enemyUnit, FlagState.ATTACK)
+                                    else:
+                                        attackShip.changeFlag(enemyUnit, FlagState.ATTACK_BUILDING)
 
     def getFirstAttackShipStandBy(self, enemyPosition):
         distance = 985943
@@ -311,34 +354,34 @@ class IA(Player):
         return (x,y,0)
 
     def getGroundPositionBuild(self, buildType, planet):
-        self.currentPlanet = planet
-        x = random.randint(int(planet.position[0])-250,int(planet.position[0])+250)
-        y = random.randint(int(planet.position[1])-250,int(planet.position[1])+250)
-        while not self.game.checkIfCanBuild([x,y,0],buildType,0,self.id):
+        if len(planet.units) > 0:
+            self.currentPlanet = planet
             x = random.randint(int(planet.position[0])-250,int(planet.position[0])+250)
             y = random.randint(int(planet.position[1])-250,int(planet.position[1])+250)
-        if x < 0:
-            x = Building.SIZE[buildType][0]
-        elif x > planet.WIDTH:
-            x = planet.WIDTH - Building.SIZE[buildType][0]
-        if y < 0:
-            y = Building.SIZE[buildType][1]
-        elif y > planet.HEIGHT:
-            y = planet.HEIGHT - Building.SIZE[buildType][1]
-        return (x,y,0)
+            while not self.game.checkIfCanBuild([x,y,0],buildType,planet.units[0],self.id):
+                x = random.randint(int(planet.position[0])-250,int(planet.position[0])+250)
+                y = random.randint(int(planet.position[1])-250,int(planet.position[1])+250)
+            if x < 0:
+                x = Building.SIZE[buildType][0]
+            elif x > planet.WIDTH:
+                x = planet.WIDTH - Building.SIZE[buildType][0]
+            if y < 0:
+                y = Building.SIZE[buildType][1]
+            elif y > planet.HEIGHT:
+                y = planet.HEIGHT - Building.SIZE[buildType][1]
+            return (x,y,0)
+        return None
             
     def getStandByBuilding(self, unitType):
         if unitType == Unit.CARGO or unitType == Unit.SCOUT:
             for i in self.motherships:
                 if i.isAlive:
-                    if i.flag.flagState == FlagState.STANDBY:
-                        return i 
+                    return i 
         else:
             for i in self.buildings:
                 if i.isAlive:
                     if (i.type == Building.UTILITY and unitType == Unit.TRANSPORT) or (i.type == Building.BARRACK and unitType in (Unit.ATTACK_SHIP, Unit.SPACE_BUILDING_ATTACK)) or (i.type == Building.LANDING_ZONE and unitType in (Unit.GROUND_GATHER, Unit.GROUND_BUILDER_UNIT, Unit.GROUND_ATTACK, Unit.SPECIAL_GATHER)):
-                        if i.flag.flagState  == FlagState.STANDBY:
-                            return i
+                        return i
             return None
     
     def nbrUnit(self,unitType):
