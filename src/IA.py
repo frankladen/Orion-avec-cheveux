@@ -70,6 +70,7 @@ class IA(Player):
 
                  
     def choixAction(self):
+        self.doYourStuffOnPlanets()
         self.decisionBuildUnit()
         if self.nbrUnit(Unit.ATTACK_SHIP)+self.nbrUnit(Unit.SPACE_BUILDING_ATTACK) > 0:
             moveRange = 800
@@ -82,7 +83,6 @@ class IA(Player):
         self.checkIfBuildingAreNotFinished()
         self.checkIfEnemyInRange()
         self.checkRessources()
-        self.doYourStuffOnPlanets()
 
     def doYourStuffOnPlanets(self):
         for p in self.planets:
