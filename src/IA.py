@@ -39,20 +39,10 @@ class IA(Player):
         for i in self.game.galaxy.solarSystemList:
             for j in i.asteroids:
                 if self.game.players[self.id].inViewRange(j.position) and j.mineralQte > 0:
-                    temp = True
-                    for u in self.units:
-                        if u.flag.finalTarget == j:
-                            temp = False
-                    if temp:
-                        return j
+                    return j
             for j in i.nebulas:
                 if self.game.players[self.id].inViewRange(j.position) and j.gazQte > 0:
-                    temp = True
-                    for u in self.units:
-                        if u.flag.finalTarget == j:
-                            temp = False
-                    if temp:
-                        return j
+                    return j
         return None
                     
     def envoyerCargo(self,ressource):
@@ -132,9 +122,13 @@ class IA(Player):
         ressource = self.findRessourcePlanet(planet)
         if ressource != None:
             if self.sendGroundGather(ressource):
-                nearestBuild = self.getNearestReturnRessourceCenterOnSpace(ressource.position, self.planets[0].getLandingSpot(self.id))
+                nearestBuild = self.getNearestReturnRessourceCenterOnSpace(ressource.position, planet.getLandingSpot(self.id))
                 if  Helper.calcDistance(ressource.position[0], ressource.position[1], nearestBuild.position[0], nearestBuild.position[1]) > 400:
-                    self.buildBuilding(Building.FARM, ressource)
+                    self.buildBuilding(Building.FARM, planet)
+        else:
+            if planet.getLandingSpot(self.id).LandedShip != None:
+                self.game.takeOff(planet.getLandingSpot(self.id).LandedShip, planet, self.id)
+                self.sendTransportToPlanet()
 
     def getGroundGathers(self, planet):
         gatherers = 0
@@ -161,7 +155,6 @@ class IA(Player):
         for gaz in planet.gaz:
             if gaz.nbGaz > 0:
                 return gaz
-        #self.game.takeOff(planet.getLandingSpot(self.id).LandedShip, planet, self.id)
         return None
 
     def sendTransportToPlanet(self):
@@ -240,7 +233,7 @@ class IA(Player):
                     positionBuilding = self.getPositionBuild(buildingType, ressource)
                     self.game.buildBuilding(self.id, positionBuilding, FlagState.BUILD, [str(self.units.index(scout))], buildingType)
             elif len(self.planets) > 0:
-                planet = self.planets[0]
+                planet = ressource
                 builder = self.getNearestBuilderFromLandingZone(planet)
                 if builder != None:
                     sunId = self.game.galaxy.solarSystemList.index(planet.solarSystem)
