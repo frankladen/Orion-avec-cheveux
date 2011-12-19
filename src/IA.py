@@ -15,7 +15,7 @@ class IA(Player):
         self.frameAction = 60
         self.frameActuel = 0    
         self.priority = (1,4,3,2)
-        self.maxUnits =(1,5,1,40)
+        self.maxUnits =(2,5,1,40)
         self.enemyDiscovered = []
         self.diplomacies = ['Enemy','Enemy','Enemy','Enemy','Enemy','Enemy','Enemy','Enemy']
         
@@ -80,6 +80,8 @@ class IA(Player):
         self.checkRessources()
 
     def doYourStuffOnPlanets(self):
+        if len(self.planets) == 0:
+            self.sendTransportToPlanet()
         for p in self.planets:
             self.checkRessourcesPlanets(p)
             if self.getGroundBuilders(p) == 0:
@@ -229,7 +231,6 @@ class IA(Player):
         if self.canAfford(Unit.BUILD_COST[unitType][self.MINERAL],Unit.BUILD_COST[unitType][self.GAS], Unit.BUILD_COST[unitType][self.FOOD]):
             b =self.getStandByBuilding(unitType)
             if b != None:
-                print('Construction de ',Unit.NAME[unitType])
                 self.ressources[self.MINERAL] -= u.Unit.BUILD_COST[unitType][Unit.MINERAL]
                 self.ressources[self.GAS] -= u.Unit.BUILD_COST[unitType][Unit.GAS]
                 self.ressources[self.FOOD] += u.Unit.BUILD_COST[unitType][Unit.FOOD]
