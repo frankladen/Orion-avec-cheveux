@@ -59,6 +59,10 @@ class View():
         self.selectEnd = [0,0]
         self.positionMouse = [0,0,0]
         self.fowMothership = PhotoImage(file='images/Ships/Motherships/fowModo.gif')
+        self.fowWaypoint = PhotoImage(file='images/Building/Waypoints/FOWWaypoint.gif')
+        self.fowBarrack = PhotoImage(file='images/Building/AttackCenter/FOWStation.gif')
+        self.fowUtility = PhotoImage(file='images/Building/UtilityCenter/FOWStation.gif')
+        self.fowTurret = PhotoImage(file='images/Building/Turrets/FOWturret.gif')
         self.sun=PhotoImage(file='images/Galaxy/sun.gif')
         self.sunFOW = PhotoImage(file='images/Galaxy/sunFOW.gif')
         self.planet=PhotoImage(file='images/Galaxy/planet.gif')
@@ -1305,8 +1309,8 @@ class View():
                                 self.gameArea.create_image(rallyView[0],rallyView[1], image = self.gifRally, tag='deletable')
                         if self.game.getMyPlayer().inViewRange(j.position):
                             self.drawBuilding(j,i,False)
-                            if isinstance(j, b.Mothership) and i.id != self.game.playerId:
-                                self.game.addMothershipEnemy(j)
+                            if i.id != self.game.playerId:
+                                self.game.addBuildingEnemy(j, j.finished)
                 for j in i.units:
                     if j.isAlive and not isinstance(j, GroundUnit):
                         if self.game.getMyPlayer().inViewRange(j.position):
@@ -1316,10 +1320,10 @@ class View():
                         self.drawWall(j, i)
                 for j in i.bullets:
                     self.drawBullet(j, i, False)
-                for j in i.mothershipsFound:
-                    if j.isAlive:
-                        if not self.game.getMyPlayer().inViewRange(j.position):
-                            self.drawAlreadySeenMothership(j)
+                for j in i.buildingsFound:
+                    if j[0].isAlive:
+                        if not self.game.getMyPlayer().inViewRange(j[0].position):
+                            self.drawAlreadySeenBuilding(j)
                     
         if self.dragging:
             self.drawSelectionBox()
@@ -1400,10 +1404,22 @@ class View():
                 else:
                     self.gameArea.create_image(distance[0],distance[1],image=self.asteroidFOW, tag='deletable')
 
-    def drawAlreadySeenMothership(self, building):
-        buildingPosition = building.position
+    def drawAlreadySeenBuilding(self, building):
+        buildingPosition = building[0].position
         distance = self.game.getMyPlayer().camera.calcDistance(buildingPosition)
-        self.gameArea.create_image(distance[0], distance[1], image = self.fowMothership, tag='deletable')
+        if building[1] == True:
+            if isinstance(building[0], b.Mothership):
+                self.gameArea.create_image(distance[0], distance[1], image = self.fowMothership, tag='deletable')
+            elif isinstance(building[0], b.Waypoint):
+                self.gameArea.create_image(distance[0], distance[1], image = self.fowWaypoint, tag='deletable')
+            elif isinstance(building[0], b.Turret):
+                self.gameArea.create_image(distance[0], distance[1], image = self.fowTurret, tag='deletable')
+            elif isinstance(building[0], b.Barrack):
+                self.gameArea.create_image(distance[0], distance[1], image = self.fowBarrack, tag='deletable')
+            elif isinstance(building[0], b.Utility):
+                self.gameArea.create_image(distance[0], distance[1], image = self.fowUtility, tag='deletable')
+        else:
+            self.gameArea.create_image(distance[0], distance[1], image = self.gifConstruction, tag='deletable')
               
     def drawBuilding(self, building,  player, isInFOW):
         buildingPosition = building.position
@@ -1604,10 +1620,10 @@ class View():
                             if j.finished:
                                 self.drawMiniBuilding(j)
                     if i.id == self.game.playerId:
-                        for j in i.mothershipsFound:
-                            if j.isAlive:
-                                if not self.game.getMyPlayer().inViewRange(j.position):
-                                    self.drawMiniBuilding(j)
+                        for j in i.buildingsFound:
+                            if j[0].isAlive:
+                                if not self.game.getMyPlayer().inViewRange(j[0].position):
+                                    self.drawMiniBuilding(j[0])
                 else:
                     for j in i.units:
                         if j.isAlive and not isinstance(j, GroundUnit):
@@ -1657,10 +1673,10 @@ class View():
                             if j.finished and not isinstance(j, b.GroundBuilding) and not isinstance(j, b.LandingZone):
                                 self.drawMiniBuilding(j)
                     if i.id == self.game.playerId:
-                        for j in i.mothershipsFound:
-                            if j.isAlive:
-                                if not self.game.getMyPlayer().inViewRange(j.position):
-                                    self.drawMiniBuilding(j)
+                        for j in i.buildingsFound:
+                            if j[0].isAlive:
+                                if not self.game.getMyPlayer().inViewRange(j[0].position):
+                                    self.drawMiniBuilding(j[0])
                 else:
                     for j in i.units:
                         if j.isAlive and not isinstance(j, GroundUnit):
