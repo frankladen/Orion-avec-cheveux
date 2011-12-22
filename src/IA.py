@@ -17,35 +17,48 @@ class IA(Player):
         self.priority = (1,4,3,2)
         self.maxUnits =(2,5,1,40)
         self.enemyDiscovered = []
+        self.mineralsTime = True
         self.diplomacies = ['Enemy','Enemy','Enemy','Enemy','Enemy','Enemy','Enemy','Enemy']
-        
-    def requeteModele(self): #methode que controleur va appeler
-        if self.frameActuel == self.frameAction:
-            self.choixAction()
-            self.frameActuel = 0
-        else:
-             self.frameActuel = self.frameActuel+1
-        
+                
     def action(self):
         Player.action(self)
         # si on est rendu pour faire une nouvelle action
         if self.frameActuel == self.frameAction:
-            self.choixAction()
+            self.actions()
             self.frameActuel = 0
         else:
              self.frameActuel = self.frameActuel+1
+
+    def actions(self):
+        self.doYourStuffOnPlanets()
+        self.decisionBuildUnit()
+        self.sendUnitsToAttackDiscovered()
+        self.explore(1200)
+        self.checkIfSawEnemy()
+        self.checkIfBuildingAreNotFinished()
+        self.checkIfEnemyInRange()
+        self.checkRessources()
              
-    def trouverRessource(self):
+    def findRessource(self):
+        self.mineralsTime = not self.mineralsTime
         for i in self.game.galaxy.solarSystemList:
-            for j in i.asteroids:
-                if self.game.players[self.id].inViewRange(j.position) and j.mineralQte > 0:
-                    return j
-            for j in i.nebulas:
-                if self.game.players[self.id].inViewRange(j.position) and j.gazQte > 0:
-                    return j
+            if self.mineralsTime:
+                for j in i.nebulas:
+                    if self.game.players[self.id].inViewRange(j.position) and j.gazQte > 0:
+                        return j
+                for j in i.asteroids:
+                    if self.game.players[self.id].inViewRange(j.position) and j.mineralQte > 0:
+                        return j
+            else:
+                for j in i.asteroids:
+                    if self.game.players[self.id].inViewRange(j.position) and j.mineralQte > 0:
+                        return j
+                for j in i.nebulas:
+                    if self.game.players[self.id].inViewRange(j.position) and j.gazQte > 0:
+                        return j
         return None
                     
-    def envoyerCargo(self,ressource):
+    def sendCargo(self,ressource):
         sentOne = False
         for i in self.units:
             if i.isAlive:
@@ -68,16 +81,6 @@ class IA(Player):
                             y = random.randint(-1*(moveRange),moveRange)
                         i.changeFlag(Target([i.position[0]+x,i.position[1]+y,0]), FlagState.MOVE)
 
-                 
-    def choixAction(self):
-        self.doYourStuffOnPlanets()
-        self.decisionBuildUnit()
-        self.sendUnitsToAttackDiscovered()
-        self.explore(1200)
-        self.checkIfSawEnemy()
-        self.checkIfBuildingAreNotFinished()
-        self.checkIfEnemyInRange()
-        self.checkRessources()
 
     def doYourStuffOnPlanets(self):
         if len(self.planets) == 0:
@@ -136,9 +139,9 @@ class IA(Player):
         return False
 
     def checkRessources(self):
-        ressource = self.trouverRessource()
+        ressource = self.findRessource()
         if ressource != None:
-            if self.envoyerCargo(ressource):
+            if self.sendCargo(ressource):
                 nearestBuild = self.getNearestReturnRessourceCenter(ressource.position)
                 if  Helper.calcDistance(ressource.position[0], ressource.position[1], nearestBuild.position[0], nearestBuild.position[1]) > 300:
                     self.buildBuilding(Building.WAYPOINT, ressource)
