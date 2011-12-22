@@ -331,7 +331,7 @@ class Game():
             if building[0] == buildingFound:
                 building[1] = isFinished
                 return None
-        self.getMyPlayer().buildingsFound.append((buildingFound,isFinished))
+        self.getMyPlayer().buildingsFound.append([buildingFound,isFinished])
 
     def setBuyTech(self, techType, index):
         self.parent.pushChange(techType, Flag(0,t.Target([int(index), self.getMyPlayer().getSelectedBuildingIndex(),0]),FlagState.BUY_TECH))
