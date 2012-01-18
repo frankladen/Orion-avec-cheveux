@@ -29,7 +29,7 @@ class Unit(PlayerObject):
     MAX_HP = (50, 50, 100,125, 75, 100, 100, 100, 100,100, 100, 100, 175)
     MOVE_SPEED=(1.0,  4.0, 2.0, 3.0, 3.0, 5.0, 5.0, 3.0, 3.5, 4.0, 3.0, 1.5, 7.0)
     ATTACK_SPEED=(0,0,10,0,0,0,0,0,15,0,0, 125, 6)
-    ATTACK_DAMAGE=(0,0,5,0,0,0,0,0,12,0,0, 15, 50)
+    ATTACK_DAMAGE=(0,0,5,0,0,0,0,0,12,0,0, 50, 50)
     ATTACK_RANGE=(0,0,150,0,0,0,0,0,150,0,0, 300, 450)
     BUILD_TIME=(300,  200, 400, 300, 250, 200, 200, 200, 200, 200,200, 500, 0)
     BUILD_COST=((50,50,1),  (100,50,1), (300,300,1), (300,300,1), (75,0,1), (150,100,1),(50,75,1), (75,125,1), (100,80,1), (65,90,1),(75,50,1),(400,400,1), (0,0,0))
@@ -855,7 +855,7 @@ class GatherShip(SpaceUnit):
                     self.move()
             if arrived:
                 if self.gatherSpeed==0:
-                    if ressource.type=='asteroid':
+                    if ressource.type==w.SolarSystem.ASTEROID:
                         if self.container[0] < self.maxGather:
                             if ressource.mineralQte >= 5:
                                 self.container[0]+=5

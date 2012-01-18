@@ -523,7 +523,8 @@ class Player():
     def calculateFinalBuildingsScore(self):
         score = 0
         for b in self.buildings:
-            score += b.SCORE_VALUE[b.type]
+            if b.finished:
+                score += b.SCORE_VALUE[b.type]
         return score
 
     def calculateFinalUnitsScore(self):

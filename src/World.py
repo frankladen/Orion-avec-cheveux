@@ -157,7 +157,7 @@ class SolarSystem():
                         if self.sunPosition[1]+tempY > k.position[1]-k.NEBULA_HEIGHT and self.sunPosition[1]+tempY < k.position[1]+k.NEBULA_HEIGHT:
                             placeFound = False
                             break
-            self.nebulas.append(AstronomicalObject('nebula', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY),i,self))
+            self.nebulas.append(AstronomicalObject(SolarSystem.NEBULA, (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY),i,self))
         for i in range(0,nAstero):
             tempX=""
             tempY=""
@@ -186,7 +186,7 @@ class SolarSystem():
                         if self.sunPosition[1]+tempY > q.position[1]-q.ASTEROID_HEIGHT and self.sunPosition[1]+tempY < q.position[1]+q.ASTEROID_HEIGHT:
                             placeFound = False
                             break
-            self.asteroids.append(AstronomicalObject('asteroid', (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY),i,self))
+            self.asteroids.append(AstronomicalObject(SolarSystem.ASTEROID, (self.sunPosition[0]+tempX,self.sunPosition[1]+tempY),i,self))
 
     def over(self, positionStart, positionEnd):
         if positionEnd[0] > self.sunPosition[0] - self.SUN_WIDTH/2 and positionStart[0] < self.sunPosition[0] + self.SUN_WIDTH/2:
@@ -229,8 +229,8 @@ class AstronomicalObject(Target):
     ASTEROID_WIDTH=30
     ASTEROID_HEIGHT=31
     MAX_MINERALS=1000
-    NEBULA = 90
-    ASTEROID = 91
+    NEBULA = 0
+    ASTEROID = 1
     
     def __init__(self, type, position, id,solarSystem):
         Target.__init__(self, position)
@@ -238,10 +238,10 @@ class AstronomicalObject(Target):
         self.id = id
         self.type = type
         self.discovered = False
-        if type == 'nebula':
+        if type == AstronomicalObject.NEBULA:
             self.gazQte = random.randrange(self.MAX_GAS/2, self.MAX_GAS)
             self.mineralQte = 0
-        elif type == 'asteroid':
+        elif type == AstronomicalObject.ASTEROID:
             self.mineralQte = random.randrange(self.MAX_MINERALS/2, self.MAX_MINERALS)
             self.gazQte = 0 
 

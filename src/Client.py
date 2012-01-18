@@ -288,11 +288,7 @@ class Controller():
                 if isinstance(flag.finalTarget, w.AstronomicalObject):
                     astroId = flag.finalTarget.id
                     solarId = flag.finalTarget.solarSystem.sunId
-                    if flag.finalTarget.type == 'nebula':
-                        type = w.AstronomicalObject.NEBULA
-                    elif flag.finalTarget.type == 'asteroid':
-                        type = w.AstronomicalObject.ASTEROID
-                    actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(astroId)+","+str(solarId)+","+str(type)
+                    actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(astroId)+","+str(solarId)+","+str(flag.finalTarget.type)
                 else:
                     actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(self.game.players[self.game.playerId].buildings.index(flag.finalTarget))+",0," + str(flag.finalTarget.type)
             elif flag.flagState == FlagState.GROUND_GATHER:
