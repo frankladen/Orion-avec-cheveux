@@ -899,7 +899,7 @@ class GatherShip(SpaceUnit):
                 self.container[1] = 0
                 if isinstance(self.flag.initialTarget, w.AstronomicalObject):
                     self.flag.finalTarget = self.flag.initialTarget
-                    if self.flag.finalTarget.type == 'asteroid':
+                    if self.flag.finalTarget.type == w.AstronomicalObject.ASTEROID:
                         if self.flag.finalTarget.mineralQte == 0:
                             player.notifications.append(Notification(self.position, Notification.FINISH_GATHER))
                             self.flag.flagState = FlagState.STANDBY
