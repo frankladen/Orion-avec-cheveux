@@ -622,7 +622,7 @@ class Game():
             if constructionUnit <= (len(self.players[player].buildings)-1) and constructionUnit != None:
                 if isinstance(self.players[player].buildings[constructionUnit], ConstructionBuilding):
                     self.players[player].createUnit(unitType, constructionUnit)
-
+                    
     def sendCancelUnit(self, unit):
         self.parent.pushChange(self.getMyPlayer().getSelectedBuildingIndex(), Flag(finalTarget = unit, flagState = FlagState.CANCEL_UNIT))
 
