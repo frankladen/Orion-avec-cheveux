@@ -3,6 +3,7 @@ import View as v
 import World as w
 import Player as p
 import Target as t
+import Building as b
 import Unit as u
 import Game as g
 import IA as ia
@@ -248,32 +249,14 @@ class Controller():
                 for i in flag.initialTarget:
                     flag.finalTarget.position.append(i)
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
-            elif flag.flagState == FlagState.CREATE:
+            elif flag.flagState in (FlagState.CREATE, FlagState.CHANGE_RALLY_POINT, FlagState.NOTIFICATION, FlagState.ATTACK_BUILDING, FlagState.LINK_WAYPOINTS, FlagState.CANCEL_UNIT, FlagState.CANCEL_TECH, FlagState.CHEAT, FlagState.CHANGE_FORMATION, FlagState.DESTROY_ALL, FlagState.DEMAND_ALLIANCE):
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState) + "/" + str(flag.finalTarget)
-            elif flag.flagState == FlagState.CHANGE_RALLY_POINT:
-                actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
-            elif flag.flagState == FlagState.NOTIFICATION:
-                actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
-            elif flag.flagState == FlagState.ATTACK_BUILDING:
-                actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
-            elif flag.flagState == FlagState.LINK_WAYPOINTS:
-                actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.DESTROY:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/0"
-            elif flag.flagState in (FlagState.CANCEL_UNIT, FlagState.CANCEL_TECH):
-                actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
-            elif flag.flagState == FlagState.CHEAT:
-                actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(flag.finalTarget)
             elif flag.flagState == FlagState.PATROL:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
-            elif flag.flagState == FlagState.CHANGE_FORMATION:
-                actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget)
-            elif flag.flagState == FlagState.DESTROY_ALL:
-                actionString = str(playerObject)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget)
             elif flag.flagState == FlagState.TRADE:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/["+str(flag.initialTarget)+","+str(flag.finalTarget)+"]"
-            elif flag.flagState == FlagState.DEMAND_ALLIANCE:
-                actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget)
             elif flag.flagState == FlagState.BUY_TECH:
                 actionString = str(self.game.playerId)+"/"+str(playerObject)+"/"+str(flag.flagState)+"/"+str(flag.finalTarget.position)
             elif flag.flagState == FlagState.WORMHOLE:
@@ -295,16 +278,18 @@ class Controller():
                 sunId = flag.finalTarget.sunId
                 planetId = flag.finalTarget.planetId
                 ressourceId = 0
-                if isinstance(flag.finalTarget, w.NuclearSite) == False:
+                if isinstance(flag.finalTarget, w.NuclearSite) == False and isinstance(flag.finalTarget, b.Farm) == False:
                     ressourceId = flag.finalTarget.id
                 if isinstance(flag.finalTarget, w.MineralStack):
-                    actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(ressourceId) + "," + str(planetId) + "," + str(sunId) + "," + str(w.Planet.MINERAL)
+                    actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(ressourceId) + "," + str(planetId) + "," + str(sunId) + "," + "mine"
                 elif isinstance(flag.finalTarget, w.GazStack):
-                    actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(ressourceId) + "," + str(planetId) + "," + str(sunId) + "," + str(w.Planet.GAZ)
+                    actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(ressourceId) + "," + str(planetId) + "," + str(sunId) + "," + "gaz"
                 elif isinstance(flag.finalTarget, w.NuclearSite):
-                    actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(ressourceId) + "," + str(planetId) + "," + str(sunId) + "," + str(w.Planet.NUCLEAR)
-                else:
-                    actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(ressourceId) + "," + str(planetId) + "," + str(sunId) + "," + str(w.Planet.LANDINGZONE)
+                    actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(ressourceId) + "," + str(planetId) + "," + str(sunId) + "," + "nuclear"
+                elif isinstance(flag.finalTarget, b.LandingZone):
+                    actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(ressourceId) + "," + str(planetId) + "," + str(sunId) + "," + "landing"
+                elif isinstance(flag.finalTarget, b.Farm):
+                    actionString = str(self.game.playerId) + "/" + str(playerObject) + "/" + str(flag.flagState) + "/" + str(ressourceId) + "," + str(planetId) + "," + str(self.game.getMyPlayer().buildings.index(flag.finalTarget)) + "," + "farm"
         elif isinstance(flag, tuple):
             if flag[2] == FlagState.LAND:
                 actionString = str(self.game.playerId)+"/"+playerObject+"/"+str(flag[2])+"/"+str(flag[0])+","+str(flag[1])
@@ -422,7 +407,7 @@ class Controller():
 
         elif action == str(FlagState.GROUND_GATHER):
             target = target.split(',')
-            self.game.makeGroundUnitsGather(actionPlayerId, unitIndex, int(target[0]),int(target[1]),int(target[2]),int(target[3]))
+            self.game.makeGroundUnitsGather(actionPlayerId, unitIndex, int(target[0]),int(target[1]),int(target[2]),target[3])
         
         elif action == str(FlagState.CREATE):
             self.game.createUnit( actionPlayerId, int(unitIndex[0]), int(target))

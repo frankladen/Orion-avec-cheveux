@@ -421,14 +421,16 @@ class Game():
         self.players[int(playerId)].makeGroundUnitsMove(unitsId, [posX, posY, posZ], int(action))
 
     def makeGroundUnitsGather(self, playerId, unitsId, ressourceId, planetId, sunId, ressourceType):
-        if ressourceType == Planet.MINERAL:
+        if ressourceType == "mine":
             ressource = self.galaxy.solarSystemList[sunId].planets[planetId].minerals[ressourceId]
-        elif ressourceType == Planet.GAZ:
+        elif ressourceType == "gaz":
             ressource = self.galaxy.solarSystemList[sunId].planets[planetId].gaz[ressourceId]
-        elif ressourceType == Planet.NUCLEAR:
+        elif ressourceType == "nuclear":
             ressource = self.galaxy.solarSystemList[sunId].planets[planetId].nuclearSite
-        else:
+        elif ressourceType == "landing":
             ressource = self.galaxy.solarSystemList[sunId].planets[planetId].landingZones[ressourceId]
+        elif ressourceType == "farm":
+            ressource = self.players[playerId].buildings[sunId]
         if isinstance(ressource, LandingZone):
             if ressource.LandedShip == None:
                 self.players[playerId].makeGroundUnitsGather(unitsId, ressource)
@@ -971,7 +973,7 @@ class Game():
             if unit != None:
                 if clickedObj != None and not isinstance(unit, Building):
                     if unit.type == unit.GROUND_GATHER:
-                        if isinstance(clickedObj, w.MineralStack) or isinstance(clickedObj, w.GazStack) or isinstance(clickedObj, b.LandingZone):
+                        if isinstance(clickedObj, w.MineralStack) or isinstance(clickedObj, w.GazStack) or isinstance(clickedObj, b.LandingZone) or isinstance(clickedObj, b.Farm):
                             self.setAllGroundGatherFlag(clickedObj)
                     elif unit.type == unit.GROUND_ATTACK:
                         if isinstance(clickedObj, u.Unit) or isinstance(clickedObj, Building):
@@ -986,7 +988,8 @@ class Game():
                         if isinstance(clickedObj, NuclearSite):
                             self.setGroundGatherFlag(unit, clickedObj)
                     if isinstance(clickedObj, b.LandingZone) and clickedObj.owner == self.playerId:
-                        self.setLoadFlag(self.getMyPlayer().selectedObjects, clickedObj)
+                        if clickedObj.LandedShip != None:
+                            self.setLoadFlag(self.getMyPlayer().selectedObjects, clickedObj)
                 else:
                     if isinstance(unit, LandingZone):
                         self.setRallyPointPosition(pos)

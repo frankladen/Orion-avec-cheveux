@@ -2366,7 +2366,7 @@ class View():
             if (Button_pressed == "Button_Build_Scout"):
                 self.drawFirstLine=str(Unit.NAME[Unit.SCOUT])
                 self.drawSecondLine=str(Unit.BUILD_COST[Unit.SCOUT][0])+" mine | "+str(Unit.BUILD_COST[Unit.SCOUT][1])+" gaz"
-            if (Button_pressed == "Button_Build_Building_Attack"):
+            elif (Button_pressed == "Button_Build_Building_Attack"):
                 self.drawFirstLine=str(Unit.NAME[Unit.SPACE_BUILDING_ATTACK])
                 self.drawSecondLine=str(Unit.BUILD_COST[Unit.SPACE_BUILDING_ATTACK][0])+" mine | "+str(Unit.BUILD_COST[Unit.SPACE_BUILDING_ATTACK][1])+" gaz"    
             elif (Button_pressed == "Button_Build_Attack"):
