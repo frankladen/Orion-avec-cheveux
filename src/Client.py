@@ -20,6 +20,7 @@ import time
 
 class Controller():
     def __init__(self):
+        self.logfile = open("C:/temp/orionLog.txt", 'w')
         self.nIA = 0 #compteurIA
         self.refresh = 0 #Compteur principal
         self.players = []
@@ -331,6 +332,7 @@ class Controller():
         return toChange
     
     def doAction(self, changeString):
+        self.logfile.write(changeString + "\n")
         changeInfo = changeString.split("/")
         actionPlayerId = int(changeInfo[0])
         unitIndex = changeInfo[1]
@@ -476,6 +478,7 @@ class Controller():
         if self.view.currentFrame == self.view.gameFrame:
             if self.server:
                 playerId = self.game.playerId
+                self.logfile.close()
                 self.pushChange(playerId, Flag(playerId,playerId,FlagState.DESTROY_ALL))
             else:
                 self.view.root.destroy()
