@@ -20,7 +20,6 @@ import time
 
 class Controller():
     def __init__(self):
-        self.logfile = open("C:/temp/orionLog.txt", 'w')
         self.nIA = 0 #compteurIA
         self.refresh = 0 #Compteur principal
         self.players = []
@@ -45,10 +44,6 @@ class Controller():
                     if self.game.action(): 
                         if self.refresh % 20 == 0:
                             self.refreshMessages(self.view.menuModes.chat)
-                        if self.refresh % 100 == 0:
-                            for pl in self.game.players:
-                                print(pl.name, ": ", pl.ressources[0], " mineraux, ", pl.ressources[1], " gaz, ", pl.ressources[2], "/", pl.MAX_FOOD)
-                            print("")
                         #À chaque itération je demande les nouvelles infos au serveur
                         self.pullChange()
                         if not self.died:
@@ -478,7 +473,6 @@ class Controller():
         if self.view.currentFrame == self.view.gameFrame:
             if self.server:
                 playerId = self.game.playerId
-                self.logfile.close()
                 self.pushChange(playerId, Flag(playerId,playerId,FlagState.DESTROY_ALL))
             else:
                 self.view.root.destroy()
