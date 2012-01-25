@@ -390,6 +390,8 @@ class Player():
         unit.changeFlag(t.Target(constructionUnit.rallyPoint), FlagState.MOVE)
         self.units.append(unit)
 
+        print(self.name + " vient de construire une unit de type " + unit.NAME[unit.type])
+        
         if self.game.playerId == unit.owner:
             if not self.camera.inGameArea(constructionUnit.position):
                 if isinstance(constructionUnit, b.Mothership) or isinstance(constructionUnit, b.Barrack) or isinstance(constructionUnit, b.Utility):

@@ -303,14 +303,14 @@ class GroundGatherUnit(GroundUnit):
                                 self.container[0]+=ressource.nbMinerals
                                 ressource.nbMinerals = 0
                                 self.flag.initialTarget = self.flag.finalTarget
-                                self.flag.finalTarget =player.getNearestReturnRessourceCenterOnSpace(self.position, self)
+                                self.flag.finalTarget = player.getNearestReturnRessourceCenterOnSpace(self.position, self)
                                 game.parent.redrawMinimap()
                             self.gatherSpeed = self.GATHERTIME
                         else:
                             self.flag.initialTarget = self.flag.finalTarget
                             self.flag.finalTarget = player.getNearestReturnRessourceCenterOnSpace(self.position, self)
                     else:
-                        if self.container[1]<self.maxGather:
+                        if self.container[1] < self.maxGather:
                             if ressource.nbGaz >= 5:
                                 self.container[1]+=5
                                 ressource.nbGaz-=5
@@ -334,6 +334,12 @@ class GroundGatherUnit(GroundUnit):
             if arrived:
                 player.ressources[player.MINERAL] += self.container[0]
                 player.ressources[player.GAS] += self.container[1]
+                print(player.name + " a maintenant les ressources suivantes:")
+                print(str(player.ressources[player.MINERAL]) + " minéraux")
+                print(str(player.ressources[player.GAS]) + " gas")
+                print(str(player.ressources[player.FOOD]) + "/" + str(player.MAX_FOOD) + " food")
+                print(str(player.ressources[player.NUCLEAR]) + " nucléaire")
+                print()
                 self.container[0] = 0
                 self.container[1] = 0
                 if isinstance(self.flag.initialTarget, w.MineralStack) or isinstance(self.flag.initialTarget, w.GazStack):
@@ -895,6 +901,12 @@ class GatherShip(SpaceUnit):
             if arrived:
                 player.ressources[player.MINERAL] += self.container[0]
                 player.ressources[player.GAS] += self.container[1]
+                print(player.name + " a maintenant les ressources suivantes:")
+                print(str(player.ressources[player.MINERAL]) + " minéraux")
+                print(str(player.ressources[player.GAS]) + " gas")
+                print(str(player.ressources[player.FOOD]) + "/" + str(player.MAX_FOOD) + " food")
+                print(str(player.ressources[player.NUCLEAR]) + " nucléaire")
+                print()
                 self.container[0] = 0
                 self.container[1] = 0
                 if isinstance(self.flag.initialTarget, w.AstronomicalObject):

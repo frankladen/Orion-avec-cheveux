@@ -351,6 +351,7 @@ class Controller():
             self.game.resumeBuilding(actionPlayerId, int(target), unitIndex)
             
         elif action == str(FlagState.BUILD):
+            print("le player " + str(actionPlayerId) + " veut construire un building")
             target = self.changeToInt(self.stripAndSplit(target))
             if len(target) == 5:
                 self.game.buildBuilding(actionPlayerId, target, int(action), unitIndex, int(target[3]))

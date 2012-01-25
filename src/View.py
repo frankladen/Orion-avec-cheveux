@@ -1470,10 +1470,17 @@ class View():
         buildingPos = self.game.getMyPlayer().camera.calcPointInWorld(self.positionMouse[0], self.positionMouse[1])
         distance = self.game.getMyPlayer().camera.calcDistance(buildingPos)
         building = self.buildingToBuild
-        if self.game.checkIfCanBuild(buildingPos, building):
-            color = "green"
+        planet = self.game.getCurrentPlanet()
+        if planet != None:
+            if self.game.checkIfCanBuild(buildingPos, building, planetId = planet.id, sunId = planet.solarSystem.sunId):
+                color = "green"
+            else:
+                color = "red"
         else:
-            color = "red"
+            if self.game.checkIfCanBuild(buildingPos, building):
+                color = "green"
+            else:
+                color = "red"
         self.gameArea.create_rectangle(distance[0]-b.Building.SIZE[building][0]/2, distance[1]-b.Building.SIZE[building][1]/2, distance[0]+b.Building.SIZE[building][0]/2, distance[1]+b.Building.SIZE[building][1]/2, fill=color, outline="lightgray", tag='deletable')
         if building == b.Building.WAYPOINT:
             self.gameArea.create_image(distance[0], distance[1], image=self.waypoints[self.game.getMyPlayer().colorId], tag='deletable')

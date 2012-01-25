@@ -133,14 +133,16 @@ class Game():
             else:
                 self.parent.pushChange(units, Flag((type,sunId,planetId),t.Target([x,y,0]),FlagState.BUILD))
 
-    def buildBuilding(self, playerId, target, flag, unitIndex, type, sunId=0, planetId=0):
+    def buildBuilding(self, playerId, target, flag, unitIndex, type, sunId=None, planetId=None):
         #Condition de construction
         wp = None
-        if self.checkIfCanBuild((target[0], target[1],0), type, int(unitIndex[0]), playerId):
+        if self.checkIfCanBuild((target[0], target[1],0), type, int(unitIndex[0]), playerId, sunId=sunId, planetId=planetId):
+            print("checkIfCanBuild retourne vrai")
             player = self.players[playerId]
             if player.ressources[0] >= Building.COST[type][0] and player.ressources[1] >= Building.COST[type][1]:
                 player.ressources[0] -= Building.COST[type][0]
                 player.ressources[1] -= Building.COST[type][1]
+                print("le ressource check est correct")
                 if type == Building.WAYPOINT:
                     wp = Waypoint(Building.WAYPOINT, [target[0],target[1],0], playerId)
                 elif type == Building.UTILITY:
@@ -164,6 +166,7 @@ class Game():
                 if self.players[playerId].FORCE_BUILD_ACTIVATED:
                     wp.buildTime = 1
                 self.players[playerId].buildings.append(wp)
+                "a append le building au player"
                 for i in unitIndex:
                     if i != '':
                         self.players[playerId].units[int(i)].changeFlag(wp,flag)
@@ -854,7 +857,7 @@ class Game():
                             unitsToAttack.append(buildingInRange)
         return unitsToAttack
     
-    def checkIfCanBuild(self, position, type, index = None, playerId = None):
+    def checkIfCanBuild(self, position, type, index = None, playerId = None, planetId = None, sunId = None):
         if index != None:
             if index < len(self.players[playerId].units):
                 unit = self.players[playerId].units[index]
@@ -870,7 +873,7 @@ class Game():
         
         for p in self.players:
             for b in p.buildings:
-                if self.getCurrentPlanet() != None:
+                if planetId != None:
                     if (isinstance(b, GroundBuilding) or isinstance(b, LandingZone)) and isinstance(unit, u.GroundUnit):
                         if unit.planet == b.planet:
                             if b.selectIcon(start, end) != None:
@@ -878,12 +881,15 @@ class Game():
                 else:
                     if b.selectIcon(start, end) != None:
                         return False
-        if self.getCurrentPlanet() == None:
+        if planetId == None:
             for i in self.galaxy.solarSystemList:
                 if i.over(start, end):
+                    print("false après i.over(start, end)")
                     return False
         else:
-            if self.getCurrentPlanet().groundOver(start, end):
+            planet = self.galaxy.solarSystemList[sunId].planets[planetId]
+            if planet.groundOver(start, end):
+                print("false après getCurrentPlanet.groundOver")
                 return False
         return True
     
