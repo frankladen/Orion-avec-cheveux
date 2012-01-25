@@ -85,17 +85,27 @@ class Game():
         if not target[1] in (t.Notification.MESSAGE_ALL, t.Notification.MESSAGE_ALLIES, t.Notification.PING):
             if target[1] == t.Notification.ATTACKED_UNIT:
                 for i in player.notifications:
-                    if i.position == player.units[target[2]].position and i.actionPlayerName == actionPlayerName:
-                        addIt = False
+                        if i.position == player.units[target[2]].position and i.actionPlayerName == actionPlayerName:
+                            addIt = False
                 if addIt:
-                    #Tu ajoutes seulement le 4e paramètre si tu en as besoin, le nom de l'autre joueur
-                    notif = t.Notification(player.units[target[2]].position, target[1], actionPlayerName)
+                    if isinstance(player.units[target[2]], u.GroundUnit) == False:
+                        #Tu ajoutes seulement le 4e paramètre si tu en as besoin, le nom de l'autre joueur
+                        notif = t.Notification(player.units[target[2]].position, target[1], actionPlayerName)
+                    else:
+                        for p in player.planets:
+                            for un in p.units:
+                                if un == player.units[target[2]]:
+                                    notif = t.Notification(p.position, target[1], actionPlayerName)
+                                    break
             elif target[1] == t.Notification.ATTACKED_BUILDING:
                 for i in player.notifications:
                     if i.position == player.buildings[target[2]].position and i.actionPlayerName == actionPlayerName:
                         addIt = False
                 if addIt:
-                    notif = t.Notification(player.buildings[target[2]].position, target[1], actionPlayerName)
+                    if Building.INSPACE[player.buildings[target[2]].type] == True:
+                        notif = t.Notification(player.buildings[target[2]].position, target[1], actionPlayerName)
+                    else:
+                        notif = t.Notification(player.buildings[target[2]].planet.position, target[1], actionPlayerName)
             if notif != None:
                 player.notifications.append(notif)
         else:
